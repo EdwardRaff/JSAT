@@ -218,7 +218,7 @@ public class RandomForestTest
             RandomForest instance = new RandomForest();
             
             ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(100, 3);
-            ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(100, 6);
+            ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(100, 4);
             if(useCatFeatures)
             {
                 t1.applyTransform(new NumericalToHistogram(t1));

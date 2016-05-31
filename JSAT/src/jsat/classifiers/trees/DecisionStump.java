@@ -911,7 +911,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                             thisSplitSqrdErr = Double.NEGATIVE_INFINITY;
                     }
                     //Now compare what weve done
-                    if(thisSplitSqrdErr < lowestSplitSqrdError.get())
+                    if(thisSplitSqrdErr >= 0 && thisSplitSqrdErr < lowestSplitSqrdError.get())//how did we get -Inf?
                     {
                         synchronized(bestSplit)
                         {
