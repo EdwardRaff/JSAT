@@ -203,37 +203,24 @@ public class LSDBC extends ClustererBase implements Parameterized
         List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> knnVecList =
                 new ArrayList<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>>(dataSet.getSampleSize());
 
-        try
+        //Set up
+        List<VecPaired<Vec, Integer>> vecs = new ArrayList<VecPaired<Vec, Integer>>(dataSet.getSampleSize());
+
+        for (int i = 0; i < dataSet.getSampleSize(); i++)
+            vecs.add(new VecPaired<Vec, Integer>(dataSet.getDataPoint(i).getNumericalValues(), i));
+
+        if (threadpool == null || threadpool instanceof FakeExecutor)
         {
-            //Set up
-            List<VecPaired<Vec, Integer>> vecs = new ArrayList<VecPaired<Vec, Integer>>(dataSet.getSampleSize());
-
-            for (int i = 0; i < dataSet.getSampleSize(); i++)
-                vecs.add(new VecPaired<Vec, Integer>(dataSet.getDataPoint(i).getNumericalValues(), i));
-
-            if (threadpool == null || threadpool instanceof FakeExecutor)
-            {
-                TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
-                vc = vectorCollectionFactory.getVectorCollection(vecs, dm);
-                knnVecList = VectorCollectionUtils.allNearestNeighbors(vc, vecs, k+1);
-            }
-            else
-            {
-                TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
-                vc = vectorCollectionFactory.getVectorCollection(vecs, dm, threadpool);
-                knnVecList = VectorCollectionUtils.allNearestNeighbors(vc, vecs, k+1, threadpool);
-            }
-
+            TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
+            vc = vectorCollectionFactory.getVectorCollection(vecs, dm);
+            knnVecList = VectorCollectionUtils.allNearestNeighbors(vc, vecs, k+1);
         }
-        catch (InterruptedException ex)
+        else
         {
-            Logger.getLogger(LSDBC.class.getName()).log(Level.SEVERE, null, ex);
+            TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
+            vc = vectorCollectionFactory.getVectorCollection(vecs, dm, threadpool);
+            knnVecList = VectorCollectionUtils.allNearestNeighbors(vc, vecs, k+1, threadpool);
         }
-        catch (ExecutionException ex)
-        {
-            Logger.getLogger(LSDBC.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
 
         //Sort
         IndexTable indexTable = new IndexTable(knnVecList, new Comparator()

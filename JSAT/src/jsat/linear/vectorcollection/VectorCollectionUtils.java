@@ -3,6 +3,8 @@ package jsat.linear.vectorcollection;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.math.OnLineStatistics;
@@ -58,7 +60,6 @@ public class VectorCollectionUtils
      * @return The list of lists for all nearest neighbors 
      */
     public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allNearestNeighbors(final VectorCollection<V0> collection, List<V1> search, final int k, ExecutorService threadpool)
-             throws InterruptedException, ExecutionException
     {
         List<List<? extends VecPaired<V0, Double>>> results = new ArrayList<List<? extends VecPaired<V0, Double>>>(search.size());
         List<Future<List<List<? extends VecPaired<V0, Double>>>>> subResults = new ArrayList<Future<List<List<? extends VecPaired<V0, Double>>>>>(LogicalCores);
@@ -80,8 +81,19 @@ public class VectorCollectionUtils
             }));
         }
 
-        for (List<List<? extends VecPaired<V0, Double>>> subResult : ListUtils.collectFutures(subResults))
-            results.addAll(subResult);
+        try
+        {
+            for (List<List<? extends VecPaired<V0, Double>>> subResult : ListUtils.collectFutures(subResults))
+                results.addAll(subResult);
+        }
+        catch (ExecutionException ex)
+        {
+            Logger.getLogger(VectorCollectionUtils.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(VectorCollectionUtils.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         return results;
     }
@@ -97,7 +109,6 @@ public class VectorCollectionUtils
      * @return The list of lists for all nearest neighbors 
      */
     public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allNearestNeighbors(final VectorCollection<V0> collection, V1[] search, final int k, ExecutorService threadpool)
-             throws InterruptedException, ExecutionException
     {
         return allNearestNeighbors(collection, Arrays.asList(search), k, threadpool);
     }
@@ -148,7 +159,6 @@ public class VectorCollectionUtils
      * @return the statistics for the distance of the k'th nearest neighbor from the query point
      */
     public static <V0 extends Vec, V1 extends Vec> OnLineStatistics getKthNeighborStats(final VectorCollection<V0> collection, List<V1> search, final int k, ExecutorService threadpool)
-            throws InterruptedException, ExecutionException
     {
         List<Future<OnLineStatistics>> futureStats = new ArrayList<Future<OnLineStatistics>>(LogicalCores);
         
@@ -169,8 +179,19 @@ public class VectorCollectionUtils
         }
 
         OnLineStatistics stats = new OnLineStatistics();
-        for (OnLineStatistics subResult : ListUtils.collectFutures(futureStats))
-            stats = OnLineStatistics.add(stats, subResult);
+        try
+        {
+            for (OnLineStatistics subResult : ListUtils.collectFutures(futureStats))
+                stats = OnLineStatistics.add(stats, subResult);
+        }
+        catch (ExecutionException ex)
+        {
+            Logger.getLogger(VectorCollectionUtils.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(VectorCollectionUtils.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         return stats;
     }
@@ -187,7 +208,6 @@ public class VectorCollectionUtils
      * @return the statistics for the distance of the k'th nearest neighbor from the query point
      */
     public static <V0 extends Vec, V1 extends Vec> OnLineStatistics getKthNeighborStats(final VectorCollection<V0> collection, V1[] search, final int k, ExecutorService threadpool)
-            throws InterruptedException, ExecutionException
     {
         return getKthNeighborStats(collection, Arrays.asList(search), k, threadpool);
     }

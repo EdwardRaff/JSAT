@@ -456,10 +456,6 @@ public class FLAME extends ClustererBase implements Parameterized
         {
             throw new ClusterFailureException();
         }
-        catch (ExecutionException executionException)
-        {
-            throw new ClusterFailureException();
-        }
     }
 
     @Override
