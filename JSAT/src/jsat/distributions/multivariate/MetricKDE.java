@@ -30,8 +30,8 @@ import jsat.parameters.*;
 public class MetricKDE extends MultivariateKDE implements Parameterized
 {
 
-	private static final long serialVersionUID = -2084039950938740815L;
-	private KernelFunction kf;
+    private static final long serialVersionUID = -2084039950938740815L;
+    private KernelFunction kf;
     private double bandwidth;
     private DistanceMetric distanceMetric;
     private VectorCollectionFactory<VecPaired<Vec, Integer>> vcf;
@@ -463,20 +463,8 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
         if(threadpool == null)//k+1 b/c the first nearest neighbor will be itself
             stats = VectorCollectionUtils.getKthNeighborStats(vecCollection, dataSet, k + 1);
         else
-            try
-            {
-                stats = VectorCollectionUtils.getKthNeighborStats(vecCollection, dataSet, k + 1, threadpool);
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(MetricKDE.class.getName()).log(Level.SEVERE, null, ex);
-                return false;
-            }
-            catch (ExecutionException ex)
-            {
-                Logger.getLogger(MetricKDE.class.getName()).log(Level.SEVERE, null, ex);
-                return false;
-            }
+            stats = VectorCollectionUtils.getKthNeighborStats(vecCollection, dataSet, k + 1, threadpool);
+            
 
         setBandwith(stats.getMean() + stats.getStandardDeviation() * stndDevs);
 
