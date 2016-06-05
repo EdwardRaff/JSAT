@@ -739,7 +739,7 @@ public abstract class DataSet<Type extends DataSet>
      * contains a different list pointing to the same data points. 
      * @return a shallow copy of this data set
      */
-    abstract public DataSet shallowClone();
+    abstract public DataSet<Type> shallowClone();
     
     /**
      * Returns a new version of this data set that is of the same type, and
