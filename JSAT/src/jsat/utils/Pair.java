@@ -34,4 +34,10 @@ public class Pair<X, Y>
     {
         return secondItem;
     }
+
+    @Override
+    public String toString()
+    {
+        return "(" + firstItem + ", " + secondItem + ")";
+    }
 }
