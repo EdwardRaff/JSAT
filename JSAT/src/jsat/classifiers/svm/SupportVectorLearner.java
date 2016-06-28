@@ -1,6 +1,7 @@
 
 package jsat.classifiers.svm;
 
+import java.io.Serializable;
 import java.util.*;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.distributions.kernels.LinearKernel;
@@ -20,7 +21,7 @@ import jsat.utils.ListUtils;
  * 
  * @author Edward Raff
  */
-public abstract class SupportVectorLearner 
+public abstract class SupportVectorLearner implements Serializable
 {
     //Implementation note, NaN is used to indicate a cache value that has not been computed yet. 
     @ParameterHolder
