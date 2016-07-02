@@ -8,6 +8,7 @@ import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseMatrix;
+import jsat.linear.DenseVector;
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
 
@@ -34,8 +35,8 @@ import jsat.linear.Vec;
 public class PCA implements DataTransform
 {
 
-	private static final long serialVersionUID = 8736609877239941617L;
-	/**
+    private static final long serialVersionUID = 8736609877239941617L;
+    /**
      * The transposed matrix of the Principal Components
      */
     private Matrix P;
@@ -82,6 +83,7 @@ public class PCA implements DataTransform
      */
     public PCA(DataSet dataSet, int maxPCs, double threshold)
     {
+        //Edwad, don't forget. This is: Nonlinear Iterative PArtial Least Squares (NIPALS) algo
         List<Vec> scores = new ArrayList<Vec>();
         List<Vec> loadings = new ArrayList<Vec>();
         //E(0) = X The E-matrix for the zero-th PC
@@ -96,30 +98,34 @@ public class PCA implements DataTransform
         
         
         double tauOld = t.dot(t);
+        Vec p = new DenseVector(E.cols());
         for(int i = 1; i <= PCs; i++)
         {
-            //1. Project X onto t to and the corresponding loading p
-            //p = (E[i-1]' * t) / (t'*t) 
-            Vec p = E.transposeMultiply(1.0, t);
-            p.mutableDivide(tauOld);
-            
-            //2. Normalise loading vector p to length 1
-            //p = p * (p'*p)^-0.5 
-            p.mutableMultiply(Math.pow(p.dot(p), -0.5));
-            
-            //3. Project X onto p to find corresponding score vector t
-            //t = (E[i-1] p)/(p'*p)
-            t = E.multiply(p);
-            t.mutableDivide(p.dot(p));
-            
-            scores.add(t);///t is a new vector each time from step 3, and does not get altered after this. So no clone needed
-            loadings.add(p);//p is a new vecor each time created at step 1, and does not get altered after this. So no clone needed
-            //4. Check for convergence.
-            double tauNew = t.dot(t);
-            if(Math.abs(tauNew-tauOld) <= threshold*tauNew)
-                return;
-            tauOld =  tauNew;
-            
+            for(int iter = 0; iter < 100; iter++)
+            {
+                //1. Project X onto t to and the corresponding loading p
+                //p = (E[i-1]' * t) / (t'*t)
+                p.zeroOut();
+                E.transposeMultiply(1.0, t, p);
+                p.mutableDivide(tauOld);
+
+                //2. Normalise loading vector p to length 1
+                //p = p * (p'*p)^-0.5 
+                p.mutableMultiply(Math.pow(p.dot(p), -0.5));
+
+                //3. Project X onto p to find corresponding score vector t
+                //t = (E[i-1] p)/(p'*p)
+                t = E.multiply(p);
+                t.mutableDivide(p.dot(p));
+
+                scores.add(t);///t is a new vector each time from step 3, and does not get altered after this. So no clone needed
+                loadings.add(p);//p is a new vecor each time created at step 1, and does not get altered after this. So no clone needed
+                //4. Check for convergence.
+                double tauNew = t.dot(t);
+                if(iter > 0 && Math.abs(tauNew-tauOld) <= threshold*tauNew)//go at least one round
+                    break;
+                tauOld =  tauNew;                
+            }
             //5. Remove the estimated PC component from E[i-1]
             Matrix.OuterProductUpdate(E, t, p, -1.0);
         }
