@@ -19,6 +19,7 @@ package jsat.classifiers.trees;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.FixedProblems;
+import jsat.TestTools;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.datatransform.*;
@@ -226,10 +227,14 @@ public class RandomForestTest
             }
 
             instance = instance.clone();
+            instance = TestTools.deepCopy(instance);
 
             instance.trainC(t1);
 
             RandomForest result = instance.clone();
+            for(int i = 0; i < t1.getSampleSize(); i++)
+                assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+            result = TestTools.deepCopy(instance);
             for(int i = 0; i < t1.getSampleSize(); i++)
                 assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
             result.trainC(t2);

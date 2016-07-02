@@ -1,6 +1,7 @@
 
 package jsat.classifiers;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
@@ -9,7 +10,7 @@ import jsat.linear.Vec;
  * This class represents the probabilities for each possible result classification. 
  * @author Edward Raff
  */
-public class CategoricalResults implements Cloneable
+public class CategoricalResults implements Cloneable, Serializable
 {
     private int n;//The number of categories
     private double[] probabilities;

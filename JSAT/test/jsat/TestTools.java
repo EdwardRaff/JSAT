@@ -11,11 +11,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a deepCopy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package jsat;
 
+import java.io.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -32,5 +34,38 @@ public class TestTools
 
         double relError = Math.abs(expected-actual)/denom;
         assertEquals(0.0, relError, delta);
+    }
+    
+    /**
+     * Creates a deep copy of the given object via serialization. 
+     * @param <O> The class of the object
+     * @param orig the object to make a copy of
+     * @return a copy of the object via serialization
+     */
+    public static <O extends Object> O deepCopy(O orig)
+    {
+        Object obj = null;
+        try
+        {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream out = new ObjectOutputStream(bos);
+            out.writeObject(orig);
+            out.flush();
+            out.close();
+            
+            ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()));
+            obj = in.readObject();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+            throw new RuntimeException("Object couldn't be copied", e);
+        }
+        catch (ClassNotFoundException e)
+        {
+            e.printStackTrace();
+            throw new RuntimeException("Object couldn't be copied", e);
+        }
+        return (O) obj;
     }
 }
