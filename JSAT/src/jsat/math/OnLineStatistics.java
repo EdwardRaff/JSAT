@@ -333,9 +333,13 @@ public class OnLineStatistics implements Serializable, Cloneable
         return mean;
     }
    
+   /**
+    * Computes the population variance
+    * @return the variance of the data seen
+    */
    public double getVarance()
    {
-       return m2/(n-1);
+       return m2/(n+1e-15);//USED to be unbiased est, but dosn't work for weighted data when the weights may be <= 1. So use biased. 
    }
    
    public double getStandardDeviation()

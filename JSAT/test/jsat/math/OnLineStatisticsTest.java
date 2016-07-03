@@ -23,7 +23,7 @@ public class OnLineStatisticsTest
         0.0649932, 0.454671, 5.0087, 1.08846, 3.67667, 3.03826
     };
     private final double mean = 1.795236475;
-    private final double variance = 1.984963377199443;
+    private final double variance = 1.885715208339471;//population variance
     private final double skewness = 0.5329150349287533;
     private final double kurt = -0.5903068502891378;
     private final double min = 0.0136063;
@@ -74,7 +74,7 @@ public class OnLineStatisticsTest
         stats.add(10, 10);
         stats.add(100,1);
         assertEquals(200.0/11.0, stats.getMean(), 1e-10); 
-        assertEquals(8100.0/11.0, stats.getVarance(), 1e-10); 
+        assertEquals(81000.0/121.0, stats.getVarance(), 1e-10); 
         assertEquals(9.0/Math.sqrt(10), stats.getSkewness(), 1e-10); 
         assertEquals(91.0/10.0-3.0, stats.getKurtosis(), 1e-10); 
         assertEquals(10, stats.getMin(), 0.0);
