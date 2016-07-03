@@ -92,6 +92,7 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
      */
     protected Forgetron(Forgetron toClone)
     {
+        super(toClone);
         this.K = toClone.K.clone();
         this.budget = toClone.budget;
         this.U = toClone.U;
@@ -253,14 +254,14 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
                     double phi_t;
                     if ((a > 0 || (a < 0 && d > 0 && (-b - sqrt(d)) / (2 * a) > 1)))
                         phi_t = min(1, (-b + sqrt(d)) / (2 * a));
-                    else if (a == 0)
+                    else if (abs(a) <= 1e-13)
                         phi_t = min(1, -c / b);
                     else
                         phi_t = 1;
 
 
                     double fpp_t_r = phi_t * fp_t;
-                    Q += psi(s_r, y_r * fpp_t_r);
+                    Q += psi(phi_t * s_r, y_r * fpp_t_r);
 
                     I[curPos] = x;
                     s[curPos] = y_t;

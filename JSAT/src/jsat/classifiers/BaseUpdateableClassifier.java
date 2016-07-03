@@ -21,8 +21,24 @@ import jsat.utils.ListUtils;
 public abstract class BaseUpdateableClassifier implements UpdateableClassifier
 {
 
-	private static final long serialVersionUID = 3138493999362400767L;
-	private int epochs = 1;
+    private static final long serialVersionUID = 3138493999362400767L;
+    private int epochs = 1;
+
+    /**
+     * Default constructor that does nothing
+     */
+    public BaseUpdateableClassifier()
+    {
+    }
+
+    /**
+     * Copy constructor
+     * @param toCopy object to copy
+     */
+    public BaseUpdateableClassifier(BaseUpdateableClassifier toCopy)
+    {
+        this.epochs = toCopy.epochs;
+    }
 
     /**
      * Sets the number of whole iterations through the training set that will be
