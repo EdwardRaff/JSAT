@@ -7,6 +7,9 @@ import jsat.FixedProblems;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPointPair;
 import jsat.datatransform.LinearTransform;
+import jsat.datatransform.kernel.Nystrom;
+import jsat.datatransform.kernel.RFF_RBF;
+import jsat.distributions.kernels.RBFKernel;
 import jsat.lossfunctions.*;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
@@ -149,6 +152,7 @@ public class LinearBatchTest
     public void testTrainWarmCMultieFast()
     {
         ClassificationDataSet train = FixedProblems.getHalfCircles(1000, new XORWOW(), 0.1, 1.0, 2.0, 5.0);
+        train.applyTransform(new RFF_RBF(train.getNumFeatures(), RBFKernel.guessSigma(train).mean(), 300, new XORWOW(), true));
         
         LinearSGD warmModel = new LinearSGD(new SoftmaxLoss(), 1e-4, 0);
         warmModel.setEpochs(20);
@@ -173,7 +177,7 @@ public class LinearBatchTest
         end = System.currentTimeMillis();
         long warmTime = (end-start);
         
-        assertTrue("Warm was slower? "+warmTime + " vs " + normTime,warmTime <= normTime*1.05);
+        assertTrue("Warm was slower? "+warmTime + " vs " + normTime,warmTime <= normTime*1.15);
     }
     
     @Test
