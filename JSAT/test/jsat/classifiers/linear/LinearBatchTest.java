@@ -6,6 +6,7 @@ import java.util.concurrent.Executors;
 import jsat.FixedProblems;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPointPair;
+import jsat.datatransform.LinearTransform;
 import jsat.lossfunctions.*;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
@@ -157,22 +158,22 @@ public class LinearBatchTest
         long start, end;
         
         
-        LinearBatch notWarm = new LinearBatch(new SoftmaxLoss(), 1e-4);
+        LinearBatch notWarm = new LinearBatch(new SoftmaxLoss(), 1e-8);
         
         start = System.currentTimeMillis();
         notWarm.trainC(train);
         end = System.currentTimeMillis();
         long normTime = (end-start);
         
-        
-        LinearBatch warm = new LinearBatch(new SoftmaxLoss(), 1e-4);
+
+        LinearBatch warm = new LinearBatch(new SoftmaxLoss(), 1e-8);
         
         start = System.currentTimeMillis();
         warm.trainC(train, warmModel);
         end = System.currentTimeMillis();
         long warmTime = (end-start);
         
-        assertTrue("Warm start wasn't faster? "+warmTime + " vs " + normTime,warmTime < normTime*0.95);
+        assertTrue("Warm was slower? "+warmTime + " vs " + normTime,warmTime <= normTime*1.05);
     }
     
     @Test
@@ -251,6 +252,7 @@ public class LinearBatchTest
     public void testTrainWarmRFast()
     {
         RegressionDataSet train = FixedProblems.getLinearRegression(100000, new XORWOW());
+        train.applyTransform(new LinearTransform(train));//make this range better for convergence check
         
         LinearBatch warmModel = new LinearBatch(new SquaredLoss(), 1e-4);
         warmModel.train(train);
@@ -274,6 +276,7 @@ public class LinearBatchTest
         end = System.currentTimeMillis();
         long warmTime = (end-start);
         
-        assertTrue("Warm start wasn't faster? "+warmTime + " vs " + normTime,warmTime < normTime*0.95);
+        assertTrue("Warm start slower? "+warmTime + " vs " + normTime,warmTime <= normTime*1.05);
+        assertTrue(warm.getRawWeight(0).equals(notWarm.getRawWeight(0), 1e-2));
     }
 }
