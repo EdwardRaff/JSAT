@@ -57,19 +57,24 @@ public class StochasticRidgeRegressionTest
 
         for(int batchSize : new int[]{1, 10, 20})
         {
-            StochasticRidgeRegression instance = new StochasticRidgeRegression(1e-9, 40, batchSize, 0.1);
+            StochasticRidgeRegression instance = new StochasticRidgeRegression(1e-9, 40, batchSize, 0.01);
+            instance.setEpochs(100);
 
             RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+            
+            LinearTransform lt = new LinearTransform(train);
+            train.applyTransform(lt);
             for(int i = 0; i < 20; i++)
                 train.addDataPoint(DenseVector.random(train.getNumNumericalVars()), train.getTargetValues().mean());
             if(batchSize == 10)
                 train.applyTransform(new DenseSparceTransform(1));
             RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+            test.applyTransform(lt);
 
             RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
             rme.evaluateTestSet(test);
 
-            assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
+            assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.35);
         }
 
     }
@@ -81,21 +86,26 @@ public class StochasticRidgeRegressionTest
 
         for(int batchSize : new int[]{1, 10, 20})
         {
-            StochasticRidgeRegression instance = new StochasticRidgeRegression(1e-9, 40, batchSize, 0.1);
+            StochasticRidgeRegression instance = new StochasticRidgeRegression(1e-9, 40, batchSize, 0.01);
+            instance.setEpochs(100);
 
             ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
             RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+            LinearTransform lt = new LinearTransform(train);
+            train.applyTransform(lt);
+            
             for(int i = 0; i < 20; i++)
                 train.addDataPoint(DenseVector.random(train.getNumNumericalVars()), train.getTargetValues().mean());
             if(batchSize == 10)
                 train.applyTransform(new DenseSparceTransform(1));
             RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+            test.applyTransform(lt);
 
             RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
             rme.evaluateTestSet(test);
 
-            assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
+            assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.35);
 
             ex.shutdownNow();
         }
@@ -108,7 +118,8 @@ public class StochasticRidgeRegressionTest
 
         for(int batchSize : new int[]{1, 10, 20})
         {
-            StochasticRidgeRegression instance = new StochasticRidgeRegression(1e-9, 40, batchSize, 0.1);
+            StochasticRidgeRegression instance = new StochasticRidgeRegression(1e-9, 40, batchSize, 0.01);
+            instance.setEpochs(100);
 
             RegressionDataSet t1 = FixedProblems.getLinearRegression(500, new XORWOW());
             for(int i = 0; i < 20; i++)
