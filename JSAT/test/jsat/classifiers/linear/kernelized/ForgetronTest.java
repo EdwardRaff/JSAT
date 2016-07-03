@@ -74,7 +74,7 @@ public class ForgetronTest
             ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, new XORWOW(), 1, 4);
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-            cme.evaluateTestSet(train);
+            cme.evaluateTestSet(test);
 
             assertEquals(0, cme.getErrorRate(), 0.3);//given some leway due to label noise
         }
@@ -106,7 +106,7 @@ public class ForgetronTest
 
             ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, new XORWOW(), 1, 4);
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-            cme.evaluateTestSet(train);
+            cme.evaluateTestSet(test);
 
             assertEquals(0, cme.getErrorRate(), 0.3);//given some leway due to label noise
         }
