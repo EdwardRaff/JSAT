@@ -164,132 +164,7 @@ public class TSNE implements VisualizationTransform
          * floor(3u) nearest neighbors of each of the N input objects (recall
          * that u is the perplexity of the conditional distributions)"
          */
-        final int knn = (int) Math.min(Math.floor(3*perplexity), N);
-        
-        
-        
-        final List<Vec> vecs = d.getDataVectors();
-        final List<Double> accelCache = dm.getAccelerationCache(vecs, ex);
-        
-        final VPTreeMV<Vec> vp = new VPTreeMV<Vec>(vecs, dm, VPTree.VPSelection.Random, rand, 2, 1, ex);
-        
-        final List<List<? extends VecPaired<Vec, Double>>> neighbors = new ArrayList<List<? extends VecPaired<Vec, Double>>>(N);
-        for(int i = 0; i < N; i++)
-            neighbors.add(null);
-        
-        /**
-         * Each row is the set of 3*u indices returned by the NN search
-         */
-        final int[][] nearMe = new int[N][knn];
-        
-        //new scope b/c I don't want to leark the silly vecIndex thing
-        {
-            //Used to map vecs back to their index so we can store only the ones we need in nearMe
-            final IdentityHashMap<Vec, Integer> vecIndex = new IdentityHashMap<Vec, Integer>(N);
-            for(int i = 0; i < N; i++)
-                vecIndex.put(vecs.get(i), i);
-        
-            final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-        
-            for (int id = 0; id < SystemInfo.LogicalCores; id++)
-            {
-                final int ID = id;
-                ex.submit(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        for (int i = ID; i < N; i += SystemInfo.LogicalCores)//lets pre-compute the 3u nearesst neighbors used in eq(1)
-                        {
-                            Vec x_i = vecs.get(i);
-                            List<? extends VecPaired<Vec, Double>> closest = vp.search(x_i, knn+1);//+1 b/c self is closest
-                            neighbors.set(i, closest);
-                            for (int j = 1; j < closest.size(); j++)
-                                nearMe[i][j - 1] = vecIndex.get(closest.get(j).getVector());
-                        }
-                        latch.countDown();
-                    }
-                });
-            }
-            
-            try
-            {
-                latch.await();
-            }
-            catch (InterruptedException ex1)
-            {
-                Logger.getLogger(TSNE.class.getName()).log(Level.SEVERE, null, ex1);
-            }
-
-        }
-        //Now lets figure out everyone's sigmas
-        final double[] sigma = new double[N];
-        
-        final AtomicDouble minSigma = new AtomicDouble(Double.POSITIVE_INFINITY);
-        final AtomicDouble maxSigma = new AtomicDouble(0);
-
-        for(int i = 0; i < N; i++)//first lets figure out a min/max range
-        {
-            double min = neighbors.get(i).get(1).getPair();
-            double max = neighbors.get(i).get(knn).getPair();
-            minSigma.set(Math.min(minSigma.get(), min));
-            maxSigma.set(Math.max(maxSigma.get(), max));
-        }
-        
-        //now compute the bandwidth for each datum 
-        final CountDownLatch latch0 = new CountDownLatch(SystemInfo.LogicalCores);
-
-        for (int id = 0; id < SystemInfo.LogicalCores; id++)
-        {
-            final int ID = id;
-            ex.submit(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    for (int i = ID; i < N; i += SystemInfo.LogicalCores)
-                    {
-                        final int I = i;
-
-                        boolean tryAgain = false;
-                        do
-                        {
-                            tryAgain = false;
-                            try
-                            {
-                                double sigma_i = Zeroin.root(1e-1, 100, minSigma.get(), maxSigma.get(), 0, new FunctionBase()
-                                {
-                                    @Override
-                                    public double f(Vec x)
-                                    {
-                                        return perp(I, nearMe, x.get(0), neighbors, vecs, accelCache) - perplexity;
-                                    }
-                                });
-
-                                sigma[i] = sigma_i;
-                            }
-                            catch (ArithmeticException exception)//perp not in search range? 
-                            {
-                                tryAgain = true;
-                                minSigma.set(Math.max(minSigma.get() / 2, 1e-6));
-                                maxSigma.set(Math.min(maxSigma.get() * 2, Double.MAX_VALUE / 2));
-                            }
-                        }
-                        while (tryAgain);
-                    }
-                    latch0.countDown();
-                }
-            });
-        }
-
-        try
-        {
-            latch0.await();
-        }
-        catch (InterruptedException ex1)
-        {
-            Logger.getLogger(TSNE.class.getName()).log(Level.SEVERE, null, ex1);
-        }
+        final int knn = (int) Math.min(Math.floor(3*perplexity), N-1);
         
         /**
          * P_ij does not change at this point, so lets compute these values only
@@ -297,37 +172,12 @@ public class TSNE implements VisualizationTransform
          */
         final double[][] nearMePij = new double[N][knn];
         
-        final CountDownLatch latch1 = new CountDownLatch(SystemInfo.LogicalCores);
-
-        for (int id = 0; id < SystemInfo.LogicalCores; id++)
-        {
-            final int ID = id;
-            ex.submit(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    for (int i = ID; i < N; i += SystemInfo.LogicalCores)
-                    {
-                        for(int j_indx = 0; j_indx < knn; j_indx++)
-                        {
-                            int j = nearMe[i][j_indx];
-                            nearMePij[i][j_indx] =  p_ij(i, j, sigma[i], sigma[j], neighbors, vecs, accelCache);
-                        }
-                    }
-                    latch1.countDown();
-                }
-            });
-        }
+        /**
+         * Each row is the set of 3*u indices returned by the NN search
+         */
+        final int[][] nearMe = new int[N][knn];
         
-        try
-        {
-            latch1.await();
-        }
-        catch (InterruptedException ex1)
-        {
-            Logger.getLogger(TSNE.class.getName()).log(Level.SEVERE, null, ex1);
-        }
+        computeP(d, ex, rand, knn, nearMe, nearMePij, dm, perplexity);
         
         Normal normalDIst = new Normal(0, 1e-4);
         /**
@@ -477,6 +327,187 @@ public class TSNE implements VisualizationTransform
         
         return (Type) transformed;
     }
+
+    /**
+     * 
+     * @param d the dataset to search
+     * @param ex the source of threads for parallel computation
+     * @param rand source of randomness
+     * @param knn the number of neighbors to search for
+     * @param nearMe each row is the set of knn indices returned by the NN search
+     * @param nearMePij the symmetrized neighbor probability
+     * @param dm the distance metric to use for determining closeness
+     * @param perplexity the perplexity value for the effective nearest neighbor search and weighting
+     */
+    protected static void computeP(DataSet d, ExecutorService ex, Random rand, final int knn, final int[][] nearMe, final double[][] nearMePij, final DistanceMetric dm, final double perplexity)
+    {
+        @SuppressWarnings("unchecked")
+        final List<Vec> vecs = d.getDataVectors();
+        final List<Double> accelCache = dm.getAccelerationCache(vecs, ex);
+        final int N = vecs.size();
+        
+        final VPTreeMV<Vec> vp = new VPTreeMV<Vec>(vecs, dm, VPTree.VPSelection.Random, rand, 2, 1, ex);
+        
+        final List<List<? extends VecPaired<Vec, Double>>> neighbors = new ArrayList<List<? extends VecPaired<Vec, Double>>>(N);
+        for(int i = 0; i < N; i++)
+            neighbors.add(null);
+        
+        
+        
+        //new scope b/c I don't want to leark the silly vecIndex thing
+        {
+            //Used to map vecs back to their index so we can store only the ones we need in nearMe
+            final IdentityHashMap<Vec, Integer> vecIndex = new IdentityHashMap<Vec, Integer>(N);
+            for(int i = 0; i < N; i++)
+                vecIndex.put(vecs.get(i), i);
+
+            final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+
+            for (int id = 0; id < SystemInfo.LogicalCores; id++)
+            {
+                final int ID = id;
+                ex.submit(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        for (int i = ID; i < N; i += SystemInfo.LogicalCores)//lets pre-compute the 3u nearesst neighbors used in eq(1)
+                        {
+                            Vec x_i = vecs.get(i);
+                            List<? extends VecPaired<Vec, Double>> closest = vp.search(x_i, knn+1);//+1 b/c self is closest
+                            neighbors.set(i, closest);
+                            for (int j = 1; j < closest.size(); j++)
+                            {
+                                nearMe[i][j - 1] = vecIndex.get(closest.get(j).getVector());
+                            }
+                        }
+                        latch.countDown();
+                    }
+                });
+            }
+
+            try
+            {
+                latch.await();
+            }
+            catch (InterruptedException ex1)
+            {
+                Logger.getLogger(TSNE.class.getName()).log(Level.SEVERE, null, ex1);
+            }
+
+        }
+        //Now lets figure out everyone's sigmas
+        final double[] sigma = new double[N];
+        
+        final AtomicDouble minSigma = new AtomicDouble(Double.POSITIVE_INFINITY);
+        final AtomicDouble maxSigma = new AtomicDouble(0);
+        
+        for(int i = 0; i < N; i++)//first lets figure out a min/max range
+        {
+            List<? extends VecPaired<Vec, Double>> n_i = neighbors.get(i);
+            double min = n_i.get(1).getPair();
+            double max = n_i.get(Math.min(knn, n_i.size()-1)).getPair();
+            minSigma.set(Math.min(minSigma.get(), min));
+            maxSigma.set(Math.max(maxSigma.get(), max));
+        }
+        
+        //now compute the bandwidth for each datum
+        final CountDownLatch latch0 = new CountDownLatch(SystemInfo.LogicalCores);
+        
+        for (int id = 0; id < SystemInfo.LogicalCores; id++)
+        {
+            final int ID = id;
+            ex.submit(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    for (int i = ID; i < N; i += SystemInfo.LogicalCores)
+                    {
+                        final int I = i;
+                        
+                        boolean tryAgain = false;
+                        do
+                        {
+                            tryAgain = false;
+                            try
+                            {
+                                double sigma_i = Zeroin.root(1e-1, 100, minSigma.get(), maxSigma.get(), 0, new FunctionBase()
+                                {
+                                    @Override
+                                    public double f(Vec x)
+                                    {
+                                        return perp(I, nearMe, x.get(0), neighbors, vecs, accelCache, dm) - perplexity;
+                                    }
+                                });
+                                
+                                sigma[i] = sigma_i;
+                            }
+                            catch (ArithmeticException exception)//perp not in search range?
+                            {
+                                if(maxSigma.get() >= Double.MAX_VALUE/2)
+                                {
+                                    //Why can't we find a range that fits? Just pick a value.. 
+                                    //Not max value, but data is small.. so lets just set someting to break the loop
+                                    sigma[i] = 1e100;
+                                }
+                                else
+                                {
+                                    tryAgain = true;
+                                    minSigma.set(Math.max(minSigma.get() / 2, 1e-6));
+                                    maxSigma.set(Math.min(maxSigma.get() * 2, Double.MAX_VALUE / 2));
+                                }
+                            }
+                        }
+                        while (tryAgain);
+                    }
+                    latch0.countDown();
+                }
+            });
+        }
+        
+        try
+        {
+            latch0.await();
+        }
+        catch (InterruptedException ex1)
+        {
+            Logger.getLogger(TSNE.class.getName()).log(Level.SEVERE, null, ex1);
+        }
+        
+        
+        final CountDownLatch latch1 = new CountDownLatch(SystemInfo.LogicalCores);
+        
+        for (int id = 0; id < SystemInfo.LogicalCores; id++)
+        {
+            final int ID = id;
+            ex.submit(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    for (int i = ID; i < N; i += SystemInfo.LogicalCores)
+                    {
+                        for(int j_indx = 0; j_indx < knn; j_indx++)
+                        {
+                            int j = nearMe[i][j_indx];
+                            nearMePij[i][j_indx] =  p_ij(i, j, sigma[i], sigma[j], neighbors, vecs, accelCache, dm);
+                        }
+                    }
+                    latch1.countDown();
+                }
+            });
+        }
+        
+        try
+        {
+            latch1.await();
+        }
+        catch (InterruptedException ex1)
+        {
+            Logger.getLogger(TSNE.class.getName()).log(Level.SEVERE, null, ex1);
+        }
+    }
     
     /**
      * 
@@ -574,7 +605,7 @@ public class TSNE implements VisualizationTransform
      * @param neighbors
      * @return 
      */
-    private double p_j_i(int j, int i, double sigma, List<List<? extends VecPaired<Vec, Double>>> neighbors, List<Vec> vecs, List<Double> accelCache)
+    private static double p_j_i(int j, int i, double sigma, List<List<? extends VecPaired<Vec, Double>>> neighbors, List<Vec> vecs, List<Double> accelCache, DistanceMetric dm)
     {
         /*
          * "Because we are only interested in modeling pairwise similarities, we
@@ -614,9 +645,9 @@ public class TSNE implements VisualizationTransform
         return numer/(denom+1e-9);
     }
     
-    private double p_ij(int i, int j, double sigma_i, double sigma_j, List<List<? extends VecPaired<Vec, Double>>> neighbors, List<Vec> vecs, List<Double> accelCache)
+    private static double p_ij(int i, int j, double sigma_i, double sigma_j, List<List<? extends VecPaired<Vec, Double>>> neighbors, List<Vec> vecs, List<Double> accelCache, DistanceMetric dm)
     {
-        return (p_j_i(j, i, sigma_i, neighbors, vecs, accelCache)+p_j_i(i, j, sigma_j, neighbors, vecs, accelCache))/(2*neighbors.size());
+        return (p_j_i(j, i, sigma_i, neighbors, vecs, accelCache, dm)+p_j_i(i, j, sigma_j, neighbors, vecs, accelCache, dm))/(2*neighbors.size());
     }
     
     /**
@@ -626,14 +657,14 @@ public class TSNE implements VisualizationTransform
      * @param neighbors the set of nearest neighbors to consider
      * @return the perplexity 2<sup>H(P<sub>i</sub>)</sup>
      */
-    private double perp(int i, int[][] nearMe, double sigma, List<List<? extends VecPaired<Vec, Double>>> neighbors, List<Vec> vecs, List<Double> accelCache)
+    private static double perp(int i, int[][] nearMe, double sigma, List<List<? extends VecPaired<Vec, Double>>> neighbors, List<Vec> vecs, List<Double> accelCache, DistanceMetric dm)
     {
         //section 2 of Maaten, L. Van Der, & Hinton, G. (2008). Visualizing Data using t-SNE. Journal of Machine Learning Research, 9, 2579–2605.
         double hp = 0;
 
         for(int j_indx =0; j_indx < nearMe[i].length; j_indx++)
         {
-            double p_ji = p_j_i(nearMe[i][j_indx], i, sigma, neighbors, vecs, accelCache);
+            double p_ji = p_j_i(nearMe[i][j_indx], i, sigma, neighbors, vecs, accelCache, dm);
 
             if (p_ji > 0)
                 hp += p_ji * FastMath.log2(p_ji);
