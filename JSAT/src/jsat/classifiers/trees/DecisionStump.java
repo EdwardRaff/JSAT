@@ -202,7 +202,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         Set<Integer> options = new IntSet(dataSet.getNumFeatures());
         for(int i = 0; i < dataSet.getNumFeatures(); i++)
             options.add(i);
-        trainR(dataSet.getDPPList(), options, threadPool);
+        List<List<DataPointPair<Double>>> split = trainR(dataSet.getDPPList(), options, threadPool);
+        if(split == null)
+            throw new FailedToFitException("Tree could not be fit, make sure your data is good. Potentially file a bug");
     }
 
     /**
@@ -910,6 +912,10 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                         else//not a good split, we can't trust it
                             thisSplitSqrdErr = Double.NEGATIVE_INFINITY;
                     }
+                    
+                    //numerical issue check. When we get a REALLy good split, error can be a tiny negative value due to numerical instability. Check and swap sign if small
+                    if(Math.abs(thisSplitSqrdErr) < 1e-13)//no need to check sign, make simpler
+                        thisSplitSqrdErr = Math.abs(thisSplitSqrdErr);
                     //Now compare what weve done
                     if(thisSplitSqrdErr >= 0 && thisSplitSqrdErr < lowestSplitSqrdError.get())//how did we get -Inf?
                     {
