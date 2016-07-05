@@ -733,6 +733,8 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             for (int i = 0; i < fracs.length; i++)
             {
                 double nw = fracs[i] * dp.getWeight();
+                if(Double.isNaN(nw))//happens when no weight is available
+                    continue;
                 if(nw <= 1e-13)
                     continue;
                 DataPointPair<T> dp_i = new DataPointPair<T>(new DataPoint(vec, cats, lab, nw), dpp.getPair());

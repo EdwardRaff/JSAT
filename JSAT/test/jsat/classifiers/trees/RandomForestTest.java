@@ -103,7 +103,7 @@ public class RandomForestTest
 
             RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
             if(useCatFeatures)
-                rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+                rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory(10)));
             rme.evaluateTestSet(test);
             
             assertTrue(rme.getMeanError() <= test.getTargetValues().mean()*3.5);
@@ -218,8 +218,8 @@ public class RandomForestTest
         {
             RandomForest instance = new RandomForest();
             
-            ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(100, 3);
-            ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(100, 4);
+            ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 2);
+            ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 3);
             if(useCatFeatures)
             {
                 t1.applyTransform(new NumericalToHistogram(t1));
@@ -231,19 +231,33 @@ public class RandomForestTest
 
             instance.trainC(t1);
 
+            double errors = 0;
             RandomForest result = instance.clone();
+            errors = 0;
             for(int i = 0; i < t1.getSampleSize(); i++)
-                assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+                if(t1.getDataPointCategory(i) != result.classify(t1.getDataPoint(i)).mostLikely())
+                    errors++;
+            assertEquals(0.0, errors/t1.getSampleSize(), 0.02);
             result = TestTools.deepCopy(instance);
+            errors = 0;
             for(int i = 0; i < t1.getSampleSize(); i++)
-                assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+                if(t1.getDataPointCategory(i) != result.classify(t1.getDataPoint(i)).mostLikely())
+                    errors++;
+            assertEquals(0.0, errors/t1.getSampleSize(), 0.02);
             result.trainC(t2);
 
+            errors = 0;
             for(int i = 0; i < t1.getSampleSize(); i++)
-                assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+                if(t1.getDataPointCategory(i) != instance.classify(t1.getDataPoint(i)).mostLikely())
+                    errors++;
+            assertEquals(0.0, errors/t1.getSampleSize(), 0.02);
 
+            
+            errors = 0;
             for(int i = 0; i < t2.getSampleSize(); i++)
-                assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+                if(t2.getDataPointCategory(i) != result.classify(t2.getDataPoint(i)).mostLikely())
+                    errors++;
+            assertEquals(0.0, errors/t2.getSampleSize(), 0.02);
         }
     }
     

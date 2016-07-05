@@ -112,7 +112,7 @@ public class ImportanceByUsesTest
             for(int i = 0; i < train.getSampleSize(); i++)
             {
                 DataPoint dp = train.getDataPoint(i);
-                Vec n = dp.getNumericalValues().add(DenseVector.random(good_featres).multiply(0.3));
+                Vec n = dp.getNumericalValues();
                 train_noise.addDataPoint(new ConcatenatedVec(n, DenseVector.random(randomFeatures)), train.getDataPointCategory(i));
             }
 
