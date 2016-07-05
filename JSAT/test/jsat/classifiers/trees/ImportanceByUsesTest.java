@@ -127,7 +127,10 @@ public class ImportanceByUsesTest
             for(int i = good_featres; i < importances.length; i++)
             {
                 for(int j = 0; j < good_featres; j++)
-                    assertTrue(importances[j] > importances[i]);
+                    if(importances[j] == 0)//sometimes it happens b/c we can seperate on just the first var when discretized
+                        assertTrue(importances[j] >= importances[i]);
+                    else
+                        assertTrue(importances[j] > importances[i]);
             }
         }
     }
