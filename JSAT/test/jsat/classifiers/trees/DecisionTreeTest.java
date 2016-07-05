@@ -209,7 +209,7 @@ public class DecisionTreeTest
                         cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory(50)));
                     cme.evaluateTestSet(train);//missing is harder so eval on self, should be easy to get right
 
-                    assertTrue(cme.getErrorRate() <= 0.15);
+                    assertTrue(cme.getErrorRate() <= 0.25);
                     
                     instance.trainC(train);
                     test.applyTransform(new InsertMissingValuesTransform(0.5));
