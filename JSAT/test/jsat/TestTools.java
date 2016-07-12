@@ -17,6 +17,10 @@
 package jsat;
 
 import java.io.*;
+import java.util.List;
+import java.util.Set;
+import jsat.classifiers.DataPoint;
+import jsat.utils.IntSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertEquals;
 
@@ -67,5 +71,25 @@ public class TestTools
             throw new RuntimeException("Object couldn't be copied", e);
         }
         return (O) obj;
+    }
+
+    /**
+     * Evaluates a given clustering by assuming that the true cluster label is in the first categorical feature. Checks to make sure that each cluster is pure in the label
+     * @param clusters the clustering to evaluate
+     * @return true if the clustering is good, false otherwise
+     */
+    public static boolean checkClusteringByCat(List<List<DataPoint>> clusters)
+    {
+        Set<Integer> seenBefore = new IntSet();
+        for (List<DataPoint> cluster : clusters)
+        {
+            int thisClass = cluster.get(0).getCategoricalValue(0);
+            if(seenBefore.contains(thisClass) != false)
+                return false;
+            for (DataPoint dp : cluster)
+                if(thisClass != dp.getCategoricalValue(0))
+                    return false;
+        }
+        return true;
     }
 }

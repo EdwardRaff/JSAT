@@ -62,6 +62,25 @@ public class PAM extends KClustererBase
     }
 
     /**
+     * 
+     * @param iterLimit the maximum number of iterations of the algorithm to perform
+     */
+    public void setMaxIterations(int iterLimit)
+    {
+        this.iterLimit = iterLimit;
+    }
+
+    /**
+     * 
+     * @return the maximum number of iterations of the algorithm to perform
+     */
+    public int getMaxIterations()
+    {
+        return iterLimit;
+    }
+    
+
+    /**
      * Copy constructor
      * @param toCopy the object to copy
      */

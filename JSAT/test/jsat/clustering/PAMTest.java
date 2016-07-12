@@ -19,9 +19,11 @@ import jsat.SimpleDataSet;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
+import static jsat.TestTools.checkClusteringByCat;
 
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.utils.random.XORWOW;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -48,9 +50,10 @@ public class PAMTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        pam = new PAM(new EuclideanDistance(), new Random(), SeedSelection.KPP);
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.05, 0.05), new Random(), 2, 5);
-        easyData10 = gdg.generateData(40);
+        pam = new PAM(new EuclideanDistance(), new XORWOW(), SeedSelection.KPP);
+        pam.setMaxIterations(1000);
+        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.05, 0.05), new XORWOW(), 2, 5);
+        easyData10 = gdg.generateData(100);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
 
@@ -72,16 +75,16 @@ public class PAMTest
     public void testCluster_3args_1()
     {
         System.out.println("cluster(dataSet, int, ExecutorService)");
-        List<List<DataPoint>> clusters = pam.cluster(easyData10, 10, ex);
-        assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        boolean good = false;
+        int count = 0;
+        do
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
-            assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster)
-                assertEquals(thisClass, dp.getCategoricalValue(0));
+            List<List<DataPoint>> clusters = pam.cluster(easyData10, 10, ex);
+            assertEquals(10, clusters.size());
+            good = checkClusteringByCat(clusters);
         }
+        while(!good && count++ < 3);
+        assertTrue(good);
     }
 
     /**
@@ -91,17 +94,16 @@ public class PAMTest
     public void testCluster_DataSet_int()
     {
         System.out.println("cluster(dataset, int)");
-        List<List<DataPoint>> clusters = pam.cluster(easyData10, 10);
-        assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        boolean good = false;
+        int count = 0;
+        do
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
-            assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster)
-                assertEquals(thisClass, dp.getCategoricalValue(0));
+            List<List<DataPoint>> clusters = pam.cluster(easyData10, 10);
+            assertEquals(10, clusters.size());
+            good = checkClusteringByCat(clusters);
         }
+        while(!good && count++ < 3);
+        assertTrue(good);
     }
-
     
 }
