@@ -11,6 +11,9 @@ import jsat.datatransform.kernel.Nystrom;
 import jsat.datatransform.kernel.RFF_RBF;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.lossfunctions.*;
+import jsat.math.optimization.BacktrackingArmijoLineSearch;
+import jsat.math.optimization.LBFGS;
+import jsat.math.optimization.WolfeNWLineSearch;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
@@ -151,33 +154,29 @@ public class LinearBatchTest
     @Test()
     public void testTrainWarmCMultieFast()
     {
-        ClassificationDataSet train = FixedProblems.getHalfCircles(1000, new XORWOW(), 0.1, 1.0, 2.0, 5.0);
-        train.applyTransform(new RFF_RBF(train.getNumFeatures(), RBFKernel.guessSigma(train).mean(), 300, new XORWOW(), true));
+        System.out.println("testTrainWarmCMultieFast");
+        ClassificationDataSet train = FixedProblems.getHalfCircles(1000, new XORWOW(), 0.1, 1.0, 5.0);
         
-        LinearSGD warmModel = new LinearSGD(new SoftmaxLoss(), 1e-4, 0);
-        warmModel.setEpochs(20);
+        LinearBatch warmModel = new LinearBatch(new HingeLoss(), 1e-2);
         warmModel.trainC(train);
         
-        
-        long start, end;
-        
-        
-        LinearBatch notWarm = new LinearBatch(new SoftmaxLoss(), 1e-8);
-        
-        start = System.currentTimeMillis();
+        LinearBatch notWarm = new LinearBatch(new SoftmaxLoss(), 1e-2);
         notWarm.trainC(train);
-        end = System.currentTimeMillis();
-        long normTime = (end-start);
         
 
-        LinearBatch warm = new LinearBatch(new SoftmaxLoss(), 1e-8);
-        
-        start = System.currentTimeMillis();
+        LinearBatch warm = new LinearBatch(new SoftmaxLoss(), 1e-2);
         warm.trainC(train, warmModel);
-        end = System.currentTimeMillis();
-        long warmTime = (end-start);
         
-        assertTrue("Warm was slower? "+warmTime + " vs " + normTime,warmTime <= normTime*1.15);
+        int origErrors = 0;
+        for(int i = 0; i < train.getSampleSize(); i++)
+            if(notWarm.classify(train.getDataPoint(i)).mostLikely() != train.getDataPointCategory(i))
+                origErrors++;
+        int warmErrors = 0;
+        for(int i = 0; i < train.getSampleSize(); i++)
+            if(warm.classify(train.getDataPoint(i)).mostLikely() != train.getDataPointCategory(i))
+                warmErrors++;
+
+        assertTrue("Warm was less acurate? "+warmErrors + " vs " + origErrors,warmErrors <= origErrors*1.15);
     }
     
     @Test

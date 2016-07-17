@@ -137,7 +137,7 @@ public class LBFGS implements Optimizer2
             x_grad.copyTo(x_gradPrev);
             
             double alpha_k = search.lineSearch(1.0, x_prev, x_gradPrev, p_k, f, fp, f_xVal[0], x_gradPrev.dot(p_k), x_cur, f_xVal, x_grad, ex);
-            if(alpha_k < 1e-12 && iter > 25)//if we are making near epsilon steps consider it done
+            if(alpha_k < 1e-12)//if we are making near epsilon steps consider it done
                 break;
             
             if(!search.updatesGrad())
