@@ -19,8 +19,14 @@ package jsat;
 import java.io.*;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import jsat.classifiers.DataPoint;
+import jsat.regression.NadarayaWatson;
+import jsat.regression.RegressionDataSet;
+import jsat.regression.RegressionModelEvaluation;
+import jsat.regression.Regressor;
 import jsat.utils.IntSet;
+import jsat.utils.random.XORWOW;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertEquals;
 
@@ -91,5 +97,34 @@ public class TestTools
                     return false;
         }
         return true;
+    }
+
+    /**
+     * Evaluate regressor on linear problem
+     * @param instance regressor to use
+     * @return <tt>true</tt> if the model passed the test, <tt>false</tt> if it failed
+     */
+    public static boolean regressEvalLinear(Regressor instance)
+    {
+        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
+        rme.evaluateTestSet(test);
+        return rme.getMeanError() <= test.getTargetValues().mean() * 1.5;
+    }
+
+    /**
+     * Evaluate regressor on linear problem
+     * @param instance regressor to use
+     * @param ex source of threads to use
+     * @return <tt>true</tt> if the model passed the test, <tt>false</tt> if it failed
+     */
+    public static boolean regressEvalLinear(Regressor instance, ExecutorService ex)
+    {
+        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+        rme.evaluateTestSet(test);
+        return rme.getMeanError() <= test.getTargetValues().mean() * 1.5;
     }
 }
