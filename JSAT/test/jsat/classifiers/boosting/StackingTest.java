@@ -174,7 +174,7 @@ public class StackingTest
             double truth = dpp.getPair();
             double pred = stacking.regress(dpp.getDataPoint());
             double relErr = (truth-pred)/truth;
-            assertEquals(0, relErr, 0.01);
+            assertEquals(0, relErr, 0.1);
         }
     }
     
