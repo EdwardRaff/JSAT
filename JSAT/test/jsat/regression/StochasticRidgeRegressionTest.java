@@ -121,10 +121,10 @@ public class StochasticRidgeRegressionTest
             StochasticRidgeRegression instance = new StochasticRidgeRegression(1e-9, 40, batchSize, 0.01);
             instance.setEpochs(100);
 
-            RegressionDataSet t1 = FixedProblems.getLinearRegression(500, new XORWOW());
+            RegressionDataSet t1 = FixedProblems.getLinearRegression(5000, new XORWOW());
             for(int i = 0; i < 20; i++)
                 t1.addDataPoint(DenseVector.random(t1.getNumNumericalVars()), t1.getTargetValues().mean());
-            RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
+            RegressionDataSet t2 = FixedProblems.getLinearRegression(1000, new XORWOW());
             t2.applyTransform(new LinearTransform(t2, -1, 1));
             
             if(batchSize == 10)
