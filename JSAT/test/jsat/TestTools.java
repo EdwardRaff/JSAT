@@ -106,8 +106,20 @@ public class TestTools
      */
     public static boolean regressEvalLinear(Regressor instance)
     {
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        return regressEvalLinear(instance, 500, 100);
+    }
+    
+    /**
+     * Evaluate regressor on linear problem
+     * @param instance regressor to use
+     * @param N_train size of the training set to use
+     * @param N_test size of the testing set
+     * @return <tt>true</tt> if the model passed the test, <tt>false</tt> if it failed
+     */
+    public static boolean regressEvalLinear(Regressor instance, int N_train, int N_test)
+    {
+        RegressionDataSet train = FixedProblems.getLinearRegression(N_train, new XORWOW());
+        RegressionDataSet test = FixedProblems.getLinearRegression(N_test, new XORWOW());
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
         return rme.getMeanError() <= test.getTargetValues().mean() * 1.5;
@@ -121,8 +133,21 @@ public class TestTools
      */
     public static boolean regressEvalLinear(Regressor instance, ExecutorService ex)
     {
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        return regressEvalLinear(instance, ex, 500, 100);
+    }
+    
+    /**
+     * Evaluate regressor on linear problem
+     * @param instance regressor to use
+     * @param ex source of threads to use
+     * @param N_train size of the training set to use
+     * @param N_test size of the testing set
+     * @return <tt>true</tt> if the model passed the test, <tt>false</tt> if it failed
+     */
+    public static boolean regressEvalLinear(Regressor instance, ExecutorService ex, int N_train, int N_test)
+    {
+        RegressionDataSet train = FixedProblems.getLinearRegression(N_train, new XORWOW());
+        RegressionDataSet test = FixedProblems.getLinearRegression(N_test, new XORWOW());
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);
         return rme.getMeanError() <= test.getTargetValues().mean() * 1.5;

@@ -6,6 +6,7 @@ package jsat.classifiers.linear;
 
 import java.util.Random;
 import jsat.FixedProblems;
+import jsat.TestTools;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPointPair;
 import jsat.lossfunctions.HingeLoss;
@@ -118,26 +119,22 @@ public class LinearSGDTest
                 linearsgd.setGradientUpdater(gu);
                 
                 //SGD needs more iterations/data to learn a really close fit
-
-                RegressionDataSet train = FixedProblems.getLinearRegression(10000, new Random());
-
                 linearsgd.setEpochs(50);
                 if(!(gu instanceof SimpleSGD))//the others need a higher learning rate than the default
                 {
                     linearsgd.setEta(0.5);
                     linearsgd.setEpochs(100);//more iters b/c RMSProp probably isn't the best for this overly simple problem
                 }
-                linearsgd.train(train);
 
-                RegressionDataSet test = FixedProblems.getLinearRegression(200, new Random());
-
-                for(DataPointPair<Double> dpp : test.getAsDPPList())
+                int tries = 4;
+                do
                 {
-                    double truth = dpp.getPair();
-                    double pred = linearsgd.regress(dpp.getDataPoint());
-                    double relErr = (truth-pred)/truth;
-                    assertEquals(0, relErr, 0.1);
+                    if(TestTools.regressEvalLinear(linearsgd, 10000, 200))
+                        break;
                 }
+                while(tries-- > 0);
+                assertTrue(tries > 0);
+                
             }
         }
     }
