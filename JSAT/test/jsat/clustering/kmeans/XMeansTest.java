@@ -8,6 +8,8 @@ import java.util.concurrent.Executors;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.SeedSelectionMethods;
+import jsat.distributions.Normal;
+import jsat.distributions.TruncatedDistribution;
 import jsat.distributions.Uniform;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
@@ -39,8 +41,8 @@ public class XMeansTest
     @BeforeClass
     public static void setUpClass()
     {
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(0.0, 0.10), new XORWOW(), 2, 2);
-        easyData10 = gdg.generateData(50);
+        GridDataGenerator gdg = new GridDataGenerator(new TruncatedDistribution(new Normal(0, 0.05), -.15, .15), new XORWOW(), 2, 2);
+        easyData10 = gdg.generateData(100);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
