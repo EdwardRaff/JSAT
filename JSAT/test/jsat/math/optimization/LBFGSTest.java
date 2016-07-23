@@ -52,7 +52,7 @@ public class LBFGSTest
         Random rand = new Random();
         Vec x0 = new DenseVector(20);
         for(int i = 0; i < x0.length(); i++)
-            x0.set(i, rand.nextDouble());
+            x0.set(i, rand.nextDouble()+0.5);//make sure we get to the right local optima
 
         RosenbrockFunction f = new RosenbrockFunction();
         FunctionVec fp = f.getDerivative();
@@ -62,10 +62,10 @@ public class LBFGSTest
         {
             instance.setLineSearch(lineSearch);
             Vec w = new DenseVector(x0.length());
-            instance.optimize(1e-4, w, x0, f, fp, null);
+            instance.optimize(1e-5, w, x0, f, fp, null);
 
             for(int i = 0; i <w.length(); i++)
-                assertEquals(1.0, w.get(i), 1e-4);
+                assertEquals(1.0, w.get(i), 1e-3);
             assertEquals(0.0, f.f(w), 1e-4);
         }
     }
