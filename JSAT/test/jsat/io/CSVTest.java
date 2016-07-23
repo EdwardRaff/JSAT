@@ -422,7 +422,7 @@ public class CSVTest
                 for (int indx = 0; indx < 3; indx++)
                 {
                     StringWriter writter = new StringWriter();
-                    ClassificationDataSet trutch_c = new ClassificationDataSet(truth_data, indx);
+                    ClassificationDataSet trutch_c = truth_data.asClassificationDataSet(indx);
                     CSV.write(trutch_c, writter, ',');
                     ClassificationDataSet in = CSV.readC(0, new StringReader(extraLines.toString()+writter.toString()), ',', lines_to_skip, '#', new HashSet<Integer>(Arrays.asList(4, 5)));
                     compareDataSetPoints(trutch_c, in);
@@ -444,7 +444,7 @@ public class CSVTest
                 for (int indx = 0; indx < 3; indx++)
                 {
                     StringWriter writter = new StringWriter();
-                    RegressionDataSet trutch_r = new RegressionDataSet(truth_data.getDataPoints(), indx);
+                    RegressionDataSet trutch_r = truth_data.asRegressionDataSet(indx);
                     CSV.write(trutch_r, writter, ',');
                     RegressionDataSet in = CSV.readR(0, new StringReader(extraLines.toString()+writter.toString()), ',', lines_to_skip, '#', new HashSet<Integer>(Arrays.asList(3, 4, 5)));
                     compareDataSetPoints(trutch_r, in);

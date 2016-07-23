@@ -5,6 +5,8 @@ import java.util.*;
 import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.linear.DenseVector;
+import jsat.linear.IndexValue;
+import jsat.linear.SparseVector;
 import jsat.linear.Vec;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
@@ -64,19 +66,24 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         //Fill up data
         for(DataPoint dp : data)
         {
-            DenseVector newVec = new DenseVector(numNumerVals);
-            Vec origVec = dp.getNumericalValues();
-            //Set up the new vector
-            for(int i = 0; i < origVec.length()-1; i++)
-            {
-                if(i >= predicting)
-                    newVec.set(i, origVec.get(i+1));
-                else
-                    newVec.set(i, origVec.get(i));
-            }
-            
+            Vec origV = dp.getNumericalValues();
+            Vec newVec;
+            double target = 0;//init to zero to inplicitly handle sparse feature vector case
+            if (origV.isSparse())
+                newVec = new SparseVector(origV.length() - 1, origV.nnz());
+            else
+                newVec = new DenseVector(origV.length() - 1);
+
+            for (IndexValue iv : origV)
+                if (iv.getIndex() < predicting)
+                    newVec.set(iv.getIndex(), iv.getValue());
+                else if (iv.getIndex() == predicting)
+                    target = iv.getValue();
+                else//iv.getIndex() > index
+                    newVec.set(iv.getIndex() - 1, iv.getValue());
+
             DataPoint newDp = new DataPoint(newVec, dp.getCategoricalValues(), categories, dp.getWeight());
-            DataPointPair<Double> dpp = new DataPointPair<Double>(newDp, origVec.get(predicting));
+            DataPointPair<Double> dpp = new DataPointPair<Double>(newDp, target);
             
             dataPoints.add(dpp);
         }

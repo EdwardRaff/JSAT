@@ -178,7 +178,7 @@ public class JSATDataTest
         
         
         //use the last categorical feature as the read target so that forcing as a standard dataset produces the same expected result as the original simple dataset
-        ClassificationDataSet cds = new ClassificationDataSet(simpleData, simpleData.getNumCategoricalVars()-1);
+        ClassificationDataSet cds = simpleData.asClassificationDataSet(simpleData.getNumCategoricalVars()-1);
         
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         JSATData.writeData(cds, baos);
