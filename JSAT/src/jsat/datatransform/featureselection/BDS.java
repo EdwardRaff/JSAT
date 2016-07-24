@@ -7,7 +7,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
-import jsat.datatransform.DataTransformFactoryParm;
+import jsat.datatransform.DataTransformBase;
 import jsat.datatransform.RemoveAttributeTransform;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
@@ -27,10 +27,13 @@ import jsat.utils.ListUtils;
 public class BDS implements DataTransform
 {
 
-	private static final long serialVersionUID = 8633823674617843754L;
-	private RemoveAttributeTransform finalTransform;
+    private static final long serialVersionUID = 8633823674617843754L;
+    private RemoveAttributeTransform finalTransform;
     private Set<Integer> catSelected;
     private Set<Integer> numSelected;
+    private int featureCount;
+    private int folds;
+    private Object evaluator;
 
     /**
      * Copy constructor
@@ -39,12 +42,31 @@ public class BDS implements DataTransform
      */
     public BDS(BDS toClone)
     {
+        this.featureCount = toClone.featureCount;
+        this.folds = toClone.folds;
+        this.evaluator = toClone.evaluator;
         if(toClone.finalTransform != null)
         {
             this.finalTransform = toClone.finalTransform.clone();
             this.catSelected = new IntSet(toClone.catSelected);
             this.numSelected = new IntSet(toClone.numSelected);
         }
+    }
+    
+    /**
+     * Creates a BDS feature selection for a classification problem
+     * 
+     * @param featureCount the number of features to select
+     * @param dataSet the data set to perform feature selection on
+     * @param evaluator the classifier to use in determining accuracy given a 
+     * feature subset
+     * @param folds the number of cross validation folds to use in selection
+     */
+    public BDS(int featureCount, Classifier evaluator, int folds)
+    {
+        setFeatureCount(featureCount);
+        setFolds(folds);
+        setEvaluator(evaluator);
     }
 
     /**
@@ -62,6 +84,21 @@ public class BDS implements DataTransform
     }
     
     /**
+     * Creates a BDS feature selection for a regression problem
+     *
+     * @param featureCount the number of features to select
+     * @param evaluator the regressor to use in determining accuracy given a 
+     * feature subset
+     * @param folds the number of cross validation folds to use in selection
+     */
+    public BDS(int featureCount, Regressor evaluator, int folds)
+    {
+        setFeatureCount(featureCount);
+        setFolds(folds);
+        setEvaluator(evaluator);
+    }
+    
+    /**
      * Performs BDS feature selection for a regression problem
      * 
      * @param featureCount the number of features to select
@@ -72,6 +109,7 @@ public class BDS implements DataTransform
      */
     public BDS(int featureCount, RegressionDataSet dataSet, Regressor evaluator, int folds)
     {
+        this(featureCount, evaluator, folds);
         search(dataSet, featureCount, folds, evaluator);
     }
 
@@ -109,6 +147,12 @@ public class BDS implements DataTransform
         return new IntSet(numSelected);
     }
 
+    @Override
+    public void fit(DataSet data)
+    {
+        search(data, featureCount, folds, evaluator);
+    }
+    
     private void search(DataSet dataSet, int maxFeatures, int folds, Object evaluator)
     {
         Random rand = new Random();
@@ -175,98 +219,50 @@ public class BDS implements DataTransform
     }
     
     /**
-     * Factory for producing new {@link BDS} transforms. 
+     * Sets the number of features to select for use from the set of all input
+     * features
+     *
+     * @param featureCount the number of features to use
      */
-    static public class BDSFactory extends DataTransformFactoryParm
+    public void setFeatureCount(int featureCount)
     {
-        private Classifier classifier;
-        private Regressor regressor;
-        private int featureCount;
-        
-        /**
-         * Creates a new BDS factory
-         * @param evaluater  the classifier to use in determining accuracy given
-         * a feature subset
-         * @param featureCount the number of features to select
-         */
-        public BDSFactory(Classifier evaluater, int featureCount)
-        {
-            this.classifier = evaluater;
-            if(evaluater instanceof Regressor)
-                regressor = (Regressor) evaluater;
-            setFeatureCount(featureCount);
-        }
+        if (featureCount < 1)
+            throw new IllegalArgumentException("Number of features to select must be positive, not " + featureCount);
+        this.featureCount = featureCount;
+    }
 
-        /**
-         * Creates a new BDS factory
-         * @param evaluater the regressor to use in determining accuracy given a 
-         * feature subset
-         * @param featureCount the number of features to select 
-         */
-        public BDSFactory(Regressor evaluater, int featureCount)
-        {
-            this.regressor = evaluater;
-            if(evaluater instanceof Classifier)
-                this.classifier = (Classifier) evaluater;
-            setFeatureCount(featureCount);
-        }
-        
-        /**
-         * Copy constructor
-         * @param toCopy the object to copy
-         */
-        public BDSFactory(BDSFactory toCopy)
-        {
-            if(toCopy.classifier == toCopy.regressor)
-            {
-                this.classifier = toCopy.classifier.clone();
-                this.regressor = (Regressor) this.classifier;
-            }
-            else if(toCopy.classifier != null)
-                this.classifier = toCopy.classifier.clone();
-            else if(toCopy.regressor != null)
-                this.regressor = toCopy.regressor.clone();
-            else
-                throw new RuntimeException("BUG: Please report");
-            this.featureCount = toCopy.featureCount;
-        }
-        
-        /**
-         * Sets the number of features to select for use from the set of all input features
-         * @param featureCount the number of features to use
-         */
-        public void setFeatureCount(int featureCount)
-        {
-            if(featureCount < 1)
-                throw new IllegalArgumentException("Number of features to select must be positive, not " + featureCount);
-            this.featureCount = featureCount;
-        }
+    /**
+     * Returns the number of features to use
+     *
+     * @return the number of features to use
+     */
+    public int getFeatureCount()
+    {
+        return featureCount;
+    }
 
-        /**
-         * Returns the number of features to sue
-         * @return the number of features to sue
-         */
-        public int getFeatureCount()
-        {
-            return featureCount;
-        }
+    /**
+     * Sets the number of folds to use for cross validation when estimating the error rate
+     * @param folds the number of folds to use for cross validation when estimating the error rate
+     */
+    public void setFolds(int folds)
+    {
+        if(folds <= 0 )
+            throw new IllegalArgumentException("Number of CV folds must be positive, not " + folds);
+        this.folds = folds;
+    }
 
-        @Override
-        public BDS getTransform(DataSet dataset)
-        {
-            if(dataset instanceof ClassificationDataSet)
-                return new BDS(featureCount, (ClassificationDataSet)dataset, 
-                        classifier, 5);
-            else
-                return new BDS(featureCount, (RegressionDataSet)dataset,
-                        regressor, featureCount);
-        }
+    /**
+     * 
+     * @return the number of folds to use for cross validation when estimating the error rate
+     */
+    public int getFolds()
+    {
+        return folds;
+    }
 
-        @Override
-        public BDSFactory clone()
-        {
-            return new BDSFactory(this);
-        }
-        
+    private void setEvaluator(Object evaluator)
+    {
+        this.evaluator = evaluator;
     }
 }

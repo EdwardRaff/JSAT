@@ -74,7 +74,8 @@ public class PCATest
         ClassificationDataSet easyTest = new ClassificationDataSet(gdg.generateData(10).getBackingList(), 0);
         
         //lets project the data into a higher dimension
-        JLTransform jl = new  JLTransform(30, easyTrain.getNumNumericalVars(), JLTransform.TransformMode.GAUSS, new XORWOW());
+        JLTransform jl = new  JLTransform(30, JLTransform.TransformMode.GAUSS);
+        jl.fit(easyTrain);
         easyTrain.applyTransform(jl);
         easyTest.applyTransform(jl);
         
@@ -83,11 +84,11 @@ public class PCATest
         double errorRate = cme.getErrorRate();
         
         
-        cme = new ClassificationModelEvaluation(new DataModelPipeline((Classifier)new NearestNeighbour(3), new PCA.PCAFactory(10)), easyTrain);
+        cme = new ClassificationModelEvaluation(new DataModelPipeline((Classifier)new NearestNeighbour(3), new PCA(10)), easyTrain);
         cme.evaluateTestSet(easyTest);
         assertTrue(cme.getErrorRate() < (errorRate+0.01)*1.05);
         
-        cme = new ClassificationModelEvaluation(new DataModelPipeline((Classifier)new NearestNeighbour(3), new PCA.PCAFactory(3)), easyTrain);
+        cme = new ClassificationModelEvaluation(new DataModelPipeline((Classifier)new NearestNeighbour(3), new PCA(3)), easyTrain);
         cme.evaluateTestSet(easyTest);
         assertTrue(cme.getErrorRate() < (errorRate+0.01)*1.05);
     }

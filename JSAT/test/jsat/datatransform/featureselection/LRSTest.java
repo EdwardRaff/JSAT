@@ -64,7 +64,8 @@ public class LRSTest
         ClassificationDataSet cds = SFSTest.
                 generate3DimIn10(rand, t0, t1, t2);
         //L > R
-        LRS lrs = new LRS.LRSFactory((Classifier)new NearestNeighbour(3), 6, 3).clone().getTransform(cds).clone();
+        LRS lrs = new LRS(6, 3, (Classifier) new NearestNeighbour(3), 5).clone();
+        lrs.fit(cds);
         Set<Integer> found = lrs.getSelectedNumerical();
         
         assertEquals(shouldHave.size(), found.size());
@@ -74,7 +75,8 @@ public class LRSTest
         assertEquals(shouldHave.size(), copyData.getNumFeatures());
         
         //L < R (Leave 1 left then add 2 back
-        lrs = new LRS.LRSFactory((Classifier)new NearestNeighbour(3), 2, 10-1).clone().getTransform(cds).clone();
+        lrs = new LRS( 2, 10-1, (Classifier)new NearestNeighbour(3),5).clone();
+        lrs.fit(cds);
         found = lrs.getSelectedNumerical();
         
         assertEquals(shouldHave.size(), found.size());
@@ -95,7 +97,8 @@ public class LRSTest
         RegressionDataSet cds = SFSTest.
                 generate3DimIn10R(rand, t0, t1, t2);
         //L > R
-        LRS lrs = new LRS.LRSFactory(new MultipleLinearRegression(), 6, 3).clone().getTransform(cds).clone();
+        LRS lrs = new LRS(6, 3, (Classifier) new NearestNeighbour(3), 5).clone();
+        lrs.fit(cds);
         Set<Integer> found = lrs.getSelectedNumerical();
         
         
@@ -106,7 +109,8 @@ public class LRSTest
         assertEquals(shouldHave.size(), copyData.getNumFeatures());
         
         //L < R (Leave 1 left then add 2 back
-        lrs = new LRS.LRSFactory(new MultipleLinearRegression(), 2, 10-1).clone().getTransform(cds).clone();
+        lrs = new LRS( 2, 10-1, (Classifier)new NearestNeighbour(3),5).clone();
+        lrs.fit(cds);
         found = lrs.getSelectedNumerical();
         
         assertEquals(shouldHave.size(), found.size());

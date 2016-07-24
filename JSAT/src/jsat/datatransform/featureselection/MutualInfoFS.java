@@ -25,9 +25,11 @@ import jsat.utils.IntSet;
 public class MutualInfoFS extends RemoveAttributeTransform
 {
 
-	private static final long serialVersionUID = -4394620220403363542L;
-
-	/**
+    private static final long serialVersionUID = -4394620220403363542L;
+    private int featureCount;
+    private NumericalHandeling numericHandling;
+    
+    /**
      * The definition for mutual information for continuous attributes requires 
      * an integration of an unknown function, as such requires some form of 
      * approximation. This controls how the approximation is done
@@ -50,6 +52,28 @@ public class MutualInfoFS extends RemoveAttributeTransform
     }
 
     /**
+     * Creates a new Mutual Information feature selection object that attempts
+     * to select up to 100 features. Numeric attributes are handled by
+     * {@link NumericalHandeling#BINARY}
+     *
+     */
+    public MutualInfoFS()
+    {
+        this(100);
+    }
+    
+    /**
+     * Creates a new Mutual Information feature selection object. Numeric 
+     * attributes are handled by {@link NumericalHandeling#BINARY}  
+     * 
+     * @param featureCount the number of features to select
+     */
+    public MutualInfoFS(int featureCount)
+    {
+        this(featureCount, NumericalHandeling.BINARY);
+    }
+    
+    /**
      * Creates a new Mutual Information feature selection object. Numeric 
      * attributes are handled by {@link NumericalHandeling#BINARY}  
      * 
@@ -69,6 +93,22 @@ public class MutualInfoFS extends RemoveAttributeTransform
     protected MutualInfoFS(MutualInfoFS toCopy)
     {
         super(toCopy);
+        this.featureCount = toCopy.featureCount;
+        this.numericHandling = toCopy.numericHandling;
+    }
+    
+    /**
+     * Creates a new Mutual Information feature selection object.
+     *
+     * @param featureCount the number of features to select
+     * @param numericHandling the way to handle the computation of mutual 
+     * information for numeric attributes 
+     */
+    public MutualInfoFS(int featureCount, NumericalHandeling numericHandling)
+    {
+        super();
+        setFeatureCount(featureCount);
+        setHandling(numericHandling);
     }
     
     /**
@@ -82,9 +122,16 @@ public class MutualInfoFS extends RemoveAttributeTransform
      */
     public MutualInfoFS(ClassificationDataSet dataSet, int featureCount, NumericalHandeling numericHandling)
     {
-        super();
-        if(featureCount <= 0)
-            throw new RuntimeException("Number of features to select must be positive");
+        this(featureCount, numericHandling);
+    }
+
+    @Override
+    public void fit(DataSet data)
+    {
+        if(!(data instanceof ClassificationDataSet))
+            throw new FailedToFitException("MutualInfoFS only works for classification data sets, not " + data.getClass().getSimpleName());
+        ClassificationDataSet dataSet = (ClassificationDataSet) data;
+        super.fit(dataSet);
         final int N = dataSet.getSampleSize();
         double[] classPriors = dataSet.getPriors();
         double[] logClassPriors = new double[classPriors.length];
@@ -213,105 +260,52 @@ public class MutualInfoFS extends RemoveAttributeTransform
         
         setUp(dataSet, catToRemove, numToRemove);
     }
-
+    
     @Override
     public MutualInfoFS clone()
     {
         return new MutualInfoFS(this);
     }
-    
+ 
     /**
-     * Factory for producing {@link MutualInfoFS} transforms
+     * Sets the number of features to select
+     *
+     * @param featureCount the number of features to select
      */
-    public static class MutualInfoFSFactory extends DataTransformFactoryParm
+    public void setFeatureCount(int featureCount)
     {
-        private int featureCount;
-        private NumericalHandeling handling;
+        if (featureCount < 1)
+            throw new IllegalArgumentException("Number of features must be positive, not " + featureCount);
+        this.featureCount = featureCount;
+    }
 
-        /**
-         * Creates a new MutalInfoFS factory that uses 
-         * {@link NumericalHandeling#BINARY} handling for numeric attributes. 
-         * 
-         * @param featureCount  the number of features to select
-         */
-        public MutualInfoFSFactory(int featureCount)
-        {
-            this(featureCount, NumericalHandeling.BINARY);
-        }
-        
-        /**
-         * Creates a new MutualInfoFS factory
-         * 
-         * @param featureCount the number of features to select
-         * @param handling the way to handle numeric attributes
-         */
-        public MutualInfoFSFactory(int featureCount, NumericalHandeling handling)
-        {
-            setFeatureCount(featureCount);
-            setHandling(handling);
-        }
+    /**
+     * Returns the number of features to select
+     *
+     * @return the number of features to select
+     */
+    public int getFeatureCount()
+    {
+        return featureCount;
+    }
 
-        /**
-         * Copy constructor
-         * @param toCopy the object to copy
-         */
-        public MutualInfoFSFactory(MutualInfoFSFactory toCopy)
-        {
-            this(toCopy.featureCount, toCopy.handling);
-        }
+    /**
+     * Sets the method of numericHandling numeric features
+     *
+     * @param handling the numeric numericHandling
+     */
+    public void setHandling(NumericalHandeling handling)
+    {
+        this.numericHandling = handling;
+    }
 
-        /**
-         * Sets the number of features to select 
-         * @param featureCount the number of features to select
-         */
-        public void setFeatureCount(int featureCount)
-        {
-            if(featureCount < 1)
-                throw new IllegalArgumentException("Number of features must be positive, not " + featureCount);
-            this.featureCount = featureCount;
-        }
-
-        /**
-         * Returns the number of features to select
-         * @return the number of features to select
-         */
-        public int getFeatureCount()
-        {
-            return featureCount;
-        }
-
-        /**
-         * Sets the method of handling numeric features
-         * @param handling the numeric handling
-         */
-        public void setHandling(NumericalHandeling handling)
-        {
-            this.handling = handling;
-        }
-
-        /**
-         * Returns the method of handling numeric features
-         * @return the method of handling numeric features
-         */
-        public NumericalHandeling getHandling()
-        {
-            return handling;
-        }
-
-        
-        @Override
-        public MutualInfoFS getTransform(DataSet dataset)
-        {
-            if(!(dataset instanceof ClassificationDataSet))
-                throw new FailedToFitException("The given data set was not a classification data set");
-            ClassificationDataSet cds = (ClassificationDataSet) dataset;
-            return new MutualInfoFS(cds, featureCount, handling);
-        }
-
-        @Override
-        public MutualInfoFSFactory clone()
-        {
-            return new MutualInfoFSFactory(this);
-        }
+    /**
+     * Returns the method of numericHandling numeric features
+     *
+     * @return the method of numericHandling numeric features
+     */
+    public NumericalHandeling getHandling()
+    {
+        return numericHandling;
     }
 }

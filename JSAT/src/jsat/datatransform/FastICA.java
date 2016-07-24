@@ -32,11 +32,23 @@ import jsat.exceptions.FailedToFitException;
  */
 public class FastICA implements InvertibleTransform
 {
+    //TODO add default search for C
+    private static final long serialVersionUID = -8644025740457515563L;
 
-	private static final long serialVersionUID = -8644025740457515563L;
+    /**
+     * the number of base components to assume and try to discover
+     */
+    private int C;
+    /**
+     * the Negative Entropy function to use
+     */
+    private NegEntropyFunc G;
+    /**
+     * {@code true} to assume the data has already been 
+     */
+    private boolean preWhitened;
+    private ZeroMeanTransform zeroMean;
 
-	private ZeroMeanTransform zeroMean;
-    
     /**
      * Un-mixes the observed data into the raw components we learned 
      */
@@ -148,6 +160,25 @@ public class FastICA implements InvertibleTransform
     };
     
     /**
+     * Creates a new FastICA transform that will attempt to fit 10 components.
+     * This is likely not optimal for any particular dataset
+     */
+    public FastICA()
+    {
+        this(10);
+    }
+    
+    /**
+     * Creates a new FastICA transform
+     * 
+     * @param C the number of base components to assume and try to discover
+     */
+    public FastICA(int C)
+    {
+        this(C, DefaultNegEntropyFunc.LOG_COSH, false);
+    }
+    
+    /**
      * Creates a new FastICA transform
      * @param data the data set to transform
      * @param C the number of base components to assume and try to discover
@@ -159,6 +190,23 @@ public class FastICA implements InvertibleTransform
 
     /**
      * Creates a new FastICA transform
+     *
+     * @param data the data set to transform
+     * @param C the number of base components to assume and try to discover
+     * @param G the Negative Entropy function to use
+     * @param preWhitened {@code true} to assume the data has already been 
+     * whitened before being given to the transform, {@code false} and the 
+     * FastICA implementation will perform its own whitening. 
+     */
+    public FastICA(int C, NegEntropyFunc G, boolean preWhitened)
+    {
+        setC(C);
+        setNegEntropyFunction(G);
+        setPreWhitened(preWhitened);
+    }
+    
+    /**
+     * Creates a new FastICA transform
      * @param data the data set to transform
      * @param C the number of base components to assume and try to discover
      * @param G the Negative Entropy function to use
@@ -167,6 +215,13 @@ public class FastICA implements InvertibleTransform
      * FastICA implementation will perform its own whitening. 
      */
     public FastICA(DataSet data, int C, NegEntropyFunc G, boolean preWhitened)
+    {
+        this(C, G, preWhitened);
+        fit(data);
+    }
+
+    @Override
+    public void fit(DataSet data)
     {
         int N = data.getSampleSize();
         
@@ -276,12 +331,79 @@ public class FastICA implements InvertibleTransform
      */
     public FastICA(FastICA toCopy)
     {
+        this.C = toCopy.C;
+        this.G = toCopy.G;
+        this.preWhitened = toCopy.preWhitened;
         if (toCopy.zeroMean != null)
             this.zeroMean = toCopy.zeroMean.clone();
         if (toCopy.unmixing != null)
             this.unmixing = toCopy.unmixing.clone();
         if (toCopy.mixing != null)
             this.mixing = toCopy.mixing.clone();
+    }
+    
+    /**
+     * Sets the number of base components to learn
+     * @param C the number of base components to assume and try to discover
+     */
+    public void setC(int C)
+    {
+        if(C < 1)
+            throw new IllegalArgumentException("Number of components must be positive, not " + C);
+        this.C = C;
+    }
+
+    /**
+     * 
+     * @return the number of base components to assume and try to discover
+     */
+    public int getC()
+    {
+        return C;
+    }
+    
+    /**
+     * Sets the Negative Entropy function used to infer the base components. 
+     * 
+     * @param G the Negative Entropy function to use
+     */
+    public void setNegEntropyFunction(NegEntropyFunc G)
+    {
+        if(G == null)
+            throw new NullPointerException("Negative Entropy function must be non-null");
+        this.G = G;
+    }
+    
+    /**
+     * 
+     * @return the Negative Entropy function to use
+     */
+    public NegEntropyFunc getNegEntropyFunction()
+    {
+        return G;
+    }
+
+    /**
+     * Controls where or not the implementation assumes the input data is
+     * already whitened. Whitening is a requirement for the algorithm to work as
+     * intended.
+     *
+     * @param preWhitened {@code true} to assume the data has already been
+     * whitened, {@code false} for this object to do its own whitening
+     */
+    public void setPreWhitened(boolean preWhitened)
+    {
+        this.preWhitened = preWhitened;
+    }
+
+    /**
+     *
+     * @return {@code true} if this object will assume the data has already been
+     * whitened, {@code false} for this object to do its own whitening
+     */
+    public boolean isPreWhitened()
+    {
+        return preWhitened;
     }
     
     @Override
@@ -316,36 +438,5 @@ public class FastICA implements InvertibleTransform
     public FastICA clone()
     {
         return new FastICA(this);
-    }
-    
-    
-    /**
-     * Factory for producing new {@link FastICA} transforms. 
-     */
-    static public class FastICATransformFactory implements DataTransformFactory
-    {
-        int C;
-
-        /**
-         * 
-         * @param C the number of base components to assume and try to discover
-         */
-        public FastICATransformFactory(int C)
-        {
-            this.C = C;
-        }
-        
-        @Override
-        public DataTransform getTransform(DataSet dataset)
-        {
-            return new FastICA(dataset, C);
-        }
-
-        @Override
-        public FastICATransformFactory clone()
-        {
-            return new FastICATransformFactory(C);
-        }
-        
     }
 }

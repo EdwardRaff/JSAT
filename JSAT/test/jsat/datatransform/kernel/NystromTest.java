@@ -72,7 +72,7 @@ public class NystromTest
         
         for(Nystrom.SamplingMethod sampMethod : Nystrom.SamplingMethod.values())
         {
-            DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new Nystrom.NystromTransformFactory(new RBFKernel(0.5), 250, sampMethod, 1e-5, false)); 
+            DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new Nystrom(new RBFKernel(0.5), 250, sampMethod, 1e-5, false)); 
 
             ClassificationDataSet train = FixedProblems.getInnerOuterCircle(400, new XORWOW());
             ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
@@ -93,7 +93,7 @@ public class NystromTest
 
         for(Nystrom.SamplingMethod sampMethod : Nystrom.SamplingMethod.values())
         {
-            DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new Nystrom.NystromTransformFactory(new RBFKernel(0.5), 250, sampMethod, 1e-5, false)); 
+            DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new Nystrom(new RBFKernel(0.5), 250, sampMethod, 1e-5, false)); 
         
             ClassificationDataSet train = FixedProblems.getInnerOuterCircle(400, new XORWOW());
             ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
@@ -111,7 +111,7 @@ public class NystromTest
     {
         System.out.println("clone");
 
-        DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new Nystrom.NystromTransformFactory(new RBFKernel(0.5), 250, Nystrom.SamplingMethod.NORM, 1e-5, true)); 
+        DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new Nystrom(new RBFKernel(0.5), 250, Nystrom.SamplingMethod.NORM, 1e-5, true)); 
         
         ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
         ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);

@@ -74,7 +74,7 @@ public class KernelPCATest
         
         for(Nystrom.SamplingMethod sampMethod : Nystrom.SamplingMethod.values())
         {
-            DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new KernelPCA.KernelPCATransformFactory(new RBFKernel(0.5), 20, 100, sampMethod)); 
+            DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new KernelPCA(new RBFKernel(0.5), 20, 100, sampMethod)); 
 
             ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
             ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
@@ -95,7 +95,7 @@ public class KernelPCATest
 
         for(Nystrom.SamplingMethod sampMethod : Nystrom.SamplingMethod.values())
         {
-            DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new KernelPCA.KernelPCATransformFactory(new RBFKernel(0.5), 20, 100, sampMethod)); 
+            DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new KernelPCA(new RBFKernel(0.5), 20, 100, sampMethod)); 
         
             ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
             ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
@@ -113,7 +113,7 @@ public class KernelPCATest
     {
         System.out.println("clone");
 
-        DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new KernelPCA.KernelPCATransformFactory(new RBFKernel(0.5), 20, 100, Nystrom.SamplingMethod.KMEANS)); 
+        DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new KernelPCA(new RBFKernel(0.5), 20, 100, Nystrom.SamplingMethod.KMEANS)); 
         
         ClassificationDataSet t1 = FixedProblems.getCircles(500, 0.0, new XORWOW(), 1.0, 4.0);
         ClassificationDataSet t2 = FixedProblems.getCircles(500, 0.0, new XORWOW(), 2.0, 10.0);

@@ -18,17 +18,35 @@ import jsat.linear.Vec;
 public class StandardizeTransform implements InPlaceTransform
 {
 
-	private static final long serialVersionUID = -2349721113741805955L;
-	private Vec means;
+    private static final long serialVersionUID = -2349721113741805955L;
+    private Vec means;
     private Vec stdDevs;
 
+    /**
+     * Creates a new object for Standardizing datasets
+     */
+    public StandardizeTransform()
+    {
+        
+    }
+    
+    /**
+     * Creates a new object for standaidizing datasets fit to the given dataset
+     * @param dataset the dataset to learn how to standardize from
+     */
     public StandardizeTransform(DataSet dataset)
+    {
+        fit(dataset);
+    }
+
+    @Override
+    public void fit(DataSet dataset)
     {
         Vec[] vecs = dataset.getColumnMeanVariance();
         means = vecs[0];
         stdDevs = vecs[1];
     }
-
+    
     /**
      * Copy constructor
      * @param toCopy the object to copy
@@ -67,27 +85,4 @@ public class StandardizeTransform implements InPlaceTransform
         return new StandardizeTransform(this);
     }
     
-    /**
-     * Factory for producing new {@link StandardizeTransform} transforms
-     */
-    static public class StandardizeTransformFactory implements DataTransformFactory
-    {
-
-        public StandardizeTransformFactory()
-        {
-        }
-        
-        @Override
-        public DataTransform getTransform(DataSet dataset)
-        {
-            return new StandardizeTransform(dataset);
-        }
-
-        @Override
-        public DataTransformFactory clone()
-        {
-            return new StandardizeTransformFactory();
-        }
-        
-    }
 }

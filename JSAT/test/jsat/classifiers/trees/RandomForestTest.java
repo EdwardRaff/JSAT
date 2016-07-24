@@ -80,7 +80,7 @@ public class RandomForestTest
 
             RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
             if(useCatFeatures)
-                rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+                rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
             rme.evaluateTestSet(test);
             
             assertTrue(rme.getMeanError() <= test.getTargetValues().mean()*2.5);
@@ -103,7 +103,7 @@ public class RandomForestTest
 
             RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
             if(useCatFeatures)
-                rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory(10)));
+                rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram(10)));
             rme.evaluateTestSet(test);
             
             assertTrue(rme.getMeanError() <= test.getTargetValues().mean()*3.5);
@@ -126,7 +126,7 @@ public class RandomForestTest
 
             RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
             if(useCatFeatures)
-                rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+                rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
             rme.evaluateTestSet(test);
 
             assertTrue(rme.getMeanError() <= test.getTargetValues().mean()*2.5);
@@ -152,7 +152,7 @@ public class RandomForestTest
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             if(useCatFeatures)
-                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
             cme.evaluateTestSet(test);
 
             assertTrue(cme.getErrorRate() <= 0.001);
@@ -175,7 +175,7 @@ public class RandomForestTest
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             if(useCatFeatures)
-                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
             cme.evaluateTestSet(test);
 
             assertTrue(cme.getErrorRate() <= 0.001);
@@ -199,7 +199,7 @@ public class RandomForestTest
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             if(useCatFeatures)
-                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
             cme.evaluateTestSet(test);
 
             if(useCatFeatures)//hard to get right with only 2 features like this

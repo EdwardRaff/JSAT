@@ -25,11 +25,11 @@ import jsat.parameters.Parameterized;
 public class DataTransformProcess implements DataTransform, Parameterized
 {
 
-	private static final long serialVersionUID = -2844495690944305885L;
-	@ParameterHolder(skipSelfNamePrefix = true)
-    private List<DataTransformFactory> transformSource;
+    private static final long serialVersionUID = -2844495690944305885L;
+    @ParameterHolder(skipSelfNamePrefix = true)
+    private List<DataTransform> transformSource;
     private List<DataTransform> learnedTransforms;
-    
+
 
     /**
      * Creates a new transform process that is empty. Transform factories must 
@@ -38,7 +38,7 @@ public class DataTransformProcess implements DataTransform, Parameterized
      */
     public DataTransformProcess()
     {
-        transformSource = new ArrayList<DataTransformFactory>();
+        transformSource = new ArrayList<DataTransform>();
         learnedTransforms = new ArrayList<DataTransform>();   
     }
     
@@ -46,13 +46,13 @@ public class DataTransformProcess implements DataTransform, Parameterized
      * Creates a new transform process from the listed factories, which will be
      * applied in order by index. 
      * 
-     * @param factories the array of factories to apply as the data transform process
+     * @param transforms the array of factories to apply as the data transform process
      */
-    public DataTransformProcess(DataTransformFactory... factories)
+    public DataTransformProcess(DataTransform... transforms)
     {
         this();
-        for(DataTransformFactory factory : factories)
-            this.addTransform(factory);
+        for(DataTransform dt : transforms)
+            this.addTransform(dt);
     }
     
     /**
@@ -60,7 +60,7 @@ public class DataTransformProcess implements DataTransform, Parameterized
      * applied in the order in which they are added. 
      * @param transform the factory for the transform to add
      */
-    public void addTransform(DataTransformFactory transform)
+    public void addTransform(DataTransform transform)
     {
         transformSource.add(transform);
     }
@@ -94,7 +94,12 @@ public class DataTransformProcess implements DataTransform, Parameterized
             i--;
         }
     }
-    
+
+    @Override
+    public void fit(DataSet data)
+    {
+        learnApplyTransforms(data);
+    }
     
     /**
      * Learns the transforms for the given data set. The data set will not be 
@@ -137,9 +142,10 @@ public class DataTransformProcess implements DataTransform, Parameterized
             origCats[i] = dp.getCategoricalValues();
         }
 
-        for (DataTransformFactory dtf : transformSource)
+        for (DataTransform dtf : transformSource)
         {
-            DataTransform transform = dtf.getTransform(dataSet);
+            DataTransform transform = dtf.clone();
+            transform.fit(dataSet);
             if(transform instanceof InPlaceTransform)
             {
                 InPlaceTransform ipt = (InPlaceTransform) transform;
@@ -200,7 +206,7 @@ public class DataTransformProcess implements DataTransform, Parameterized
     {
         DataTransformProcess clone = new DataTransformProcess();
         
-        for(DataTransformFactory dtf : this.transformSource)
+        for(DataTransform dtf : this.transformSource)
             clone.transformSource.add(dtf.clone());
         
         for(DataTransform dt : this.learnedTransforms)

@@ -78,6 +78,7 @@ public class Imputer implements InPlaceTransform
             this.numeric_imputs = Arrays.copyOf(toCopy.numeric_imputs, toCopy.numeric_imputs.length);
     }
     
+    @Override
     public void fit(DataSet d)
     {
         numeric_imputs = new double[d.getNumNumericalVars()];

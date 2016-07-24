@@ -69,7 +69,7 @@ public class RFF_RBFTest
 
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         
-        DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new RFF_RBF.RFF_RBFTransformFactory(0.5, 100, true));
+        DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new RFF_RBF(0.5, 100, true));
 
         ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
         ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
@@ -88,7 +88,7 @@ public class RFF_RBFTest
     {
         System.out.println("trainC");
 
-        DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new RFF_RBF.RFF_RBFTransformFactory(0.5, 100, true));
+        DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new RFF_RBF(0.5, 100, true));
 
         ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
         ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
@@ -105,7 +105,7 @@ public class RFF_RBFTest
     {
         System.out.println("clone");
 
-        DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new RFF_RBF.RFF_RBFTransformFactory(0.5, 100, false));
+        DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new RFF_RBF(0.5, 100, false));
         
         ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
         ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);

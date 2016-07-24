@@ -319,6 +319,11 @@ public class TSNE implements VisualizationTransform
             }
 
             @Override
+            public void fit(DataSet data)
+            {
+            }
+
+            @Override
             public DataTransform clone()
             {
                 return this;

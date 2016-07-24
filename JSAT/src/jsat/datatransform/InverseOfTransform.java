@@ -1,5 +1,6 @@
 package jsat.datatransform;
 
+import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 
 /**
@@ -18,8 +19,8 @@ import jsat.classifiers.DataPoint;
 public class InverseOfTransform implements DataTransform 
 {
 
-	private static final long serialVersionUID = 2565737661260748018L;
-	private InvertibleTransform transform;
+    private static final long serialVersionUID = 2565737661260748018L;
+    private InvertibleTransform transform;
 
     /**
      * Creates a new transform that uses the 
@@ -30,6 +31,12 @@ public class InverseOfTransform implements DataTransform
     public InverseOfTransform(InvertibleTransform transform)
     {
         this.transform = transform;
+    }
+
+    @Override
+    public void fit(DataSet data)
+    {
+        //no-op, nothing to do
     }
 
     /**

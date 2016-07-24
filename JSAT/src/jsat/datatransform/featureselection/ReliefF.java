@@ -14,13 +14,14 @@ import java.util.logging.Logger;
 
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
-import jsat.datatransform.DataTransformFactoryParm;
+import jsat.datatransform.DataTransformBase;
 import jsat.datatransform.RemoveAttributeTransform;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.linear.vectorcollection.DefaultVectorCollectionFactory;
 import jsat.linear.vectorcollection.VectorCollection;
@@ -49,8 +50,41 @@ import jsat.utils.SystemInfo;
 public class ReliefF extends RemoveAttributeTransform
 {
 
-	private static final long serialVersionUID = -3336500245613075520L;
-	private double[] w;
+    private static final long serialVersionUID = -3336500245613075520L;
+    private double[] w;
+    private int featureCount;
+    private int iterations;
+    private int neighbors;
+    private DistanceMetric dm;
+    private VectorCollectionFactory<Vec> vcf = new DefaultVectorCollectionFactory<Vec>();
+    
+    /**
+     * Creates a new ReliefF object to measure the importance of the variables
+     * with respect to a classification task. Only numeric features will be
+     * removed. Categorical features will be ignored and left in tact by the
+     * transformation
+     *
+     * @param featureCount the number of features to keep
+     */
+    public ReliefF(int featureCount)
+    {
+        this(featureCount, 100, 15, new EuclideanDistance(), new DefaultVectorCollectionFactory<Vec>());
+    }
+    
+    /**
+     * Creates a new ReliefF object to measure the importance of the variables with 
+     * respect to a classification task. Only numeric features will be removed. 
+     * Categorical features will be ignored and left in tact by the transformation
+     * 
+     * @param featureCount the number of features to keep
+     * @param m the number of learning iterations to perform
+     * @param n the number of neighbors to measure importance from
+     * @param dm the distance metric to use
+     */
+    public ReliefF(int featureCount, final int m, final int n, final DistanceMetric dm)
+    {
+        this(featureCount, m, n, dm, new DefaultVectorCollectionFactory<Vec>());
+    }
     
     /**
      * Creates a new ReliefF object to measure the importance of the variables with 
@@ -111,6 +145,34 @@ public class ReliefF extends RemoveAttributeTransform
         super(toCopy);
         if(toCopy.w != null)
             this.w = Arrays.copyOf(toCopy.w, toCopy.w.length);
+        this.dm = toCopy.dm.clone();
+        this.featureCount = toCopy.featureCount;
+        this.iterations = toCopy.iterations;
+        this.neighbors = toCopy.neighbors;
+        this.vcf = toCopy.vcf.clone();
+    }
+    
+    /**
+     * Creates a new ReliefF object to measure the importance of the variables
+     * with respect to a classification task. Only numeric features will be
+     * removed. Categorical features will be ignored and left in tact by the
+     * transformation
+     *
+     * @param featureCount the number of features to keep
+     * @param m the number of learning iterations to perform
+     * @param n the number of neighbors to measure importance from
+     * @param dm the distance metric to use
+     * @param vcf the factor to create accelerating structures for nearest neighbor
+     * @param threadPool the source of threads to use for the computation
+     */
+    public ReliefF(int featureCount, final int m, final int n, final DistanceMetric dm, VectorCollectionFactory<Vec> vcf)
+    {
+        super();
+        setFeatureCount(featureCount);
+        setIterations(m);
+        setNeighbors(n);
+        setDistanceMetric(dm);
+        this.vcf = vcf;
     }
     
     /**
@@ -128,7 +190,22 @@ public class ReliefF extends RemoveAttributeTransform
      */
     public ReliefF(final ClassificationDataSet cds, int featureCount, final int m, final int n, final DistanceMetric dm, VectorCollectionFactory<Vec> vcf, ExecutorService threadPool)
     {
-        super();
+        this(featureCount, m, n, dm, vcf);
+        fit(cds, threadPool);
+    }
+
+    @Override
+    public void fit(DataSet data)
+    {
+        fit(data, null);
+    }
+    
+    public void fit(DataSet data, ExecutorService threadPool)
+    {
+        if(!(data instanceof ClassificationDataSet))
+            throw new FailedToFitException("RelifF only works with classification datasets, not " + data.getClass().getSimpleName());
+        final ClassificationDataSet cds = (ClassificationDataSet) data;
+        super.fit(data);
         this.w = new double[cds.getNumNumericalVars()];
         final double[] minVals = new double[w.length];
         Arrays.fill(minVals, Double.POSITIVE_INFINITY);
@@ -162,7 +239,8 @@ public class ReliefF extends RemoveAttributeTransform
                 classVC.add(vcf.getVectorCollection(allVecs.subList(curStart, curStart+classCount), dm, threadPool));
             curStart += classCount;
         }
-        
+        final int m = iterations;
+        final int n = neighbors;
         final int toUse = threadPool == null ? 1 : SystemInfo.LogicalCores;
         if(threadPool == null)
             threadPool = new FakeExecutor();
@@ -259,136 +337,91 @@ public class ReliefF extends RemoveAttributeTransform
     }
     
     /**
-     * Factory for producing {@link ReliefF} transforms
+     * Sets the number of features to select for use from the set of all input
+     * features
+     *
+     * @param featureCount the number of features to use
      */
-    public static class ReliefFFactory extends DataTransformFactoryParm
+    public void setFeatureCount(int featureCount)
     {
-        private int featureCount;
-        private int iterations;
-        private int neighbors;
-        private DistanceMetric dm;
-
-        /**
-         * Creates a new ReliefF object to measure the importance of the variables 
-         * with respect to a classification task. Only numeric features will be 
-         * removed. Categorical features will be ignored
-         * 
-         * and left in tact by the transformation
-         *
-         * @param featureCount the number of features to keep
-         * @param iterations the number of learning iterations to perform
-         * @param neighbors the number of neighbors to measure importance from
-         * @param dm the distance metric to use
-         */
-        public ReliefFFactory(int featureCount, int iterations, int neighbors, DistanceMetric dm)
-        {
-            setFeatureCount(featureCount);
-            setIterations(iterations);
-            setNeighbors(neighbors);
-            setDistanceMetric(dm);
-        }
-
-        /**
-         * Copy constructor
-         * @param toCopy the object to copy
-         */
-        public ReliefFFactory(ReliefFFactory toCopy)
-        {
-            this(toCopy.featureCount, toCopy.iterations, toCopy.neighbors, toCopy.dm.clone());
-        }
-
-        /**
-         * Sets the number of features to select for use from the set of all input features
-         * @param featureCount the number of features to use
-         */
-        public void setFeatureCount(int featureCount)
-        {
-            if(featureCount < 1)
-                throw new IllegalArgumentException("Number of features to select must be positive, not " + featureCount);
-            this.featureCount = featureCount;
-        }
-
-        /**
-         * Returns the number of features to sue
-         * @return the number of features to sue
-         */
-        public int getFeatureCount()
-        {
-            return featureCount;
-        }
-
-        /**
-         * Sets the number of iterations of the ReliefF algorithm that will be 
-         * run
-         * @param iterations the number of iterations to run
-         */
-        public void setIterations(int iterations)
-        {
-            if(iterations < 1)
-                throw new IllegalArgumentException("Number of iterations must be positive, not " + iterations);
-            this.iterations = iterations;
-        }
-
-        /**
-         * Returns the number of iterations to use
-         * @return the number of iterations to use
-         */
-        public int getIterations()
-        {
-            return iterations;
-        }
-
-        /**
-         * Sets the number of neighbors to use to infer feature importance from
-         * @param neighbors the number of neighbors to use
-         */
-        public void setNeighbors(int neighbors)
-        {
-            if(neighbors < 1)
-                throw new IllegalArgumentException("Number of neighbors must be positive, not " + neighbors);
-            this.neighbors = neighbors;
-        }
-
-        /**
-         * Returns the number of neighbors that will be used at each step of the
-         * algorithm. 
-         * @return the number of neighbors that will be used 
-         */
-        public int getNeighbors()
-        {
-            return neighbors;
-        }
-
-        /**
-         * Sets the distance metric to infer the feature importance with 
-         * @param dm the distance metric to use
-         */
-        public void setDistanceMetric(DistanceMetric dm)
-        {
-            this.dm = dm;
-        }
-
-        /**
-         * Returns the distance metric to use
-         * @return the distance metric to use
-         */
-        public DistanceMetric getDistanceMetric()
-        {
-            return dm;
-        }
-        
-        @Override
-        public ReliefF getTransform(DataSet dataset)
-        {
-            if(!(dataset instanceof ClassificationDataSet))
-                throw new FailedToFitException("ReliefF transforms can only be learned from classification data sets");
-            return new ReliefF((ClassificationDataSet)dataset, featureCount, iterations, neighbors, dm);
-        }
-
-        @Override
-        public ReliefFFactory clone()
-        {
-            return new ReliefFFactory(this);
-        }
+        if (featureCount < 1)
+            throw new IllegalArgumentException("Number of features to select must be positive, not " + featureCount);
+        this.featureCount = featureCount;
     }
+
+    /**
+     * Returns the number of features to sue
+     *
+     * @return the number of features to sue
+     */
+    public int getFeatureCount()
+    {
+        return featureCount;
+    }
+
+    /**
+     * Sets the number of iterations of the ReliefF algorithm that will be run
+     *
+     * @param iterations the number of iterations to run
+     */
+    public void setIterations(int iterations)
+    {
+        if (iterations < 1)
+            throw new IllegalArgumentException("Number of iterations must be positive, not " + iterations);
+        this.iterations = iterations;
+    }
+
+    /**
+     * Returns the number of iterations to use
+     *
+     * @return the number of iterations to use
+     */
+    public int getIterations()
+    {
+        return iterations;
+    }
+
+    /**
+     * Sets the number of neighbors to use to infer feature importance from
+     *
+     * @param neighbors the number of neighbors to use
+     */
+    public void setNeighbors(int neighbors)
+    {
+        if (neighbors < 1)
+            throw new IllegalArgumentException("Number of neighbors must be positive, not " + neighbors);
+        this.neighbors = neighbors;
+    }
+
+    /**
+     * Returns the number of neighbors that will be used at each step of the
+     * algorithm.
+     *
+     * @return the number of neighbors that will be used
+     */
+    public int getNeighbors()
+    {
+        return neighbors;
+    }
+
+    /**
+     * Sets the distance metric to infer the feature importance with
+     *
+     * @param dm the distance metric to use
+     */
+    public void setDistanceMetric(DistanceMetric dm)
+    {
+        this.dm = dm;
+    }
+
+    /**
+     * Returns the distance metric to use
+     *
+     * @return the distance metric to use
+     */
+    public DistanceMetric getDistanceMetric()
+    {
+        return dm;
+    }
+
 }

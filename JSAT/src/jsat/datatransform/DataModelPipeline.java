@@ -28,8 +28,8 @@ import jsat.regression.Regressor;
 public class DataModelPipeline implements Classifier, Regressor, Parameterized
 {
 
-	private static final long serialVersionUID = -2300996837897094414L;
-	@ParameterHolder(skipSelfNamePrefix = true)
+    private static final long serialVersionUID = -2300996837897094414L;
+    @ParameterHolder(skipSelfNamePrefix = true)
     private DataTransformProcess baseDtp;
     private Classifier baseClassifier;
     private Regressor baseRegressor;
@@ -55,12 +55,12 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
     /**
      * Creates a new Data Model Pipeline from the given transform factories and 
      * base classifier
-     * @param factories the data transforms to apply
+     * @param transforms the data transforms to apply
      * @param baseClassifier the classifier to learn with
      */
-    public DataModelPipeline(Classifier baseClassifier, DataTransformFactory... factories)
+    public DataModelPipeline(Classifier baseClassifier, DataTransform... transforms)
     {
-        this(baseClassifier, new DataTransformProcess(factories));
+        this(baseClassifier, new DataTransformProcess(transforms));
     }
     
     /**
@@ -80,12 +80,12 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
     /**
      * Creates a new Data Model Pipeline from the given transform factories and 
      * base classifier
-     * @param factories the data transforms to apply
+     * @param transforms the data transforms to apply
      * @param baseRegressor the regressor to learn with
      */
-    public DataModelPipeline(Regressor baseRegressor, DataTransformFactory... factories)
+    public DataModelPipeline(Regressor baseRegressor, DataTransform... transforms)
     {
-        this(baseRegressor, new DataTransformProcess(factories));
+        this(baseRegressor, new DataTransformProcess(transforms));
     }
 
     /**

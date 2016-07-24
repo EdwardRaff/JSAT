@@ -30,23 +30,48 @@ import jsat.utils.ListUtils;
 public class LRS implements DataTransform
 {
 
-	private static final long serialVersionUID = 3065300352046535656L;
-	private RemoveAttributeTransform finalTransform;
+    private static final long serialVersionUID = 3065300352046535656L;
+    private RemoveAttributeTransform finalTransform;
     private Set<Integer> catSelected;
     private Set<Integer> numSelected;
-    
+    private int L;
+    private int R;
+    private Object evaluater;
+    private int folds;
+
     /**
      * Copy constructor
      * @param toClone the version to copy
      */
     private LRS(LRS toClone)
     {
+        this.L = toClone.L;
+        this.R = toClone.R;
+        this.folds = toClone.folds;
+        this.evaluater = toClone.evaluater;
         if(toClone.catSelected != null)
         {
             this.finalTransform = toClone.finalTransform.clone();
             this.catSelected = new IntSet(toClone.catSelected);
             this.numSelected = new IntSet(toClone.numSelected);
         }
+    }
+    
+    /**
+     * Creates a LRS feature selection object for a classification problem
+     * 
+     * @param L the number of features to greedily add
+     * @param R the number of features to greedily remove
+     * @param evaluater the classifier to use in determining accuracy given a 
+     * feature subset
+     * @param folds the number of cross validation folds to use in selection
+     */
+    public LRS(int L, int R, Classifier evaluater, int folds)
+    {
+        setFeaturesToAdd(L);
+        setFeaturesToRemove(R);
+        setFolds(folds);
+        setEvaluator(evaluater);
     }
     
     /**
@@ -65,6 +90,23 @@ public class LRS implements DataTransform
     }
     
     /**
+     * Creates a LRS feature selection object for a regression problem
+     * 
+     * @param L the number of features to greedily add
+     * @param R the number of features to greedily remove
+     * @param evaluater the regressor to use in determining accuracy given a 
+     * feature subset
+     * @param folds the number of cross validation folds to use in selection
+     */
+    public LRS(int L, int R, Regressor evaluater, int folds)
+    {
+        setFeaturesToAdd(L);
+        setFeaturesToRemove(R);
+        setFolds(folds);
+        setEvaluator(evaluater);
+    }
+    
+    /**
      * Performs LRS feature selection for a regression problem
      * 
      * @param L the number of features to greedily add
@@ -76,6 +118,7 @@ public class LRS implements DataTransform
      */
     public LRS(int L, int R, RegressionDataSet rds, Regressor evaluater, int folds)
     {
+        this(L, R, evaluater, folds);
         search(rds, L, R, evaluater, folds);
     }
 
@@ -113,6 +156,12 @@ public class LRS implements DataTransform
         return new IntSet(numSelected);
     }
 
+    @Override
+    public void fit(DataSet data)
+    {
+        search(data, L, R, evaluater, folds);
+    }
+    
     private void search(DataSet cds, int L, int R, Object evaluater, int folds)
     {
         int nF = cds.getNumFeatures();
@@ -178,140 +227,71 @@ public class LRS implements DataTransform
     }
     
     /**
-     * Factory for producing new {@link LRS} transforms. 
+     * Sets the number of features to add (the L parameter).
+     *
+     * @param featuresToAdd the number of features to greedily add
      */
-    static public class LRSFactory extends DataTransformFactoryParm
+    public void setFeaturesToAdd(int featuresToAdd)
     {
-        private Classifier classifier;
-        private Regressor regressor;
-        private int featuresToAdd, featuresToRemove;
+        if (featuresToAdd < 1)
+            throw new IllegalArgumentException("Number of features to add must be positive, not " + featuresToAdd);
+        this.L = featuresToAdd;
+    }
 
-        /**
-         * Creates a new LRS transform factory
-         * 
-         * @param evaluater the classifier to use to perform evaluation
-         * @param toAdd the number of features to add
-         * @param toRemove the number of features to remove
-         */
-        public LRSFactory(Classifier evaluater, int toAdd, int toRemove)
-        {
-            if(toAdd == toRemove)
-                throw new RuntimeException("L and R must be different");
-            this.classifier = evaluater;
-            if(evaluater instanceof Regressor)
-                this.regressor = (Regressor) evaluater;
-            setFeaturesToAdd(toAdd);
-            setFeaturesToRemove(toRemove);
-        }
-        
-        /**
-         * Creates a new LRS transform factory 
-         * 
-         * @param evaluater the regressor to use to perform evaluation
-         * @param toAdd the number of features to add
-         * @param toRemove the number of features to remove
-         */
-        public LRSFactory(Regressor evaluater, int toAdd, int toRemove)
-        {
-            if(toAdd == toRemove)
-                throw new RuntimeException("L and R must be different");
-            this.regressor = evaluater;
-            if(evaluater instanceof Classifier)
-                this.classifier = (Classifier) evaluater;
-            setFeaturesToAdd(toAdd);
-            setFeaturesToRemove(toRemove);
-        }
+    /**
+     * Returns the number of features to add
+     *
+     * @return the number of features to add
+     */
+    public int getFeaturesToAdd()
+    {
+        return L;
+    }
 
-        /**
-         * Copy constructor
-         * @param toCopy the object to copy
-         */
-        public LRSFactory(LRSFactory toCopy)
-        {
-            if(toCopy.classifier == toCopy.regressor)
-            {
-                this.classifier = toCopy.classifier.clone();
-                this.regressor = (Regressor) this.classifier;
-            }
-            else if(toCopy.classifier != null)
-                this.classifier = toCopy.classifier.clone();
-            else if(toCopy.regressor != null)
-                this.regressor = toCopy.regressor.clone();
-            else
-                throw new RuntimeException("BUG: Please report");
-            this.featuresToAdd = toCopy.featuresToAdd;
-            this.featuresToRemove = toCopy.featuresToRemove;
-        }
+    /**
+     * Sets the number of features to remove (the R parameter).
+     *
+     * @param featuresToRemove the number of features to greedily remove
+     */
+    public void setFeaturesToRemove(int featuresToRemove)
+    {
+        if (featuresToRemove < 1)
+            throw new IllegalArgumentException("Number of features to remove must be positive, not " + featuresToRemove);
+        this.R = featuresToRemove;
+    }
 
-        /**
-         * Sets the number of features to add (the L parameter).<br>
-         * <b>NOTE:</b> setting this and {@link #setFeaturesToRemove(int) } is
-         * allowed for the Factory, but is is assumed that it is occurring 
-         * because you are about to change the value of the other. Attempting to
-         * obtain a {@link LRS} transform will result in a runtime exception 
-         * until one of the values is changed. 
-         * 
-         * @param featuresToAdd the number of features to greedily add
-         */
-        public void setFeaturesToAdd(int featuresToAdd)
-        {
-            if(featuresToAdd < 1)
-                throw new IllegalArgumentException("Number of features to add must be positive, not "+featuresToAdd);
-            this.featuresToAdd = featuresToAdd;
-        }
+    /**
+     * Returns the number of features to remove
+     *
+     * @return the number of features to remove
+     */
+    public int getFeaturesToRemove()
+    {
+        return R;
+    }
 
-        /**
-         * Returns the number of features to add
-         * @return the number of features to add
-         */
-        public int getFeaturesToAdd()
-        {
-            return featuresToAdd;
-        }
+    /**
+     * Sets the number of folds to use for cross validation when estimating the error rate
+     * @param folds the number of folds to use for cross validation when estimating the error rate
+     */
+    public void setFolds(int folds)
+    {
+        if(folds <= 0 )
+            throw new IllegalArgumentException("Number of CV folds must be positive, not " + folds);
+        this.folds = folds;
+    }
 
-        /**
-         * Sets the number of features to remove (the R parameter).<br>
-         * <b>NOTE:</b> setting this and {@link #setFeaturesToAdd(int) } is
-         * allowed for the Factory, but is is assumed that it is occurring 
-         * because you are about to change the value of the other. Attempting to
-         * obtain a {@link LRS} transform will result in a runtime exception 
-         * until one of the values is changed. 
-         * 
-         * @param featuresToRemove the number of features to greedily remove
-         */
-        public void setFeaturesToRemove(int featuresToRemove)
-        {
-            if(featuresToRemove < 1)
-                throw new IllegalArgumentException("Number of features to remove must be positive, not " + featuresToRemove);
-            this.featuresToRemove = featuresToRemove;
-        }
+    /**
+     * 
+     * @return the number of folds to use for cross validation when estimating the error rate
+     */
+    public int getFolds()
+    {
+        return folds;
+    }
 
-        /**
-         * Returns the number of features to remove
-         * @return the number of features to remove
-         */
-        public int getFeaturesToRemove()
-        {
-            return featuresToRemove;
-        }
-        
-
-        @Override
-        public LRS getTransform(DataSet dataset)
-        {
-            if(dataset instanceof ClassificationDataSet)
-                return new LRS(featuresToAdd, featuresToRemove, 
-                        (ClassificationDataSet)dataset, classifier, 5);
-            else
-                return new LRS(featuresToAdd, featuresToRemove, 
-                        (RegressionDataSet)dataset, regressor, 5);
-        }
-
-        @Override
-        public LRSFactory clone()
-        {
-            return new LRSFactory(this);
-        }
-        
+    private void setEvaluator(Object evaluator)
+    {
+        this.evaluater = evaluator;
     }
 }

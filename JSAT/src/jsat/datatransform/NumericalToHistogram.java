@@ -5,6 +5,9 @@ import java.util.Arrays;
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
+import jsat.distributions.discrete.UniformDiscrete;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 
@@ -28,6 +31,16 @@ public class NumericalToHistogram implements DataTransform
     CategoricalData[] newDataArray;
 
     /**
+     * Creates a new transform which will use at most 25 bins when converting
+     * numeric features. This may not be optimal for any given dataset
+     *
+     */
+    public NumericalToHistogram()
+    {
+        this(25);
+    }
+    
+    /**
      * Creates a new transform which will use O(sqrt(n)) bins for each numeric 
      * feature, where <i>n</i> is the number of data points in the dataset. 
      * 
@@ -36,6 +49,16 @@ public class NumericalToHistogram implements DataTransform
     public NumericalToHistogram(DataSet dataSet)
     {
         this(dataSet, (int) Math.ceil(Math.sqrt(dataSet.getSampleSize())));
+    }
+    
+    /**
+     * Creates a new transform which will use at most the specified number of bins
+     * 
+     * @param n the number of bins to create
+     */
+    public NumericalToHistogram(int n)
+    {
+        setNumberOfBins(n);
     }
 
     /**
@@ -46,10 +69,13 @@ public class NumericalToHistogram implements DataTransform
      */
     public NumericalToHistogram(DataSet dataSet, int n)
     {
-        if(n <= 0)
-            throw new RuntimeException("Must partition into a positive number of groups");
-        this.n = n;
-        
+        this(n);
+        fit(dataSet);
+    }
+
+    @Override
+    public void fit(DataSet dataSet)
+    {
         conversionArray = new double[dataSet.getNumNumericalVars()][2];
         
         double[] mins = new double[conversionArray.length];
@@ -85,18 +111,60 @@ public class NumericalToHistogram implements DataTransform
     }
     
     /**
+     * Sets the maximum number of histogram bins to use when creating the categorical version of numeric features. 
+     * @param n the number of bins to create
+     */
+    public void setNumberOfBins(int n)
+    {
+        if(n <= 0)
+            throw new RuntimeException("Must partition into a positive number of groups");
+        this.n = n;
+    }
+
+    /**
+     * 
+     * @return the maximum number of bins to create
+     */
+    public int getNumberOfBins()
+    {
+        return n;
+    }
+    
+    /**
+     * Attempts to guess the number of bins to use 
+     * @param data the dataset to be transforms
+     * @return a distribution of the guess
+     */
+    public static Distribution guessNumberOfBins(DataSet data)
+    {
+        if(data.getSampleSize() < 20)
+            return new UniformDiscrete(2, data.getSampleSize()-1);
+        else if(data.getSampleSize() >= 1000000)
+            return new LogUniform(50, 1000);
+        int sqrt = (int) Math.sqrt(data.getSampleSize());
+        return new UniformDiscrete(Math.max(sqrt/3, 2), Math.min(sqrt*3, data.getSampleSize()-1));
+    }
+    
+    /**
      * Copy constructor
      * @param other the transform to copy
      */
     private NumericalToHistogram(NumericalToHistogram other)
     {
         this.n = other.n;
-        this.conversionArray = new double[other.conversionArray.length][];
-        for(int i = 0; i < other.conversionArray.length; i++)
-            this.conversionArray[i] = Arrays.copyOf(other.conversionArray[i], other.conversionArray[i].length);
-        this.newDataArray = new CategoricalData[other.newDataArray.length];
-        for(int i = 0; i < other.newDataArray.length; i++)
-            this.newDataArray[i] = other.newDataArray[i].clone();
+        if(other.conversionArray != null)
+        {
+            this.conversionArray = new double[other.conversionArray.length][];
+            for(int i = 0; i < other.conversionArray.length; i++)
+                this.conversionArray[i] = Arrays.copyOf(other.conversionArray[i], other.conversionArray[i].length);
+        }
+        
+        if(other.newDataArray != null)
+        {
+            this.newDataArray = new CategoricalData[other.newDataArray.length];
+            for(int i = 0; i < other.newDataArray.length; i++)
+                this.newDataArray[i] = other.newDataArray[i].clone();
+        }
     }
     
     @Override
@@ -133,75 +201,5 @@ public class NumericalToHistogram implements DataTransform
     public NumericalToHistogram clone()
     {
         return new NumericalToHistogram(this);
-    }
-    
-    /**
-     * Factory for the creation of {@link NumericalToHistogram} transforms. 
-     */
-    static public class NumericalToHistogramTransformFactory extends DataTransformFactoryParm
-    {
-        private int n;
-
-        /**
-         * Creates a new NumericalToHistogram factory. 
-         */
-        public NumericalToHistogramTransformFactory()
-        {
-            this(Integer.MAX_VALUE);
-        }
-
-        /**
-         * Creates a new NumericalToHistogram factory. 
-         * @param n the number of bins to create
-         */
-        public NumericalToHistogramTransformFactory(int n)
-        {
-            setBins(n);
-        }
-        
-        public NumericalToHistogramTransformFactory(NumericalToHistogramTransformFactory toCopy)
-        {
-            this(toCopy.n);
-        }
-
-        /**
-         * Sets the number of numeric bins to use. {@link Integer#MAX_VALUE} is
-         * used as a special value to indicate that the square root of the 
-         * number of data points should be used as the number of bins. 
-         * 
-         * @param n the number of bins to use, or {@link Integer#MAX_VALUE} to
-         * use sqrt(n) bins. 
-         */
-        public void setBins(int n)
-        {
-            if(n < 1)
-                throw new IllegalArgumentException("Number of bins must be a positive value");
-            this.n = n;
-        }
-
-        /**
-         * Returns the number of bins to use
-         * @return the number of bins to use
-         */
-        public int getBins()
-        {
-            return n;
-        }
-        
-        @Override
-        public DataTransform getTransform(DataSet dataset)
-        {
-            if(n == Integer.MAX_VALUE)
-                return new NumericalToHistogram(dataset);
-            else
-                return new NumericalToHistogram(dataset, n);
-        }
-
-        @Override
-        public NumericalToHistogramTransformFactory clone()
-        {
-            return new NumericalToHistogramTransformFactory(this);
-        }
-        
     }
 }

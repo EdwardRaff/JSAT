@@ -86,7 +86,7 @@ public class DecisionTreeTest
 
                     RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
                     if(useCatFeatures)
-                        rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory(10)));
+                        rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram(10)));
                     if(useCatFeatures)
                         rme.evaluateTestSet(train);
                     else
@@ -117,7 +117,7 @@ public class DecisionTreeTest
 
                     RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
                     if (useCatFeatures)
-                        rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory(10)));
+                        rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram(10)));
                     if(useCatFeatures)
                         rme.evaluateTestSet(train);
                     else
@@ -153,7 +153,7 @@ public class DecisionTreeTest
 
                         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
                         if(useCatFeatures)
-                            cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory(50)));
+                            cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram(50)));
                         cme.evaluateTestSet(test);
 
                         if(cme.getErrorRate() < 0.075)
@@ -189,7 +189,7 @@ public class DecisionTreeTest
 
                         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
                         if(useCatFeatures)
-                            cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory(50)));
+                            cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram(50)));
                         cme.evaluateTestSet(test);
 
                         if(cme.getErrorRate() < 0.075)
@@ -225,7 +225,7 @@ public class DecisionTreeTest
 
                         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
                         if(useCatFeatures)
-                            cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory(50)));
+                            cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram(50)));
                         cme.evaluateTestSet(test);
 
                         if(cme.getErrorRate() < 0.25)
@@ -263,7 +263,7 @@ public class DecisionTreeTest
 
                     RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
                     if(useCatFeatures)
-                        rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory(10)));
+                        rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram(10)));
                     
                     if(useCatFeatures)
                         rme.evaluateTestSet(train);

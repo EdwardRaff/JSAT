@@ -3,6 +3,8 @@ package jsat.datatransform;
 import java.util.Comparator;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
+import jsat.distributions.Distribution;
+import jsat.distributions.discrete.UniformDiscrete;
 import jsat.linear.*;
 import static jsat.linear.MatrixStatistics.*;
 
@@ -18,18 +20,18 @@ import static jsat.linear.MatrixStatistics.*;
  * 
  * @author Edward Raff
  */
-public class WhitenedPCA implements DataTransform
+public class WhitenedPCA extends DataTransformBase
 {
 
-	private static final long serialVersionUID = 6134243673037330608L;
-	/**
+    private static final long serialVersionUID = 6134243673037330608L;
+    /**
      * Regularization parameter
      */
     protected double regularization;
     /**
      * The number of dimensions to project down to
      */
-    protected int dims;
+    protected int dimensions;
     
     /**
      * The final transformation matrix, that will create new points 
@@ -38,20 +40,57 @@ public class WhitenedPCA implements DataTransform
     protected Matrix transform;
 
     /**
-     * Creates a new WhitenedPCA
+     * Creates a new WhitenedPCA transform that uses up to 50 dimensions for the
+     * transformed space. This may not be optimal for any given dataset.
+     *
+     * @param dims the number of dimensions to project down to
+     */
+    public WhitenedPCA()
+    {
+        this(50);
+    }
+
+    /**
+     * Creates a new WhitenedPCA transform
+     *
+     * @param dims the number of dimensions to project down to
+     */
+    public WhitenedPCA(int dims)
+    {
+        this(1e-4, dims);
+    }
+
+    /**
+     * Creates a new WhitenedPCA transform
+     *
+     * @param regularization the amount of regularization to add, avoids
+     * numerical instability
+     * @param dims the number of dimensions to project down to
+     */
+    public WhitenedPCA(double regularization, int dims)
+    {
+        setRegularization(regularization);
+        setDimensions(dims);
+    }
+            
+    /**
+     * Creates a new WhitenedPCA from the given dataset
      * @param dataSet the data set to whiten
      * @param regularization the amount of regularization to add, avoids numerical instability
      * @param dims the number of dimensions to project down to
      */
     public WhitenedPCA(DataSet dataSet, double regularization, int dims)
     {
-        setRegularization(regularization);
-        setDims(dims);
-        
-        setUpTransform(getSVD(dataSet));
-        
+        this(regularization, dims);
+        fit(dataSet);
     }
 
+    @Override
+    public void fit(DataSet dataSet)
+    {
+        setUpTransform(getSVD(dataSet));
+    }
+    
     /**
      * Creates a new WhitenedPCA, the dimensions will be chosen so that the 
      * subset of dimensions is of full rank. 
@@ -63,9 +102,7 @@ public class WhitenedPCA implements DataTransform
     {
         setRegularization(regularization);
         SingularValueDecomposition svd = getSVD(dataSet);
-        setDims(svd.getRank());
-        
-        
+        setDimensions(svd.getRank());
         setUpTransform(svd);
     }
     
@@ -81,9 +118,7 @@ public class WhitenedPCA implements DataTransform
         
         SingularValueDecomposition svd = getSVD(dataSet);
         setRegularization(svd);
-        setDims(svd.getRank());
-        
-        
+        setDimensions(svd.getRank());
         setUpTransform(svd);
     }
     
@@ -99,7 +134,7 @@ public class WhitenedPCA implements DataTransform
         
         SingularValueDecomposition svd = getSVD(dataSet);
         setRegularization(svd);
-        setDims(dims);
+        setDimensions(dims);
         
         
         setUpTransform(svd);
@@ -112,7 +147,7 @@ public class WhitenedPCA implements DataTransform
     private WhitenedPCA(WhitenedPCA other)
     {
         this.regularization = other.regularization;
-        this.dims = other.dims;
+        this.dimensions = other.dimensions;
         this.transform = other.transform.clone();
     }
 
@@ -150,14 +185,14 @@ public class WhitenedPCA implements DataTransform
      */
     protected void setUpTransform(SingularValueDecomposition svd)
     {
-        Vec diag = new DenseVector(dims);
+        Vec diag = new DenseVector(dimensions);
         
         double[] s = svd.getSingularValues();
         
-        for(int i = 0; i < dims; i++)
+        for(int i = 0; i < dimensions; i++)
             diag.set(i, 1.0/Math.sqrt(s[i]+regularization));
         
-        transform = new SubMatrix(svd.getU().transpose(), 0, 0, dims, s.length).clone();
+        transform = new SubMatrix(svd.getU().transpose(), 0, 0, dimensions, s.length).clone();
         
         Matrix.diagMult(diag, transform);
     }
@@ -173,19 +208,25 @@ public class WhitenedPCA implements DataTransform
         return newDp;
     }
     
-    
-    private void setRegularization(double regularization)
+    /**
+     * 
+     * @param regularization the regularization to apply to the diagonal of the
+     * decomposition. This can improve numeric stability and reduces noise.
+     */
+    public void setRegularization(double regularization)
     {
         if(regularization < 0 || Double.isNaN(regularization) || Double.isInfinite(regularization))
             throw new ArithmeticException("Regularization must be non negative value, not " + regularization);
         this.regularization = regularization;
     }
 
-    private void setDims(int dims)
+    /**
+     * 
+     * @return the amount of regularization to apply
+     */
+    public double getRegularization()
     {
-        if(dims < 1)
-            throw new ArithmeticException("Invalid number of dimensions, bust be > 0");
-        this.dims = dims;
+        return regularization;
     }
 
     @Override
@@ -203,60 +244,32 @@ public class WhitenedPCA implements DataTransform
     }
     
     /**
-     * Factory for producing new {@link WhitenedPCA} transforms
+     * Sets the number of dimensions to project down to
+     *
+     * @param dimensions the feature size to project down to
      */
-    static public class WhitenedPCATransformFactory extends DataTransformFactoryParm
+    public void setDimensions(int dimensions)
     {
-        private int dimensions;
+        if (dimensions < 1)
+            throw new IllegalArgumentException("Number of dimensions must be positive, not " + dimensions);
+        this.dimensions = dimensions;
+    }
 
-        /**
-         * Creates a new WhitenedPCA Factory
-         * @param dims the number of dimensions to project down to
-         */
-        public WhitenedPCATransformFactory(int dims)
-        {
-            setDimensions(dims);
-        }
-
-        /**
-         * Copy constructor
-         * @param toCopy the object to copy
-         */
-        public WhitenedPCATransformFactory(WhitenedPCATransformFactory toCopy)
-        {
-            this(toCopy.dimensions);
-        }
-
-        /**
-         * Sets the number of dimensions to project down to
-         * @param dimensions the feature size to project down to
-         */
-        public void setDimensions(int dimensions)
-        {
-            if(dimensions < 1)
-                throw new IllegalArgumentException("Number of dimensions must be positive, not " + dimensions);
-            this.dimensions = dimensions;
-        }
-
-        /**
-         * Returns the number of dimensions to project down to
-         * @return the number of dimensions to project down to
-         */
-        public int getDimensions()
-        {
-            return dimensions;
-        }
-        
-        @Override
-        public DataTransform getTransform(DataSet dataset)
-        {
-            return new WhitenedPCA(dataset, dimensions);
-        }
-
-        @Override
-        public WhitenedPCATransformFactory clone()
-        {
-            return new WhitenedPCATransformFactory(this);
-        }
+    /**
+     * Returns the number of dimensions to project down to
+     *
+     * @return the number of dimensions to project down to
+     */
+    public int getDimensions()
+    {
+        return dimensions;
+    }
+    
+    public static Distribution guessDimensions(DataSet d)
+    {
+        //TODO improve using SVD rank
+        if(d.getNumNumericalVars() < 100)
+            return new UniformDiscrete(1, d.getNumNumericalVars());
+        return new UniformDiscrete(20, 100);
     }
 }

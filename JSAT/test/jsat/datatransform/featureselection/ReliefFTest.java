@@ -61,7 +61,8 @@ public class ReliefFTest
         ClassificationDataSet cds = SFSTest.
                 generate3DimIn10(rand, t0, t1, t2);
         
-        ReliefF relieff = new ReliefF.ReliefFFactory(3, 50, 7, new EuclideanDistance()).clone().getTransform(cds).clone();
+        ReliefF relieff = new ReliefF(3, 50, 7, new EuclideanDistance()).clone();
+        relieff.fit(cds);
         Set<Integer> found = new IntSet(relieff.getKeptNumeric());
         
         assertEquals(shouldHave.size(), found.size());

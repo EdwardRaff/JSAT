@@ -64,7 +64,8 @@ public class BDSTest
         ClassificationDataSet cds = SFSTest.
                 generate3DimIn10(rand, t0, t1, t2);
         
-        BDS bds = new BDS.BDSFactory((Classifier)new NearestNeighbour(7), 3).clone().getTransform(cds).clone();
+        BDS bds = new BDS(3, (Classifier)new NearestNeighbour(7), 5).clone();
+        bds.fit(cds);
         Set<Integer> found = bds.getSelectedNumerical();
         
         assertEquals(shouldHave.size(), found.size());
@@ -85,7 +86,8 @@ public class BDSTest
         RegressionDataSet rds = SFSTest.
                 generate3DimIn10R(rand, t0, t1, t2);
         
-        BDS bds = new BDS.BDSFactory(new MultipleLinearRegression(), 3).clone().getTransform(rds).clone();
+        BDS bds = new BDS(3, new MultipleLinearRegression(), 5).clone().clone();
+        bds.fit(rds);
         Set<Integer> found = bds.getSelectedNumerical();
         
         assertEquals(shouldHave.size(), found.size());

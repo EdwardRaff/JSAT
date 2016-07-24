@@ -14,13 +14,30 @@ import jsat.linear.Vec;
 public class ZeroMeanTransform implements InPlaceInvertibleTransform
 {
 
-	private static final long serialVersionUID = -7411115746918116163L;
-	/**
+    private static final long serialVersionUID = -7411115746918116163L;
+    /**
      * Shift vector stores the mean value of each variable in the original data set. 
      */
     private Vec shiftVector;
 
+    /**
+     * Creates a new object for transforming datapoints by centering the data
+     */
+    public ZeroMeanTransform()
+    {
+    }
+    
+    /**
+     * Creates a new object for transforming datapoints by centering the data
+     * @param dataset the data to learn this transform from
+     */
     public ZeroMeanTransform(DataSet dataset)
+    {
+        fit(dataset);
+    }
+
+    @Override
+    public void fit(DataSet dataset)
     {
         shiftVector = new DenseVector(dataset.getNumNumericalVars());
         shiftVector = dataset.getColumnMeanVariance()[0];
@@ -74,29 +91,5 @@ public class ZeroMeanTransform implements InPlaceInvertibleTransform
     public ZeroMeanTransform clone()
     {
         return new ZeroMeanTransform(this);
-    }
-
-    /**
-     * Factory for producing new {@link ZeroMeanTransform} transforms. 
-     */
-    static public class ZeroMeanTransformFactory implements DataTransformFactory
-    {
-
-        public ZeroMeanTransformFactory()
-        {
-        }
-        
-        @Override
-        public DataTransform getTransform(DataSet dataset)
-        {
-            return new ZeroMeanTransform(dataset);
-        }
-
-        @Override
-        public ZeroMeanTransformFactory clone()
-        {
-            return new ZeroMeanTransformFactory();
-        }
-        
     }
 }

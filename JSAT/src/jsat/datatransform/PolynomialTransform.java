@@ -17,8 +17,8 @@ import jsat.linear.Vec;
 public class PolynomialTransform implements DataTransform
 {
 
-	private static final long serialVersionUID = -5332216444253168283L;
-	private int degree;
+    private static final long serialVersionUID = -5332216444253168283L;
+    private int degree;
 
     /**
      * Creates a new polynomial transform of the given degree
@@ -30,6 +30,12 @@ public class PolynomialTransform implements DataTransform
         if(degree < 2)
             throw new ArithmeticException("The degree of the polynomial was a nonsense value: " + degree);
         this.degree = degree;
+    }
+
+    @Override
+    public void fit(DataSet data)
+    {
+        //no-op, nothing needs to be done
     }
     
     @Override
@@ -110,51 +116,24 @@ public class PolynomialTransform implements DataTransform
     }
     
     /**
-     * Factory for producing {@link PolynomialTransform} transforms
+     * Sets the degree of the polynomial to transform the input vector into
+     *
+     * @param degree the positive degree to use
      */
-    static public class PolyTransformFactory extends DataTransformFactoryParm
+    public void setDegree(int degree)
     {
-        private int degree;
+        if (degree < 1)
+            throw new IllegalArgumentException("Degree must be a positive value, not " + degree);
+        this.degree = degree;
+    }
 
-        /**
-         * Creates a new polynomial transform factory of the given degree
-         * @param degree 
-         */
-        public PolyTransformFactory(int degree)
-        {
-            setDegree(degree);
-        }
-
-        /**
-         * Sets the degree of the polynomial to transform the input vector into
-         * @param degree the positive degree to use
-         */
-        public void setDegree(int degree)
-        {
-            if(degree < 1)
-                throw new IllegalArgumentException("Degree must be a positive value, not " + degree);
-            this.degree = degree;
-        }
-
-        /**
-         * Returns the polynomial degree to use
-         * @return the polynomial degree to use
-         */
-        public int getDegree()
-        {
-            return degree;
-        }
-        
-        @Override
-        public PolynomialTransform getTransform(DataSet dataset)
-        {
-            return new PolynomialTransform(degree);
-        }
-
-        @Override
-        public PolyTransformFactory clone()
-        {
-            return new PolyTransformFactory(degree);
-        }
+    /**
+     * Returns the polynomial degree to use
+     *
+     * @return the polynomial degree to use
+     */
+    public int getDegree()
+    {
+        return degree;
     }
 }

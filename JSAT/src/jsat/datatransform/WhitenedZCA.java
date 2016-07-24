@@ -14,11 +14,45 @@ import jsat.linear.*;
 public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
 {
 
-	private static final long serialVersionUID = 7546033727733619587L;
-	private final ThreadLocal<Vec> tempVecs;
+    private static final long serialVersionUID = 7546033727733619587L;
+    private ThreadLocal<Vec> tempVecs;
     
     /**
-     * Creates a new Whitened ZCA.
+     * Creates a new WhitenedZCA transform that uses up to 50 dimensions for the
+     * transformed space. This may not be optimal for any given dataset.
+     *
+     * @param dims the number of dimensions to project down to
+     */
+    public WhitenedZCA()
+    {
+        this(50);
+    }
+
+    /**
+     * Creates a new WhitenedZCA transform
+     *
+     * @param dims the number of dimensions to project down to
+     */
+    public WhitenedZCA(int dims)
+    {
+        this(1e-4, dims);
+    }
+
+    /**
+     * Creates a new WhitenedZCA transform
+     *
+     * @param regularization the amount of regularization to add, avoids
+     * numerical instability
+     * @param dims the number of dimensions to project down to
+     */
+    public WhitenedZCA(double regularization, int dims)
+    {
+        setRegularization(regularization);
+        setDimensions(dims);
+    }
+
+    /**
+     * Creates a new Whitened ZCA transform from the given data.
      * 
      * @param dataSet the data set to whiten
      * @param regularization the amount of regularization to add, avoids 
@@ -27,20 +61,28 @@ public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
     public WhitenedZCA(DataSet dataSet, double regularization)
     {
         super(dataSet, regularization);
-        tempVecs = getThreadLocal(dataSet.getNumNumericalVars());
     }
-    
+
     /**
-     * Creates a new Whitened ZCA. The regularization parameter will be
-     * chosen as the log of the condition of the covariance. 
-     * 
+     * Creates a new Whitened ZCA transform from the given data. The
+     * regularization parameter will be chosen as the log of the condition of
+     * the covariance.
+     *
      * @param dataSet the data set to whiten
      */
     public WhitenedZCA(DataSet dataSet)
     {
         super(dataSet);
+    }
+
+    @Override
+    public void fit(DataSet dataSet)
+    {
+        super.fit(dataSet);
         tempVecs = getThreadLocal(dataSet.getNumNumericalVars());
     }
+    
+    
 
     @Override
     public void mutableTransform(DataPoint dp)
@@ -82,102 +124,5 @@ public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
                 return new DenseVector(dim);
             }
         };
-    }
-    
-    /**
-     * Factory for producing new {@link WhitenedZCA} transforms. 
-     */
-    static public class WhitenedZCATransformFactory extends DataTransformFactoryParm
-    {
-        private double reg;
-        private boolean autoReg;
-
-        /**
-         * Creates a new WhitenedZCA factory that will use the regularization 
-         * value provided
-         * @param reg the regularization to use
-         */
-        public WhitenedZCATransformFactory(double reg)
-        {
-            setRegularization(reg);
-            autoReg = true;
-        }
-
-        /**
-         * Creates a new WhitenedZCA where the regularization will be determined
-         * automatically
-         */
-        public WhitenedZCATransformFactory()
-        {
-            this(1.0);
-            autoReg = false;
-        }
-        
-        /**
-         * Copy constructor
-         * @param toCopy the object to copy
-         */
-        public WhitenedZCATransformFactory(WhitenedZCATransformFactory toCopy)
-        {
-            this.reg = toCopy.reg;
-            this.autoReg = toCopy.autoReg;
-        }
-
-        /**
-         * Sets whether or not to automatically select a regularization value. 
-         * @param autoReg {@code true} to automatically select a regularization 
-         * vale, {@code false} to use the value set by 
-         * {@link #setRegularization(double) }
-         */
-        public void setAutoReg(boolean autoReg)
-        {
-            this.autoReg = autoReg;
-        }
-
-        /**
-         * Returns whether or not the regularization parameter is determined 
-         * automatically. 
-         * @return {@code true} if the regularization is determined automatically
-         */
-        public boolean isAutoReg()
-        {
-            return autoReg;
-        }
-        
-        /**
-         * Sets the amount of regularization to use, this value will be ignored 
-         * if {@link #setAutoReg(boolean) } is set to {@code true}
-         * @param reg the positive regularization parameter
-         */
-        public void setRegularization(double reg)
-        {
-            if(reg <= 0 || Double.isNaN(reg) || Double.isInfinite(reg))
-                throw new IllegalArgumentException("Regularization must be a positive value, not " + reg);
-            this.reg = reg;
-        }
-
-        /**
-         * Returns the amount of regularization that will be used if 
-         * {@link #isAutoReg() } is {@code false}. 
-         * @return the amount of regularization that will be used
-         */
-        public double getRegularization()
-        {
-            return reg;
-        }
-        
-        @Override
-        public DataTransform getTransform(DataSet dataset)
-        {
-            if(autoReg)
-                return new WhitenedZCA(dataset);
-            return new WhitenedZCA(dataset, reg);
-        }
-
-        @Override
-        public WhitenedZCATransformFactory clone()
-        {
-            return new WhitenedZCATransformFactory(this);
-        }
     }
 }

@@ -34,8 +34,8 @@ import jsat.utils.DoubleList;
 public class AutoDeskewTransform implements InPlaceTransform
 {
     private static final long serialVersionUID = -4894242802345656448L;
-    private final double[] finalLambdas;
-    private final double[] mins;
+    private double[] finalLambdas;
+    private double[] mins;
     private final IndexFunction transform = new IndexFunction()
     {
         private static final long serialVersionUID = -404316813485246422L;
@@ -59,6 +59,52 @@ public class AutoDeskewTransform implements InPlaceTransform
         defaultList.add(1.0);
     }
 
+    
+    private List<Double> lambdas;
+    private boolean ignorZeros;
+    
+    /**
+     * Creates a new AutoDeskew transform
+     *
+     */
+    public AutoDeskewTransform()
+    {
+        this(true, defaultList);
+    }
+    
+    /**
+     * Creates a new AutoDeskew transform
+     *
+     * @param lambdas the list of lambda values to evaluate
+     */
+    public AutoDeskewTransform(final double... lambdas)
+    {
+        this(true, DoubleList.view(lambdas, lambdas.length));
+    }
+
+    /**
+     * Creates a new AutoDeskew transform
+     *
+     * @param lambdas the list of lambda values to evaluate
+     */
+    public AutoDeskewTransform(final List<Double> lambdas)
+    {
+        this(true, lambdas);
+    }
+    
+    /**
+     * Creates a new AutoDeskew transform
+     *
+     * @param ignorZeros {@code true} to ignore zero values when calculating the
+     * skewness, {@code false} to include them.
+     * @param lambdas the list of lambda values to evaluate
+     */
+    public AutoDeskewTransform(boolean ignorZeros, final List<Double> lambdas)
+    {
+        this.ignorZeros = ignorZeros;
+        this.lambdas = lambdas;
+    }
+    
     /**
      * Creates a new deskewing object from the given data set
      *
@@ -89,6 +135,13 @@ public class AutoDeskewTransform implements InPlaceTransform
      * @param lambdas the list of lambda values to evaluate
      */
     public AutoDeskewTransform(DataSet dataSet, boolean ignorZeros, final List<Double> lambdas)
+    {
+        this(ignorZeros, lambdas);
+        fit(dataSet);
+    }
+
+    @Override
+    public void fit(DataSet dataSet)
     {
         //going to try leaving things alone nomatter what
         if (!lambdas.contains(1.0))
@@ -266,62 +319,5 @@ public class AutoDeskewTransform implements InPlaceTransform
     public boolean mutatesNominal()
     {
         return false;
-    }
-
-    /**
-     * Factory for creating {@link AutoDeskewTransform} transforms. 
-     */
-    static public class AutoDeskewTransformFactory implements DataTransformFactory
-    {
-        private List<Double> lambdas;
-
-        /**
-         * Creates a new deskewing factory using the default values
-         */
-        public AutoDeskewTransformFactory()
-        {
-            this(defaultList);
-        }
-
-        /**
-         * Creates a new deskewing factory
-         *
-         * @param lambdas the list of lambda values to use
-         */
-        public AutoDeskewTransformFactory(List<Double> lambdas)
-        {
-            this.lambdas = lambdas;
-        }
-        
-        /**
-         * Creates a new deskewing factory
-         *
-         * @param lambdas the list of lambda values to use
-         */
-        public AutoDeskewTransformFactory(double... lambdas)
-        {
-            this(DoubleList.unmodifiableView(lambdas, lambdas.length));
-        }
-
-        /**
-         * Copy constructor
-         * @param toClone the object to copy
-         */
-        public AutoDeskewTransformFactory(AutoDeskewTransformFactory toClone)
-        {
-            this(new DoubleList(toClone.lambdas));
-        }
-        
-        @Override
-        public AutoDeskewTransform getTransform(DataSet dataset)
-        {
-            return new AutoDeskewTransform(dataset, true, lambdas);
-        }
-
-        @Override
-        public AutoDeskewTransformFactory clone()
-        {
-            return new AutoDeskewTransformFactory(this);
-        }
     }
 }

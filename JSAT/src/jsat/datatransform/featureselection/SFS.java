@@ -19,13 +19,16 @@ import jsat.utils.ListUtils;
 public class SFS implements DataTransform
 {
 
-	private static final long serialVersionUID = 140187978708131002L;
-	private RemoveAttributeTransform finalTransform;
+    private static final long serialVersionUID = 140187978708131002L;
+    private RemoveAttributeTransform finalTransform;
     private Set<Integer> catSelected;
     private Set<Integer> numSelected;
     private double maxIncrease;
     private Classifier classifier;
     private Regressor regressor;
+    private int minFeatures, maxFeatures;
+    private int folds;
+    private Object evaluator;
 
     /**
      * Copy constructor 
@@ -41,10 +44,29 @@ public class SFS implements DataTransform
         }
 
         this.maxIncrease = toClone.maxIncrease;
+        this.folds = toClone.folds;
+        this.minFeatures = toClone.minFeatures;
+        this.maxFeatures = toClone.maxFeatures;
+        this.evaluator = toClone.evaluator;
         if (toClone.classifier != null)
             this.classifier = toClone.classifier.clone();
         if (toClone.regressor != null)
             this.regressor = toClone.regressor.clone();
+    }
+    
+    /**
+     * Performs SFS feature selection for a classification problem
+     *
+     * @param minFeatures the minimum number of features to find
+     * @param maxFeatures the maximum number of features to find
+     * @param evaluater the classifier to use in determining accuracy given a
+     * feature subset
+     * @param maxIncrease the maximum tolerable increase in error when a feature
+     * is added
+     */
+    public SFS(int minFeatures, int maxFeatures, Classifier evaluater, double maxIncrease)
+    {
+        this(minFeatures, maxFeatures, evaluater.clone(), 3, maxIncrease);
     }
     
     /**
@@ -59,12 +81,25 @@ public class SFS implements DataTransform
      * @param maxIncrease the maximum tolerable increase in error when a feature
      * is added
      */
-    
     public SFS(int minFeatures, int maxFeatures, ClassificationDataSet dataSet, Classifier evaluater, int folds, double maxIncrease)
     {
-        this.classifier = evaluater.clone();
-        this.maxIncrease = maxIncrease;
+        this(minFeatures, maxFeatures, evaluater.clone(), folds, maxIncrease);
         search(minFeatures, maxFeatures, dataSet, folds);
+    }
+    
+    /**
+     * Creates SFS feature selection for a regression problem
+     *
+     * @param minFeatures the minimum number of features to find
+     * @param maxFeatures the maximum number of features to find
+     * @param regressor the regressor to use in determining accuracy given a
+     * feature subset
+     * @param maxIncrease the maximum tolerable increase in error when a feature
+     * is added
+     */
+    public SFS(int minFeatures, int maxFeatures, Regressor regressor, double maxIncrease)
+    {
+        this(minFeatures, maxFeatures, regressor.clone(), 3, maxIncrease);
     }
     
     /**
@@ -79,12 +114,25 @@ public class SFS implements DataTransform
      * @param maxIncrease the maximum tolerable increase in error when a feature
      * is added
      */
-    
     public SFS(int minFeatures, int maxFeatures, RegressionDataSet dataSet, Regressor regressor, int folds, double maxIncrease)
     {
-        this.regressor = regressor.clone();
-        this.maxIncrease = maxIncrease;
+        this(minFeatures, maxFeatures, regressor.clone(), folds, maxIncrease);
         search(minFeatures, maxFeatures, dataSet, folds);
+    }
+    
+    private SFS(int minFeatures, int maxFeatures, Object evaluator, int folds, double maxIncrease)
+    {
+        setMinFeatures(minFeatures);
+        setMaxFeatures(maxFeatures);
+        setFolds(folds);
+        setMaxIncrease(maxIncrease);
+        setEvaluator(evaluator);
+    }
+
+    @Override
+    public void fit(DataSet data)
+    {
+        search(minFeatures, maxFeatures, data, minFeatures);
     }
     
     private void search(int minFeatures, int maxFeatures, DataSet dataSet, int folds)
@@ -281,149 +329,95 @@ public class SFS implements DataTransform
     }
     
     /**
-     * Factory for producing new {@link SFS} transforms
+     * Sets the maximum allowable the maximum tolerable increase in error when a
+     * feature is added
+     *
+     * @param maxIncrease the maximum allowable the maximum tolerable increase
+     * in error when a feature is added
      */
-    static public class SFSFactory extends DataTransformFactoryParm
+    public void setMaxIncrease(double maxIncrease)
     {
-        private double maxDecrease;
-        private Classifier classifier;
-        private Regressor regressor;
-        private int minFeatures, maxFeatures;
+        if (maxIncrease < 0)
+            throw new IllegalArgumentException("Decarese must be a positive value, not " + maxIncrease);
+        this.maxIncrease = maxIncrease;
+    }
 
-        /**
-         * Creates a new SFS transform factory
-         * 
-         * @param maxDecrease the maximum allowable increase in the error rate 
-         * compared to the previous set of features
-         * @param evaluater the classifier to use to evaluate accuracy
-         * @param minFeatures the minimum number of features to learn
-         * @param maxFeatures the maximum number of features to learn
-         */
-        public SFSFactory(double maxDecrease, Classifier evaluater, int minFeatures, int maxFeatures)
-        {
-            setMaxDecrease(maxDecrease);
-            this.classifier = evaluater;
-            if(evaluater instanceof Regressor)
-                this.regressor = (Regressor) evaluater;
-            setMinFeatures(minFeatures);
-            setMaxFeatures(maxFeatures);
-        }
-        
-        /**
-         * Creates a new SFS transform factory 
-         * @param maxDecrease the maximum allowable increase in the error rate 
-         * compared to the previous set of features
-         * @param evaluater the regressor to use to evaluate accuracy
-         * @param minFeatures the minimum number of features to learn
-         * @param maxFeatures the maximum number of features to learn
-         */
-        public SFSFactory(double maxDecrease, Regressor evaluater, int minFeatures, int maxFeatures)
-        {
-            setMaxDecrease(maxDecrease);
-            this.regressor = evaluater;
-            if(evaluater instanceof Classifier)
-                this.classifier = (Classifier) evaluater;
-            setMinFeatures(minFeatures);
-            setMaxFeatures(maxFeatures);
-        }
+    /**
+     *
+     * @return the maximum allowable the maximum tolerable increase in error
+     * when a feature is added
+     */
+    public double getMaxIncrease()
+    {
+        return maxIncrease;
+    }
 
-        /**
-         * Copy constructor
-         * @param toCopy the object to copy
-         */
-        public SFSFactory(SFSFactory toCopy)
-        {
-            if(toCopy.classifier == toCopy.regressor)
-            {
-                this.classifier = toCopy.classifier.clone();
-                this.regressor = (Regressor) this.classifier;
-            }
-            else if(toCopy.classifier != null)
-                this.classifier = toCopy.classifier.clone();
-            else if(toCopy.regressor != null)
-                this.regressor = toCopy.regressor.clone();
-            else
-                throw new RuntimeException("BUG: Please report");
-            this.maxDecrease = toCopy.maxDecrease;
-            this.minFeatures = toCopy.minFeatures;
-            this.maxFeatures = toCopy.maxFeatures;
-        }
-        
-        /**
-         * Sets the maximum allowable decrease in accuracy (increase in error) 
-         * from the previous set of features to the new current set. 
-         * 
-         * @param maxDecrease the maximum allowable decrease in the accuracy
-         * from removing a feature
-         */
-        public void setMaxDecrease(double maxDecrease)
-        {
-            if(maxDecrease < 0)
-                throw new IllegalArgumentException("Decarese must be a positive value, not " + maxDecrease);
-            this.maxDecrease = maxDecrease;
-        }
+    /**
+     * Sets the minimum number of features that must be selected
+     *
+     * @param minFeatures the minimum number of features to learn
+     */
+    public void setMinFeatures(int minFeatures)
+    {
+        this.minFeatures = minFeatures;
+    }
 
-        /**
-         * Returns the maximum allowable decrease in accuracy from one set of 
-         * features to the next
-         * @return the maximum allowable decrease in accuracy from one set of 
-         * features to the next
-         */
-        public double getMaxDecrease()
-        {
-            return maxDecrease;
-        }
-        
-        /**
-         * Sets the minimum number of features that must be selected
-         * @param minFeatures the minimum number of features to learn
-         */
-        public void setMinFeatures(int minFeatures)
-        {
-            this.minFeatures = minFeatures;
-        }
+    /**
+     * Returns the minimum number of features to find
+     *
+     * @return the minimum number of features to find
+     */
+    public int getMinFeatures()
+    {
+        return minFeatures;
+    }
 
-        /**
-         * Returns the minimum number of features to find
-         * @return the minimum number of features to find
-         */
-        public int getMinFeatures()
-        {
-            return minFeatures;
-        }
-        
-        /**
-         * Sets the maximum number of features that must be selected
-         * @param maxFeatures the maximum number of features to find
-         */
-        public void setMaxFeatures(int maxFeatures)
-        {
-            this.maxFeatures = maxFeatures;
-        }
+    /**
+     * Sets the maximum number of features that must be selected
+     *
+     * @param maxFeatures the maximum number of features to find
+     */
+    public void setMaxFeatures(int maxFeatures)
+    {
+        this.maxFeatures = maxFeatures;
+    }
 
-        /**
-         * Returns the maximum number of features to find
-         * @return the maximum number of features to find
-         */
-        public int getMaxFeatures()
-        {
-            return maxFeatures;
-        }
+    /**
+     * Returns the maximum number of features to find
+     *
+     * @return the maximum number of features to find
+     */
+    public int getMaxFeatures()
+    {
+        return maxFeatures;
+    }
+    
+    /**
+     * Sets the number of folds to use for cross validation when estimating the error rate
+     * @param folds the number of folds to use for cross validation when estimating the error rate
+     */
+    public void setFolds(int folds)
+    {
+        if(folds <= 0 )
+            throw new IllegalArgumentException("Number of CV folds must be positive, not " + folds);
+        this.folds = folds;
+    }
 
-        @Override
-        public SFS getTransform(DataSet dataset)
-        {
-            if(dataset instanceof ClassificationDataSet)
-                return new SFS(minFeatures, maxFeatures, (ClassificationDataSet)dataset, classifier, 5, maxDecrease);
-            else
-                return new SFS(minFeatures, maxFeatures, (RegressionDataSet)dataset, regressor, 5, maxDecrease);
-        }
-
-        @Override
-        public SFSFactory clone()
-        {
-            return new SFSFactory(this);
-        }
-        
+    /**
+     * 
+     * @return the number of folds to use for cross validation when estimating the error rate
+     */
+    public int getFolds()
+    {
+        return folds;
+    }
+    
+    private void setEvaluator(Object evaluator)
+    {
+        this.evaluator = evaluator;
+        if(evaluator instanceof Classifier)
+            this.classifier = (Classifier) evaluator;
+        if(evaluator instanceof Regressor)
+            this.regressor = (Regressor) evaluator;
     }
 }

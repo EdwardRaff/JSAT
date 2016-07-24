@@ -17,20 +17,44 @@ import jsat.linear.*;
 public class NominalToNumeric implements DataTransform
 {
 
-	private static final long serialVersionUID = -7765605678836464143L;
-	private final int origNumericalCount;
-    private final CategoricalData[] categoricalData;
+    private static final long serialVersionUID = -7765605678836464143L;
+    private int origNumericalCount;
+    private CategoricalData[] categoricalData;
     private int addedNumers;
     
+    /**
+     * Creates a new transform to convert categorical to numeric features
+     */
+    public NominalToNumeric()
+    {
+    }
+    
+    /**
+     * Creates a new transform to convert categorical to numeric features for the given dataset
+     * @param dataSet the dataset to fit the transform to
+     */
     public NominalToNumeric(DataSet dataSet)
     {
-        this(dataSet.getNumNumericalVars(), dataSet.getCategories());
+        fit(dataSet);
     }
 
-    public NominalToNumeric(int origNumericalCount, CategoricalData[] categoricalData)
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public NominalToNumeric(NominalToNumeric toCopy)
     {
-        this.origNumericalCount = origNumericalCount;
-        this.categoricalData = categoricalData;
+        this.origNumericalCount = toCopy.origNumericalCount;
+        this.categoricalData = toCopy.categoricalData;
+        this.addedNumers = toCopy.addedNumers;
+    }
+    
+
+    @Override
+    public void fit(DataSet data)
+    {
+        this.origNumericalCount = data.getNumNumericalVars();
+        this.categoricalData = data.getCategories();
         addedNumers = 0;
         
         for(CategoricalData cd : categoricalData)
@@ -65,29 +89,6 @@ public class NominalToNumeric implements DataTransform
     @Override
     public NominalToNumeric clone()
     {
-        return new NominalToNumeric(origNumericalCount, categoricalData);
-    }
-    
-    /**
-     * Factory for creating {@link NominalToNumeric} transforms
-     */
-    static public class NominalToNumericTransformFactory implements DataTransformFactory
-    {
-
-        public NominalToNumericTransformFactory()
-        {
-        }
-        
-        @Override
-        public DataTransform getTransform(DataSet dataset)
-        {
-            return new NominalToNumeric(dataset);
-        }
-
-        @Override
-        public NominalToNumericTransformFactory clone()
-        {
-            return new NominalToNumericTransformFactory();
-        }
+        return new NominalToNumeric(this);
     }
 }

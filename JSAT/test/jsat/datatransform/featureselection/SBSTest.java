@@ -60,7 +60,9 @@ public class SBSTest
         ClassificationDataSet cds = SFSTest.
                 generate3DimIn10(rand, t0, t1, t2);
        
-        SBS sbs = new SBS.SBSFactory(1e-3, (Classifier)new NearestNeighbour(7), 1, 7).clone().getTransform(cds).clone();
+        SBS sbs = new SBS(1, 7, (Classifier)new NearestNeighbour(7), 1e-3).clone();
+        sbs.setFolds(5);
+        sbs.fit(cds);
         Set<Integer> found = sbs.getSelectedNumerical();
         
         Set<Integer> shouldHave = new IntSet();
@@ -82,7 +84,9 @@ public class SBSTest
         RegressionDataSet cds = SFSTest.
                 generate3DimIn10R(rand, t0, t1, t2);
        
-        SBS sbs = new SBS.SBSFactory(1.0, new MultipleLinearRegression(), 1, 7).clone().getTransform(cds).clone();
+        SBS sbs = new SBS(1, 7, new MultipleLinearRegression(), 1.0).clone();
+        sbs.setFolds(5);
+        sbs.fit(cds);
         Set<Integer> found = sbs.getSelectedNumerical();
         
         Set<Integer> shouldHave = new IntSet();

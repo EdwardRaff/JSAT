@@ -1,12 +1,16 @@
 package jsat.datatransform;
 
 import java.util.Random;
+import jsat.DataSet;
 import jsat.classifiers.DataPoint;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
 import jsat.linear.DenseMatrix;
 import jsat.linear.Matrix;
 import jsat.linear.RandomMatrix;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.utils.random.XORWOW;
 
 /**
  * The Johnson-Lindenstrauss (JL) Transform is a type of random projection down 
@@ -26,12 +30,12 @@ import jsat.linear.distancemetrics.EuclideanDistance;
  * 
  * @author Edward Raff
  */
-public class JLTransform implements DataTransform 
+public class JLTransform extends DataTransformBase
 {
 
-	private static final long serialVersionUID = -8621368067861343912L;
+    private static final long serialVersionUID = -8621368067861343912L;
 
-	//TODO for SPARSE, avoid unecessary computations for 0 values
+    //TODO for SPARSE, avoid unecessary computations for 0 values
     /**
      * Determines which distribution to construct the transform matrix from
      */
@@ -69,30 +73,58 @@ public class JLTransform implements DataTransform
     }
 
     /**
-     * Creates a new JL Transform
+     * Creates a new JL Transform that uses a target dimension of 50 features.
+     * This may not be optimal for any particular dataset.
+     *
      * @param k the target dimension size
-     * @param d the size of dimension in the original problem space
-     * @param mode how to construct the transform
-     * @param rand the source of randomness
      */
-    public JLTransform(final int k, final int d, final TransformMode mode, Random rand)
+    public JLTransform()
     {
-        this(k, d, mode, rand, true);
+        this(50);
     }
     
     /**
      * Creates a new JL Transform
      * @param k the target dimension size
-     * @param d the size of dimension in the original problem space
+     */
+    public JLTransform(final int k)
+    {
+        this(k, TransformMode.SPARSE);
+    }
+    
+    /**
+     * Creates a new JL Transform
+     * @param k the target dimension size
      * @param mode how to construct the transform
      * @param rand the source of randomness
+     */
+    public JLTransform(final int k, final TransformMode mode)
+    {
+        this(k, mode, true);
+    }
+    
+    private int k;
+    private boolean inMemory;
+    
+    /**
+     * Creates a new JL Transform
+     * @param k the target dimension size
+     * @param mode how to construct the transform
      * @param inMemory if {@code false}, the matrix will be stored in O(1) 
      * memory at the cost of execution time. 
      */
-    public JLTransform(final int k, final int d, final TransformMode mode, Random rand, boolean inMemory)
+    public JLTransform(final int k, final TransformMode mode, boolean inMemory)
     {
         this.mode = mode;
-        
+        this.k = k;
+        this.inMemory = inMemory;
+    }
+
+    @Override
+    public void fit(DataSet data)
+    {
+        final int d = data.getNumNumericalVars();
+        Random rand = new XORWOW();
         Matrix oldR = R = new RandomMatrixJL(k, d, rand.nextLong(), mode);
 
         if(inMemory)
@@ -102,6 +134,81 @@ public class JLTransform implements DataTransform
         }
     }
 
+    /**
+     * The JL transform uses a random matrix to project the data, and the mode
+     * controls which method is used to construct this matrix.
+     *
+     * @param mode how to construct the transform
+     */
+    public void setMode(TransformMode mode)
+    {
+        this.mode = mode;
+    }
+
+    /**
+     * 
+     * @return how to construct the transform
+     */
+    public TransformMode getMode()
+    {
+        return mode;
+    }
+
+    /**
+     * Sets whether or not the transform matrix is stored explicitly in memory
+     * or not. Explicit storage is often faster, but can be prohibitive for
+     * large datasets
+     * @param inMemory {@code true} to explicitly store the transform matrix,
+     * {@code false} to re-create it on the fly as needed
+     */
+    public void setInMemory(boolean inMemory)
+    {
+        this.inMemory = inMemory;
+    }
+
+    /**
+     * 
+     * @return {@code true} if this object will explicitly store the transform
+     * matrix, {@code false} to re-create it on the fly as needed
+     */
+    public boolean isInMemory()
+    {
+        return inMemory;
+    }
+
+    /**
+     * Sets the target dimension size to use for the output
+     * @param k the dimension after apply the transform
+     */
+    public void setProjectedDimension(int k)
+    {
+        this.k = k;
+    }
+
+    /**
+     * 
+     * @return the dimension after apply the transform
+     */
+    public int getProjectedDimension()
+    {
+        return k;
+    }
+    
+    
+    
+    public static Distribution guessProjectedDimension(DataSet d)
+    {
+        //huristic, could be improved by some theory app
+        double max = 100;
+        double min = 10;
+        if(d.getNumNumericalVars() > 10000)
+        {
+            min = 100;
+            max = 1000;
+        }
+        return new LogUniform(min, max);
+    }
+    
     @Override
     public DataPoint transform(DataPoint dp)
     {
@@ -122,11 +229,8 @@ public class JLTransform implements DataTransform
     
     private static class RandomMatrixJL extends RandomMatrix
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 2009377824896155918L;
-		private double cnst; 
+        private static final long serialVersionUID = 2009377824896155918L;
+        private double cnst;
         private TransformMode mode;
         
         public RandomMatrixJL(int rows, int cols, long XORSeed, TransformMode mode)

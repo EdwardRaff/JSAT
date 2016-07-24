@@ -780,6 +780,17 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     }
 
     @Override
+    public void fit(DataSet data)
+    {
+        if (data instanceof ClassificationDataSet)
+            trainC((ClassificationDataSet) data);
+        else if(data instanceof RegressionDataSet)
+            train((RegressionDataSet) data);
+        else
+            throw new FailedToFitException("Data must be a classifiation or regression dataset, not " + data.getClass().getSimpleName());
+    }
+
+    @Override
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
         if(baseRegressor == null)

@@ -8,6 +8,7 @@ import jsat.clustering.kmeans.HamerlyKMeans;
 import jsat.clustering.SeedSelectionMethods;
 import jsat.datatransform.*;
 import jsat.distributions.kernels.KernelTrick;
+import jsat.distributions.kernels.RBFKernel;
 import jsat.linear.*;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.parameters.Parameter.ParameterHolder;
@@ -43,11 +44,18 @@ import jsat.utils.random.XOR96;
  * </ul>
  * @author Edward Raff
  */
-public class Nystrom implements DataTransform
+public class Nystrom extends DataTransformBase
 {
 
-	private static final long serialVersionUID = -3227844260130709773L;
-	private KernelTrick k;
+    private static final long serialVersionUID = -3227844260130709773L;
+    private double ridge;
+    @ParameterHolder
+    private KernelTrick k;
+    private int dimension;
+    private SamplingMethod method;
+    int basisSize;
+    private boolean sampleWithReplacment;
+
     private List<Vec> basisVecs;
     private List<Double> accelCache;
     private Matrix transform;
@@ -98,6 +106,49 @@ public class Nystrom implements DataTransform
     }
 
     /**
+     * Creates a new Nystrom approximation object using the
+     * {@link RBFKernel RBF Kernel} with 500 basis vectors
+     *
+     */
+    public Nystrom()
+    {
+        this(new RBFKernel(), 500);
+    }
+    
+    /**
+     * Creates a new Nystrom approximation object
+     *
+     * @param k the kernel trick to form an approximation of
+     * @param basisSize the number of basis vectors to use, this is the output
+     * dimension size.
+     */
+    public Nystrom(KernelTrick k, int basisSize)
+    {
+        this(k, basisSize, SamplingMethod.UNIFORM, 1e-5, false);
+    }
+    
+    /**
+     * Creates a new Nystrom approximation object
+     * @param k the kernel trick to form an approximation of
+     * @param basisSize the number of basis vectors to use, this is the output 
+     * dimension size.
+     * @param method what sampling method should be used to select the basis 
+     * vectors from the full data set. 
+     * @param ridge a non negative additive term to regularize the eigen values 
+     * of the decomposition. 
+     * @param sampleWithReplacment {@code true} if the basis vectors should be 
+     * sampled with replacement, {@code false} if they should not. 
+     */
+    public Nystrom(KernelTrick k, int basisSize, SamplingMethod method, double ridge, boolean sampleWithReplacment )
+    {
+        setKernel(k);
+        setBasisSize(basisSize);
+        setBasisSamplingMethod(method);
+        setRidge(ridge);
+        this.sampleWithReplacment = sampleWithReplacment;
+    }
+    
+    /**
      * Creates a new Nystrom approximation object
      * @param k the kernel trick to form an approximation of
      * @param dataset the data set to form the approximate feature space from
@@ -113,6 +164,13 @@ public class Nystrom implements DataTransform
     @SuppressWarnings("fallthrough")
     public Nystrom(KernelTrick k, DataSet dataset, int basisSize, SamplingMethod method, double ridge, boolean sampleWithReplacment )
     {
+        this(k, basisSize, method, ridge, sampleWithReplacment);
+        fit(dataset);
+    }
+
+    @Override
+    public void fit(DataSet dataset)
+    {
         Random rand = new XOR96();
 
         if(ridge < 0)
@@ -124,7 +182,6 @@ public class Nystrom implements DataTransform
         //Create smaller gram matrix K and decompose is
         basisVecs = sampleBasisVectors(k, dataset, X, method, basisSize, sampleWithReplacment, rand);
 
-        this.k = k;
         accelCache = k.getAccelerationCache(basisVecs);
 
         Matrix K = new DenseMatrix(basisSize, basisSize);
@@ -161,12 +218,21 @@ public class Nystrom implements DataTransform
     protected Nystrom(Nystrom toCopy)
     {
         this.k = toCopy.k.clone();
-        this.basisVecs = new ArrayList<Vec>(toCopy.basisVecs.size());
-        for(Vec v : toCopy.basisVecs)
-            this.basisVecs.add(v.clone());
-        if(toCopy.accelCache != null)
-            this.accelCache = new DoubleList(toCopy.accelCache);
-        this.transform = toCopy.transform.clone();
+        this.method = toCopy.method;
+        this.sampleWithReplacment = toCopy.sampleWithReplacment;
+        this.dimension = toCopy.dimension;
+        this.ridge = toCopy.ridge;
+        this.basisSize = toCopy.basisSize;
+        if(toCopy.basisVecs != null)
+        {
+            this.basisVecs = new ArrayList<Vec>(toCopy.basisVecs.size());
+            for(Vec v : toCopy.basisVecs)
+                this.basisVecs.add(v.clone());
+            if(toCopy.accelCache != null)
+                this.accelCache = new DoubleList(toCopy.accelCache);
+        }
+        if(toCopy.transform != null)
+            this.transform = toCopy.transform.clone();
     }
     
     /**
@@ -296,121 +362,114 @@ public class Nystrom implements DataTransform
     {
         return new Nystrom(this);
     }
+
+    /**
+     * Sets the regularization parameter to add to the eigen values of the gram
+     * matrix. This can be particularly useful when using a large (500+) number
+     * of components.
+     *
+     * @param ridge the non-negative value in [0, &infin;) to add to each eigen
+     * value
+     */
+    public void setRidge(double ridge)
+    {
+        if (ridge < 0 || Double.isNaN(ridge) || Double.isInfinite(ridge))
+            throw new IllegalArgumentException("Ridge must be non negative, not " + ridge);
+        this.ridge = ridge;
+    }
+
+    /**
+     * Returns the regularization value added to each eigen value
+     *
+     * @return the regularization value added to each eigen value
+     */
+    public double getRidge()
+    {
+        return ridge;
+    }
+
+    /**
+     * Sets the dimension of the new feature space, which is the number of
+     * principal components to select from the kernelized feature space.
+     *
+     * @param dimension the number of dimensions to project down too
+     */
+    public void setDimension(int dimension)
+    {
+        if (dimension < 1)
+            throw new IllegalArgumentException("The number of dimensions must be positive, not " + dimension);
+        this.dimension = dimension;
+    }
+
+    /**
+     * Returns the number of dimensions to project down too
+     *
+     * @return the number of dimensions to project down too
+     */
+    public int getDimension()
+    {
+        return dimension;
+    }
+
+    /**
+     * Sets the method of selecting the basis vectors
+     *
+     * @param method the method of selecting the basis vectors
+     */
+    public void setBasisSamplingMethod(SamplingMethod method)
+    {
+        this.method = method;
+    }
+
+    /**
+     * Returns the method of selecting the basis vectors
+     *
+     * @return the method of selecting the basis vectors
+     */
+    public SamplingMethod getBasisSamplingMethod()
+    {
+        return method;
+    }
     
     /**
-     * Factory for producing new {@link Nystrom} transforms
+     * Sets the basis size for the Kernel PCA to be learned from. Increasing the
+     * basis increase the accuracy of the transform, but increased the training
+     * time at a cubic rate.
+     *
+     * @param basisSize the number of basis vectors to build Kernel PCA from
      */
-    static public class NystromTransformFactory extends DataTransformFactoryParm
+    public void setBasisSize(int basisSize)
     {
-        private double ridge;
-        @ParameterHolder
-        private KernelTrick k;
-        private int dimension;
-        private SamplingMethod method;
-        private boolean sampleWithReplacment;
-             
-        /**
-         * Creates a new Nystrom object
-         * @param k the kernel trick to form an approximation of
-         * @param dimension the number of basis vectors to use, this is the 
-         * output dimension size.
-         * @param method what sampling method should be used to select the basis 
-         * vectors from the full data set. 
-         * @param sampleWithReplacment {@code true} if the basis vectors should 
-         * be sampled with replacement, {@code false} if they should not. 
-         */
-        public NystromTransformFactory(KernelTrick k, int dimension, SamplingMethod method, double ridge, boolean sampleWithReplacment)
-        {
-            this.k = k;
-            setDimension(dimension);
-            setBasisSamplingMethod(method);
-            setRidge(ridge);
-            this.sampleWithReplacment = sampleWithReplacment;
-        }
+        if (basisSize < 1)
+            throw new IllegalArgumentException("The basis size must be positive, not " + basisSize);
+        this.basisSize = basisSize;
+    }
 
-        /**
-         * Copy constructor
-         * @param toCopy the object to copy
-         */
-        public NystromTransformFactory(NystromTransformFactory toCopy)
-        {
-            this(toCopy.k.clone(), toCopy.dimension, toCopy.method, toCopy.ridge, toCopy.sampleWithReplacment);
-        }
+    /**
+     * Returns the number of basis vectors to use
+     *
+     * @return the number of basis vectors to use
+     */
+    public int getBasisSize()
+    {
+        return basisSize;
+    }
+    
+    /**
+     * 
+     * @param k the kernel trick to use
+     */
+    public void setKernel(KernelTrick k)
+    {
+        this.k = k;
+    }
 
-        /**
-         * Sets the regularization parameter to add to the eigen values of the 
-         * gram matrix. This can be particularly useful when using a large 
-         * (500+) number of components. 
-         * @param ridge the non-negative value in [0, &infin;) to add to each 
-         * eigen value
-         */
-        public void setRidge(double ridge)
-        {
-            if(ridge < 0 || Double.isNaN(ridge) || Double.isInfinite(ridge))
-                throw new IllegalArgumentException("Ridge must be non negative, not " + ridge);
-            this.ridge = ridge;
-        }
-
-        /**
-         * Returns the regularization value added to each eigen value
-         * @return the regularization value added to each eigen value
-         */
-        public double getRidge()
-        {
-            return ridge;
-        }
-        
-        /**
-         * Sets the dimension of the new feature space, which is the number of 
-         * principal components to select from the kernelized feature space. 
-         * 
-         * @param dimension the number of dimensions to project down too
-         */
-        public void setDimension(int dimension)
-        {
-            if(dimension < 1)
-                throw new IllegalArgumentException("The number of dimensions must be positive, not " + dimension);
-            this.dimension = dimension;
-        }
-
-        /**
-         * Returns the number of dimensions to project down too
-         * @return the number of dimensions to project down too
-         */
-        public int getDimension()
-        {
-            return dimension;
-        }
-        
-        /**
-         * Sets the method of selecting the basis vectors
-         * @param method the method of selecting the basis vectors
-         */
-        public void setBasisSamplingMethod(SamplingMethod method)
-        {
-            this.method = method;
-        }
-
-        /**
-         * Returns the method of selecting the basis vectors
-         * @return the method of selecting the basis vectors
-         */
-        public SamplingMethod getBasisSamplingMethod()
-        {
-            return method;
-        }
-
-        @Override
-        public DataTransform getTransform(DataSet dataset)
-        {
-            return new Nystrom(k, dataset, dimension, method, ridge, sampleWithReplacment);
-        }
-
-        @Override
-        public NystromTransformFactory clone()
-        {
-            return new NystromTransformFactory(k.clone(), dimension, method, ridge, sampleWithReplacment);
-        }
-        
+    /**
+     * 
+     * @return the kernel trick to use
+     */
+    public KernelTrick getKernel()
+    {
+        return k;
     }
 }

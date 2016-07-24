@@ -17,6 +17,7 @@
 package jsat.datatransform;
 
 import java.util.Random;
+import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.linear.Vec;
 import jsat.utils.random.XORWOW;
@@ -50,6 +51,12 @@ public class InsertMissingValuesTransform implements InPlaceTransform
     {
         this.prob = Math.min(1, Math.max(0, prob));
         this.rand = rand;
+    }
+
+    @Override
+    public void fit(DataSet data)
+    {
+        //no-op, nothing to do
     }
 
     @Override

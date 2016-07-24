@@ -2,6 +2,7 @@
 package jsat.datatransform;
 
 import java.util.Iterator;
+import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.linear.*;
 
@@ -15,8 +16,8 @@ import jsat.linear.*;
 public class DenseSparceTransform implements DataTransform
 {
 
-	private static final long serialVersionUID = -1177913691660616290L;
-	private double factor;
+    private static final long serialVersionUID = -1177913691660616290L;
+    private double factor;
 
     /**
      * Creates a new Dense Sparce Transform. The <tt>factor</tt> gives the maximal 
@@ -31,6 +32,12 @@ public class DenseSparceTransform implements DataTransform
     public DenseSparceTransform(double factor)
     {
         this.factor = factor;
+    }
+
+    @Override
+    public void fit(DataSet data)
+    {
+        //no - op, nothing we need to learn
     }
     
     @Override

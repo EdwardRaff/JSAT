@@ -16,8 +16,8 @@ import jsat.math.OnLineStatistics;
 public class LinearTransform implements InPlaceInvertibleTransform
 {
 
-	private static final long serialVersionUID = 5580283565080452022L;
-	/**
+    private static final long serialVersionUID = 5580283565080452022L;
+    /**
      * The max value
      */
     private double A;
@@ -39,6 +39,16 @@ public class LinearTransform implements InPlaceInvertibleTransform
      *   max - min
      */
     private Vec mutliplyConstants;
+    
+    /**
+     * Creates a new Linear Transformation that will scale 
+     * values to the [0, 1] range. 
+     * 
+     */
+    public LinearTransform()
+    {
+        this(1, 0);
+    }
 
     /**
      * Creates a new Linear Transformation for the input data set so that all
@@ -50,6 +60,18 @@ public class LinearTransform implements InPlaceInvertibleTransform
     {
         this(dataSet, 1, 0);
     }
+    
+    /**
+     * Creates a new Linear Transformation. 
+     * 
+     * @param dataSet the data set to learn the transform from
+     * @param A the maximum value for the transformed data set
+     * @param B the minimum value for the transformed data set
+     */
+    public LinearTransform(double A, double B)
+    {
+        setRange(A, B);
+    }
 
     /**
      * Creates a new Linear Transformation for the input data set. 
@@ -60,7 +82,18 @@ public class LinearTransform implements InPlaceInvertibleTransform
      */
     public LinearTransform(DataSet dataSet, double A, double B)
     {
-         if(A == B)
+        this(A, B);
+        fit(dataSet);
+    }
+
+    /**
+     * Sets the min and max value to scale the data to. If given in the wrong order, this method will swap them
+     * @param A the maximum value for the transformed data set
+     * @param B the minimum value for the transformed data set
+     */
+    public void setRange(double A, double B)
+    {
+        if(A == B)
             throw new RuntimeException("Values must be different");
         else if(B > A)
         {
@@ -70,8 +103,13 @@ public class LinearTransform implements InPlaceInvertibleTransform
         }
         this.A = A;
         this.B = B;
-        
-        
+    }
+    
+    
+
+    @Override
+    public void fit(DataSet dataSet)
+    {
         mins = new DenseVector(dataSet.getNumNumericalVars());
         Vec maxs = new DenseVector(mins.length());
         mutliplyConstants = new DenseVector(mins.length());
@@ -112,7 +150,6 @@ public class LinearTransform implements InPlaceInvertibleTransform
         
         maxs.mutableSubtract(mins);
         mutliplyConstants.mutablePairwiseDivide(maxs);
-        
     }
     
     /**
@@ -174,54 +211,5 @@ public class LinearTransform implements InPlaceInvertibleTransform
         DataPoint toRet = dp.clone();
         mutableInverse(toRet);
         return toRet;
-    }
-    
-    /**
-     * Factory for creating new {@link LinearTransform} transforms. 
-     */
-    static public class LinearTransformFactory implements DataTransformFactory
-    {
-        private Double A;
-        private Double B;
-
-        /**
-         * Creates a new Linear Transform factory 
-         * @param A the maximum value for the transformed data set
-         * @param B the minimum value for the transformed data set
-         */
-        public LinearTransformFactory(double A, double B)
-        {
-            this.A = A;
-            this.B = B;
-        }
-
-        /**
-         * Creates a new Linear Transform factory for the range [0, 1]
-         */
-        public LinearTransformFactory()
-        {
-            this(0, 1);
-        }
-        
-        /**
-         * Copy constructor
-         * @param toCopy the object to copy
-         */
-        public LinearTransformFactory(LinearTransformFactory toCopy)
-        {
-            this(toCopy.A, toCopy.B);
-        }
-        
-        @Override
-        public DataTransform getTransform(DataSet dataset)
-        {
-            return new LinearTransform(dataset, A, B);
-        }
-
-        @Override
-        public LinearTransformFactory clone()
-        {
-            return new LinearTransformFactory(this);
-        }
     }
 }

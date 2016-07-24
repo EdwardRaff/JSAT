@@ -84,7 +84,7 @@ public class ERTreesTest
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             if(useCatFeatures)
-                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
             cme.evaluateTestSet(test);
 
             assertTrue(cme.getErrorRate() <= 0.001);
@@ -109,7 +109,7 @@ public class ERTreesTest
 
             RegressionModelEvaluation cme = new RegressionModelEvaluation(instance, train);
             if(useCatFeatures)
-                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
             cme.evaluateTestSet(test);
             
 
@@ -135,7 +135,7 @@ public class ERTreesTest
 
             RegressionModelEvaluation cme = new RegressionModelEvaluation(instance, train, ex);
             if(useCatFeatures)
-                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
             cme.evaluateTestSet(test);
 
             assertTrue(cme.getMeanError() <= test.getTargetValues().mean()*2.5);
@@ -160,7 +160,7 @@ public class ERTreesTest
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             if(useCatFeatures)
-                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
             cme.evaluateTestSet(test);
 
             assertTrue(cme.getErrorRate() <= 0.001);

@@ -11,7 +11,7 @@ import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
-import jsat.datatransform.RemoveAttributeTransform.RemoveAttributeTransformFactory;
+import jsat.datatransform.RemoveAttributeTransform;
 import jsat.linear.SparseVector;
 import jsat.linear.Vec;
 import jsat.text.tokenizer.Tokenizer;
@@ -396,7 +396,7 @@ public abstract class TextDataLoader implements TextVectorCreator
      * often enough
      */
     @SuppressWarnings("unchecked")
-    public RemoveAttributeTransformFactory getMinimumOccurrenceDTF(int minCount)
+    public RemoveAttributeTransform getMinimumOccurrenceDTF(int minCount)
     {
         
         final Set<Integer> numericToRemove = new IntSet();
@@ -404,6 +404,6 @@ public abstract class TextDataLoader implements TextVectorCreator
             if(termDocumentFrequencys.get(i).get() < minCount)
                 numericToRemove.add(i);
         
-        return new RemoveAttributeTransformFactory(Collections.EMPTY_SET, numericToRemove);
+        return new RemoveAttributeTransform(Collections.EMPTY_SET, numericToRemove);
     }
 }

@@ -94,7 +94,7 @@ public class AODETest
         ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
 
         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-        cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+        cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
         cme.evaluateTestSet(test);
         
         assertTrue(cme.getErrorRate() <= 0.001);
@@ -112,7 +112,7 @@ public class AODETest
         ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
 
         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-        cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+        cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
         cme.evaluateTestSet(test);
         
         assertTrue(cme.getErrorRate() <= 0.001);

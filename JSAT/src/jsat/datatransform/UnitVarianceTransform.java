@@ -14,10 +14,29 @@ import jsat.linear.Vec;
 public class UnitVarianceTransform implements InPlaceTransform
 {
 
-	private static final long serialVersionUID = 3645532503475641917L;
-	private Vec stndDevs;
+    private static final long serialVersionUID = 3645532503475641917L;
+    private Vec stndDevs;
+
+    /**
+     * Creates a new object for transforming datasets
+     */
+    public UnitVarianceTransform()
+    {
+    }
     
+    /**
+     * Creates a new object for making datasets unit variance fit to the given
+     * dataset
+     *
+     * @param d the dataset to learn this transform from
+     */
     public UnitVarianceTransform(DataSet d)
+    {
+        fit(d);
+    }
+
+    @Override
+    public void fit(DataSet d)
     {
         stndDevs = d.getColumnMeanVariance()[1];
     }
@@ -57,21 +76,4 @@ public class UnitVarianceTransform implements InPlaceTransform
         return new UnitVarianceTransform(this);
     }
 
-    /**
-     * Factory for producing new {@link UnitVarianceTransform} transforms. 
-     */
-    static public class UnitVarianceTransformFactory implements DataTransformFactory
-    {
-        @Override
-        public DataTransform getTransform(DataSet dataset)
-        {
-            return new UnitVarianceTransform(dataset);
-        }
-
-        @Override
-        public UnitVarianceTransformFactory clone()
-        {
-            return new UnitVarianceTransformFactory();
-        }
-    }
 }

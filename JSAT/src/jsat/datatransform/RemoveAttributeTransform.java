@@ -7,7 +7,6 @@ import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.linear.*;
 import jsat.utils.IntList;
-import jsat.utils.IntSet;
 
 /**
  * This Data Transform allows the complete removal of specific features from the
@@ -18,8 +17,8 @@ import jsat.utils.IntSet;
 public class RemoveAttributeTransform implements DataTransform
 {   
 
-	private static final long serialVersionUID = 8803223213862922734L;
-	/*
+    private static final long serialVersionUID = 2803223213862922734L;
+    /*
      * Each index map maps the old indecies in the original data set to their 
      * new positions. The value in the array is old index, the index of the 
      * value is the index it would be when the attributes were removed. 
@@ -28,6 +27,9 @@ public class RemoveAttributeTransform implements DataTransform
      */
     protected int[] catIndexMap;
     protected int[] numIndexMap;
+    
+    private Set<Integer> categoricalToRemove;
+    private Set<Integer> numericalToRemove;
     
     /**
      * Empty constructor that may be used by extending classes. Transforms that 
@@ -39,7 +41,22 @@ public class RemoveAttributeTransform implements DataTransform
     {
         
     }
-
+    
+    /**
+     * Creates a new transform for removing specified features from a data set.
+     * Needs to still call {@link #fit(jsat.DataSet) } before ready to be used.
+     *
+     * @param categoricalToRemove the set of categorical attributes to remove,
+     * in the rage of [0, {@link DataSet#getNumCategoricalVars() }).
+     * @param numericalToRemove the set of numerical attributes to remove, in
+     * the rage of [0, {@link DataSet#getNumNumericalVars() }).
+     */
+    public RemoveAttributeTransform(Set<Integer> categoricalToRemove, Set<Integer> numericalToRemove)
+    {
+        this.categoricalToRemove =  categoricalToRemove;
+        this.numericalToRemove = numericalToRemove;
+        
+    }
     /**
      * Creates a new transform for removing specified features from a data set
      * @param dataSet the data set that this transform is meant for
@@ -48,6 +65,8 @@ public class RemoveAttributeTransform implements DataTransform
      */
     public RemoveAttributeTransform(DataSet dataSet, Set<Integer> categoricalToRemove, Set<Integer> numericalToRemove)
     {
+        this.categoricalToRemove =  categoricalToRemove;
+        this.numericalToRemove = numericalToRemove;
         setUp(dataSet, categoricalToRemove, numericalToRemove);
     }
     
@@ -99,6 +118,13 @@ public class RemoveAttributeTransform implements DataTransform
         return map;
     }
     
+    @Override
+    public void fit(DataSet data)
+    {
+        if (categoricalToRemove != null && numericalToRemove != null)
+            setUp(data, categoricalToRemove, numericalToRemove);
+    }
+    
     /**
      * Sets up the Remove Attribute Transform properly
      * 
@@ -139,8 +165,10 @@ public class RemoveAttributeTransform implements DataTransform
      */
     protected RemoveAttributeTransform(RemoveAttributeTransform other)
     {
-        this.catIndexMap = Arrays.copyOf(other.catIndexMap, other.catIndexMap.length);
-        this.numIndexMap = Arrays.copyOf(other.numIndexMap, other.numIndexMap.length);
+        if(other.catIndexMap != null)
+            this.catIndexMap = Arrays.copyOf(other.catIndexMap, other.catIndexMap.length);
+        if(other.numIndexMap != null)
+            this.numIndexMap = Arrays.copyOf(other.numIndexMap, other.numIndexMap.length);
     }
     
     /**
@@ -229,32 +257,5 @@ public class RemoveAttributeTransform implements DataTransform
     public RemoveAttributeTransform clone()
     {
         return new RemoveAttributeTransform(this);
-    }
-    
-    /**
-     * Factory for producing {@link RemoveAttributeTransform} transforms
-     */
-    public static class RemoveAttributeTransformFactory implements DataTransformFactory
-    {
-        private Set<Integer> catToRemove;
-        private Set<Integer> numerToRemove;
-
-        public RemoveAttributeTransformFactory(Set<Integer> catToRemove, Set<Integer> numerToRemove)
-        {
-            this.catToRemove = catToRemove;
-            this.numerToRemove = numerToRemove;
-        }
-        
-        @Override
-        public DataTransform getTransform(DataSet dataset)
-        {
-            return new RemoveAttributeTransform(dataset, catToRemove, numerToRemove);
-        }
-
-        @Override
-        public RemoveAttributeTransformFactory clone()
-        {
-            return new RemoveAttributeTransformFactory(new IntSet(this.catToRemove), new IntSet(this.numerToRemove));
-        }
     }
 }

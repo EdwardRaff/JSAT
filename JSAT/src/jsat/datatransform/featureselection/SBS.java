@@ -24,8 +24,12 @@ import jsat.utils.ListUtils;
 public class SBS extends RemoveAttributeTransform
 {
 
-	private static final long serialVersionUID = -2516121100148559742L;
-	private double maxDecrease;
+    private static final long serialVersionUID = -2516121100148559742L;
+    private double maxDecrease;
+    private int folds;
+    private int minFeatures, maxFeatures;
+    private Object evaluator;
+
     
     /**
      * Copy constructor
@@ -35,6 +39,37 @@ public class SBS extends RemoveAttributeTransform
     {
         super(toClone);
         this.maxDecrease = toClone.maxDecrease;
+        this.folds = toClone.folds;
+        this.minFeatures = toClone.minFeatures;
+        this.maxFeatures = toClone.maxFeatures;
+        this.evaluator = toClone.evaluator;
+        
+    }
+    
+    /**
+     * Performs SBS feature selection for a classification problem
+     *
+     * @param minFeatures the minimum number of features to find
+     * @param maxFeatures the maximum number of features to find
+     * @param evaluater the classifier to use in determining accuracy given a
+     * feature subset
+     * @param folds the number of cross validation folds to use in selection
+     * @param maxDecrease the maximum tolerable decrease in accuracy in accuracy
+     * when a feature is removed
+     */
+    public SBS(int minFeatures, int maxFeatures, Classifier evaluater, double maxDecrease)
+    {
+        this(minFeatures, maxFeatures, evaluater, 3, maxDecrease);
+    }
+
+    private SBS(int minFeatures, int maxFeatures, Object evaluater, int folds, double maxDecrease)
+    {
+        super();
+        setMaxDecrease(maxDecrease);
+        setMinFeatures(minFeatures);
+        setMaxFeatures(maxFeatures);
+        setEvaluator(evaluater);
+        setFolds(folds);
     }
     
     /**
@@ -49,10 +84,9 @@ public class SBS extends RemoveAttributeTransform
      * @param maxDecrease the maximum tolerable decrease in accuracy in accuracy
      * when a feature is removed
      */
-    
     public SBS(int minFeatures, int maxFeatures, ClassificationDataSet cds, Classifier evaluater, int folds, double maxDecrease)
     {
-        this.maxDecrease = maxDecrease;
+        this(minFeatures, maxFeatures, evaluater, folds, maxDecrease);
         search(cds, evaluater, minFeatures, maxFeatures, folds);
     }
     
@@ -61,16 +95,38 @@ public class SBS extends RemoveAttributeTransform
      *
      * @param minFeatures the minimum number of features to find
      * @param maxFeatures the maximum number of features to find
+     * @param evaluater the regressor to use in determining accuracy given a
+     * feature subset
+     * @param maxDecrease the maximum tolerable increase in the error rate when
+     * a feature is removed
+     */
+    public SBS(int minFeatures, int maxFeatures, Regressor evaluater, double maxDecrease)
+    {
+        this(minFeatures, maxFeatures, evaluater, 3, maxDecrease);
+    }
+    /**
+     * Performs SBS feature selection for a regression problem
+     *
+     * @param minFeatures the minimum number of features to find
+     * @param maxFeatures the maximum number of features to find
      * @param rds the data set to perform feature selection on 
+     * @param evaluater the regressor to use in determining accuracy given a
+     * feature subset
      * @param folds the number of cross validation folds to use in selection
      * @param maxDecrease the maximum tolerable increase in the error rate when
      * a feature is removed
      */
-    
     public SBS(int minFeatures, int maxFeatures, RegressionDataSet rds, Regressor evaluater, int folds, double maxDecrease)
     {
-        this.maxDecrease = maxDecrease;
+        this(minFeatures, maxFeatures, evaluater, folds, maxDecrease);
         search(rds, evaluater, minFeatures, maxFeatures, folds);
+    }
+
+    @Override
+    public void fit(DataSet data)
+    {
+        super.fit(data); 
+        search(data, evaluator, minFeatures, maxFeatures, folds);
     }
     
     private void search(DataSet dataSet, Object learner, int minFeatures, int maxFeatures, int folds)
@@ -204,152 +260,95 @@ public class SBS extends RemoveAttributeTransform
         else
             return  -1; //No possible improvment & weve got enough
     }
+
+    /**
+     * Sets the maximum allowable decrease in accuracy (increase in error) from
+     * the previous set of features to the new current set.
+     *
+     * @param maxDecrease the maximum allowable decrease in the accuracy from
+     * removing a feature
+     */
+    public void setMaxDecrease(double maxDecrease)
+    {
+        if (maxDecrease < 0)
+            throw new IllegalArgumentException("Decarese must be a positive value, not " + maxDecrease);
+        this.maxDecrease = maxDecrease;
+    }
+
+    /**
+     * Returns the maximum allowable decrease in accuracy from one set of
+     * features to the next
+     *
+     * @return the maximum allowable decrease in accuracy from one set of
+     * features to the next
+     */
+    public double getMaxDecrease()
+    {
+        return maxDecrease;
+    }
+
+    /**
+     * Sets the minimum number of features that must be selected
+     *
+     * @param minFeatures the minimum number of features to learn
+     */
+    public void setMinFeatures(int minFeatures)
+    {
+        this.minFeatures = minFeatures;
+    }
+
+    /**
+     * Returns the minimum number of features to find
+     *
+     * @return the minimum number of features to find
+     */
+    public int getMinFeatures()
+    {
+        return minFeatures;
+    }
+
+    /**
+     * Sets the maximum number of features that must be selected
+     *
+     * @param maxFeatures the maximum number of features to find
+     */
+    public void setMaxFeatures(int maxFeatures)
+    {
+        this.maxFeatures = maxFeatures;
+    }
+
+    /**
+     * Returns the maximum number of features to find
+     *
+     * @return the maximum number of features to find
+     */
+    public int getMaxFeatures()
+    {
+        return maxFeatures;
+    }
     
     /**
-     * Factory for producing new {@link SBS} transforms
+     * Sets the number of folds to use for cross validation when estimating the error rate
+     * @param folds the number of folds to use for cross validation when estimating the error rate
      */
-    static public class SBSFactory extends DataTransformFactoryParm
+    public void setFolds(int folds)
     {
-        private double maxDecrease;
-        private Classifier classifier;
-        private Regressor regressor;
-        private int minFeatures, maxFeatures;
+        if(folds <= 0 )
+            throw new IllegalArgumentException("Number of CV folds must be positive, not " + folds);
+        this.folds = folds;
+    }
 
-        /**
-         * Creates a new SBS transform factory
-         * 
-         * @param maxDecrease the maximum allowable decrease in the accuracy 
-         * rate compared to the previous set of features
-         * @param evaluater the classifier to use to evaluate accuracy
-         * @param minFeatures the minimum number of features to learn
-         * @param maxFeatures the maximum number of features to learn
-         */
-        public SBSFactory(double maxDecrease, Classifier evaluater, int minFeatures, int maxFeatures)
-        {
-            setMaxDecrease(maxDecrease);
-            this.classifier = evaluater;
-            if(evaluater instanceof Regressor)
-                this.regressor = (Regressor) evaluater;
-            setMinFeatures(minFeatures);
-            setMaxFeatures(maxFeatures);
-        }
-        
-        /**
-         * Creates a new SBS transform factory
-         * 
-         * @param maxDecrease the maximum allowable increase in the error rate
-         * compared to the previous set of features
-         * @param evaluater the regressor to use to evaluate accuracy
-         * @param minFeatures the minimum number of features to learn
-         * @param maxFeatures the maximum number of features to learn
-         */
-        public SBSFactory(double maxDecrease, Regressor evaluater, int minFeatures, int maxFeatures)
-        {
-            setMaxDecrease(maxDecrease);
-            this.regressor = evaluater;
-            if(evaluater instanceof Classifier)
-                this.classifier = (Classifier) evaluater;
-            setMinFeatures(minFeatures);
-            setMaxFeatures(maxFeatures);
-        }
-
-        /**
-         * Copy constructor
-         * @param toCopy the object to copy
-         */
-        public SBSFactory(SBSFactory toCopy)
-        {
-            if(toCopy.classifier == toCopy.regressor)
-            {
-                this.classifier = toCopy.classifier.clone();
-                this.regressor = (Regressor) this.classifier;
-            }
-            else if(toCopy.classifier != null)
-                this.classifier = toCopy.classifier.clone();
-            else if(toCopy.regressor != null)
-                this.regressor = toCopy.regressor.clone();
-            else
-                throw new RuntimeException("BUG: Please report");
-            this.maxDecrease = toCopy.maxDecrease;
-            this.minFeatures = toCopy.minFeatures;
-            this.maxFeatures = toCopy.maxFeatures;
-        }
-
-        /**
-         * Sets the maximum allowable decrease in accuracy (increase in error) 
-         * from the previous set of features to the new current set. 
-         * 
-         * @param maxDecrease the maximum allowable decrease in the accuracy
-         * from removing a feature
-         */
-        public void setMaxDecrease(double maxDecrease)
-        {
-            if(maxDecrease < 0)
-                throw new IllegalArgumentException("Decarese must be a positive value, not " + maxDecrease);
-            this.maxDecrease = maxDecrease;
-        }
-
-        /**
-         * Returns the maximum allowable decrease in accuracy from one set of 
-         * features to the next
-         * @return the maximum allowable decrease in accuracy from one set of 
-         * features to the next
-         */
-        public double getMaxDecrease()
-        {
-            return maxDecrease;
-        }
-        
-        /**
-         * Sets the minimum number of features that must be selected
-         * @param minFeatures the minimum number of features to learn
-         */
-        public void setMinFeatures(int minFeatures)
-        {
-            this.minFeatures = minFeatures;
-        }
-
-        /**
-         * Returns the minimum number of features to find
-         * @return the minimum number of features to find
-         */
-        public int getMinFeatures()
-        {
-            return minFeatures;
-        }
-        
-        /**
-         * Sets the maximum number of features that must be selected
-         * @param maxFeatures the maximum number of features to find
-         */
-        public void setMaxFeatures(int maxFeatures)
-        {
-            this.maxFeatures = maxFeatures;
-        }
-
-        /**
-         * Returns the maximum number of features to find
-         * @return the maximum number of features to find
-         */
-        public int getMaxFeatures()
-        {
-            return maxFeatures;
-        }
-        
-        @Override
-        public SBS getTransform(DataSet dataset)
-        {
-            if(dataset instanceof ClassificationDataSet)
-                return new SBS(minFeatures, maxFeatures, (ClassificationDataSet)dataset, classifier, 5, maxDecrease);
-            else
-                return new SBS(minFeatures, maxFeatures, (RegressionDataSet)dataset, regressor, 5, maxDecrease);
-        }
-
-        @Override
-        public SBSFactory clone()
-        {
-            return new SBSFactory(this);
-        }
-        
+    /**
+     * 
+     * @return the number of folds to use for cross validation when estimating the error rate
+     */
+    public int getFolds()
+    {
+        return folds;
+    }
+    
+    private void setEvaluator(Object evaluator)
+    {
+        this.evaluator = evaluator;
     }
 }

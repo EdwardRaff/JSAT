@@ -40,6 +40,17 @@ public class PCA implements DataTransform
      * The transposed matrix of the Principal Components
      */
     private Matrix P;
+    private int maxPCs;
+    private double threshold;
+    
+    /**
+     * Creates a new object for performing PCA that stops at 50 principal components. This may not be optimal for any particular dataset
+     *
+     */
+    public PCA()
+    {
+        this(50);
+    }
 
     /**
      * Performs PCA analysis using the given data set, so that transformations may be performed on future data points.  <br>
@@ -70,6 +81,37 @@ public class PCA implements DataTransform
     }
     
     /**
+     * Creates a new object for performing PCA
+     *
+     * @param maxPCs the maximum number of Principal Components to let the
+     * algorithm learn. The algorithm may stop earlier if all the variance has
+     * been explained, or the convergence threshold has been met. Note, the
+     * computable maximum number of PCs is limited to the minimum of the number
+     * of samples and the number of dimensions.
+     */
+    public PCA(int maxPCs)
+    {
+        this(maxPCs, 1e-4);
+    }
+
+    /**
+     * Creates a new object for performing PCA
+     * 
+     * @param maxPCs the maximum number of Principal Components to let the algorithm learn. The algorithm may stop
+     * earlier if all the variance has been explained, or the convergence threshold has been met. 
+     * Note, the computable maximum number of PCs is limited to the minimum of the number of samples and the
+     * number of dimensions. 
+     * @param threshold a convergence threshold, any small value will work. Smaller values will 
+     * not produce more accurate results, but may make the algorithm take longer if it would 
+     * have terminated before <tt>maxPCs</tt> was reached.  
+     */
+    public PCA(int maxPCs, double threshold)
+    {
+        setMaxPCs(maxPCs);
+        setThreshold(threshold);
+    }
+    
+    /**
      * Performs PCA analysis using the given data set, so that transformations may be performed on future data points.  
      * 
      * @param dataSet the data set to learn from
@@ -82,6 +124,13 @@ public class PCA implements DataTransform
      * have terminated before <tt>maxPCs</tt> was reached.  
      */
     public PCA(DataSet dataSet, int maxPCs, double threshold)
+    {
+        this(maxPCs, threshold);
+        fit(dataSet);
+    }
+
+    @Override
+    public void fit(DataSet dataSet)
     {
         //Edwad, don't forget. This is: Nonlinear Iterative PArtial Least Squares (NIPALS) algo
         List<Vec> scores = new ArrayList<Vec>();
@@ -147,6 +196,44 @@ public class PCA implements DataTransform
     {
         if(other.P != null)
             this.P = other.P.clone();
+        this.maxPCs = other.maxPCs;
+        this.threshold = other.threshold;
+    }
+
+    /**
+     * sets the maximum number of principal components to learn
+     * @param maxPCs the maximum number of principal components to learn
+     */
+    public void setMaxPCs(int maxPCs)
+    {
+        if(maxPCs <= 0)
+            throw new IllegalArgumentException("number of principal components must be a positive number, not " + maxPCs);
+        this.maxPCs = maxPCs;
+    }
+
+    /**
+     * 
+     * @return maximum number of principal components to learn
+     */
+    public int getMaxPCs()
+    {
+        return maxPCs;
+    }
+
+    /**
+     * 
+     * @param threshold the threshold for convergence of the algorithm
+     */
+    public void setThreshold(double threshold)
+    {
+        if(threshold <= 0 || Double.isInfinite(threshold) || Double.isNaN(threshold))
+            throw new IllegalArgumentException("threshold must be in the range (0, Inf), not " + threshold);
+        this.threshold = threshold;
+    }
+
+    public double getThreshold()
+    {
+        return threshold;
     }
     
     /**
@@ -185,96 +272,4 @@ public class PCA implements DataTransform
         return new PCA(this);
     }
     
-    static public class PCAFactory extends DataTransformFactoryParm
-    {
-        private int maxPCs;
-        private double threshold;
-
-        /**
-         * Creates a new PCA Factory
-         */
-        public PCAFactory()
-        {
-            this(Integer.MAX_VALUE);
-        }
-        
-        /**
-         * Creates a new PCA Factory
-         * @param maxPCs the maximum number of principal components to take
-         */
-        public PCAFactory(int maxPCs)
-        {
-            this(maxPCs, 1e-4);
-        }
-
-        /**
-         * Creates a new PCA Factory
-         * @param maxPCs the maximum number of principal components to take
-         * @param threshold  the stopping value for numerical stability
-         */
-        public PCAFactory(int maxPCs, double threshold)
-        {
-            setMaxPCs(maxPCs);
-            setThreshold(threshold);
-        }
-        
-        /**
-         * Copy constructor
-         * @param toCopy the object to copy
-         */
-        public PCAFactory(PCAFactory toCopy)
-        {
-            this(toCopy.maxPCs, toCopy.threshold);
-        }
-        
-        /**
-         * Sets the maximum number of Principal Components to let the algorithm learn
-         * @param maxPCs the maximum number of Principal Components to let the algorithm learn
-         */
-        public void setMaxPCs(int maxPCs)
-        {
-            if(maxPCs < 1)
-                throw new IllegalArgumentException("Number of PCs must be positive, not " + maxPCs);
-            this.maxPCs = maxPCs;
-        }
-
-        /**
-         * Returns the maximum number of Principal Components to let the algorithm learn
-         * @return the maximum number of Principal Components to let the algorithm learn
-         */
-        public int getMaxPCs()
-        {
-            return maxPCs;
-        }
-
-        /**
-         * Sets the convergence threshold for each principal component
-         * @param threshold the positive convergence threshold
-         */
-        public void setThreshold(double threshold)
-        {
-            this.threshold = threshold;
-        }
-
-        /**
-         * Returns the convergence threshold 
-         * @return the convergence threshold 
-         */
-        public double getThreshold()
-        {
-            return threshold;
-        }
-        
-        @Override
-        public DataTransform getTransform(DataSet dataset)
-        {
-            return new PCA(dataset, maxPCs, threshold);
-        }
-
-        @Override
-        public PCAFactory clone()
-        {
-            return new PCAFactory(this);
-        }
-    }
 }

@@ -61,7 +61,8 @@ public class SFSTest
         
         ClassificationDataSet cds = generate3DimIn10(rand, t0, t1, t2);
        
-        SFS sfs = new SFS.SFSFactory(1e-3, (Classifier)new NearestNeighbour(7), 3, 7).clone().getTransform(cds).clone();
+        SFS sfs = new SFS(3, 7, (Classifier)new NearestNeighbour(7), 1e-3).clone();
+        sfs.fit(cds);
         Set<Integer> found = sfs.getSelectedNumerical();
         
         Set<Integer> shouldHave = new IntSet();
@@ -82,7 +83,8 @@ public class SFSTest
         
         RegressionDataSet rds = generate3DimIn10R(rand, t0, t1, t2);
        
-        SFS sfs = new SFS.SFSFactory(10, new MultipleLinearRegression(), 3, 7).clone().getTransform(rds).clone();
+        SFS sfs = new SFS(3, 7, new MultipleLinearRegression(), 10.0).clone();
+        sfs.fit(rds);
         Set<Integer> found = sfs.getSelectedNumerical();
         
         Set<Integer> shouldHave = new IntSet();

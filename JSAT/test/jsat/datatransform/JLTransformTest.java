@@ -77,7 +77,8 @@ public class JLTransformTest
         List<Vec> transformed = new ArrayList<Vec>(ds.getSampleSize());
         for( JLTransform.TransformMode mode : JLTransform.TransformMode.values())
         {
-            JLTransform jl = new JLTransform(k, ds.getNumNumericalVars(), mode, rand, true);
+            JLTransform jl = new JLTransform(k, mode, true);
+            jl.fit(ds);
 
             transformed.clear();
             for(int i = 0; i < ds.getSampleSize(); i++)
