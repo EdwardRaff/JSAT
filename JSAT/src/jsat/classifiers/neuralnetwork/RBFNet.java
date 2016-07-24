@@ -21,6 +21,9 @@ import jsat.classifiers.svm.DCDs;
 import jsat.clustering.kmeans.HamerlyKMeans;
 import jsat.clustering.SeedSelectionMethods;
 import jsat.datatransform.DataTransform;
+import jsat.distributions.Distribution;
+import jsat.distributions.Uniform;
+import jsat.distributions.discrete.UniformDiscrete;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.SparseVector;
@@ -587,6 +590,16 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     {
         return alpha;
     }
+    
+    /**
+     * Guesses the distribution for the {@link #setAlpha(double) } parameter
+     * @param data the data to create a guess for
+     * @return a guess for the distribution of the Alpha parameter
+     */
+    public static Distribution guessAlpha(DataSet data)
+    {
+        return new Uniform(0.8, 3.5);
+    }
 
     /**
      * Sets the nearest neighbor parameter. This value is used for certain
@@ -613,6 +626,16 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     public int getP()
     {
         return p;
+    }
+    
+    /**
+     * Guesses the distribution for the {@link #setP(int) } parameter
+     * @param data the data to create a guess for
+     * @return a guess for the distribution of the P parameter
+     */
+    public static Distribution guessP(DataSet data)
+    {
+        return new UniformDiscrete(2, 7);
     }
 
     /**
@@ -641,6 +664,16 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     public int getNumCentroids()
     {
         return numCentroids;
+    }
+    
+    /**
+     * Guesses the distribution for the {@link #setNumCentroids(int)  } parameter
+     * @param data the data to create a guess for
+     * @return a guess for the distribution of the number of centroids to use
+     */
+    public static Distribution guessNumCentroids(DataSet data)
+    {
+        return new UniformDiscrete(25, 1000);//maybe change in the future
     }
 
     /**
