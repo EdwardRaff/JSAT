@@ -49,6 +49,32 @@ public class LargeViz implements VisualizationTransform
      * "γ is set as 7 by default"
      */
     double gamma = 7;
+    
+    /**
+     * Sets the target perplexity of the gaussian used over each data point. The
+     * perplexity can be thought of as a quasi desired number of nearest
+     * neighbors to be considered, but is adapted based on the distribution of
+     * the data. Increasing the perplexity can increase the amount of time it
+     * takes to get an embedding. Using a value in the range of [5, 100] is
+     * recommended.
+     *
+     * @param perplexity the quasi number of neighbors to consider for each data point
+     */
+    public void setPerplexity(double perplexity)
+    {
+        if(perplexity <= 0 || Double.isNaN(perplexity) || Double.isInfinite(perplexity))
+            throw new IllegalArgumentException("perplexity must be positive, not " + perplexity);
+        this.perplexity = perplexity;
+    }
+
+    /**
+     * 
+     * @return the target perplexity to use for each data point
+     */
+    public double getPerplexity()
+    {
+        return perplexity;
+    }
 
 
     @Override
