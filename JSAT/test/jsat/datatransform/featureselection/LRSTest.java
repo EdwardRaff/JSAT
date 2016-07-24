@@ -9,6 +9,7 @@ import jsat.classifiers.knn.NearestNeighbour;
 import jsat.regression.MultipleLinearRegression;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.IntSet;
+import jsat.utils.random.XORWOW;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -56,7 +57,7 @@ public class LRSTest
     public void testTransformC()
     {
         System.out.println("transformC");
-        Random rand = new Random(13);
+        Random rand = new XORWOW(13);
         int t0 = 1, t1 = 5, t2 = 8;
         Set<Integer> shouldHave = new IntSet();
         shouldHave.addAll(Arrays.asList(t0, t1, t2));
@@ -89,7 +90,7 @@ public class LRSTest
     public void testTransformR()
     {
         System.out.println("transformR");
-        Random rand = new Random(13);
+        Random rand = new XORWOW(13);
         int t0 = 1, t1 = 5, t2 = 8;
         Set<Integer> shouldHave = new IntSet();
         shouldHave.addAll(Arrays.asList(t0, t1, t2));

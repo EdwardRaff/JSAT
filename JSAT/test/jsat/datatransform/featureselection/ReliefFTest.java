@@ -6,6 +6,7 @@ import java.util.*;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.IntSet;
+import jsat.utils.random.XORWOW;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -53,7 +54,7 @@ public class ReliefFTest
     public void testTransformC()
     {
         System.out.println("transformC");
-        Random rand = new Random(13);
+        Random rand = new XORWOW(13);
         int t0 = 1, t1 = 5, t2 = 8;
         Set<Integer> shouldHave = new IntSet();
         shouldHave.addAll(Arrays.asList(t0, t1, t2));

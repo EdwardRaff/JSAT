@@ -163,7 +163,7 @@ public class SFSTest
             int t0, int t1, int t2)
     {
         RegressionDataSet cds = new RegressionDataSet(10, new CategoricalData[0]);
-        int cSize = 40;
+        int cSize = 80;
         for(int i = 0; i < cSize; i++)
         {
             Vec dv = DenseVector.random(10, rand);
