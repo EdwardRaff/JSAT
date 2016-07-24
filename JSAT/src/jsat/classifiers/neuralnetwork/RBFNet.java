@@ -93,6 +93,22 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     private double[] bandwidths;
 
     /**
+     * Creates a new RBF Network suitable for binary classification or
+     * regression and uses 100 hidden nodes. One of the other constructors
+     * should be used if you need classification for multi-class or if you need
+     * probability outputs. <br>
+     * <br>
+     * This will use {@link Phase1Learner#K_MEANS} for neuron selection and
+     * {@link Phase2Learner#NEAREST_OTHER_CENTROID_AVERAGE} for activation
+     * tuning. The {@link EuclideanDistance} will be use as the metric.
+     *
+     */
+    public RBFNet()
+    {
+        this(100);
+    }
+    
+    /**
      * Creates a new RBF Network suitable for binary classification or 
      * regression. One of the other constructors should be used if you need 
      * classification for multi-class or if you need probability outputs. <br>
@@ -627,7 +643,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     {
         return p;
     }
-    
+
     /**
      * Guesses the distribution for the {@link #setP(int) } parameter
      * @param data the data to create a guess for
@@ -635,7 +651,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
      */
     public static Distribution guessP(DataSet data)
     {
-        return new UniformDiscrete(2, 7);
+        return new UniformDiscrete(2, 5);
     }
 
     /**
