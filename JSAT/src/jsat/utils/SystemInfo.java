@@ -83,7 +83,7 @@ public class SystemInfo
                 }
                 catch (IOException ex)
                 {
-                    Logger.getLogger(SystemInfo.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(SystemInfo.class.getName()).log(Level.WARNING, null, ex);
                 }
 
                 output = output.replaceAll("L2CacheSize\\s+NumberOfCores", "").trim();//Remove header
@@ -111,7 +111,11 @@ public class SystemInfo
                 }
                 catch (IOException ex)
                 {
-                    Logger.getLogger(SystemInfo.class.getName()).log(Level.SEVERE, null, ex);
+                    //This can fail on Google App Engine b/c we aren't allowed to run other programs. So lets check if thats the case
+                    String appEngineVersion = System.getProperty("com.google.appengine.runtime.version");
+                    if(appEngineVersion == null)//not in app engine, give out a warning
+                        Logger.getLogger(SystemInfo.class.getName()).log(Level.WARNING, null, ex);
+                    //else, lets not do anything stupid
                 }
 
                 output = output.substring(output.indexOf(":")+1);
@@ -135,7 +139,6 @@ public class SystemInfo
                     BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
 
                     String line = null;
-    //                StringBuilder sb = new StringBuilder();
                     while( (line = br.readLine()) != null)
                     {
                         if(line.contains("l1icachesize") && output == null)//We just need one line that says "cache size" 
@@ -145,7 +148,7 @@ public class SystemInfo
                 }
                 catch (IOException ex)
                 {
-                    Logger.getLogger(SystemInfo.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(SystemInfo.class.getName()).log(Level.WARNING, null, ex);
                 }
 
                 String[] vals = output.split("\\s+");
