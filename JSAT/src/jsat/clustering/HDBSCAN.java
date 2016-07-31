@@ -31,7 +31,24 @@ import jsat.parameters.Parameterized;
 import jsat.utils.*;
 
 /**
- *
+ * HDBSCAN is a density based clustering algorithm that is an improvement over
+ * {@link DBSCAN}. Unlike its predecessor, HDBSCAN works with variable density
+ * datasets and does not need a search radius to be specified. The original
+ * paper presents HDBSCAN with two parameters
+ * {@link #setMinPoints(int) m<sub>pts</sub>} and
+ * {@link #setMinClusterSize(int) m<sub>clSize</sub>}, but recomends that they
+ * can be set to the same value and effectively behave as if only one parameter
+ * exists. This implementation allows for setting both independtly, but the
+ * single parameter constructors will use the same value for both parameters.
+ * <br>
+ * NOTE: The current implementation has O(N<sup>2</sup>) run time, though
+ * this may be improved in the future with more advanced algorithms.<br>
+ * <br>
+ * See: Campello, R. J. G. B., Moulavi, D., & Sander, J. (2013). Density-Based
+ * Clustering Based on Hierarchical Density Estimates. In J. Pei, V. Tseng, L.
+ * Cao, H. Motoda, & G. Xu (Eds.), Advances in Knowledge Discovery and Data
+ * Mining (pp. 160–172). Springer Berlin Heidelberg.
+ * doi:10.1007/978-3-642-37456-2_14
  * @author Edward Raff
  */
 public class HDBSCAN extends ClustererBase implements Parameterized
@@ -44,26 +61,68 @@ public class HDBSCAN extends ClustererBase implements Parameterized
     private int m_clSize;
     private VectorCollectionFactory<Vec> vcf;
     
+    /**
+     * Creates a new HDBSCAN object using a threshold of 15 points to form a
+     * cluster.
+     */
     public HDBSCAN()
     {
         this(15);
     }
     
+    /**
+     * Creates a new HDBSCAN using the simplified form, where the only parameter
+     * is a single value.
+     *
+     * @param m_pts the minimum number of points needed to form a cluster and
+     * the number of neighbors to consider
+     */
     public HDBSCAN(int m_pts)
     {
         this(new EuclideanDistance(), m_pts);
     }
-    
+
+    /**
+     * Creates a new HDBSCAN using the simplified form, where the only parameter
+     * is a single value.
+     *
+     * @param dm the distance metric to use for finding nearest neighbors
+     * @param m_pts the minimum number of points needed to form a cluster and
+     * the number of neighbors to consider
+     */
     public HDBSCAN(DistanceMetric dm, int m_pts)
     {
         this(dm, m_pts, m_pts, new VPTreeMV.VPTreeMVFactory<Vec>());
     }
-    
+
+    /**
+     * Creates a new HDBSCAN using the simplified form, where the only parameter
+     * is a single value.
+     *
+     * @param dm the distance metric to use for finding nearest neighbors
+     * @param m_pts the minimum number of points needed to form a cluster and
+     * the number of neighbors to consider
+     * @param vcf the vector collection to use for accelerating nearest neighbor
+     * queries
+     */
     public HDBSCAN(DistanceMetric dm, int m_pts, VectorCollectionFactory<Vec> vcf)
     {
         this(dm, m_pts, m_pts, vcf);
     }
 
+    /**
+     * Creates a new HDBSCAN using the full specification of the algorithm,
+     * where two parameters may be altered. In the simplified version both
+     * parameters always have the same value.
+     *
+     * @param dm the distance metric to use for finding nearest neighbors
+     * @param m_pts the number of neighbors to consider, acts as a smoothing
+     * over the density estimate
+     * @param m_clSize the minimum number of data points needed to form a
+     * cluster
+     * @param vcf the vector collection to use for accelerating nearest neighbor
+     * queries
+     */
     public HDBSCAN(DistanceMetric dm, int m_pts, int m_clSize, VectorCollectionFactory<Vec> vcf)
     {
         this.dm = dm;
@@ -84,37 +143,63 @@ public class HDBSCAN extends ClustererBase implements Parameterized
         this.vcf = toCopy.vcf.clone();
     }
 
+    /**
+     * 
+     * @param m_clSize the minimum number of data points needed to form a
+     * cluster
+     */
     public void setMinClusterSize(int m_clSize)
     {
         this.m_clSize = m_clSize;
     }
 
+    /**
+     * 
+     * @return the minimum number of data points needed to form a
+     * cluster
+     */
     public int getMinClusterSize()
     {
         return m_clSize;
     }
 
+    /**
+     * Sets the distance metric to use for determining closeness between data points
+     * @param dm the distance metric to determine nearest neighbors with
+     */
     public void setDistanceMetrics(DistanceMetric dm)
     {
         this.dm = dm;
     }
 
+    /**
+     * 
+     * @return the distance metric to determine nearest neighbors with
+     */
     public DistanceMetric getDistanceMetrics()
     {
         return dm;
     }
 
+    /**
+     * 
+     * @param m_pts the number of neighbors to consider, acts as a smoothing
+     * over the density estimate
+     */
     public void setMinPoints(int m_pts)
     {
         this.m_pts = m_pts;
     }
 
+    /**
+     * 
+     * @return the number of neighbors to consider, acts as a smoothing
+     * over the density estimate
+     */
     public int getMinPoints()
     {
         return m_pts;
     }
-    
-    
     
 
     @Override
