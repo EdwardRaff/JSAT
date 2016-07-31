@@ -30,25 +30,41 @@ import jsat.utils.FakeExecutor;
 import jsat.utils.random.XORWOW;
 
 /**
- *
+ * LargeViz is an algorithm for creating low dimensional embeddings for
+ * visualization. It is meant to be faster and better quality than
+ * {@link TSNE t-SNE} without requiring any parameter tuning to get good
+ * results. LargeViz is related to t-SNE in how the neighbor graph is
+ * constructed, and the {@link #setPerplexity(double) perplexity} parameter for
+ * LargeViz has the same meaning and impact as the perplexity parameter in
+ * t-SNE.<br>
+ * <br>
+ * NOTE: The origina LargeViz paper includes a faster scheme for approximately
+ * constructing the nearest neighbor graph. This is not yet implemented, but has
+ * no negative impact on the quality of the result.
+ * <br>
+ * See: Tang, J., Liu, J., Zhang, M., & Mei, Q. (2016). Visualizing Large-scale
+ * and High-dimensional Data. In Proceedings of the 25th International
+ * Conference on World Wide Web (pp. 287–297). Republic and Canton of Geneva,
+ * Switzerland: International World Wide Web Conferences Steering Committee.
+ * doi:10.1145/2872427.2883041
  * @author Edward Raff
  */
 public class LargeViz implements VisualizationTransform
 {
     private DistanceMetric dm = new EuclideanDistance();
     private double perplexity = 50;
-    int dt = 2;
+    private int dt = 2;
     
     /**
      * This is the number of negative samples to take for each vertex <br>
      * "number of negative samples is set as 5"
      */
-    int M = 5;
+    private int M = 5;
     
     /**
      * "γ is set as 7 by default"
      */
-    double gamma = 7;
+    private double gamma = 7;
     
     /**
      * Sets the target perplexity of the gaussian used over each data point. The
@@ -76,6 +92,51 @@ public class LargeViz implements VisualizationTransform
         return perplexity;
     }
 
+    /**
+     * Sets the number of negative neighbor samples to obtain for each data
+     * point. The default recommended value is 5.
+     *
+     * @param M the number of negative samples to use for each update
+     */
+    public void setNegativeSamples(int M)
+    {
+        if(M < 1)
+            throw new IllegalArgumentException("Number of negative samples must be positive, not " + M);
+        this.M = M;
+    }
+
+    /**
+     * 
+     * @return the number of negative samples to use for each update
+     */
+    public int getNegativeSamples()
+    {
+        return M;
+    }
+
+    /**
+     * Gamma controls the negative weight assigned to negative edges in the
+     * optimization problem. Large values will place a higher emphasis on
+     * separating non-neighbors in the embedded space. The default recommend
+     * value is 7.
+     *
+     * @param gamma the weight for negative edge samples
+     */
+    public void setGamma(double gamma)
+    {
+        if(Double.isInfinite(gamma) || Double.isNaN(gamma) || gamma <= 0)
+            throw new IllegalArgumentException("Gamma must be positive, not " + gamma);
+        this.gamma = gamma;
+    }
+
+    /**
+     * 
+     * @return the weight for negative edge samples
+     */
+    public double getGamma()
+    {
+        return gamma;
+    }
 
     @Override
     public int getTargetDimension()
@@ -193,6 +254,7 @@ public class LargeViz implements VisualizationTransform
         for(long iteration = 0; iteration < iterations; iteration++)
         {
             double eta = eta_0*(1-iteration/(double)iterations);
+            eta = Math.max(eta, 0.0001);
             
             int i = rand.nextInt(N);
             //sample neighbor weighted by distance
@@ -214,7 +276,7 @@ public class LargeViz implements VisualizationTransform
             grad_j.mutableMultiply(-2*dist_ij/(dist_ij_sqrd+1));
 
 
-            grad_i.zeroOut();
+            grad_j.copyTo(grad_i);
 
             //negative sampling time
             for(int k = 0; k < M; k++)
