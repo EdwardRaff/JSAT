@@ -13,7 +13,7 @@ import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
-import jsat.linear.vectorcollection.KDTree;
+import jsat.linear.vectorcollection.DefaultVectorCollectionFactory;
 import jsat.linear.vectorcollection.VectorCollection;
 import jsat.linear.vectorcollection.VectorCollectionFactory;
 import jsat.math.OnLineStatistics;
@@ -62,7 +62,7 @@ public class DBSCAN extends ClustererBase
     
     public DBSCAN(DistanceMetric dm)
     {
-        this(dm ,new KDTree.KDTreeFactory<VecPaired<Vec, Integer>>());
+        this(dm ,new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>());
     }
 
     /**
