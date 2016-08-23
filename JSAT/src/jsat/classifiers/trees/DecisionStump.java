@@ -117,6 +117,26 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     {
         return gainMethod;
     }
+    
+    /**
+     *
+     * @return The number of numeric features in the dataset that this Stump was
+     * trained from
+     */
+    protected int numNumeric()
+    {
+        return numNumericFeatures;
+    }
+
+    /**
+     *
+     * @return the number of categorical features in the dataset that this Stump
+     * was trained from.
+     */
+    protected int numCategorical()
+    {
+        return catAttributes.length;
+    }
 
 
     /**

@@ -16,6 +16,7 @@ import jsat.classifiers.trees.ImpurityScore.ImpurityMeasure;
 import static jsat.classifiers.trees.TreePruner.*;
 import jsat.classifiers.trees.TreePruner.PruningMethod;
 import jsat.exceptions.FailedToFitException;
+import jsat.exceptions.ModelMismatchException;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
@@ -52,6 +53,10 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     @Override
     public double regress(DataPoint data)
     {
+        if(data.numNumericalValues() != root.stump.numNumeric() || data.numCategoricalValues() != root.stump.numCategorical())
+            throw new ModelMismatchException("Tree expected " + root.stump.numNumeric() + " numeric and " + 
+                    root.stump.numCategorical() + " categorical features, instead received data with " + 
+                    data.numNumericalValues() + " and " + data.numCategoricalValues() + " features respectively");
         return root.regress(data);
     }
     
@@ -291,6 +296,10 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     @Override
     public CategoricalResults classify(DataPoint data)
     {
+        if(data.numNumericalValues() != root.stump.numNumeric() || data.numCategoricalValues() != root.stump.numCategorical())
+            throw new ModelMismatchException("Tree expected " + root.stump.numNumeric() + " numeric and " + 
+                    root.stump.numCategorical() + " categorical features, instead received data with " + 
+                    data.numNumericalValues() + " and " + data.numCategoricalValues() + " features respectively");
         return root.classify(data);
     }
 
