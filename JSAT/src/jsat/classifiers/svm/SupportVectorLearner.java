@@ -11,63 +11,65 @@ import jsat.utils.DoubleList;
 import jsat.utils.ListUtils;
 
 /**
- * Base class for support vector style learners. This means that the learner 
- * performs batch training on a fixed set of training points using a 
- * {@link KernelTrick kernel} to project the data into a different space. The 
- * final set of vectors used may or may not be sparse. It does not necessarily 
- * have to be a Support Vector machine. 
+ * Base class for support vector style learners. This means that the learner
+ * performs batch training on a fixed set of training points using a
+ * {@link KernelTrick kernel} to project the data into a different space. The
+ * final set of vectors used may or may not be sparse. It does not necessarily
+ * have to be a Support Vector machine.
  * <br><br>
- * This class provides caching mechanism to transparently provide faster kernel. 
- * 
+ * This class provides caching mechanism to transparently provide faster kernel.
+ *
  * @author Edward Raff
  */
 public abstract class SupportVectorLearner implements Serializable
 {
-    //Implementation note, NaN is used to indicate a cache value that has not been computed yet. 
+    static final long serialVersionUID = 210140232301130063L;
+
+    //Implementation note, NaN is used to indicate a cache value that has not been computed yet.
     @ParameterHolder
     private KernelTrick kernel;
     /**
-     * The array of vectors. In the training phase, this should be the set of 
+     * The array of vectors. In the training phase, this should be the set of
      * all training vectors. After training, this should contain only the set of
-     * support vectors. 
+     * support vectors.
      */
     protected List<Vec> vecs;
     /**
-     * The array of coefficients associated with each support vector. This 
+     * The array of coefficients associated with each support vector. This
      * should be instantiated directly when training. When the set of alphas and
-     * support vectors is finalized, {@link #setAlphas(double[]) } should be 
+     * support vectors is finalized, {@link #setAlphas(double[]) } should be
      * called with a reference to itself or the array where the final alphas are
-     * stored. This will initialized any accelerating structures so that 
-     * {@link #kEvalSum(jsat.linear.Vec) } can be called. 
+     * stored. This will initialized any accelerating structures so that
+     * {@link #kEvalSum(jsat.linear.Vec) } can be called.
      */
     protected double[] alphas;
     private CacheMode cacheMode;
-    
+
     /**
      * Kernel evaluation acceleration cache
      */
     protected List<Double> accelCache = null;
-    
+
     private double[][] fullCache;
     /**
-     * Stores rows of a cache matrix. 
+     * Stores rows of a cache matrix.
      */
     private Map<Integer, double[]> partialCache;
     /**
-     * Holds an available row for inserting into the cache, null if not 
+     * Holds an available row for inserting into the cache, null if not
      * available. All values already set to Nan
      */
     private double[] availableRow;
     private int cacheConst = 500;
 
     /**
-     * Sets the final set of alphas, and indicates that the final accelerating 
-     * structures (if available) should be constructed for performing kernel 
-     * evaluations against unseen vectors. 
+     * Sets the final set of alphas, and indicates that the final accelerating
+     * structures (if available) should be constructed for performing kernel
+     * evaluations against unseen vectors.
      * <br>
-     * This may be called multiple times in an online scenario, but calls will 
-     * involve a re-construction of the whole cache. 
-     * 
+     * This may be called multiple times in an online scenario, but calls will
+     * involve a re-construction of the whole cache.
+     *
      * @param alphas the final array of alphas
      */
     protected void setAlphas(double[] alphas)
@@ -75,44 +77,44 @@ public abstract class SupportVectorLearner implements Serializable
         this.alphas = alphas;
         accelCache = kernel.getAccelerationCache(vecs);
     }
-    
+
     /**
-     * Determines how the final kernel values are cached. The total number of 
+     * Determines how the final kernel values are cached. The total number of
      * raw kernel evaluations can be tracked using {@link #evalCount}<br>
      * {@link #setCacheMode(jsat.classifiers.svm.SupportVectorLearner.CacheMode) }
      * should be called before training begins by the training algorithm as
-     * described in the method documentation. 
+     * described in the method documentation.
      */
-    public enum CacheMode 
+    public enum CacheMode
     {
         /**
          * No kernel value caching will be performed.
          */
-        NONE, 
+        NONE,
         /**
-         * The entire kernel matrix will be created and cached ahead of time. 
-         * This is the best option if your data set is small and the kernel 
-         * cache can fit into memory. 
+         * The entire kernel matrix will be created and cached ahead of time.
+         * This is the best option if your data set is small and the kernel
+         * cache can fit into memory.
          */
-        FULL, 
+        FULL,
         /**
-         * Only the most recently used rows of the kernel matrix will be cached 
-         * (LRU). When a call to {@link #k(int, int) } occurs, the first value 
+         * Only the most recently used rows of the kernel matrix will be cached
+         * (LRU). When a call to {@link #k(int, int) } occurs, the first value
          * will be taken to be the row of the matrix. <br>
-         * Because the kernel matrix is symmetric, if a cache miss occurs - the 
-         * column value will be checked for its existence. If the row is 
-         * present, it will be used instead. If both rows are not present, then 
+         * Because the kernel matrix is symmetric, if a cache miss occurs - the
+         * column value will be checked for its existence. If the row is
+         * present, it will be used instead. If both rows are not present, then
          * a new row is inserted for the first index, and another row evicted if
-         * necessary. 
+         * necessary.
          * <br>
-         * The {@link #cacheEvictions} indicates how many times a row has been 
-         * evicted from the cache. 
+         * The {@link #cacheEvictions} indicates how many times a row has been
+         * evicted from the cache.
          * <br>
-         * Row values are computed lazily. 
+         * Row values are computed lazily.
          */
         ROWS
     };
-    
+
     /**
      * This constructor is meant manly for Serialization to work. It uses a
      * linear kernel and no caching.
@@ -132,7 +134,7 @@ public abstract class SupportVectorLearner implements Serializable
         this.cacheMode = cacheMode;
         setKernel(kernel);
     }
-    
+
     /**
      * Copy constructor
      * @param toCopy the object to copy
@@ -166,10 +168,10 @@ public abstract class SupportVectorLearner implements Serializable
         }
 
         this.cacheConst = toCopy.cacheConst;
-                
-        
+
+
     }
-    
+
     /**
      * Sets the kernel trick to use
      * @param kernel the kernel trick to use
@@ -180,25 +182,25 @@ public abstract class SupportVectorLearner implements Serializable
     }
 
     /**
-     * Sets the cache value, which may be interpreted differently by different 
+     * Sets the cache value, which may be interpreted differently by different
      * caching schemes. <br>
-     * This is currently only used for {@link CacheMode#ROWS}, where the value 
-     * indicates how many rows will be cached. 
-     * 
+     * This is currently only used for {@link CacheMode#ROWS}, where the value
+     * indicates how many rows will be cached.
+     *
      * @param cacheValue the cache value to be used
      */
     public void setCacheValue(int cacheValue)
     {
         this.cacheConst = cacheValue;
     }
-    
+
     /**
      * Sets the {@link #setCacheValue(int) cache value} to one that will use the
-     * specified amount of memory. If the amount of memory specified is great 
-     * enough, this method will automatically set the 
+     * specified amount of memory. If the amount of memory specified is great
+     * enough, this method will automatically set the
      * {@link #setCacheMode(jsat.classifiers.svm.SupportVectorLearner.CacheMode)
-     * cache mode} to {@link CacheMode#FULL}. 
-     * 
+     * cache mode} to {@link CacheMode#FULL}.
+     *
      * @param N the number of data points
      * @param bytes the number of bytes of memory to make the cache
      */
@@ -224,8 +226,8 @@ public abstract class SupportVectorLearner implements Serializable
     {
         return cacheConst;
     }
-    
-    
+
+
     /**
      * Returns the current caching mode in use
      * @return the current caching mode in use
@@ -237,12 +239,12 @@ public abstract class SupportVectorLearner implements Serializable
 
     /**
      * Calling this sets the method of caching that will be used. <br>
-     * This is called called by the implementing class to initialize and clear 
+     * This is called called by the implementing class to initialize and clear
      * the caches. Calling this with the current cache mode will initialize the
-     * caches. Once training is complete, call again with {@code null} to 
-     * deinitialize the caches. 
-     * 
-     * @param cacheMode 
+     * caches. Once training is complete, call again with {@code null} to
+     * deinitialize the caches.
+     *
+     * @param cacheMode
      */
     public void setCacheMode(CacheMode cacheMode)
     {
@@ -255,20 +257,20 @@ public abstract class SupportVectorLearner implements Serializable
             return;
         }
         this.cacheMode = cacheMode;
-        
+
         if(vecs != null)
             accelCache = kernel.getAccelerationCache(vecs);
         evalCount = 0;
         cacheEvictions = 0;
-        
+
         final int N = vecs == null ? 0 : vecs.size();
-        
+
         if(cacheMode == CacheMode.FULL && vecs != null)
         {
             fullCache = new double[N][];
             for(int i = 0; i < N; i++)
                 fullCache[i] = new double[N-i];
-            
+
             for(int i = 0; i < N; i++)
                 for(int j = i; j < N; j++)
                     fullCache[i][j-i] = k(i, j);
@@ -301,21 +303,21 @@ public abstract class SupportVectorLearner implements Serializable
 
     protected int evalCount = 0;
     protected int cacheEvictions = 0;
-    
+
     public KernelTrick getKernel()
     {
         return kernel;
     }
-    
+
     /**
      * Performs a summation of the form <br>
      * <big>&#8721;</big> &alpha;<sub>i</sub> k(x<sub>i</sub>, y) <br>
      * for each support vector and associated alpha value currently stored in
-     * the support vector machine. It is not necessary to call 
+     * the support vector machine. It is not necessary to call
      * {@link #setAlphas(double[]) } before calling this, but kernel evaluations
-     * may be slower if this is not done. 
+     * may be slower if this is not done.
      * @param y the vector to perform the kernel product sum against
-     * @return the sum of the scaled kernel products 
+     * @return the sum of the scaled kernel products
      */
     protected double kEvalSum(Vec y)
     {
@@ -324,11 +326,11 @@ public abstract class SupportVectorLearner implements Serializable
 
         return kernel.evalSum(vecs, accelCache, alphas, y, 0, alphas.length);
     }
-    
+
     /**
      * Performs a kernel evaluation of the product between two vectors directly.
-     * This is the slowest way to do a kernel evaluation, and should be avoided 
-     * unless there is a specific reason to do so. 
+     * This is the slowest way to do a kernel evaluation, and should be avoided
+     * unless there is a specific reason to do so.
      * <br>
      * These evaluations will not be counted in {@link #evalCount}
      * @param a the first vector
@@ -339,11 +341,11 @@ public abstract class SupportVectorLearner implements Serializable
     {
         return kernel.eval(a, b);
     }
-    
+
     /**
-     * Performs a kernel evaluation of the a'th and b'th vectors in the 
-     * {@link #vecs} array. 
-     * 
+     * Performs a kernel evaluation of the a'th and b'th vectors in the
+     * {@link #vecs} array.
+     *
      * @param a the first vector index
      * @param b the second vector index
      * @return the kernel evaluation of k(a, b)
@@ -358,7 +360,7 @@ public abstract class SupportVectorLearner implements Serializable
                 a = b;
                 b = tmp;
             }
-            
+
             return fullCache[a][b-a];
         }
         else if(cacheMode == CacheMode.ROWS)
@@ -388,19 +390,19 @@ public abstract class SupportVectorLearner implements Serializable
                     cache = new double[vecs.size()];
                     Arrays.fill(cache, Double.NaN);
                 }
-                
+
                 partialCache.put(a, cache);
-                
+
                 if (Double.isNaN(cache[a]))
                     return cache[a] = k(a, b);
                 else
                     return cache[a];
-                
+
             }
         }
         return k(a, b);
     }
-    
+
     /**
      * Internal kernel eval source
      * @param a the first vector index
@@ -412,10 +414,10 @@ public abstract class SupportVectorLearner implements Serializable
         evalCount++;
         return kernel.eval(a, b, vecs, accelCache);
     }
-    
+
     /**
-     * Sparsifies the SVM by removing the vectors with &alpha; = 0 from the 
-     * dataset. 
+     * Sparsifies the SVM by removing the vectors with &alpha; = 0 from the
+     * dataset.
      */
     protected void sparsify()
     {
