@@ -1,11 +1,17 @@
 package jsat.classifiers.linear.kernelized;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.FixedProblems;
+import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.classifiers.svm.SupportVectorLearner;
+import jsat.distributions.kernels.PukKernel;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
@@ -25,22 +31,22 @@ public class CSKLRBatchTest
     public CSKLRBatchTest()
     {
     }
-    
+
     @BeforeClass
     public static void setUpClass()
     {
     }
-    
+
     @AfterClass
     public static void tearDownClass()
     {
     }
-    
+
     @Before
     public void setUp()
     {
     }
-    
+
     @After
     public void tearDown()
     {
@@ -76,7 +82,7 @@ public class CSKLRBatchTest
         for(CSKLR.UpdateMode mode : CSKLR.UpdateMode.values())
         {
             CSKLRBatch instance = new CSKLRBatch(0.5, new RBFKernel(0.5), 10, mode, SupportVectorLearner.CacheMode.NONE);
-        
+
             ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
             ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
 
@@ -105,7 +111,7 @@ public class CSKLRBatchTest
             instance.trainC(t1);
 
             CSKLRBatch result = instance.clone();
-            
+
             for (int i = 0; i < t1.getSampleSize(); i++)
                 assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
             result.trainC(t2);
@@ -119,4 +125,33 @@ public class CSKLRBatchTest
 
     }
 
+    @Test
+    public void testSerializable_WithTrainedModel() throws Exception {
+        System.out.println("Serializable");
+
+        for(CSKLR.UpdateMode mode : CSKLR.UpdateMode.values()) {
+
+            CSKLRBatch instance = new CSKLRBatch(0.5, new RBFKernel(0.5), 10, mode, SupportVectorLearner.CacheMode.NONE);
+
+            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
+            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+
+            instance.trainC(train);
+
+            CSKLRBatch serializedBatch = serializeAndDeserialize(instance);
+
+            for (int i = 0; i < test.getSampleSize(); i++)
+                assertEquals(test.getDataPointCategory(i), serializedBatch.classify(test.getDataPoint(i)).mostLikely());
+        }
+    }
+
+    private CSKLRBatch serializeAndDeserialize(CSKLRBatch batch) throws Exception {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(batch);
+
+        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        return (CSKLRBatch) ois.readObject();
+    }
 }
