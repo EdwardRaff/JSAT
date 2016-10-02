@@ -83,6 +83,10 @@ public class PCATest
         cme.evaluateTestSet(easyTest);
         double errorRate = cme.getErrorRate();
         
+        PCA pca = new PCA(10);
+        pca.fit(easyTrain);
+        assertEquals(10, pca.transform(easyTrain.getDataPoint(0)).getNumericalValues().length());
+        
         
         cme = new ClassificationModelEvaluation(new DataModelPipeline((Classifier)new NearestNeighbour(3), new PCA(10)), easyTrain);
         cme.evaluateTestSet(easyTest);

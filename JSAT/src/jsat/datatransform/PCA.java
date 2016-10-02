@@ -167,12 +167,14 @@ public class PCA implements DataTransform
                 t = E.multiply(p);
                 t.mutableDivide(p.dot(p));
 
-                scores.add(t);///t is a new vector each time from step 3, and does not get altered after this. So no clone needed
-                loadings.add(p);//p is a new vecor each time created at step 1, and does not get altered after this. So no clone needed
                 //4. Check for convergence.
                 double tauNew = t.dot(t);
-                if(iter > 0 && Math.abs(tauNew-tauOld) <= threshold*tauNew)//go at least one round
+                if(iter > 0 && Math.abs(tauNew-tauOld) <= threshold*tauNew || iter == 99)//go at least one round
+                {
+                    scores.add(new DenseVector(t));
+                    loadings.add(new DenseVector(p));
                     break;
+                }
                 tauOld =  tauNew;                
             }
             //5. Remove the estimated PC component from E[i-1]
