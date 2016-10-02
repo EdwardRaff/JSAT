@@ -13,7 +13,7 @@ You can download JSAT from maven central, add the below to your pom file
   <dependency>
     <groupId>com.edwardraff</groupId>
     <artifactId>JSAT</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
   </dependency>
 </dependencies>
 ```
@@ -32,4 +32,6 @@ See the [wiki](https://github.com/EdwardRaff/JSAT/wiki) for more information as 
 
 ## Note
 
-Updates to JSAT may be slowed as I begin a PhD program in Computer Science. The project isn’t abandoned! I just have limited free time, and will be balancing my PhD work with a full time job. If you discover more hours in the day, please let me know!
+Updates to JSAT may be slowed as I begin a PhD program in Computer Science. The project isn’t abandoned! I just have limited free time, and will be balancing my PhD work with a full time job. If you discover more hours in the day, please let me know! Development will be further slowed due to some health issues. I had to spend much of my time recently on this but am begining to improve. I'll continue to try and be prompt on any bug reports and emails, but new features will be a bit slower. 
+
+
