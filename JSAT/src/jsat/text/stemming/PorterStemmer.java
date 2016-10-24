@@ -165,7 +165,7 @@ public class PorterStemmer extends Stemmer
         for (Map.Entry<String, String> entry : step4_endings.entrySet())
             if (s.endsWith(entry.getKey()))
             {
-                if(s.endsWith("ion") && !(s.charAt(s.length()-4) == 's' || s.charAt(s.length()-4) == 't'))
+                if(s.endsWith("ion") && !(s.length() >= 4 && (s.charAt(s.length()-4) == 's' || s.charAt(s.length()-4) == 't')))
                     continue;//special case on ion, and they didn't match
                 tmp = s.replaceAll(entry.getKey() + "$", entry.getValue());
                 if (measure(tmp) > 1)
