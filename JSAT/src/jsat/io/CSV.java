@@ -463,7 +463,7 @@ public class CSV
                             if(totalCols < 0)
                                 totalCols = cur_column+1;
                             else if(totalCols != cur_column+1)
-                                throw new RuntimeException("Inconsisnetn number of columns in CSV");
+                                throw new RuntimeException("Inconsistent number of columns in CSV");
                             
                             //add out stuff to the list 
                             all_vecs.add(new DenseVector(numericFeats));
