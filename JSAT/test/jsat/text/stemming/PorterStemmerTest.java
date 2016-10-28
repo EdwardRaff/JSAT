@@ -103,6 +103,7 @@ public class PorterStemmerTest
         testCases.put("cease", "ceas");
         testCases.put("controll", "control");
         testCases.put("roll", "roll");
+        testCases.put("ions", "ion");
     }
     
     @AfterClass
