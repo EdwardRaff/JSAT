@@ -1,9 +1,6 @@
 # Java Statistical Analysis Tool
 
-[![Join the chat at https://gitter.im/EdwardRaff/JSAT](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/EdwardRaff/JSAT?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-
-<a href='https://travis-ci.org/martingollogly/JSAT/builds'><img src='https://travis-ci.org/martingollogly/JSAT.svg?branch=master'></a>
+[![Join the chat at https://gitter.im/EdwardRaff/JSAT](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/EdwardRaff/JSAT?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) <a href='https://travis-ci.org/martingollogly/JSAT/builds'><img src='https://travis-ci.org/martingollogly/JSAT.svg?branch=master'></a>
 
 
 JSAT is a library for quickly getting started with Machine Learning problems. It is developed in my free time, and made available for use under the GPL 3. Part of the library is for self education, as such - all code is self contained. JSAT has no external dependencies, and is pure Java. I also aim to make the library suitably fast for small to medium size problems. As such, much of the code supports parallel execution.
