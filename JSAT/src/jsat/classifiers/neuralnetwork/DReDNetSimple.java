@@ -38,11 +38,20 @@ import jsat.utils.ListUtils;
 public class DReDNetSimple implements Classifier, Parameterized
 {
 
-	private static final long serialVersionUID = -342281027279571332L;
-	private SGDNetworkTrainer network;
+    private static final long serialVersionUID = -342281027279571332L;
+    private SGDNetworkTrainer network;
     private int[] hiddenSizes;
     private int batchSize = 256;
     private int epochs = 100;
+
+    /**
+     * Creates a new DRedNet that uses two hidden layers with 1024 neurons each. 
+     * A batch size of 256 and 100 epochs will be used. 
+     */
+    public DReDNetSimple()
+    {
+        this(1024, 1024);
+    }
 
     /**
      * Create a new DReDNet that uses the specified number of hidden layers. A

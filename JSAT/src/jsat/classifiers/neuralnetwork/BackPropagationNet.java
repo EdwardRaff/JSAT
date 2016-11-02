@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
@@ -36,14 +35,18 @@ import jsat.utils.ListUtils;
  * An implementation of a Feed Forward Neural Network (NN) trained by Back
  * Propagation. NNs are powerful classifiers and regressors, but can suffer from
  * slow training time and overfitting. <br>
- * 
+ * <br>
+ * NOTE: This class should generally not be used any more. The
+ * {@link DReDNetSimple} provides an easier to use class for most cases that
+ * will likely converge faster.
+ *
  * @author Edward Raff
  */
 public class BackPropagationNet implements Classifier, Regressor, Parameterized
 {   
 
-	private static final long serialVersionUID = 335438198218313862L;
-	private int inputSize, outputSize;
+    private static final long serialVersionUID = 335438198218313862L;
+    private int inputSize, outputSize;
     private ActivationFunction f = softsignActiv;
     private DecayRate learningRateDecay = new ExponetialDecay();
     private double momentum = 0.1;
@@ -73,8 +76,16 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
      */
     private double targetMax, targetMin, targetMultiplier;
     
-    private List<Parameter> params;
-    private Map<String, Parameter> paramMap;
+    /**
+     * Creates a new back propagation network with one hidden layer of 1024 neurons. 
+     * @param npl the array of hidden layer information. The length indicates 
+     * how many hidden layers, and the value of each index indicates how many 
+     * neurons to place in each hidden layer
+     */
+    public BackPropagationNet()
+    {
+        this(1024);
+    }
 
     /**
      * Creates a new back propagation network. 
@@ -87,79 +98,6 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
         if(npl.length < 1)
             throw new IllegalArgumentException("There must be at least one hidden layer");
         this.npl = npl;
-        params = new ArrayList<Parameter>(Parameter.getParamsFromMethods(this));
-        for(int i = 0; i < npl.length; i++)
-        {
-            final int ii = i;
-            if(npl[ii] < 1)
-                throw new ArithmeticException("There must be a poistive number of hidden neurons in each layer");
-            params.add(new IntParameter() 
-            {
-
-                /**
-				 * 
-				 */
-				private static final long serialVersionUID = -827784019950722754L;
-
-				@Override
-                public int getValue()
-                {
-                    return npl[ii];
-                }
-
-                @Override
-                public boolean setValue(int val)
-                {
-                    if(val <= 0)
-                        return false;
-                    npl[ii] = val;
-                    return true;
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "Neurons for Hidden Layer " + ii;
-                }
-            });
-        }
-        
-        params.add(new ObjectParameter<ActivationFunction>() 
-        {
-
-            /**
-			 * 
-			 */
-			private static final long serialVersionUID = 6871130865935243583L;
-
-			@Override
-            public ActivationFunction getObject()
-            {
-                return getActivationFunction();
-            }
-
-            @Override
-            public boolean setObject(ActivationFunction obj)
-            {
-                setActivationFunction(obj);
-                return true;
-            }
-
-            @Override
-            public List parameterOptions()
-            {
-                return Arrays.asList(logitActiv, tanhActiv, softsignActiv);
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "Activation Function";
-            }
-
-        });
-        
-        paramMap = Parameter.toParameterMap(params);
     }
 
     /**
@@ -623,12 +561,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
      */
     public static abstract class  ActivationFunction implements Function
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 8002040194215453918L;
+        private static final long serialVersionUID = 8002040194215453918L;
 
-		/**
+        /**
          * Computes the response of the response of this activation function on 
          * the given input value
          * @param x the input value
@@ -682,12 +617,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
     public static final ActivationFunction logitActiv = new ActivationFunction() 
     {
 
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = -5675881412853268432L;
+        private static final long serialVersionUID = -5675881412853268432L;
 
-		@Override
+        @Override
         public double response(double x)
         {
             return 1 / (1+exp(-x));
@@ -720,12 +652,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
     
     private static final Function logitPrime = new FunctionBase()
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 7201403465671204173L;
+        private static final long serialVersionUID = 7201403465671204173L;
 
-		@Override
+        @Override
         public double f(Vec x)
         {
             double xx = x.get(0);
@@ -739,12 +668,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
      */
     public static final ActivationFunction tanhActiv = new ActivationFunction() 
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 5531922338473526216L;
+        private static final long serialVersionUID = 5531922338473526216L;
 
-		@Override
+        @Override
         public double response(double x)
         {
             return tanh(x);
@@ -777,12 +703,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
     
     private static final Function tanhPrime = new FunctionBase() 
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = -7271551720122166947L;
+        private static final long serialVersionUID = -7271551720122166947L;
 
-		@Override
+        @Override
         public double f(Vec x)
         {
             double xx = x.get(0);
@@ -799,12 +722,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
     public static final ActivationFunction softsignActiv = new ActivationFunction() 
     {
 
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 1618447580574194519L;
+        private static final long serialVersionUID = 1618447580574194519L;
 
-		@Override
+        @Override
         public double response(double x)
         {
             return x/(1.0 + abs(x));
@@ -837,12 +757,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
     
     private static final Function softsignPrime = new FunctionBase() 
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = -6726314880590071199L;
+        private static final long serialVersionUID = -6726314880590071199L;
 
-		@Override
+        @Override
         public double f(Vec x)
         {
             double xx = 1-abs(x.get(0));
@@ -1006,12 +923,77 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
+        ArrayList<Parameter> params = new ArrayList<Parameter>(Parameter.getParamsFromMethods(this));
+        for(int i = 0; i < npl.length; i++)
+        {
+            final int ii = i;
+            if(npl[ii] < 1)
+                throw new ArithmeticException("There must be a poistive number of hidden neurons in each layer");
+            params.add(new IntParameter() 
+            {
+
+                private static final long serialVersionUID = -827784019950722754L;
+
+                @Override
+                public int getValue()
+                {
+                    return npl[ii];
+                }
+
+                @Override
+                public boolean setValue(int val)
+                {
+                    if(val <= 0)
+                        return false;
+                    npl[ii] = val;
+                    return true;
+                }
+
+                @Override
+                public String getASCIIName()
+                {
+                    return "Neurons for Hidden Layer " + ii;
+                }
+            });
+        }
+        
+        params.add(new ObjectParameter<ActivationFunction>() 
+        {
+
+            private static final long serialVersionUID = 6871130865935243583L;
+
+            @Override
+            public ActivationFunction getObject()
+            {
+                return getActivationFunction();
+            }
+
+            @Override
+            public boolean setObject(ActivationFunction obj)
+            {
+                setActivationFunction(obj);
+                return true;
+            }
+
+            @Override
+            public List parameterOptions()
+            {
+                return Arrays.asList(logitActiv, tanhActiv, softsignActiv);
+            }
+
+            @Override
+            public String getASCIIName()
+            {
+                return "Activation Function";
+            }
+
+        });
         return Collections.unmodifiableList(params);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }
