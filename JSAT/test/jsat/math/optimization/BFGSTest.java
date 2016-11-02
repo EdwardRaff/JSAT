@@ -52,7 +52,7 @@ public class BFGSTest
         Random rand = new Random();
         Vec x0 = new DenseVector(20);
         for(int i = 0; i < x0.length(); i++)
-            x0.set(i, rand.nextDouble());
+            x0.set(i, rand.nextDouble()+0.5);//make sure we get to the right local optima
 
         RosenbrockFunction f = new RosenbrockFunction();
         FunctionVec fp = f.getDerivative();
