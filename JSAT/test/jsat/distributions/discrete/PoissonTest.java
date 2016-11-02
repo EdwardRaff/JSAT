@@ -144,13 +144,19 @@ public class PoissonTest
     {
         System.out.println("sample");
         Poisson instance = new Poisson(7);
-        
+        //Poisson can get wonked on variance, so larger range used there
+        /* 
+         * "however in practice, the observed variance is usually larger than 
+         * the theoretical variance and in the case of Poisson, larger than its 
+         * mean. This is known as overdispersion, an important concept that 
+         * occurs with discrete data"
+         */
         Vec samples = instance.sampleVec(10000, new XORWOW());
         
         assertEquals(instance.mean(), samples.mean(), 2e-1);
         assertEquals(instance.median(), samples.median(), 2e-1);
-        assertEquals(instance.variance(), samples.variance(), 2e-1);
-        assertEquals(instance.standardDeviation(), samples.standardDeviation(), 2e-1);
+        assertEquals(instance.variance(), samples.variance(), 0.4);
+        assertEquals(instance.standardDeviation(), samples.standardDeviation(), 0.1);
         assertEquals(instance.skewness(), samples.skewness(), 2e-1);
         
     }

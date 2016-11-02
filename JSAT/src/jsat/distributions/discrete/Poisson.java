@@ -18,6 +18,8 @@ package jsat.distributions.discrete;
 
 import static jsat.math.SpecialMath.*;
 import static java.lang.Math.*;
+import java.util.Random;
+import jsat.math.SpecialMath;
 
 /**
  * The Poisson distribution is for the number of events occurring in a fixed
@@ -93,6 +95,46 @@ public class Poisson extends DiscreteDistribution
             return 0;
         return gammaQ(x+1, lambda);
     }
+    
+    
+    private double sampleOne(Random rand)
+    {
+        //From http://www.johndcook.com/blog/2010/06/14/generating-poisson-random-values/
+        double c = 0.767 - 3.36/lambda;
+        double beta = PI/sqrt(3.0*lambda);
+        double alpha = beta*lambda;
+        double k = log(c) - lambda - log(beta);
+
+        while(true)
+        {
+            double u = rand.nextDouble();
+            double x = (alpha - log((1.0 - u) / u)) / beta;
+            double n = floor(x + 0.5);
+            if (n < 0)
+                continue;
+            double v = rand.nextDouble();
+            double y = alpha - beta * x;
+//          double lhs = y + log(v/(1.0 + exp(y))^2);
+            //simplify right part as log(v)-2 log(e^y+1)
+//          double lhs = y + log(v/pow(1.0 + exp(y), 2));
+            double lhs = y + log(v) - 2 * log(exp(y) + 1);
+//          double rhs = k + n*log(lambda) - log(n!);
+            double rhs = k + n * log(lambda) - SpecialMath.lnGamma(n + 1);
+            if (lhs <= rhs)
+                return n;
+        }
+    }
+
+    @Override
+    public double[] sample(int numSamples, Random rand)
+    {
+        double[] samples = new double[numSamples];
+        for(int i = 0; i < numSamples; i++)
+            samples[i] = sampleOne(rand);
+        return samples;
+    }
+    
+    
 
     @Override
     public double mean()
