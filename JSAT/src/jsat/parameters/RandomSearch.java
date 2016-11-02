@@ -113,7 +113,14 @@ public class RandomSearch extends ModelSearch
      * <br>
      * Note, using this method with Cross Validation has the potential for
      * over-estimating the accuracy of results if the data set is actually used
-     * to for parameter guessing.
+     * to for parameter guessing.<br>
+     * <br>
+     * It is possible for this method to return 0, indicating that no default
+     * parameters could be found. The intended interpretation is that there are
+     * no parameters that you <i>need</i> to tune to get good performance from
+     * the given model. Though there will be cases where the author has simply
+     * missed a class.
+     *
      *
      * @param data the data set to get parameter estimates from
      * @return the number of parameters added
