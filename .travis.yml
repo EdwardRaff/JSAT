@@ -10,4 +10,3 @@ env:
 script:
   - cd $JSAT_SOURCE_DIR 
   - mvn clean install
-  - mvn test
