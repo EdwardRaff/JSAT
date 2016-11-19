@@ -85,9 +85,26 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
         
         return true;
     }
-    
-    
 
+    public boolean contains(int o)
+    {
+        int insertionPoint = Arrays.binarySearch(store, 0, size, o);
+        if(insertionPoint >= 0 )
+            return true;//Already in the set
+        else
+            return false;
+    }
+    
+    @Override
+    public boolean contains(Object o)
+    {
+        if(o != null && o instanceof Integer)
+            return contains(((Integer)o).intValue());
+        else
+            return false;
+    }
+    
+    
     @Override
     public Iterator<Integer> iterator()
     {
