@@ -27,7 +27,9 @@ import jsat.linear.DenseMatrix;
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
+import jsat.linear.distancemetrics.ChebyshevDistance;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.linear.distancemetrics.ManhattanDistance;
 import jsat.linear.vectorcollection.VectorArray;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
@@ -146,4 +148,78 @@ public class LargeVizTest
         ex.shutdown();
     }
     
+    @Test
+    public void testTransform_DiffDists()
+    {
+        System.out.println("transform");
+        
+        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        
+        Random rand = new XORWOW();
+        LargeViz instance = new LargeViz();
+        
+        
+        //create a small data set, and apply a random projection to a higher dimension
+        //should still get similar nns when projected back down
+        final int K = 5;//num neighbors we want to see stay the same
+        instance.setPerplexity(K*3);
+        instance.setDistanceMetricSource(new ChebyshevDistance());
+        instance.setDistanceMetricEmbedding(new ManhattanDistance());
+        
+        Matrix orig_dim = new DenseMatrix(200, 2);
+        for (int i = 0; i < orig_dim.rows(); i++)
+        {
+            int offset = i % 2 == 0 ? -5 : 5;
+            for (int j = 0; j < orig_dim.cols(); j++)
+            {
+                orig_dim.set(i, j, rand.nextGaussian()+offset);
+            }
+        }
+        
+        
+        Matrix s = Matrix.random(2, 10, rand);
+        
+        Matrix proj_data = orig_dim.multiply(s);
+        
+        SimpleDataSet proj = new SimpleDataSet(new CategoricalData[0], proj_data.cols());
+        for(int i = 0; i < proj_data.rows(); i++)
+            proj.add(new DataPoint(proj_data.getRow(i)));
+        
+        List<Set<Integer>> origNNs = new ArrayList<Set<Integer>>();
+        VectorArray<VecPaired<Vec, Integer>> proj_vc = new VectorArray<VecPaired<Vec, Integer>>(new EuclideanDistance());
+        for(int i = 0; i < proj.getSampleSize(); i++)
+            proj_vc.add(new VecPaired<Vec, Integer>(proj.getDataPoint(i).getNumericalValues(), i));
+        
+        for(int i = 0; i < proj.getSampleSize(); i++)
+        {
+            Set<Integer> nns = new HashSet<Integer>();
+            for(VecPaired<VecPaired<Vec, Integer>, Double> neighbor : proj_vc.search(proj_vc.get(i), K))
+                nns.add(neighbor.getVector().getPair());
+            origNNs.add(nns);
+        }
+        
+        SimpleDataSet transformed_0 = instance.transform(proj, ex);
+        SimpleDataSet transformed_1 = instance.transform(proj);
+        
+        
+        for(SimpleDataSet transformed : new SimpleDataSet[]{transformed_0, transformed_1})
+        {
+            double sameNN = 0;
+            VectorArray<VecPaired<Vec, Integer>> trans_vc = new VectorArray<VecPaired<Vec, Integer>>(new EuclideanDistance());
+            for (int i = 0; i < transformed.getSampleSize(); i++)
+                trans_vc.add(new VecPaired<Vec, Integer>(transformed.getDataPoint(i).getNumericalValues(), i));
+
+            for(int i = 0; i < orig_dim.rows(); i++)
+            {
+                for(VecPaired<VecPaired<Vec, Integer>, Double> neighbor : trans_vc.search(trans_vc.get(i), K*3))
+                    if(origNNs.get(i).contains(neighbor.getVector().getPair()))
+                        sameNN++;
+            }
+            
+            double score = sameNN/(transformed.getSampleSize()*K);
+            assertTrue("was " + score, score >= 0.50);
+        }
+        
+        ex.shutdown();
+    }
 }
