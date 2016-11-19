@@ -51,7 +51,8 @@ import jsat.utils.random.XORWOW;
  */
 public class LargeViz implements VisualizationTransform
 {
-    private DistanceMetric dm = new EuclideanDistance();
+    private DistanceMetric dm_source = new EuclideanDistance();
+    private DistanceMetric dm_embed = new EuclideanDistance();
     private double perplexity = 50;
     private int dt = 2;
     
@@ -90,6 +91,29 @@ public class LargeViz implements VisualizationTransform
     public double getPerplexity()
     {
         return perplexity;
+    }
+
+    /**
+     * Sets the distance metric to use for the original space. This will 
+     * determine the target nearest neighbors  to keep close to each other in 
+     * the embedding space
+     * 
+     * @param dm the distance metric to use
+     */
+    public void setDistanceMetricSource(DistanceMetric dm)
+    {
+        this.dm_source = dm;
+    }
+    
+    /**
+     * Sets the distance metric to use for the embedded space. This will 
+     * determine the actual nearest neighbors as the occur in the embedded space. 
+     * 
+     * @param dm the distance metric to use
+     */
+    public void setDistanceMetricEmbedding(DistanceMetric dm)
+    {
+        this.dm_source = dm;
     }
 
     /**
@@ -184,7 +208,7 @@ public class LargeViz implements VisualizationTransform
          */
         final int[][] nearMe = new int[N][knn];
         
-        TSNE.computeP(d, ex, rand, knn, nearMe, nearMePij, dm, perplexity);
+        TSNE.computeP(d, ex, rand, knn, nearMe, nearMePij, dm_source, perplexity);
         
         final double[][] nearMeSample = new double[N][knn];
         
@@ -266,7 +290,7 @@ public class LargeViz implements VisualizationTransform
             Vec y_i = embeded.get(i);
             Vec y_j = embeded.get(j);
             //right hand side update for the postive sample
-            final double dist_ij = dm.dist(i, j, embeded, null);
+            final double dist_ij = dm_embed.dist(i, j, embeded, null);
             final double dist_ij_sqrd = dist_ij*dist_ij;
             if(dist_ij <= 0 )
                 continue;//how did that happen?
@@ -305,7 +329,7 @@ public class LargeViz implements VisualizationTransform
                 
                 
                 Vec y_k = embeded.get(jk);
-                final double dist_ik = dm.dist(i, jk, embeded, null);//dist(y_i, y_k);
+                final double dist_ik = dm_embed.dist(i, jk, embeded, null);//dist(y_i, y_k);
                 final double dist_ik_sqrd = dist_ik*dist_ik;
                 if (dist_ik < 1e-12)
                     continue; 
