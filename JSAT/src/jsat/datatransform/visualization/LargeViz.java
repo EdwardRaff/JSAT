@@ -113,7 +113,7 @@ public class LargeViz implements VisualizationTransform
      */
     public void setDistanceMetricEmbedding(DistanceMetric dm)
     {
-        this.dm_source = dm;
+        this.dm_embed = dm;
     }
 
     /**
