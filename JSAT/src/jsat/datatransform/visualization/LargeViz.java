@@ -17,7 +17,10 @@
 package jsat.datatransform.visualization;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
@@ -27,6 +30,7 @@ import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.FakeExecutor;
+import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -187,6 +191,14 @@ public class LargeViz implements VisualizationTransform
     public <Type extends DataSet> Type transform(DataSet<Type> d, ExecutorService ex)
     {
         Random rand = new XORWOW();
+        final ThreadLocal<Random> local_rand = new ThreadLocal<Random>()
+        {
+            @Override
+            protected Random initialValue()
+            {
+                return new XORWOW();
+            }
+        };
         final int N = d.getSampleSize();
         //If perp set too big, the search size would be larger than the dataset size. So min to N
         /**
@@ -217,7 +229,7 @@ public class LargeViz implements VisualizationTransform
          * 
          * Initial value is out-degree defined in LINE paper, section 4.1.2. 
          */
-        double[] negSampleWeight = new double[N];
+        final double[] negSampleWeight = new double[N];
         
         double negSum = 0;
         for(int i = 0; i < N; i++)
@@ -241,6 +253,16 @@ public class LargeViz implements VisualizationTransform
         Uniform initDistribution = new Uniform(-0.00005/dt, 0.00005/dt);
         for(int i = 0; i < N; i++)
             embeded.add(initDistribution.sampleVec(dt, rand));
+        
+        /**
+         * Number of threads to use. Paper suggests asynch updates and just
+         * ignore unsafe alters b/c diff should be minor. Adding some extra
+         * logic so that we have at least a good handful of points per thread to
+         * avoid excessive edits on small datasets.
+         */
+        final int threads_to_use = Math.max(Math.min(N/(200*M), SystemInfo.LogicalCores), 1);
+        
+        final CountDownLatch latch = new CountDownLatch(threads_to_use);
         
         /*
          * Objective is 
@@ -269,85 +291,133 @@ public class LargeViz implements VisualizationTransform
          * come back and figure this out better. 
          */
         
-        double eta_0 = 1.0;
-        long iterations = 1000L*N;
-        Vec grad_i = new DenseVector(dt);
-        Vec grad_j = new DenseVector(dt);
-        Vec grad_k = new DenseVector(dt);
-        
-        for(long iteration = 0; iteration < iterations; iteration++)
+        final double eta_0 = 1.0;
+        final long iterations = 1000L*N;
+        final ThreadLocal<Vec> local_grad_i = new ThreadLocal<Vec>()
         {
-            double eta = eta_0*(1-iteration/(double)iterations);
-            eta = Math.max(eta, 0.0001);
-            
-            int i = rand.nextInt(N);
-            //sample neighbor weighted by distance
-            int j = Arrays.binarySearch(nearMeSample[i], rand.nextDouble());
-            if (j < 0)
-                j = -(j) - 1;
-            j = nearMe[i][j];
-            
-            Vec y_i = embeded.get(i);
-            Vec y_j = embeded.get(j);
-            //right hand side update for the postive sample
-            final double dist_ij = dm_embed.dist(i, j, embeded, null);
-            final double dist_ij_sqrd = dist_ij*dist_ij;
-            if(dist_ij <= 0 )
-                continue;//how did that happen?
-
-            y_i.copyTo(grad_j);
-            grad_j.mutableSubtract(y_j);
-            grad_j.mutableMultiply(-2*dist_ij/(dist_ij_sqrd+1));
-
-
-            grad_j.copyTo(grad_i);
-
-            //negative sampling time
-            for(int k = 0; k < M; k++)
+            @Override
+            protected Vec initialValue()
             {
-                int jk = -1;
-                do
-                {
-                    jk = Arrays.binarySearch(negSampleWeight, rand.nextDouble());
-                    if (jk < 0)
-                        jk = -(jk) - 1;
-                    
-                    if(jk  == i || jk == j)
-                        jk  = -1;
-                    
-                    //code to reject neighbors for sampling if too close
-                    //Not sure if this code helps or hurts... not mentioned in paper
-                    for(int search = 0; search < nearMe[i].length; search++)
-                        if(nearMe[i][search] == jk && nearMeSample[i][search] < 0.98)
-                        {
-                            jk = -1;//too close to me!
-                            break;
-                        }
-                }
-                while(jk < 0);
-                //(2 z (y-x))/(||x-y||^2 (||x-y||^2+1))
-                
-                
-                Vec y_k = embeded.get(jk);
-                final double dist_ik = dm_embed.dist(i, jk, embeded, null);//dist(y_i, y_k);
-                final double dist_ik_sqrd = dist_ik*dist_ik;
-                if (dist_ik < 1e-12)
-                    continue; 
-
-                y_i.copyTo(grad_k);
-                grad_k.mutableSubtract(y_k);
-                grad_k.mutableMultiply(2*gamma/(dist_ik*(dist_ik_sqrd+1)));
-                
-                grad_i.mutableAdd(grad_k);
-                
-                y_k.mutableSubtract(eta, grad_k);
-                
+                return new DenseVector(dt);
             }
-            
-            y_i.mutableAdd( eta, grad_i);
-            y_j.mutableAdd(-eta, grad_j);
+        };
+        final ThreadLocal<Vec> local_grad_j = new ThreadLocal<Vec>()
+        {
+            @Override
+            protected Vec initialValue()
+            {
+                return new DenseVector(dt);
+            }
+        };
+        final ThreadLocal<Vec> local_grad_k = new ThreadLocal<Vec>()
+        {
+            @Override
+            protected Vec initialValue()
+            {
+                return new DenseVector(dt);
+            }
+        };
+        
+        
+        for(int id = 0; id < threads_to_use; id++)
+        {
+            ex.submit(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    Random l_rand = local_rand.get();
+                    //b/c indicies are selected at random everyone can use same iterator order
+                    //more important is to make sure the range length is the same so that 
+                    //eta has the same range and effect in aggregate
+                    for(long iteration = 0; iteration < iterations; iteration+=threads_to_use)
+                    {
+                        double eta = eta_0*(1-iteration/(double)iterations);
+                        eta = Math.max(eta, 0.0001);
+
+                        int i = l_rand.nextInt(N);
+                        //sample neighbor weighted by distance
+                        int j = Arrays.binarySearch(nearMeSample[i], l_rand.nextDouble());
+                        if (j < 0)
+                            j = -(j) - 1;
+                        j = nearMe[i][j];
+
+                        Vec y_i = embeded.get(i);
+                        Vec y_j = embeded.get(j);
+                        //right hand side update for the postive sample
+                        final double dist_ij = dm_embed.dist(i, j, embeded, null);
+                        final double dist_ij_sqrd = dist_ij*dist_ij;
+                        if(dist_ij <= 0 )
+                            continue;//how did that happen?
+
+                        Vec grad_i = local_grad_i.get();
+                        Vec grad_j = local_grad_j.get();
+                        Vec grad_k = local_grad_k.get();
+                        y_i.copyTo(grad_j);
+                        grad_j.mutableSubtract(y_j);
+                        grad_j.mutableMultiply(-2*dist_ij/(dist_ij_sqrd+1));
+
+
+                        grad_j.copyTo(grad_i);
+
+                        //negative sampling time
+                        for(int k = 0; k < M; k++)
+                        {
+                            int jk = -1;
+                            do
+                            {
+                                jk = Arrays.binarySearch(negSampleWeight, l_rand.nextDouble());
+                                if (jk < 0)
+                                    jk = -(jk) - 1;
+
+                                if(jk  == i || jk == j)
+                                    jk  = -1;
+
+                                //code to reject neighbors for sampling if too close
+                                //Not sure if this code helps or hurts... not mentioned in paper
+                                for(int search = 0; search < nearMe[i].length; search++)
+                                    if(nearMe[i][search] == jk && nearMeSample[i][search] < 0.98)
+                                    {
+                                        jk = -1;//too close to me!
+                                        break;
+                                    }
+                            }
+                            while(jk < 0);
+                            //(2 z (y-x))/(||x-y||^2 (||x-y||^2+1))
+
+
+                            Vec y_k = embeded.get(jk);
+                            final double dist_ik = dm_embed.dist(i, jk, embeded, null);//dist(y_i, y_k);
+                            final double dist_ik_sqrd = dist_ik*dist_ik;
+                            if (dist_ik < 1e-12)
+                                continue; 
+
+                            y_i.copyTo(grad_k);
+                            grad_k.mutableSubtract(y_k);
+                            grad_k.mutableMultiply(2*gamma/(dist_ik*(dist_ik_sqrd+1)));
+
+                            grad_i.mutableAdd(grad_k);
+
+                            y_k.mutableSubtract(eta, grad_k);
+
+                        }
+
+                        y_i.mutableAdd( eta, grad_i);
+                        y_j.mutableAdd(-eta, grad_j);
+                    }
+                    latch.countDown();
+                }
+            });
         }
         
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex1)
+        {
+            Logger.getLogger(LargeViz.class.getName()).log(Level.SEVERE, null, ex1);
+        }
         
         DataSet<Type> toRet = d.shallowClone();
         
