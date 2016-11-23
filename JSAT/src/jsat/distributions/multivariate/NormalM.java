@@ -149,7 +149,7 @@ public class NormalM extends MultivariateDistributionSkeleton
         try
         {
             Vec newMean = MatrixStatistics.meanVector(dataSet);
-            Matrix covariance = MatrixStatistics.covarianceMatrix(mean, dataSet);
+            Matrix covariance = MatrixStatistics.covarianceMatrix(newMean, dataSet);
 
             this.mean = newMean;
             setCovariance(covariance);
