@@ -786,4 +786,41 @@ public abstract class DataSet<Type extends DataSet>
         
         return stats;
     }
+
+    /**
+     * This method returns the weight of each data point in a single Vector.
+     * When all data points have the same weight, this will return a vector that
+     * uses fixed memory instead of allocating a full double backed array.
+     *
+     * @return a vector that will return the weight for each data point with the
+     * same corresponding index.
+     */
+    public Vec getDataWeights()
+    {
+        final int N = this.getSampleSize();
+        if(N == 0)
+            return new DenseVector(0);
+        //assume everyone has the same weight until proven otherwise.
+        double weight = getDataPoint(0).getWeight();
+        double[] weights = null;
+        
+        for(int i = 1; i < N; i++)
+        {
+            double w_i = getDataPoint(i).getWeight();
+            if(weights != null || weight != w_i)
+            {
+                if(weights==null)//need to init storage place
+                {
+                    weights = new double[N];
+                    Arrays.fill(weights, 0, i, weight);
+                }
+                weights[i] = w_i;
+            }
+        }
+        
+        if(weights == null)
+            return new ConstantVector(weight, getSampleSize());
+        else
+            return new DenseVector(weights);
+    }
 }
