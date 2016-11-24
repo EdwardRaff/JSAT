@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.clustering.KClustererBase;
 import jsat.distributions.kernels.KernelTrick;
+import jsat.linear.ConstantVector;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
@@ -37,9 +38,9 @@ import jsat.utils.random.XOR96;
 public abstract class KernelKMeans extends KClustererBase implements Parameterized
 {
 
-	private static final long serialVersionUID = -5394680202634779440L;
+    private static final long serialVersionUID = -5294680202634779440L;
 
-	/**
+    /**
      * The kernel trick to use
      */
     @ParameterHolder
@@ -49,6 +50,10 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * The list of data points that this was trained on 
      */
     protected List<Vec> X;
+    /**
+     * The weight of each data point
+     */
+    protected Vec W;
     /**
      * THe acceleration cache for the kernel
      */
@@ -70,9 +75,9 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
     protected double[] normConsts;
     
     /**
-     * The number of dataums owned by each mean
+     * The weighted number of dataums owned by each mean
      */
-    protected int[] ownes;
+    protected double[] ownes;
        
     /**
      * A temporary space for updating ownership designations for each datapoint. 
@@ -121,6 +126,9 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         
         if(toCopy.newDesignations != null)
             this.newDesignations = Arrays.copyOf(toCopy.newDesignations, toCopy.newDesignations.length);
+        
+        if(toCopy.W != null)
+            this.W = toCopy.W.clone();
     }
     
     
@@ -182,7 +190,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         double sum = 0;
         for(int j = 0; j < X.size(); j++)
             if(d[j] == clusterID)
-                sum += kernel.eval(i, j, X, accel);
+                sum += W.get(j) * kernel.eval(i, j, X, accel);
         return sum;
     }
     
@@ -200,7 +208,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         double sum = 0;
         for(int j = 0; j < X.size(); j++)
             if(d[j] == clusterID)
-                sum += kernel.eval(j, x, qi, X, accel);
+                sum += W.get(j) * kernel.eval(j, x, qi, X, accel);
         return sum;
     }
     
@@ -208,8 +216,9 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * Sets up the internal structure for KenrelKMeans. Should be called first before any work is done
      * @param K the number of clusters to find
      * @param designations the initial designations array to fill with values
+     * @param W the weight for each individual data point
      */
-    protected void setup(int K, int[] designations)
+    protected void setup(int K, int[] designations, Vec W)
     {
         accel = kernel.getAccelerationCache(X);
         
@@ -217,15 +226,20 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         selfK = new double[N];
         for(int i = 0; i < selfK.length; i++)
             selfK[i] = kernel.eval(i, i, X, accel);
-        ownes = new int[K];
+        ownes = new double[K];
         meanSqrdNorms = new double[K];
         newDesignations = new int[N];
+        
+        if(W  == null)
+            this.W = new ConstantVector(1.0, N);
+        else
+            this.W = W;
         
         Random rand = new XOR96();
         for (int i = 0; i < N; i++)
         {
             int to = rand.nextInt(K);
-            ownes[to]++;
+            ownes[to] += this.W.get(i);
             newDesignations[i] = designations[i] = to;
         }
         
@@ -236,10 +250,11 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         for (int i = 0; i < N; i++)
         {
             int i_k = designations[i];
-            meanSqrdNorms[i_k] += selfK[i];
+            final double w_i = this.W.get(i);
+            meanSqrdNorms[i_k] += w_i * selfK[i];
             for (int j = i + 1; j < N; j++)
                 if (i_k == designations[j])
-                    meanSqrdNorms[i_k] += 2 * kernel.eval(i, j, X, accel);
+                    meanSqrdNorms[i_k] += 2 * w_i * this.W.get(j) * kernel.eval(i, j, X, accel);
         }
     }
 
@@ -250,7 +265,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
     protected void updateNormConsts()
     {
         for(int i = 0; i < normConsts.length; i++)
-            normConsts[i] = 1.0/(ownes[i]*(long)ownes[i]);
+            normConsts[i] = 1.0/(ownes[i]*ownes[i]);
     }
     
     /**
@@ -344,7 +359,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * @param ownership the array to place the changes to the ownership counts in
      * @return {@code 1} if the index changed ownership, {@code 0} if the index did not change ownership
      */
-    protected int updateMeansFromChange(final int i, final int[] designations, final double[] sqrdNorms, final int[] ownership)
+    protected int updateMeansFromChange(final int i, final int[] designations, final double[] sqrdNorms, final double[] ownership)
     {
         final int old_d = designations[i];
         final int new_d = newDesignations[i];
@@ -353,18 +368,19 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
             return 0;
         
         final int N = X.size();
-        
-        ownership[old_d]--;
-        ownership[new_d]++;
+        final double w_i = W.get(i);
+        ownership[old_d] -= w_i;
+        ownership[new_d] += w_i;
 
         for (int j = 0; j < N; j++)
         {
+            final double w_j = W.get(j);
             final int oldD_j = designations[j];
             final int newD_j = newDesignations[j];
             if (i == j)//diagonal is an easy case
             {
-                sqrdNorms[old_d] -= selfK[i];
-                sqrdNorms[new_d] += selfK[i];
+                sqrdNorms[old_d] -= w_i*selfK[i];
+                sqrdNorms[new_d] += w_i*selfK[i];
             }
             else
             {
@@ -382,7 +398,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
                          */
                     }
                     else//safe to remove the k_ij contribution
-                        sqrdNorms[old_d] -= 2 * kernel.eval(i, j, X, accel);
+                        sqrdNorms[old_d] -= 2 * w_i * w_j * kernel.eval(i, j, X, accel);
                 }
                 //handle adding contributiont to new mean
                 if (new_d == newD_j)
@@ -398,7 +414,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
                          */
                     }
                     else
-                        sqrdNorms[new_d] += 2 * kernel.eval(i, j, X, accel);
+                        sqrdNorms[new_d] += 2 * w_i * w_j * kernel.eval(i, j, X, accel);
                 }
             }
         }
@@ -406,7 +422,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         return 1;
     }
     
-    protected void applyMeanUpdates(double[] sqrdNorms, int[] ownerships)
+    protected void applyMeanUpdates(double[] sqrdNorms, double[] ownerships)
     {
         for(int i = 0; i < sqrdNorms.length; i++)
         {
@@ -518,25 +534,27 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
     {
         double dot = 0;
         final int N = X.size();
-        int a = 0, b = 0;
+        double a = 0, b = 0;
         /*
          * Below, unless i&amp;j are somehow in the same cluster - nothing bad will happen 
          */
         for(int i = 0; i < N; i++)
         {
+            final double w_i = W.get(i);
             if(assignment0[i] != k0)
                 continue;
-            a++;
+            a += w_i;
             for(int j = 0; j < N; j++)
             {
                 if(assignment1[j] != k1)
                     continue;
-                dot += kernel.eval(i, j, X, accel);
+                final double w_j = W.get(j);
+                dot += w_i * w_j * kernel.eval(i, j, X, accel);
             }
         }
         for(int j = 0; j < N; j++)
             if(assignment1[j] == k1)
-                b++;
+                b += W.get(j);
         return dot/(a*b);
     }
     
@@ -558,7 +576,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
     {
         double dot = 0;
         final int N = X.size();
-        int a = 0, b = 0;
+        double a = 0, b = 0;
         
         List<Future<Double>> dotPartials = new ArrayList<Future<Double>>();
         /*
@@ -566,9 +584,10 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
          */
         for(int i = 0; i < N; i++)
         {
+            final double w_i = W.get(i);
             if(assignment0[i] != k0)
                 continue;
-            a++;
+            a += w_i;
             final int I = i;
             dotPartials.add(ex.submit(new Callable<Double>()
             {
@@ -580,7 +599,8 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
                     {
                         if(assignment1[j] != k1)
                             continue;
-                        localDot += kernel.eval(I, j, X, accel);
+                        final double w_j = W.get(j);
+                        localDot += w_i * w_j * kernel.eval(I, j, X, accel);
                     }
                     
                     return localDot;
@@ -589,7 +609,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         }
         for(int j = 0; j < N; j++)
             if(assignment1[j] == k1)
-                b++;
+                b += W.get(j);
         try
         {
             for (double pDot : ListUtils.collectFutures(dotPartials))
