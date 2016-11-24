@@ -22,6 +22,7 @@ import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.AtomicDoubleArray;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -78,13 +79,20 @@ public class HamerlyKMeans extends KMeans
     //TODO reduce some code duplication in the methods bellow 
     
     @Override
-    protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, ExecutorService threadpool, boolean returnError, Vec dataPointWeights)
     {
         final int N = dataSet.getSampleSize();
         final int D = dataSet.getNumNumericalVars();
         
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
-        
+        /**
+         * Weights for each data point
+         */
+        final Vec W;
+        if (dataPointWeights == null)
+            W = dataSet.getDataWeights();
+        else
+            W = dataPointWeights;
         final List<Vec> X = dataSet.getDataVectors();
         final List<Double> distAccel;//used like htis b/c we want it final for convinence, but input may be null
         if(accelCache == null)
@@ -102,10 +110,7 @@ public class HamerlyKMeans extends KMeans
         if (means.size() != k)
         {
             means.clear();
-            if (threadpool == null || threadpool instanceof FakeExecutor)
-                means.addAll(selectIntialPoints(dataSet, k, dm, distAccel, rand, seedSelection));
-            else
-                means.addAll(selectIntialPoints(dataSet, k, dm, distAccel, rand, seedSelection, threadpool));
+            means.addAll(selectIntialPoints(dataSet, k, dm, distAccel, rand, seedSelection, threadpool));
         }
 
         //Make our means dense
@@ -120,10 +125,10 @@ public class HamerlyKMeans extends KMeans
         final Vec[] cP = new Vec[k];
         final Vec[] tmpVecs = new Vec[k];
         /**
-         * number of points assigned to cluster j,<br>
+         * weighted number of points assigned to cluster j,<br>
          * denoted q(j)
          */
-        final AtomicLongArray q = new AtomicLongArray(k);
+        final AtomicDoubleArray q = new AtomicDoubleArray(k);
         /**
          * distance that c(j) last moved <br>
          * denoted p(j)
@@ -163,7 +168,7 @@ public class HamerlyKMeans extends KMeans
         };
         
         //Start of algo
-        Initialize(dataSet, q, means, tmpVecs, cP, u, l, assignment, threadpool, localDeltas, X, distAccel, meanQI);
+        Initialize(dataSet, q, means, tmpVecs, cP, u, l, assignment, threadpool, localDeltas, X, distAccel, meanQI, W);
         //Use dense mean objects
         for(int i = 0; i < means.size(); i++)
             if(means.get(i).isSparse())
@@ -181,7 +186,7 @@ public class HamerlyKMeans extends KMeans
                 int localUpdates = 0;
                 for(int i = 0; i < N; i++)
                 {
-                    localUpdates += mainLoopWork(dataSet, i, s, assignment, u, l, q, cP, X, distAccel, means, meanQI);
+                    localUpdates += mainLoopWork(dataSet, i, s, assignment, u, l, q, cP, X, distAccel, means, meanQI, W);
                 }
                 updates.set(localUpdates);
             }
@@ -200,7 +205,7 @@ public class HamerlyKMeans extends KMeans
                             int localUpdates = 0;
                             for(int i = ID; i < N; i+=SystemInfo.LogicalCores)
                             {
-                                localUpdates += mainLoopWork(dataSet, i, s, assignment, u, l, q, deltas, X, distAccel, means, meanQI);
+                                localUpdates += mainLoopWork(dataSet, i, s, assignment, u, l, q, deltas, X, distAccel, means, meanQI, W);
                             }
                             //collect deltas
                             if(localUpdates > 0)
@@ -274,7 +279,7 @@ public class HamerlyKMeans extends KMeans
      * @return 0 if no changes in assignment were made, 1 if a change in assignment was made
      */
     private int mainLoopWork(DataSet dataSet, int i, double[] s, int[] assignment, double[] u, 
-            double[] l, AtomicLongArray q, Vec[] deltas, final List<Vec> X, final List<Double> distAccel, final List<Vec> means, final List<List<Double>> meanQI)
+            double[] l, AtomicDoubleArray q, Vec[] deltas, final List<Vec> X, final List<Double> distAccel, final List<Vec> means, final List<List<Double>> meanQI, final Vec W)
     {
         final int a_i = assignment[i];
         double m = Math.max(s[a_i] / 2, l[i]);
@@ -287,10 +292,11 @@ public class HamerlyKMeans extends KMeans
                 final int new_a_i = PointAllCtrs(x, i, means, assignment, u, l, X, distAccel, meanQI);
                 if (a_i != new_a_i)
                 {
-                    q.decrementAndGet(a_i);
-                    q.incrementAndGet(new_a_i);
-                    deltas[a_i].mutableSubtract(x);
-                    deltas[new_a_i].mutableAdd(x);
+                    double w = W.get(i);
+                    q.addAndGet(a_i, -w);
+                    q.addAndGet(new_a_i, w);
+                    deltas[a_i].mutableSubtract(w, x);
+                    deltas[new_a_i].mutableAdd(w, x);
                     return 1;//1 change in ownership
                 }
             }
@@ -368,7 +374,7 @@ public class HamerlyKMeans extends KMeans
             }
     }
     
-    private void Initialize(final DataSet d, final AtomicLongArray q, final List<Vec> means, final Vec[] tmp, final Vec[] cP, final double[] u, final double[] l, final int[] a, ExecutorService threadpool, final ThreadLocal<Vec[]> localDeltas, final List<Vec> X, final List<Double> distAccel, final List<List<Double>> meanQI)
+    private void Initialize(final DataSet d, final AtomicDoubleArray q, final List<Vec> means, final Vec[] tmp, final Vec[] cP, final double[] u, final double[] l, final int[] a, ExecutorService threadpool, final ThreadLocal<Vec[]> localDeltas, final List<Vec> X, final List<Double> distAccel, final List<List<Double>> meanQI, final Vec W)
     {
         for(int j = 0; j < means.size(); j++)
         {
@@ -389,8 +395,9 @@ public class HamerlyKMeans extends KMeans
             {
                 Vec x = X.get(i);
                 int j = PointAllCtrs(x, i, means, a, u, l, X, distAccel, meanQI);
-                q.incrementAndGet(j);
-                cP[j].mutableAdd(x);
+                double w = W.get(i);
+                q.addAndGet(j, w);
+                cP[j].mutableAdd(w, x);
             }
         }
         else
@@ -409,8 +416,9 @@ public class HamerlyKMeans extends KMeans
                         {
                             Vec x = X.get(i);
                             int j = PointAllCtrs(x, i, means, a, u, l, X, distAccel, meanQI);
-                            q.incrementAndGet(j);
-                            deltas[j].mutableAdd(x);
+                            double w = W.get(i);
+                            q.addAndGet(j, w);
+                            deltas[j].mutableAdd(w, x);
                         }
 
                         for(int i = 0; i < cP.length; i++)
@@ -481,16 +489,16 @@ public class HamerlyKMeans extends KMeans
         return lIndex;
     }
     
-    private void moveCenters(List<Vec> means, Vec[] tmpSpace, Vec[] cP, AtomicLongArray q, double[] p, final List<List<Double>> meanQI)
+    private void moveCenters(List<Vec> means, Vec[] tmpSpace, Vec[] cP, AtomicDoubleArray q, double[] p, final List<List<Double>> meanQI)
     {
         for(int j = 0; j < means.size(); j++)
         {
-            long count = q.get(j);
+            double count = q.get(j);
             if(count > 0)
             {
                 //compute new mean
                 cP[j].copyTo(tmpSpace[j]);
-                tmpSpace[j].mutableDivide(q.get(j));
+                tmpSpace[j].mutableDivide(count);
             }
             else
             {
