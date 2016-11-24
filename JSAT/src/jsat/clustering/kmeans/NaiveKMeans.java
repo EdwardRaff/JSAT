@@ -22,6 +22,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.AtomicDoubleArray;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -92,13 +93,20 @@ public class NaiveKMeans extends KMeans
     }
 
     @Override
-    protected double cluster(final DataSet dataSet, List<Double> accelCacheInit, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(final DataSet dataSet, List<Double> accelCacheInit, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, ExecutorService threadpool, boolean returnError, Vec dataPointWeights)
     {
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
         
         if(threadpool == null)
             threadpool = new FakeExecutor();
-        
+        /**
+         * Weights for each data point
+         */
+        final Vec W;
+        if (dataPointWeights == null)
+            W = dataSet.getDataWeights();
+        else
+            W = dataPointWeights;
         final int blockSize = dataSet.getSampleSize() / SystemInfo.LogicalCores;
         final List<Vec> X = dataSet.getDataVectors();
         //done a wonky way b/c we want this as a final object for convinence, otherwise we may be stuck with null accel when we dont need to be
@@ -116,10 +124,7 @@ public class NaiveKMeans extends KMeans
         if (means.size() != k)
         {
             means.clear();
-            if (threadpool instanceof FakeExecutor)
-                means.addAll(selectIntialPoints(dataSet, k, dm, accelCache, rand, seedSelection));
-            else
-                means.addAll(selectIntialPoints(dataSet, k, dm, accelCache, rand, seedSelection, threadpool));
+            means.addAll(selectIntialPoints(dataSet, k, dm, accelCache, rand, seedSelection, threadpool));
         }
         
         final List<List<Double>> meanQIs = new ArrayList<List<Double>>(k);
@@ -137,7 +142,7 @@ public class NaiveKMeans extends KMeans
         }
         
         final List<Vec> meanSum = new ArrayList<Vec>(means.size());
-        final AtomicIntegerArray meanCounts = new AtomicIntegerArray(means.size());
+        final AtomicDoubleArray meanCounts = new AtomicDoubleArray(means.size());
         for(int i = 0; i < k; i++)
             meanSum.add(new DenseVector(means.get(0).length()));
         final AtomicInteger changes = new AtomicInteger();
@@ -189,15 +194,15 @@ public class NaiveKMeans extends KMeans
                             }
                             if(assignment[i] == min)
                                 continue;
-                            
+                            final double w = W.get(i);
                             //add change
-                            deltas[min].mutableAdd(x);
-                            meanCounts.incrementAndGet(min);
+                            deltas[min].mutableAdd(w, x);
+                            meanCounts.addAndGet(min, w);
                             //remove from prev owner
                             if(assignment[i] >= 0)
                             {
-                                deltas[assignment[i]].mutableSubtract(x);
-                                meanCounts.getAndDecrement(assignment[i]);
+                                deltas[assignment[i]].mutableSubtract(w, x);
+                                meanCounts.getAndAdd(assignment[i], -w);
                             }
                             assignment[i] = min;
                             changes.incrementAndGet();
