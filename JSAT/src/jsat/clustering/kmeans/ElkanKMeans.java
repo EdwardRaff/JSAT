@@ -10,10 +10,12 @@ import jsat.DataSet;
 import jsat.clustering.ClusterFailureException;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
+import jsat.linear.ConstantVector;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.*;
 import jsat.utils.*;
+import jsat.utils.concurrent.AtomicDoubleArray;
 
 /**
  * An efficient implementation of the K-Means algorithm. This implementation uses
@@ -28,10 +30,10 @@ import jsat.utils.*;
 public class ElkanKMeans extends KMeans
 {
 
-	private static final long serialVersionUID = -1629432283103273051L;
+    private static final long serialVersionUID = -1629432283103273051L;
 
-	private DenseSparseMetric dmds;
-    
+    private DenseSparseMetric dmds;
+
     private boolean useDenseSparse = false;
     
     /**
@@ -110,7 +112,7 @@ public class ElkanKMeans extends KMeans
      */
     
     @Override
-    protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError, Vec dataPointWeights)
     {
         try
         {
@@ -121,6 +123,14 @@ public class ElkanKMeans extends KMeans
             final int D = dataSet.getNumNumericalVars();
             if(N < k)//Not enough points
                 throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+            /**
+             * Weights for each data point
+             */
+            final Vec W;
+            if(dataPointWeights == null)
+                W = dataSet.getDataWeights();
+            else
+                W = dataPointWeights;
 
             TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
             final List<Vec> X = dataSet.getDataVectors();
@@ -162,7 +172,7 @@ public class ElkanKMeans extends KMeans
             final double[][] centroidSelfDistances = new double[k][k];
             final double[] sC = new double[k];
             calculateCentroidDistances(k, centroidSelfDistances, means, sC, null, threadpool);
-            final AtomicLongArray meanCount = new AtomicLongArray(k);
+            final AtomicDoubleArray meanCount = new AtomicDoubleArray(k);
             Vec[] oldMeans = new Vec[k];//The means fromt he current step are needed when computing the new means
             final Vec[] meanSums = new Vec[k];
             for (int i = 0; i < k; i++)
@@ -196,9 +206,9 @@ public class ElkanKMeans extends KMeans
             };
             
             if (threadpool == null)
-                initialClusterSetUp(k, N, X, means, lowerBound, upperBound, centroidSelfDistances, assignment, meanCount, meanSums, distAccelCache, meanQIs);
+                initialClusterSetUp(k, N, X, means, lowerBound, upperBound, centroidSelfDistances, assignment, meanCount, meanSums, distAccelCache, meanQIs, W);
             else
-                initialClusterSetUp(k, N, X, means, lowerBound, upperBound, centroidSelfDistances, assignment, meanCount, meanSums, distAccelCache, meanQIs, localDeltas, threadpool);
+                initialClusterSetUp(k, N, X, means, lowerBound, upperBound, centroidSelfDistances, assignment, meanCount, meanSums, distAccelCache, meanQIs, localDeltas, threadpool, W);
 
             int iterLimit = MaxIterLimit;
             while ((changeOccurred.get() || atLeast > 0) && iterLimit-- >= 0)
@@ -226,7 +236,7 @@ public class ElkanKMeans extends KMeans
                             if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
                             {
                                 step3aBoundsUpdate(X, r, q, v, means, assignment, upperBound, lowerBound, meanSummaryConsts, distAccelCache, meanQIs);
-                                step3bUpdate(X, upperBound, q, lowerBound, c, centroidSelfDistances, assignment, v, means, localDeltas, meanCount, changeOccurred, meanSummaryConsts, distAccelCache, meanQIs);
+                                step3bUpdate(X, upperBound, q, lowerBound, c, centroidSelfDistances, assignment, v, means, localDeltas, meanCount, changeOccurred, meanSummaryConsts, distAccelCache, meanQIs, W);
                             }
                     }
                 }
@@ -252,7 +262,7 @@ public class ElkanKMeans extends KMeans
                                         if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
                                         {
                                             step3aBoundsUpdate(X, r, q, v, means, assignment, upperBound, lowerBound, meanSummaryConsts, distAccelCache, meanQIs);
-                                            step3bUpdate(X, upperBound, q, lowerBound, c, centroidSelfDistances, assignment, v, means, localDeltas, meanCount, changeOccurred, meanSummaryConsts, distAccelCache, meanQIs);
+                                            step3bUpdate(X, upperBound, q, lowerBound, c, centroidSelfDistances, assignment, v, means, localDeltas, meanCount, changeOccurred, meanSummaryConsts, distAccelCache, meanQIs, W);
                                         }
                                 }
 
@@ -315,9 +325,11 @@ public class ElkanKMeans extends KMeans
         return Double.MAX_VALUE;
     }
 
-    private void initialClusterSetUp(final int k, final int N, final List<Vec> dataSet, final List<Vec> means, final double[][] lowerBound, 
-            final double[] upperBound, final double[][] centroidSelfDistances, final int[] assignment, AtomicLongArray meanCount,
-            final Vec[] meanSums, List<Double> distAccelCache, List<List<Double>> meanQIs)
+    private void initialClusterSetUp(final int k, final int N, final List<Vec> dataSet, 
+            final List<Vec> means, final double[][] lowerBound, final double[] upperBound, 
+            final double[][] centroidSelfDistances, final int[] assignment, 
+            AtomicDoubleArray meanCount, final Vec[] meanSums, 
+            List<Double> distAccelCache, List<List<Double>> meanQIs, Vec W)
     {
         //Skip markers
         final boolean[] skip = new boolean[k];
@@ -347,15 +359,16 @@ public class ElkanKMeans extends KMeans
             }
 
             assignment[q] = index;
-            meanCount.incrementAndGet(index);
-            meanSums[index].mutableAdd(v);
+            final double weight = W.get(q);
+            meanCount.addAndGet(index, weight);
+            meanSums[index].mutableAdd(weight, v);
         }
     }
     
     private void initialClusterSetUp(final int k, final int N, final List<Vec> dataSet, final List<Vec> means, final double[][] lowerBound, 
-            final double[] upperBound, final double[][] centroidSelfDistances, final int[] assignment, final AtomicLongArray meanCount, 
+            final double[] upperBound, final double[][] centroidSelfDistances, final int[] assignment, final AtomicDoubleArray meanCount, 
             final Vec[] meanSums, final List<Double> distAccelCache, final List<List<Double>> meanQIs, 
-            final ThreadLocal<Vec[]> localDeltas, ExecutorService threadpool)
+            final ThreadLocal<Vec[]> localDeltas, ExecutorService threadpool, final Vec W)
     {
         final int blockSize = N / SystemInfo.LogicalCores;
         int extra = N % SystemInfo.LogicalCores;
@@ -401,8 +414,9 @@ public class ElkanKMeans extends KMeans
                         }
 
                         assignment[q] = index;
-                        meanCount.incrementAndGet(index);
-                        deltas[index].mutableAdd(v);
+                        final double weight = W.get(q);
+                        meanCount.addAndGet(index, weight);
+                        deltas[index].mutableAdd(weight, v);
                     }
                     for (int i = 0; i < deltas.length; i++)
                     {
@@ -445,7 +459,7 @@ public class ElkanKMeans extends KMeans
     }
 
     private void step5_6_distanceMovedBoundsUpdate(final int k, final Vec[] oldMeans, final List<Vec> means, final Vec[] meanSums, 
-            final AtomicLongArray meanCount, final int N, final double[][] lowerBound, final double[] upperBound, 
+            final AtomicDoubleArray meanCount, final int N, final double[][] lowerBound, final double[] upperBound, 
             final int[] assignment, final boolean[] r, final List<List<Double>> meanQIs, ExecutorService threadpool)
     {
         final double[] distancesMoved = new double[k];
@@ -468,8 +482,8 @@ public class ElkanKMeans extends KMeans
                             means.get(c).copyTo(oldMeans[c]);
                             
                             meanSums[c].copyTo(means.get(c));
-                            long count = meanCount.get(c);
-                            if (count == 0)
+                            double count = meanCount.get(c);
+                            if (count <= 1e-14)
                                 means.get(c).zeroOut();
                             else
                                 means.get(c).mutableDivide(meanCount.get(c));
@@ -525,8 +539,8 @@ public class ElkanKMeans extends KMeans
         for (int i = 0; i < k; i++)
         {
             meanSums[i].copyTo(means.get(i));
-            long count = meanCount.get(i);
-            if (count == 0)
+            double count = meanCount.get(i);
+            if (count <= 1e-14)
                 means.get(i).zeroOut();
             else
                 means.get(i).mutableDivide(meanCount.get(i));
@@ -571,8 +585,9 @@ public class ElkanKMeans extends KMeans
     }
 
     private void step3bUpdate(List<Vec> X, double[] upperBound, final int q, double[][] lowerBound, final int c, double[][] centroidSelfDistances, 
-            final int[] assignment, Vec v, final List<Vec> means, final ThreadLocal<Vec[]> localDeltas, AtomicLongArray meanCount, 
-            final AtomicBoolean changeOccurred, double[] meanSummaryConsts, List<Double> distAccelCache, List<List<Double>> meanQIs)
+            final int[] assignment, Vec v, final List<Vec> means, final ThreadLocal<Vec[]> localDeltas, AtomicDoubleArray meanCount, 
+            final AtomicBoolean changeOccurred, double[] meanSummaryConsts, List<Double> distAccelCache, List<List<Double>> meanQIs,
+            final Vec W)
     {
         //3(b)
         if (upperBound[q] > lowerBound[q][c] || upperBound[q] > centroidSelfDistances[assignment[q]][c] / 2)
@@ -586,11 +601,12 @@ public class ElkanKMeans extends KMeans
             if (d < upperBound[q])
             {
                 Vec[] deltas = localDeltas.get();
-                deltas[assignment[q]].mutableSubtract(v);
-                meanCount.decrementAndGet(assignment[q]);
+                final double weight = W.get(q);
+                deltas[assignment[q]].mutableSubtract(weight, v);
+                meanCount.addAndGet(assignment[q], -weight);
                 
-                deltas[c].mutableAdd(v);
-                meanCount.incrementAndGet(c);
+                deltas[c].mutableAdd(weight, v);
+                meanCount.addAndGet(c, weight);
                 
                 assignment[q] = c;
                 upperBound[q] = d;
