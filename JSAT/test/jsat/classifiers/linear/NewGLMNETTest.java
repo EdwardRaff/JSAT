@@ -2,15 +2,9 @@ package jsat.classifiers.linear;
 
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
-import jsat.FixedProblems;
 import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.*;
-import jsat.classifiers.svm.DCDs;
-import jsat.classifiers.svm.PlattSMO;
-import jsat.datatransform.PolynomialTransform;
-import jsat.distributions.kernels.LinearKernel;
 import jsat.linear.*;
-import jsat.lossfunctions.LogisticLoss;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -64,7 +58,7 @@ public class NewGLMNETTest
     {
         System.out.println("train");
         
-        Random rand  = new XORWOW();
+        Random rand  = new XORWOW(45678);
         ClassificationDataSet data = new ClassificationDataSet(6, new CategoricalData[0], new CategoricalData(2));
         
         for(int i = 0; i < 500; i++)
@@ -189,7 +183,7 @@ public class NewGLMNETTest
     {
         //Had difficulty making a problem hard enough to show improvment in warms tart but also fast to run. 
         //so made test check that warm from some weird value gets to the same places
-        Random rand  = new XORWOW();
+        Random rand  = new XORWOW(5679);
         ClassificationDataSet train = new ClassificationDataSet(600, new CategoricalData[0], new CategoricalData(2));
         
         for(int i = 0; i < 200; i++)
