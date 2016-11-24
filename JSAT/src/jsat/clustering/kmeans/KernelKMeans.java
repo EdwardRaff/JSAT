@@ -628,6 +628,12 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
     
     @Override
     abstract public KernelKMeans clone();
+
+    @Override
+    public boolean supportsWeightedData()
+    {
+        return true;
+    }
     
     @Override
     public List<Parameter> getParameters()
