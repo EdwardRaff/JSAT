@@ -32,9 +32,8 @@ import static java.lang.Math.*;
  */
 public class GMeans extends KMeans 
 {
-
-	private static final long serialVersionUID = 7306976407786792661L;
-	private boolean trustH0 = true;
+    private static final long serialVersionUID = 7306976407786792661L;
+    private boolean trustH0 = true;
     private boolean iterativeRefine = true;
     
     private int minClusterSize = 25;
@@ -262,12 +261,12 @@ public class GMeans extends KMeans
             }
             //"Between each round of splitting, we run k-means on the entire dataset and all the centers to refine the current solution"
             if(iterativeRefine && means.size() > 1)
-                kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false);
+                kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false, null);
         }
         while (origMeans < means.size());
         
         if(!iterativeRefine && means.size() > 1)//if we havn't been refining we need to do so now!
-            kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false);
+            kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false, null);
         return designations;
     }
     
@@ -305,9 +304,9 @@ public class GMeans extends KMeans
     
 
     @Override
-    protected double cluster(DataSet dataSet, List<Double> accelCache, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(DataSet dataSet, List<Double> accelCache, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError, Vec dataPointWeights)
     {
-        return kmeans.cluster(dataSet, accelCache, k, means, assignment, exactTotal, threadpool, returnError);
+        return kmeans.cluster(dataSet, accelCache, k, means, assignment, exactTotal, threadpool, returnError, null);
     }
 
     @Override
