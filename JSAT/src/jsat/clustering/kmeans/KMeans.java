@@ -190,9 +190,11 @@ public abstract class KMeans extends KClustererBase implements Parameterized
      * @param returnError {@code true} is the sum of squared distances should be
      * returned. {@code false} means any value can be returned. 
      * {@link #saveCentroidDistance} only applies if this is {@code true}
+     * @param dataPointWeights the weight value to use for each data point. If
+     * <tt>null</tt>, assume each point has equal weight.
      * @return the double
      */
-    abstract protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError);
+    abstract protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError, Vec dataPointWeights);
     
     static protected List<List<DataPoint>> getListOfLists(int k)
     {
@@ -223,7 +225,7 @@ public abstract class KMeans extends KClustererBase implements Parameterized
             throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         
         means = new ArrayList<Vec>(clusters);
-        cluster(dataSet, null, clusters, means, designations, false, threadpool, false);
+        cluster(dataSet, null, clusters, means, designations, false, threadpool, false, null);
         if(!storeMeans)
             means = null;
         return designations;
@@ -237,7 +239,7 @@ public abstract class KMeans extends KClustererBase implements Parameterized
         if(dataSet.getSampleSize() < clusters)
             throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         means = new ArrayList<Vec>(clusters);
-        cluster(dataSet, null, clusters, means, designations, false, null, false);
+        cluster(dataSet, null, clusters, means, designations, false, null, false, null);
         if(!storeMeans)
             means = null;
         
@@ -286,7 +288,7 @@ public abstract class KMeans extends KClustererBase implements Parameterized
 
         public void run()
         {
-            result = cluster(dataSet, null, k, new ArrayList<Vec>(), clusterIDs, true, null, true);
+            result = cluster(dataSet, null, k, new ArrayList<Vec>(), clusterIDs, true, null, true, null);
             putSelf.add(this);
         }
         
@@ -345,7 +347,7 @@ public abstract class KMeans extends KClustererBase implements Parameterized
         double[] totDistances = new double[highK-lowK+1];
 
         for(int i = lowK; i <= highK; i++)
-            totDistances[i-lowK] = cluster(dataSet, null, i, new ArrayList<Vec>(), designations, true, null, true);
+            totDistances[i-lowK] = cluster(dataSet, null, i, new ArrayList<Vec>(), designations, true, null, true, null);
 
         return findK(lowK, highK, totDistances, dataSet, designations);
     }
@@ -402,6 +404,12 @@ public abstract class KMeans extends KClustererBase implements Parameterized
 
     @Override
     abstract public KMeans clone();
+
+    @Override
+    public boolean supportsWeightedData()
+    {
+        return true;
+    }
     
     @Override
     public List<Parameter> getParameters()

@@ -10,18 +10,20 @@ import jsat.classifiers.DataPoint;
 /**
  * A base foundation that provides an implementation of {@link #cluster(jsat.DataSet) } 
  * and {@link #cluster(jsat.DataSet, java.util.concurrent.ExecutorService) } using 
- * their int array counterparts. 
- * 
+ * their int array counterparts. <br>
+ * <br>
+ * By default it is assumed that a cluster does not support weighted data. If
+ * this is incorrect, you need to overwrite the {@link #supportsWeightedData() }
+ * method.
+ *
  * @author Edward Raff
  */
 public abstract class ClustererBase implements Clusterer
 {
 
+    private static final long serialVersionUID = 4359554809306681680L;
 
-	private static final long serialVersionUID = 4359554809306681680L;
-
-
-	@Override
+    @Override
     public List<List<DataPoint>> cluster(DataSet dataSet)
     {
         int[] assignments = cluster(dataSet, (int[]) null);
@@ -85,6 +87,11 @@ public abstract class ClustererBase implements Clusterer
         return list;
     }
 
+    @Override
+    public boolean supportsWeightedData()
+    {
+        return false;
+    }
 
     @Override
     abstract public Clusterer clone();

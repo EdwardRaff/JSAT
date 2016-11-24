@@ -27,9 +27,8 @@ import jsat.linear.Vec;
  */
 public class KMeansPDN extends KMeans
 {
-
-	private static final long serialVersionUID = -2358377567814606959L;
-	private KMeans kmeans;
+    private static final long serialVersionUID = -2358377567814606959L;
+    private KMeans kmeans;
     private double[] fKs;
     
     /**
@@ -118,7 +117,7 @@ public class KMeansPDN extends KMeans
         {
             curMeans.clear();
             //kmeans objective function result is the same as S_k
-            double S_k = cluster(dataSet, accelCache, k, curMeans, designations, true, threadpool, true);//TODO could add a flag to make approximate S_k an option. Though it dosn't seem to work great on toy problems, might be fine on more realistic data
+            double S_k = cluster(dataSet, accelCache, k, curMeans, designations, true, threadpool, true, null);//TODO could add a flag to make approximate S_k an option. Though it dosn't seem to work great on toy problems, might be fine on more realistic data
 
 
             double alpha_k;
@@ -158,9 +157,9 @@ public class KMeansPDN extends KMeans
     }
 
     @Override
-    protected double cluster(DataSet dataSet, List<Double> accelCache, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(DataSet dataSet, List<Double> accelCache, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError, Vec dataPointWeights)
     {
-        return kmeans.cluster(dataSet, accelCache, k, means, assignment, exactTotal, threadpool, returnError);
+        return kmeans.cluster(dataSet, accelCache, k, means, assignment, exactTotal, threadpool, returnError, null);
     }
 
     @Override

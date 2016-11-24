@@ -54,6 +54,17 @@ public interface Clusterer extends Serializable
      * <tt>designations</tt>, or a new one if the input array was <tt>null</tt>
      */
     public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations);
+   
+    /**
+     * Indicates whether the model knows how to cluster using weighted data
+     * points. If it does, the model will train assuming the weights. The values
+     * returned by this method may change depending on the parameters set for
+     * the model.
+     *
+     * @return <tt>true</tt> if the model supports weighted data, <tt>false</tt>
+     * otherwise
+     */
+    public boolean supportsWeightedData();
     
     public Clusterer clone();
 }

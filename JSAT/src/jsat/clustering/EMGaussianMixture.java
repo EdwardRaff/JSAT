@@ -17,44 +17,82 @@ import jsat.distributions.multivariate.MultivariateDistribution;
 import jsat.distributions.multivariate.NormalM;
 import jsat.linear.*;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.ListUtils;
 import static jsat.utils.SystemInfo.LogicalCores;
+import jsat.utils.random.XORWOW;
 
 /**
  * An implementation of Gaussian Mixture models that learns the specified number of Gaussians using Expectation Maximization algorithm. 
  * 
  * @author Edward Raff
  */
-public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistribution
+public class EMGaussianMixture extends KClustererBase implements MultivariateDistribution
 {
-
-	private static final long serialVersionUID = 2606159910420221662L;
-	private List<NormalM> gaussians;
+    private SeedSelection seedSelection;
+    private static final long serialVersionUID = 2606159815670221662L;
+    private List<NormalM> gaussians;
     /**
      * The coefficients for the gaussians 
      */
     private double[] a_k;
     private double tolerance = 1e-3;
+    /**
+     * Control the maximum number of iterations to perform. 
+     */
+    protected int MaxIterLimit = Integer.MAX_VALUE;
 
-    public EMGaussianMixture(DistanceMetric dm, Random rand, SeedSelection seedSelection)
+    public EMGaussianMixture(SeedSelection seedSelection)
     {
-        super(dm, rand, seedSelection);
-    }
-
-    public EMGaussianMixture(DistanceMetric dm, Random rand)
-    {
-        super(dm, rand);
-    }
-
-    public EMGaussianMixture(DistanceMetric dm)
-    {
-        super(dm);
+        setSeedSelection(seedSelection);
     }
 
     public EMGaussianMixture()
     {
-        super();
+        this(SeedSelection.KPP);
     }
+    
+    /**
+     * Sets the method of seed selection to use for this algorithm.
+     * {@link SeedSelection#KPP} is recommended for this algorithm in
+     * particular.
+     *
+     * @param seedSelection the method of seed selection to use
+     */
+    public void setSeedSelection(SeedSelectionMethods.SeedSelection seedSelection)
+    {
+        this.seedSelection = seedSelection;
+    }
+
+    /**
+     * 
+     * @return the method of seed selection used
+     */
+    public SeedSelectionMethods.SeedSelection getSeedSelection()
+    {
+        return seedSelection;
+    }
+    
+    /**
+     * Sets the maximum number of iterations allowed
+     * @param iterLimit the maximum number of iterations of the ElkanKMeans algorithm 
+     */
+    public void setIterationLimit(int iterLimit)
+    {
+        if(iterLimit < 1)
+            throw new IllegalArgumentException("Iterations must be a positive value, not " + iterLimit);
+        this.MaxIterLimit = iterLimit;
+    }
+
+    /**
+     * Returns the maximum number of iterations of the ElkanKMeans algorithm that will be performed. 
+     * @return the maximum number of iterations of the ElkanKMeans algorithm that will be performed. 
+     */
+    public int getIterationLimit()
+    {
+        return MaxIterLimit;
+    }
+    
     
     /**
      * Copy constructor. The new Gaussian Mixture can be altered without effecting <tt>gm</tt>
@@ -92,13 +130,21 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         }
     }
     
-    @Override
     protected double cluster(final DataSet dataSet, final List<Double> accelCache, final int K, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
     {
-        //Perform intial clustering with ElkanKMeans 
-        super.cluster(dataSet, accelCache, K, means, assignment, exactTotal, threadpool, false);
+        EuclideanDistance dm = new EuclideanDistance();
+        List<List<Double>> means_qi = new ArrayList<List<Double>>();
+        //Pick some initial centers
+        if(means.size() < K)
+        {
+            means.clear();
+            means.addAll(SeedSelectionMethods.selectIntialPoints(dataSet, K, dm, accelCache, new XORWOW(), seedSelection, threadpool));
+            for(Vec v : means)
+                means_qi.add(dm.getQueryInfo(v));
+        }
         
-        //Use the ElkanKMeans result to initalize GuassianMixture 
+        
+        //Use the initial result to initalize GuassianMixture 
         List<Matrix> covariances = new ArrayList<Matrix>(K);
         int dimension = dataSet.getNumNumericalVars();
         for(int k = 0; k < means.size(); k++)
@@ -109,10 +155,23 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         
         //Compute inital Covariances
         Vec scratch = new DenseVector(dimension);
+        List<Vec> X = dataSet.getDataVectors();
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
             Vec x = dataSet.getDataPoint(i).getNumericalValues();
-            int k = assignment[i];
+            //find out which this belongs to 
+            double closest = dm.dist(i, means.get(0), means_qi.get(0), X, accelCache);
+            int k = 0;
+            for(int j = 1; j < K; j++)//TODO move out and make parallel
+            {
+                double d_ij = dm.dist(i, means.get(j), means_qi.get(j), X, accelCache);
+                if(d_ij < closest)
+                {
+                    closest = d_ij;
+                    k = j;
+                }
+            }
+            assignment[i] = k;
             a_k[k]++;
             x.copyTo(scratch);
             scratch.mutableSubtract(means.get(k));
@@ -567,5 +626,55 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         }
         
         return samples;
+    }
+
+    @Override
+    public int[] cluster(DataSet dataSet, int[] designations)
+    {
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), designations);
+    }
+
+    @Override
+    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    {
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), threadpool, designations);
+    }
+
+    @Override
+    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
+    {
+        if(designations == null)
+            designations = new int[dataSet.getSampleSize()];
+        if(dataSet.getSampleSize() < clusters)
+            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+        
+        List<Vec> means = new ArrayList<Vec>(clusters);
+        cluster(dataSet, null, clusters, means, designations, false, threadpool, false);
+        return designations;
+    }
+
+    @Override
+    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
+    {
+        if(designations == null)
+            designations = new int[dataSet.getSampleSize()];
+        if(dataSet.getSampleSize() < clusters)
+            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+        List<Vec> means = new ArrayList<Vec>(clusters);
+        cluster(dataSet, null, clusters, means, designations, false, null, false);
+        
+        return designations;
+    }
+    
+    @Override
+    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
+    {
+        throw new UnsupportedOperationException("EMGaussianMixture does not supported determining the number of clusters"); 
+    }
+
+    @Override
+    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
+    {
+        throw new UnsupportedOperationException("EMGaussianMixture does not supported determining the number of clusters"); 
     }
 }

@@ -73,7 +73,7 @@ public class ElkanKernelKMeans extends KernelKMeans
                 throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
             
             X = dataSet.getDataVectors();
-            setup(k, assignment);
+            setup(k, assignment, dataSet.getDataWeights());
                         
             final double[][] lowerBound = new double[N][k];
             final double[] upperBound = new double[N];
@@ -311,7 +311,7 @@ public class ElkanKernelKMeans extends KernelKMeans
                         public Integer call()
                         {
                             double[] sqrdChange = new double[k];
-                            int[] ownerChange = new int[k];
+                            double[] ownerChange = new double[k];
                             int localChange = 0;
                             for(int q = start; q < end; q++)
                                 localChange += updateMeansFromChange(q, assignment, sqrdChange, ownerChange);

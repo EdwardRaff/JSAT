@@ -18,9 +18,9 @@ import jsat.utils.SystemInfo;
 public class LloydKernelKMeans extends KernelKMeans
 {
 
-	private static final long serialVersionUID = 1880985811243830450L;
+    private static final long serialVersionUID = 1280985811243830450L;
 
-	/**
+    /**
      * Creates a new Kernel K Means object
      * @param kernel the kernel to use
      */
@@ -50,7 +50,7 @@ public class LloydKernelKMeans extends KernelKMeans
         
         X = dataSet.getDataVectors();
         
-        setup(K, designations);
+        setup(K, designations, dataSet.getDataWeights());
         final int[] assignments = designations;
 
         int changed;
@@ -110,7 +110,7 @@ public class LloydKernelKMeans extends KernelKMeans
                     public Integer call() throws Exception
                     {
                         double[] sqrdChange = new double[K];
-                        int[] ownerChange = new int[K];
+                        double[] ownerChange = new double[K];
                         
                         int localChagne = 0;
                         for (int i = ID; i < N; i+=SystemInfo.LogicalCores)
@@ -162,7 +162,7 @@ public class LloydKernelKMeans extends KernelKMeans
         
         X = dataSet.getDataVectors();
         
-        setup(K, designations);
+        setup(K, designations, dataSet.getDataWeights());
         
 
         int changed;

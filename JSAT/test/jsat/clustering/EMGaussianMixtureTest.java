@@ -67,7 +67,7 @@ public class EMGaussianMixtureTest
     public void testCluster_DataSet_int()
     {
         System.out.println("cluster(dataset, int)");
-        EMGaussianMixture em = new EMGaussianMixture(new EuclideanDistance(), new Random(), SeedSelectionMethods.SeedSelection.KPP);
+        EMGaussianMixture em = new EMGaussianMixture(SeedSelectionMethods.SeedSelection.KPP);
         List<List<DataPoint>> clusters = em.cluster(easyData, 4);
         assertEquals(4, clusters.size());
         Set<Integer> seenBefore = new IntSet();
@@ -86,7 +86,7 @@ public class EMGaussianMixtureTest
     public void testCluster_3args_2()
     {
         System.out.println("cluster(dataset, int, threadpool)");
-        EMGaussianMixture em = new EMGaussianMixture(new EuclideanDistance(), new Random(), SeedSelectionMethods.SeedSelection.KPP);
+        EMGaussianMixture em = new EMGaussianMixture(SeedSelectionMethods.SeedSelection.KPP);
         List<List<DataPoint>> clusters = em.cluster(easyData, 4, ex);
         assertEquals(4, clusters.size());
         Set<Integer> seenBefore = new IntSet();

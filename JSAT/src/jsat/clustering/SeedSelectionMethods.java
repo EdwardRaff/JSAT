@@ -122,7 +122,7 @@ public class SeedSelectionMethods
      * @param accelCache the cache of pre-generated acceleration information for the distance metric. May be null
      * @param rand a source of randomness
      * @param selectionMethod  The method of seed selection to use. 
-     * @param threadpool the source of threads for parallel computation 
+     * @param threadpool the source of threads for parallel computation. May be null. 
      * @return a list of the copies of the chosen vectors. 
      */
     static public List<Vec> selectIntialPoints(DataSet d, int k, DistanceMetric dm, List<Double> accelCache, Random rand, SeedSelection selectionMethod, ExecutorService threadpool)
@@ -188,7 +188,7 @@ public class SeedSelectionMethods
      * @param accelCache the cache of pre-generated acceleration information for the distance metric. May be null
      * @param rand a source of randomness
      * @param selectionMethod  The method of seed selection to use. 
-     * @param threadpool the source of threads for parallel computation 
+     * @param threadpool the source of threads for parallel computation. May be null
      */
     static public void selectIntialPoints(DataSet d, int[] indices, DistanceMetric dm, List<Double> accelCache, Random rand, SeedSelection selectionMethod, ExecutorService threadpool)
     {

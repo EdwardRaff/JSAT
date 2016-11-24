@@ -35,9 +35,8 @@ import static java.lang.Math.*;
  */
 public class XMeans extends KMeans 
 {
-
-	private static final long serialVersionUID = -2577160317892141870L;
-	private boolean stopAfterFail = false;
+    private static final long serialVersionUID = -2577160317892141870L;
+    private boolean stopAfterFail = false;
     private boolean iterativeRefine = true;
     
     private int minClusterSize = 25;
@@ -192,7 +191,7 @@ public class XMeans extends KMeans
         if(lowK >= 2)
         {
             means = new ArrayList<Vec>();
-            kmeans.cluster(dataSet, accelCache, lowK, means, designations, true, threadpool, true);
+            kmeans.cluster(dataSet, accelCache, lowK, means, designations, true, threadpool, true, null);
             for(int i = 0; i < data.size(); i++)
             {
                 localVar[designations[i]] += Math.pow(kmeans.nearestCentroidDist[i], 2);
@@ -243,7 +242,7 @@ public class XMeans extends KMeans
                 subC = kmeans.cluster(new SimpleDataSet(X), 2, threadpool, subC);
                 //call explicitly to force that distance to nearest center is saved
                 List<Vec> subMean = new ArrayList<Vec>(2);
-                kmeans.cluster(new SimpleDataSet(X), null, 2, subMean, subC, true, threadpool, true);
+                kmeans.cluster(new SimpleDataSet(X), null, 2, subMean, subC, true, threadpool, true, null);
                 double[] nearDist = kmeans.nearestCentroidDist;
                 Vec c1 = subMean.get(0);
                 Vec c2 = subMean.get(1);
@@ -298,7 +297,7 @@ public class XMeans extends KMeans
             //"Between each round of splitting, we run k-means on the entire dataset and all the centers to refine the current solution"
             if(iterativeRefine && means.size() > 1)
             {
-                kmeans.cluster(dataSet, accelCache, means.size(), means, designations, true, threadpool, true);
+                kmeans.cluster(dataSet, accelCache, means.size(), means, designations, true, threadpool, true, null);
                 Arrays.fill(localVar, 0.0);
                 Arrays.fill(localOwned, 0);
                 for(int i = 0; i < data.size(); i++)
@@ -311,7 +310,7 @@ public class XMeans extends KMeans
         while (origMeans < means.size());
         
         if(!iterativeRefine)//if we havn't been refining we need to do so now!
-            kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false);
+            kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false, null);
         return designations;
     }
     
@@ -348,9 +347,9 @@ public class XMeans extends KMeans
     
 
     @Override
-    protected double cluster(DataSet dataSet, List<Double> accelCache, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(DataSet dataSet, List<Double> accelCache, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError, Vec dataPointWeights)
     {
-        return kmeans.cluster(dataSet, accelCache, k, means, assignment, exactTotal, threadpool, returnError);
+        return kmeans.cluster(dataSet, accelCache, k, means, assignment, exactTotal, threadpool, returnError, null);
     }
 
     @Override
