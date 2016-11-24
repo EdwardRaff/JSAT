@@ -120,9 +120,9 @@ public class HamerlyKMeansTest
     public void testCluster_Weighted()
     {
         System.out.println("cluster(dataset, int, threadpool)");
-        ElkanKMeans kMeans = new ElkanKMeans();
+        HamerlyKMeans kMeans = new HamerlyKMeans();
         kMeans.setStoreMeans(true);
-        ElkanKMeans kMeans2 = new ElkanKMeans();
+        HamerlyKMeans kMeans2 = new HamerlyKMeans();
         kMeans2.setStoreMeans(true);
         
         SimpleDataSet data2 = easyData10.getTwiceShallowClone();
