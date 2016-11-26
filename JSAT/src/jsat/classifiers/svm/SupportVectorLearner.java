@@ -214,7 +214,11 @@ public abstract class SupportVectorLearner implements Serializable
         {
             //guessing 2 work overhead for object header + one pointer reference to the array, asusming 64 bit
             long bytesPerRow = N*DS+3*Long.SIZE/8;
-            setCacheValue((int) Math.min(Math.max(1, bytes/bytesPerRow), Integer.MAX_VALUE));
+            int rows = (int) Math.min(Math.max(1, bytes/bytesPerRow), Integer.MAX_VALUE);
+            if(rows > 25)
+                setCacheValue(rows);
+            else//why bother? just use NONE 
+                setCacheMode(CacheMode.NONE);
         }
     }
 
