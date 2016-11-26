@@ -253,7 +253,6 @@ public abstract class SupportVectorLearner implements Serializable
             fullCache = null;
             partialCache = null;
             availableRow = null;
-            accelCache = null;
             return;
         }
         this.cacheMode = cacheMode;
