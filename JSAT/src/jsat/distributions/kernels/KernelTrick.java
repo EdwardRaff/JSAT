@@ -159,4 +159,14 @@ public interface KernelTrick extends Parameterized, Cloneable, Serializable
      * @return the sum of the multiplied kernel products
      */
     public double evalSum(List<? extends Vec> finalSet, List<Double> cache, double[] alpha, Vec y, List<Double> qi, int start, int end);
+    
+    /**
+     * This method indicates if a kernel is a normalized kernel or not. A
+     * normalized kernel is one in which k(x,x) = 1 for the same object, and no
+     * value greater than 1 can be returned.
+     *
+     * @return {@code true} if this is a normalized kernel. {@code false}
+     * otherwise.
+     */
+    public boolean normalized();
 }

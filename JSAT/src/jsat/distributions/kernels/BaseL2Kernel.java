@@ -20,10 +20,9 @@ import jsat.utils.DoubleList;
 public abstract class BaseL2Kernel implements KernelTrick
 {
 
+    private static final long serialVersionUID = 2917497058710848085L;
 
-	private static final long serialVersionUID = 2917497058710848085L;
-
-	@Override
+    @Override
     abstract public double eval(Vec a, Vec b);
 
     @Override

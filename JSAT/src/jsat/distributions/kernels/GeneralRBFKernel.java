@@ -173,4 +173,10 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
         double median = vals.get(vals.size()/2);
         return new LogUniform(Math.exp(Math.log(median)-4), Math.exp(Math.log(median)+4));
     }
+
+    @Override
+    public boolean normalized()
+    {
+        return true;
+    }
 }

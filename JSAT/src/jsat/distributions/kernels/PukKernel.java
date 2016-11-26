@@ -127,4 +127,9 @@ public class PukKernel extends BaseL2Kernel implements Parameterized
         return RBFKernel.guessSigma(d);
     }
     
+    @Override
+    public boolean normalized()
+    {
+        return true;
+    }
 }

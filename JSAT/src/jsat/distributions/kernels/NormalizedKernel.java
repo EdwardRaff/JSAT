@@ -129,4 +129,9 @@ public class NormalizedKernel implements KernelTrick
         return sum;
     }
     
+    @Override
+    public boolean normalized()
+    {
+        return true;
+    }
 }

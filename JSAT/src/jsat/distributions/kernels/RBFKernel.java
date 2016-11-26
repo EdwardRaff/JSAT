@@ -140,4 +140,10 @@ public class RBFKernel extends BaseL2Kernel
     {
         return GeneralRBFKernel.guessSigma(d, new EuclideanDistance());
     }
+    
+    @Override
+    public boolean normalized()
+    {
+        return true;
+    }
 }

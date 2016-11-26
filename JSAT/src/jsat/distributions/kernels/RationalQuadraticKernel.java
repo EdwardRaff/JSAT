@@ -88,4 +88,10 @@ public class RationalQuadraticKernel extends BaseL2Kernel
         //TODO come up with a better estiamte
         return RBFKernel.guessSigma(d);//suprisingly this seens to work well 
     }
+    
+    @Override
+    public boolean normalized()
+    {
+        return true;
+    }
 }
