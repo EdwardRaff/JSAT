@@ -323,9 +323,9 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      */
     public int findClosestCluster(Vec x, List<Double> qi)
     {
-        double min = distance(x, qi, 0);
-        int min_indx = 0;
-        for(int i  = 1; i < meanSqrdNorms.length; i++)
+        double min = Double.MAX_VALUE;
+        int min_indx = -1;
+        for(int i  = 0; i < meanSqrdNorms.length; i++)
         {
             double dist = distance(x, qi, i);
             if(dist < min)
