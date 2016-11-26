@@ -268,11 +268,15 @@ public abstract class SupportVectorLearner implements Serializable
         {
             fullCache = new double[N][];
             for(int i = 0; i < N; i++)
+            {
                 fullCache[i] = new double[N-i];
+                Arrays.fill(fullCache[i], Double.NaN);
+            }
 
-            for(int i = 0; i < N; i++)
-                for(int j = i; j < N; j++)
-                    fullCache[i][j-i] = k(i, j);
+            //Switched to lazy init, hence NaN above
+//            for(int i = 0; i < N; i++)
+//                for(int j = i; j < N; j++)
+//                    fullCache[i][j-i] = k(i, j);
         }
         else if(cacheMode == CacheMode.ROWS && vecs != null)
         {
@@ -360,7 +364,10 @@ public abstract class SupportVectorLearner implements Serializable
                 b = tmp;
             }
 
-            return fullCache[a][b-a];
+            double val = fullCache[a][b-a];
+            if(Double.isNaN(val))//lazy init
+                return fullCache[a][b-a] = k(a, b);
+            return val;
         }
         else if(cacheMode == CacheMode.ROWS)
         {
