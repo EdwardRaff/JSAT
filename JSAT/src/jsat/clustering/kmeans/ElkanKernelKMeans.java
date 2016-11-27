@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.clustering.ClusterFailureException;
 import jsat.distributions.kernels.KernelTrick;
+import jsat.exceptions.FailedToFitException;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.*;
 import jsat.utils.*;
@@ -100,35 +101,79 @@ public class ElkanKernelKMeans extends KernelKMeans
     private void update_centroid_pair_dots(final int[] prev_assignments, final int[] new_assignments, ExecutorService ex)
     {
         final int N = X.size();
-
-        for(int i = 0; i < N; i++)
+        
+        final int cores_to_use;
+        if(ex == null || ex instanceof FakeExecutor)
         {
-            final double w_i = W.get(i);
-            int old_c_i = prev_assignments[i];
-            int new_c_i = new_assignments[i];
+            ex = new FakeExecutor();
+            cores_to_use = 1;
+        }
+        else
+             cores_to_use = SystemInfo.LogicalCores;
 
-            for(int j = i; j < N; j++)
+        List<Future<double[][]>> futurePairDotChanges = new ArrayList<Future<double[][]>>(cores_to_use);
+        for(int id = 0; id < cores_to_use; id++)
+        {
+            final int ID = id;
+            Future<double[][]> future = ex.submit(new Callable<double[][]>()
             {
-                int old_c_j = prev_assignments[j];
-                int new_c_j = new_assignments[j];
-
-                if(old_c_i == new_c_i && old_c_j == new_c_j)//no class changes
-                    continue;//so we can skip it
-
-                final double w_j = W.get(j);
-                double K_ij = w_i * w_j * kernel.eval(i, j, X, accel);
-                
-                if(old_c_i >= 0 && old_c_j >= 0)
+                @Override
+                public double[][] call() throws Exception
                 {
-                    centroidPairDots[old_c_i][old_c_j] -= K_ij;
-                    centroidPairDots[old_c_j][old_c_i] -= K_ij;
-                }
+                    double[][] localChanges = new double[centroidPairDots.length][centroidPairDots.length];
+                    
+                    for(int i = ID; i < N; i+=cores_to_use)
+                    {
+                        final double w_i = W.get(i);
+                        int old_c_i = prev_assignments[i];
+                        int new_c_i = new_assignments[i];
 
-                centroidPairDots[new_c_i][new_c_j] += K_ij;
-                centroidPairDots[new_c_j][new_c_i] += K_ij;
-            }
+                        for(int j = i; j < N; j++)
+                        {
+                            int old_c_j = prev_assignments[j];
+                            int new_c_j = new_assignments[j];
+
+                            if(old_c_i == new_c_i && old_c_j == new_c_j)//no class changes
+                                continue;//so we can skip it
+
+                            final double w_j = W.get(j);
+                            double K_ij = w_i * w_j * kernel.eval(i, j, X, accel);
+
+                            if(old_c_i >= 0 && old_c_j >= 0)
+                            {
+                                localChanges[old_c_i][old_c_j] -= K_ij;
+                                localChanges[old_c_j][old_c_i] -= K_ij;
+                            }
+
+                            localChanges[new_c_i][new_c_j] += K_ij;
+                            localChanges[new_c_j][new_c_i] += K_ij;
+                        }
+                    }
+                    
+                    return localChanges;
+                }
+            });
+            futurePairDotChanges.add(future);
         }
         
+        for(Future<double[][]> f : futurePairDotChanges)
+        {
+            try
+            {
+                double[][] changes = f.get();
+                for(int i = 0; i < changes.length; i++)
+                    for(int j = 0; j < changes[i].length; j++)
+                        centroidPairDots[i][j] += changes[i][j];
+            }
+            catch (InterruptedException ex1)
+            {
+                throw new FailedToFitException(ex1);
+            }
+            catch (ExecutionException ex1)
+            {
+                throw new FailedToFitException(ex1);
+            }
+        }
     }
     
     /**
@@ -549,32 +594,6 @@ public class ElkanKernelKMeans extends KernelKMeans
             Arrays.fill(prev_assignments, -1);
         }
         final int[] prev_assing = prev_assignments;
-        
-        if(threadpool != null && !(threadpool instanceof FakeExecutor))
-        {
-            //compute self distances
-            for (int i = 0; i < k; i++)
-            {
-                for (int z = i + 1; z < k; z++)
-                {
-                    centroidSelfDistances[i][i] = 0;
-                    centroidSelfDistances[i][z] = centroidSelfDistances[z][i] = meanToMeanDistance(i, z, curAssignments, threadpool);
-                }
-            }
-            
-            //update sC
-            for (int i = 0; i < k; i++)
-            {
-                double sCmin = Double.MAX_VALUE;
-                for (int z = 0; z < k; z++)
-                    if(i != z)
-                        sCmin = Math.min(sCmin, centroidSelfDistances[i][z]);
-                sC[i] = sCmin / 2.0;
-            }
-        
-            return;
-        }
-        //else, single threaded case
         
         //compute self dot-products
         update_centroid_pair_dots(prev_assing, curAssignments, threadpool);
