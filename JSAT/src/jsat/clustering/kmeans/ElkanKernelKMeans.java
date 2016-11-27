@@ -35,6 +35,11 @@ public class ElkanKernelKMeans extends KernelKMeans
      * Distances between centroid i and all other centroids
      */
     private double[][] centroidSelfDistances;
+    
+    /**
+     * un-normalized dot product between centroid i and all other centroids. 
+     */
+    private double[][] centroidPairDots;
 
     /**
      * Creates a new Kernel K Means object
@@ -82,6 +87,51 @@ public class ElkanKernelKMeans extends KernelKMeans
     }
     
     /**
+     * Updates the un-normalized dot product between cluster centers, which is
+     * stored in {@link #centroidPairDots}. Using this method avoids redundant
+     * calculation, only adjusting for the values that have changed.
+     *
+     * @param prev_assignments what the previous assignment of data points to
+     * cluster center looked like
+     * @param new_assignments the new assignment of data points to cluster
+     * centers
+     * @param ex source of threads for parallel computation. May be null.
+     */
+    private void update_centroid_pair_dots(final int[] prev_assignments, final int[] new_assignments, ExecutorService ex)
+    {
+        final int N = X.size();
+
+        for(int i = 0; i < N; i++)
+        {
+            final double w_i = W.get(i);
+            int old_c_i = prev_assignments[i];
+            int new_c_i = new_assignments[i];
+
+            for(int j = i; j < N; j++)
+            {
+                int old_c_j = prev_assignments[j];
+                int new_c_j = new_assignments[j];
+
+                if(old_c_i == new_c_i && old_c_j == new_c_j)//no class changes
+                    continue;//so we can skip it
+
+                final double w_j = W.get(j);
+                double K_ij = w_i * w_j * kernel.eval(i, j, X, accel);
+                
+                if(old_c_i >= 0 && old_c_j >= 0)
+                {
+                    centroidPairDots[old_c_i][old_c_j] -= K_ij;
+                    centroidPairDots[old_c_j][old_c_i] -= K_ij;
+                }
+
+                centroidPairDots[new_c_i][new_c_j] += K_ij;
+                centroidPairDots[new_c_j][new_c_i] += K_ij;
+            }
+        }
+        
+    }
+    
+    /**
      *  This is a helper method where the actual cluster is performed. This is because there
      * are multiple strategies for modifying kmeans, but all of them require this step. 
      * <br>
@@ -119,9 +169,11 @@ public class ElkanKernelKMeans extends KernelKMeans
              * Distances between centroid i and all other centroids
              */
             centroidSelfDistances = new double[k][k];
+            centroidPairDots = new double[k][k];
             final double[] sC = new double[k];
-            calculateCentroidDistances(k, centroidSelfDistances, sC, assignment, threadpool);
-            
+            calculateCentroidDistances(k, centroidSelfDistances, sC, assignment, null, threadpool);
+            final int[] prev_assignment = new int[N];
+                    
             int atLeast = 2;//Used to performan an extra round (first round does not assign)
             final AtomicBoolean changeOccurred = new AtomicBoolean(true);
             final boolean[] r = new boolean[N];//Default value of a boolean is false, which is what we want
@@ -139,7 +191,10 @@ public class ElkanKernelKMeans extends KernelKMeans
                 changeOccurred.set(false);
                 //Step 1 
                 if(iterLimit < maximumIterations-1)//we already did this on before iteration
-                    calculateCentroidDistances(k, centroidSelfDistances, sC, assignment, threadpool);
+                    calculateCentroidDistances(k, centroidSelfDistances, sC, assignment, prev_assignment, threadpool);
+                
+                //Save current assignent for update next iteration
+                System.arraycopy(assignment, 0, prev_assignment, 0, assignment.length);
                 
                 final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
 
@@ -486,9 +541,16 @@ public class ElkanKernelKMeans extends KernelKMeans
         }
     }
 
-    private void calculateCentroidDistances(final int k, final double[][] centroidSelfDistances, final double[] sC, final int[] curAssignments, final ExecutorService threadpool)
+    private void calculateCentroidDistances(final int k, final double[][] centroidSelfDistances, final double[] sC, final int[] curAssignments, int[] prev_assignments, final ExecutorService threadpool)
     {
-        if(threadpool != null)
+        if(prev_assignments == null)
+        {
+            prev_assignments = new int[curAssignments.length];
+            Arrays.fill(prev_assignments, -1);
+        }
+        final int[] prev_assing = prev_assignments;
+        
+        if(threadpool != null && !(threadpool instanceof FakeExecutor))
         {
             //compute self distances
             for (int i = 0; i < k; i++)
@@ -513,10 +575,24 @@ public class ElkanKernelKMeans extends KernelKMeans
             return;
         }
         //else, single threaded case
-        //compute self distances
+        
+        //compute self dot-products
+        update_centroid_pair_dots(prev_assing, curAssignments, threadpool);
+        
+        
+        double[] weight_per_cluster = new double[k];
+        for (int i = 0; i < curAssignments.length; i++)
+            weight_per_cluster[curAssignments[i]] += W.get(i);
+        //normalize dot products and make distances
         for (int i = 0; i < k; i++)
             for (int z = i + 1; z < k; z++)
-                centroidSelfDistances[z][i] = centroidSelfDistances[i][z] = meanToMeanDistance(i, z, curAssignments);
+            {
+                double dot = centroidPairDots[i][z];
+                dot /= (weight_per_cluster[i] * weight_per_cluster[z]);
+
+                double d = meanSqrdNorms[i] * normConsts[i] + meanSqrdNorms[z] * normConsts[z] - 2 * dot;
+                centroidSelfDistances[z][i] = centroidSelfDistances[i][z] = Math.sqrt(Math.max(0, d));//Avoid rare cases wehre 2*dot might be slightly larger
+            }
         
         //update sC
         for (int i = 0; i < k; i++)
