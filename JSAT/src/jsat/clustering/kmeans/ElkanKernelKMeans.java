@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.clustering.ClusterFailureException;
 import jsat.distributions.kernels.KernelTrick;
+import jsat.linear.Vec;
 import jsat.linear.distancemetrics.*;
 import jsat.utils.*;
 import jsat.utils.concurrent.ParallelUtils;
@@ -29,6 +30,11 @@ public class ElkanKernelKMeans extends KernelKMeans
 {
 
     private static final long serialVersionUID = 4998832201379993827L;
+    
+    /**
+     * Distances between centroid i and all other centroids
+     */
+    private double[][] centroidSelfDistances;
 
     /**
      * Creates a new Kernel K Means object
@@ -42,6 +48,37 @@ public class ElkanKernelKMeans extends KernelKMeans
     public ElkanKernelKMeans(ElkanKernelKMeans toCopy)
     {
         super(toCopy);
+    }
+
+    @Override
+    public int findClosestCluster(Vec x, List<Double> qi)
+    {
+        double min = Double.MAX_VALUE;
+        int min_indx = -1;
+        //Use triangle inequality to prune out clusters!
+        boolean[] pruned = new boolean[meanSqrdNorms.length];
+        Arrays.fill(pruned, false);
+        for(int i  = 0; i < meanSqrdNorms.length; i++)
+        {
+            if(ownes[i] <= 1e-15 || pruned[i])
+                continue;
+            
+            double dist = distance(x, qi, i);
+            if(dist < min)
+            {
+                min = dist;
+                min_indx = i;
+            }
+            
+            //we now know d(x, c_i), see who we can prune based off this
+            for(int j = i+1; j < meanSqrdNorms.length; j++)
+            {
+                if(centroidSelfDistances[i][j] >= 2*dist)
+                    pruned[j] = true;
+            }
+        }
+        
+        return min_indx;
     }
     
     /**
@@ -81,7 +118,7 @@ public class ElkanKernelKMeans extends KernelKMeans
             /**
              * Distances between centroid i and all other centroids
              */
-            final double[][] centroidSelfDistances = new double[k][k];
+            centroidSelfDistances = new double[k][k];
             final double[] sC = new double[k];
             calculateCentroidDistances(k, centroidSelfDistances, sC, assignment, threadpool);
             
