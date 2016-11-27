@@ -23,7 +23,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
@@ -31,8 +34,10 @@ import jsat.classifiers.DataPoint;
 import jsat.classifiers.neuralnetwork.RBFNet;
 import jsat.clustering.kmeans.ElkanKernelKMeans;
 import jsat.clustering.kmeans.KernelKMeans;
+import jsat.clustering.kmeans.LloydKernelKMeans;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.distributions.kernels.RBFKernel;
+import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter;
@@ -41,6 +46,7 @@ import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
+import jsat.utils.SystemInfo;
 
 /**
  * This is an implementation of the Divide-and-Conquer Support Vector Machine
@@ -227,6 +233,12 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
     @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
+        final int threads_to_use;
+        if(threadPool instanceof FakeExecutor)
+            threads_to_use = 1;
+        else
+            threads_to_use = SystemInfo.LogicalCores;
+        
         final int N = dataSet.getSampleSize();
         vecs = dataSet.getDataVectors();
         early_models = new ConcurrentHashMap<Integer, SVMnoBias>();
@@ -241,7 +253,7 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
         /**
          * Used to keep track of which sub cluster each training datapoint belongs to
          */
-        int[] group = new int[N];
+        final int[] group = new int[N];
                 
         /**
          * Used to select subsamples of data points for clustering, and to map them back to their original indicies 
@@ -299,19 +311,42 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
                 found_clusters.add(sub_results[i]);
             }
             //find who everyone else belongs to
-            for(int i = 0; i < N; i++)
+            final CountDownLatch latch = new CountDownLatch(threads_to_use);
+            for(int id  = 0; id < threads_to_use; id++)
             {
-                if(group[i] >= 0)
-                    continue;//you already got assigned above
-                
-                List<Double> qi = null;
-                if(accelCache != null)
+                final int ID = id;
+                threadPool.submit(new Runnable()
                 {
-                    int multiplier = accelCache.size()/N;
-                    qi = accelCache.subList(i*multiplier, i*multiplier+multiplier);
-                }
-                group[i] = clusters.findClosestCluster(vecs.get(i), qi);
+                    @Override
+                    public void run()
+                    {
+                        for(int i = ID; i < N; i+=threads_to_use)
+                        {
+                            if(group[i] >= 0)
+                                continue;//you already got assigned above
+
+                            List<Double> qi = null;
+                            if(accelCache != null)
+                            {
+                                int multiplier = accelCache.size()/N;
+                                qi = accelCache.subList(i*multiplier, i*multiplier+multiplier);
+                            }
+                            group[i] = clusters.findClosestCluster(vecs.get(i), qi);
+                        }
+                        latch.countDown();
+                    }
+                });
             }
+            try
+            {
+                latch.await();
+            }
+            catch (InterruptedException ex)
+            {
+                throw new FailedToFitException(ex);
+            }
+            //everyone has now been assigned to their closest cluster
+            
             //build SVM model for each cluster
             for(int c : found_clusters)
             {
