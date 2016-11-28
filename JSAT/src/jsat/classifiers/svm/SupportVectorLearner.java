@@ -9,6 +9,7 @@ import jsat.linear.Vec;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.utils.DoubleList;
 import jsat.utils.ListUtils;
+import jsat.utils.concurrent.ConcurrentCacheLRU;
 
 /**
  * Base class for support vector style learners. This means that the learner
@@ -54,7 +55,8 @@ public abstract class SupportVectorLearner implements Serializable
     /**
      * Stores rows of a cache matrix.
      */
-    private Map<Integer, double[]> partialCache;
+    private ConcurrentCacheLRU<Integer, double[]> partialCache;
+    
     /**
      * Holds an available row for inserting into the cache, null if not
      * available. All values already set to Nan
@@ -284,25 +286,7 @@ public abstract class SupportVectorLearner implements Serializable
         }
         else if(cacheMode == CacheMode.ROWS && vecs != null)
         {
-            partialCache =  Collections.synchronizedMap(new LinkedHashMap<Integer, double[]>(N, 0.75f, true)
-            {
-                private static final long serialVersionUID = 1553368345126287610L;
-
-                @Override
-                protected boolean removeEldestEntry(Map.Entry<Integer, double[]> eldest)
-                {
-                    boolean removeEldest = size() > cacheConst;
-                    if(removeEldest)
-                    {
-                        availableRow = eldest.getValue();
-                        for(int i = 0; i < availableRow.length; i++)
-                            if(!Double.isNaN(availableRow[i]))
-                                availableRow[i] = Double.NaN;
-                        cacheEvictions++;
-                    }
-                    return removeEldest;
-                }
-            });
+            partialCache = new ConcurrentCacheLRU<Integer, double[]>(cacheConst);
         }
         else if(cacheMode == CacheMode.NONE)
             fullCache = null;
@@ -376,37 +360,20 @@ public abstract class SupportVectorLearner implements Serializable
         else if(cacheMode == CacheMode.ROWS)
         {
             double[] cache = partialCache.get(a);
-            if (cache == null)//try seeing if b has a row present
-            {
-                double[] b_cache = partialCache.get(b);
-                if (b_cache != null)
-                    if (Double.isNaN(b_cache[a]))
-                        return b_cache[a] = k(a, b);
-                    else
-                        return b_cache[a];
-            }
-            //else, neither are in - lets go with a
-
             if (cache == null)//not present
             {
-                //get a row
-                if (availableRow != null)
-                {
-                    cache = availableRow;
-                    availableRow = null;
-                }
-                else
-                {
-                    cache = new double[vecs.size()];
-                    Arrays.fill(cache, Double.NaN);
-                }
+                //make a row
+                cache = new double[vecs.size()];
+                Arrays.fill(cache, Double.NaN);
 
-                partialCache.put(a, cache);
+                double[] cache_missed = partialCache.putIfAbsentAndGet(a, cache);
+                if(cache_missed != null)
+                    cache = cache_missed;
 
-                if (Double.isNaN(cache[a]))
-                    return cache[a] = k(a, b);
+                if (Double.isNaN(cache[b]))
+                    return cache[b] = k(a, b);
                 else
-                    return cache[a];
+                    return cache[b];
 
             }
         }
