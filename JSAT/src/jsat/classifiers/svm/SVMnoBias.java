@@ -25,9 +25,22 @@ import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.distributions.kernels.NormalizedKernel;
+import jsat.exceptions.FailedToFitException;
 import jsat.parameters.Parameter;
+import jsat.utils.FakeExecutor;
+import jsat.utils.ListUtils;
+import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.AtomicDouble;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * This class implements a version of the Support Vector Machine without a bias
@@ -126,20 +139,20 @@ public class SVMnoBias extends SupportVectorLearner implements BinaryScoreClassi
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(ClassificationDataSet dataSet)
     {
-        trainC(dataSet);
+        trainC(dataSet, new FakeExecutor());
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         bookKeepingInit(dataSet);
         
         
         double[] nabla_W = procedure3_init();
         
-        solver_1d(nabla_W);
+        solver_1d(nabla_W, threadPool);
         
         
         setCacheMode(null);
@@ -154,20 +167,31 @@ public class SVMnoBias extends SupportVectorLearner implements BinaryScoreClassi
      */
     protected void trainC(ClassificationDataSet dataSet, double[] warm_start)
     {
+        trainC(dataSet, warm_start, new FakeExecutor());
+    }
+    
+    protected void trainC(ClassificationDataSet dataSet, double[] warm_start, ExecutorService ex)
+    {
         bookKeepingInit(dataSet);
         
         for(int i = 0; i < alphas.length; i++)
             alphas[i] = Math.abs(warm_start[i]);
         
-        double[] nabla_W = procedure4m_init();
+        double[] nabla_W = procedure4m_init(ex);
         
-        solver_1d(nabla_W);
+        solver_1d(nabla_W, ex);
         
         setCacheMode(null);
     }
 
-    private void solver_1d(double[] nabla_W)
+    private void solver_1d(final double[] nabla_W, ExecutorService ex)
     {
+        final int threads_to_use;
+        if(ex instanceof FakeExecutor)
+            threads_to_use = 1;
+        else
+            threads_to_use = SystemInfo.LogicalCores;
+        
         final int N = alphas.length;
         final double lambda = 1/(2*C*N);
         //Algorithm 1 1D-SVM solver
@@ -200,15 +224,49 @@ public class SVMnoBias extends SupportVectorLearner implements BinaryScoreClassi
             else if(alphas[i_max] - 1e-7 < 0)//round to 0
                 alphas[i_max] = 0;
             
+            final double delta = best_delta;
+            final int i = i_max;
+            
             //use Procedure 2 to update ∇W(α) in direction i∗ by δ and calculate S(α)
             //T(α)←T(α)−δ(2∇Wi(α)−1−δ)
             T_a -= best_delta*(2*nabla_W[i_max]-1-best_delta);
             double E_a = 0;
-            for(int j = 0; j < N; j++)
+            List<Future<Double>> future_Ea_changes = new ArrayList<Future<Double>>(threads_to_use);
+            for(int id = 0; id < threads_to_use; id++)
             {
-                nabla_W[j] -= best_delta * label[i_max] * label[j] *  kEval(i_max, j);
-                E_a += weights.get(j)*C*min(max(0, nabla_W[j]), 2);
+                final int ID = id;
+                future_Ea_changes.add(ex.submit(new Callable<Double>()
+                {
+                    @Override
+                    public Double call() throws Exception
+                    {
+                        double Ea_delta = 0;
+                        int start = ParallelUtils.getStartBlock(N, ID, threads_to_use);
+                        int end = ParallelUtils.getEndBlock(N, ID, threads_to_use);
+                        for(int j = start; j < end; j++)
+                        {
+                            nabla_W[j] -= delta * label[i] * label[j] *  kEval(i, j);
+                            Ea_delta += weights.get(j)*C*min(max(0, nabla_W[j]), 2);
+                        }
+                        
+                        return Ea_delta;
+                    }
+                }));
             }
+            for(Future<Double> f : future_Ea_changes)
+                try
+                {
+                    E_a += f.get();
+                }
+                catch (InterruptedException ex1)
+                {
+                    throw new FailedToFitException(ex1);
+                }
+                catch (ExecutionException ex1)
+                {
+                    throw new FailedToFitException(ex1);
+                }
+            
             S_a = T_a + E_a;
         }
 
@@ -232,27 +290,69 @@ public class SVMnoBias extends SupportVectorLearner implements BinaryScoreClassi
         return nabla_W;
     }
     
-    private double[] procedure4m_init()
+    private double[] procedure4m_init(ExecutorService ex)
     {
-        int N = alphas.length;
+        final int threads_to_use;
+        if(ex instanceof FakeExecutor)
+            threads_to_use = 1;
+        else
+            threads_to_use = SystemInfo.LogicalCores;
+        final int N = alphas.length;
         //Procedure 3 Initialize by αi←0 and compute ∇W(α), S(α), and T(α).
         T_a = 0;
-        double E_a = 0;
-        double[] nabla_W = new double[N];
-        for(int i = 0; i < N; i++)
-        {
-            nabla_W[i] = 1;
-            for(int j = 0; j < N; j++)
-            {
-                if(alphas[j] != 0)
-                    nabla_W[i] -= alphas[j] * label[i] * label[j] * kEval(i, j);
-            }
-            
-            T_a -= alphas[i]*nabla_W[i];
-            E_a += weights.get(i)*C*min(max(nabla_W[i], 0), 2);
-        }
+        final AtomicDouble E_a = new AtomicDouble(0.0);
+        final double[] nabla_W = new double[N];
         
-        S_a = T_a + E_a; 
+        
+        List<Future<Double>> future_Ea_changes = new ArrayList<Future<Double>>(threads_to_use);
+        for (int id = 0; id < threads_to_use; id++)
+        {
+            final int ID = id;
+            future_Ea_changes.add(ex.submit(new Callable<Double>()
+            {
+                @Override
+                public Double call() throws Exception
+                {
+                    double Ta_delta = 0;
+                    double Ea_delta = 0;
+                    int start = ParallelUtils.getStartBlock(N, ID, threads_to_use);
+                    int end = ParallelUtils.getEndBlock(N, ID, threads_to_use);
+                    for(int i = start; i < end; i++)
+                    {
+                        nabla_W[i] = 1;
+                        double nabla_Wi_delta = 0;
+                        for(int j = 0; j < N; j++)
+                        {
+                            if(alphas[j] != 0)
+                                nabla_Wi_delta -= alphas[j] * label[i] * label[j] * kEval(i, j);
+                        }
+                        nabla_W[i] += nabla_Wi_delta;
+
+                        Ta_delta -= alphas[i]*nabla_W[i];
+                        Ea_delta += weights.get(i)*C*min(max(nabla_W[i], 0), 2);
+                    }
+                    
+                    E_a.addAndGet(Ea_delta);
+
+                    return Ta_delta;
+                }
+            }));
+        }
+        for (Future<Double> f : future_Ea_changes)
+            try
+            {
+                T_a += f.get();
+            }
+            catch (InterruptedException ex1)
+            {
+                throw new FailedToFitException(ex1);
+            }
+            catch (ExecutionException ex1)
+            {
+                throw new FailedToFitException(ex1);
+            }
+        
+        S_a = T_a + E_a.get(); 
         return nabla_W;
     }
 

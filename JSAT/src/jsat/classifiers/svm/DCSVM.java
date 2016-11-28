@@ -365,17 +365,17 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
                 }
 
                 SVMnoBias svm = new SVMnoBias(getKernel());
-                if(cache_size/found_clusters.size() > 0)
-                    svm.setCacheSize(V_alphas.size(), cache_size/found_clusters.size());
+                if(cache_size > 0)
+                    svm.setCacheSize(V_alphas.size(), cache_size);
                 else
                     svm.setCacheMode(CacheMode.NONE);
                 
                 //Train model
                 if(l == l_max)//first round, no warm start
-                    svm.trainC(V_c);
+                    svm.trainC(V_c, threadPool);
                 else//warm start
                 {
-                    svm.trainC(V_c, V_alphas.getBackingArray());
+                    svm.trainC(V_c, V_alphas.getBackingArray(), threadPool);
                 }
                 early_models.put(c, svm);
                 
