@@ -412,7 +412,7 @@ public class TSNE implements VisualizationTransform
             List<? extends VecPaired<Vec, Double>> n_i = neighbors.get(i);
             double min = n_i.get(1).getPair();
             double max = n_i.get(Math.min(knn, n_i.size()-1)).getPair();
-            minSigma.set(Math.min(minSigma.get(), min));
+            minSigma.set(Math.min(minSigma.get(), Math.max(min, 1e-9)));//avoid seting 0 as min
             maxSigma.set(Math.max(maxSigma.get(), max));
         }
         
@@ -437,7 +437,7 @@ public class TSNE implements VisualizationTransform
                             tryAgain = false;
                             try
                             {
-                                double sigma_i = Zeroin.root(1e-1, 100, minSigma.get(), maxSigma.get(), 0, new FunctionBase()
+                                double sigma_i = Zeroin.root(1e-2, 100, minSigma.get(), maxSigma.get(), 0, new FunctionBase()
                                 {
                                     @Override
                                     public double f(Vec x)

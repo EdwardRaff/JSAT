@@ -234,10 +234,13 @@ public class LargeViz implements VisualizationTransform
         double negSum = 0;
         for(int i = 0; i < N; i++)
         {
-            double sum = negSampleWeight[i] = DenseVector.toDenseVec(nearMePij[i]).sum();
+            double sum = DenseVector.toDenseVec(nearMePij[i]).sum();
+            sum += nearMePij[i].length*Double.MIN_VALUE;
+            negSampleWeight[i] = sum;
+            
             nearMeSample[i][0] = nearMePij[i][0];
             for(int j = 1; j < knn; j++)//make cumulative
-                nearMeSample[i][j] = nearMePij[i][j] + nearMeSample[i][j-1];
+                nearMeSample[i][j] = Math.ulp(nearMePij[i][j]) + nearMePij[i][j] + nearMeSample[i][j-1];
             for(int j = 1; j < knn; j++)//normalize
                 nearMeSample[i][j] /= sum;
             negSampleWeight[i] = Math.pow(negSampleWeight[i], 0.75);
@@ -340,6 +343,11 @@ public class LargeViz implements VisualizationTransform
                         int j = Arrays.binarySearch(nearMeSample[i], l_rand.nextDouble());
                         if (j < 0)
                             j = -(j) - 1;
+                        if(j >= knn)///oops. Can be hard to sample / happen with lots of near by near 0 dists
+                        {
+                            //lets fall back to picking someone at random
+                            j = l_rand.nextInt(knn);
+                        }
                         j = nearMe[i][j];
 
                         Vec y_i = embeded.get(i);
