@@ -56,6 +56,16 @@ public abstract class SupportVectorLearner implements Serializable
      * Stores rows of a cache matrix.
      */
     private ConcurrentCacheLRU<Integer, double[]> partialCache;
+    /**
+     * We allow algorithms that know they are going to access a specific row to
+     * hint, and save that row in this object to avoid overhead of hitting the
+     * LRU. See {@link #accessingRow(int) }
+     */
+    private double[] specific_row_cache_values = null;
+    /**
+     * The row that has been explicitly cached
+     */
+    private int specific_row_cache_row = -1;
     
     /**
      * Holds an available row for inserting into the cache, null if not
@@ -359,7 +369,11 @@ public abstract class SupportVectorLearner implements Serializable
         }
         else if(cacheMode == CacheMode.ROWS)
         {
-            double[] cache = partialCache.get(a);
+            double[] cache;
+            if(specific_row_cache_row == a)
+                cache = specific_row_cache_values;
+            else
+                cache = partialCache.get(a);
             if (cache == null)//not present
             {
                 //make a row
@@ -378,6 +392,45 @@ public abstract class SupportVectorLearner implements Serializable
             }
         }
         return k(a, b);
+    }
+    
+    /**
+     * This method allows the caller to hint that they are about to access many
+     * kernel values for a specific row. The row may be selected out from the
+     * cache into its own location to avoid excess LRU overhead. Giving a
+     * negative index indicates that we are done with the row, and removes it.
+     * This method may be called multiple times with different row values. But
+     * when done accessing a specific row, a negative value should be passed in.
+     *
+     *
+     * @param r the row to cache explicitly to avoid LRU overhead. Or a negative
+     * value to indicate that we are done with any specific row.
+     */
+    protected void accessingRow(int r)
+    {
+        if (r < 0)
+        {
+            specific_row_cache_row = -1;
+            specific_row_cache_values = null;
+            return;
+        }
+        
+        if(cacheMode == CacheMode.ROWS)
+        {
+            double[] cache = partialCache.get(r);
+            if (cache == null)//not present
+            {
+                //make a row
+                cache = new double[vecs.size()];
+                Arrays.fill(cache, Double.NaN);
+
+                double[] cache_missed = partialCache.putIfAbsentAndGet(r, cache);
+                if(cache_missed != null)
+                    cache = cache_missed;
+            }
+            specific_row_cache_values = cache;
+            specific_row_cache_row = r;
+        }
     }
 
     /**

@@ -232,6 +232,7 @@ public class SVMnoBias extends SupportVectorLearner implements BinaryScoreClassi
             T_a -= best_delta*(2*nabla_W[i_max]-1-best_delta);
             double E_a = 0;
             List<Future<Double>> future_Ea_changes = new ArrayList<Future<Double>>(threads_to_use);
+            accessingRow(i);//hint to caching scheme
             for(int id = 0; id < threads_to_use; id++)
             {
                 final int ID = id;
@@ -269,6 +270,7 @@ public class SVMnoBias extends SupportVectorLearner implements BinaryScoreClassi
             
             S_a = T_a + E_a;
         }
+        accessingRow(-1);//no more row accesses
 
         //collapse label into signed alphas
         for(int i = 0; i < label.length; i++)
