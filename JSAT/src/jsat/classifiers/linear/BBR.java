@@ -96,6 +96,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
      */
     public BBR(int maxIterations)
     {
+        this(1e-3, maxIterations, Prior.LAPLACE);
     }
 
     /**
@@ -544,7 +545,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
         return numer / denom;
     }
 
-@Override
+    @Override
     public List<Parameter> getParameters()
     {
         return Parameter.getParamsFromMethods(this);
