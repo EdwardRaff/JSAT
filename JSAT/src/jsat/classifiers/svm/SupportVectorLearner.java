@@ -434,12 +434,15 @@ public abstract class SupportVectorLearner implements Serializable
     }
 
     /**
-     * Internal kernel eval source
+     * Internal kernel eval source. Only call directly if you KNOW you will not
+     * be re-using the resulting value and intentionally wish to skip the
+     * caching system
+     *
      * @param a the first vector index
      * @param b the second vector index
      * @return the kernel evaluation of k(a, b)
      */
-    private double k(int a, int b)
+    protected double k(int a, int b)
     {
         evalCount++;
         return kernel.eval(a, b, vecs, accelCache);

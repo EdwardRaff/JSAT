@@ -325,8 +325,21 @@ public class SVMnoBias extends SupportVectorLearner implements BinaryScoreClassi
                         double nabla_Wi_delta = 0;
                         for(int j = 0; j < N; j++)
                         {
-                            if(alphas[j] != 0)
-                                nabla_Wi_delta -= alphas[j] * label[i] * label[j] * kEval(i, j);
+                            if(alphas[j] == 0)
+                                continue;
+                            //We call k instead of kEval b/c we are accing most 
+                            //of the n^2 values, so nothing will get to stay in 
+                            //cache. Unless we are using FULL cacheing, in which
+                            //case we will get re-use. 
+                            //Using k avoids LRU overhead which can be significant
+                            //for fast to evaluate datasets
+                            double k_ij;
+                            if(getCacheMode() == CacheMode.FULL)
+                                k_ij = kEval(i, j);
+                            else
+                                k_ij = k(i, j);
+                            
+                            nabla_Wi_delta -= alphas[j] * label[i] * label[j] * k_ij;
                         }
                         nabla_W[i] += nabla_Wi_delta;
 
