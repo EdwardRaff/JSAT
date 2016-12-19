@@ -269,11 +269,19 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
             //Set number of clusters in the current level k_l = k^l
             int k_l = (int) Math.pow(k, l);
             
+            //number of datapoints to use in clustering 
+            //increase M = m by default. Increase to M=7 m if less than 7 points per cluster
+            int M;
+            if( N/k_l < 7 )
+                M = k_l*7;
+            else
+                M = m;
+            
             if(l == l_max)
             {
                 ListUtils.addRange(indicies, 0, N, 1);
                 Collections.shuffle(indicies);
-                for(int i = 0; i < Math.min(m, N); i++)
+                for(int i = 0; i < Math.min(M, N); i++)
                     toCluster.addDataPoint(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i));
             }
             else
@@ -283,7 +291,7 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
                     if(alphas[i] != 0)
                         indicies.add(i);
                 Collections.shuffle(indicies);
-                for(int i = 0; i < Math.min(m, indicies.size()); i++)
+                for(int i = 0; i < Math.min(M, indicies.size()); i++)
                     toCluster.addDataPoint(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i));
             }
             //Run kernel kmeans on {xi1, . . . ,xim} to get cluster centers c1, . . . , ckl ;
@@ -392,8 +400,9 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
                 svm.setCacheSize(dataSet.getSampleSize(), cache_size );
             else
                 svm.setCacheMode(CacheMode.NONE);
-            svm.trainC(dataSet, Arrays.copyOf(this.alphas, this.alphas.length));
+            svm.trainC(dataSet, Arrays.copyOf(this.alphas, this.alphas.length), threadPool);
             
+            early_models.clear();
             early_models.put(0, svm);
 
             //Update all alphas
