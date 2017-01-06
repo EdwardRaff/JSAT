@@ -69,7 +69,7 @@ public class BaggingTest
 
         Bagging instance = new Bagging((Regressor)new DecisionTree());
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(5000, new XORWOW());
         RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
@@ -88,7 +88,7 @@ public class BaggingTest
 
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(5000, new XORWOW());
         RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
@@ -109,7 +109,7 @@ public class BaggingTest
 
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
+        ClassificationDataSet train = FixedProblems.getCircles(5000, .1, 10.0);
         ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
 
         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
@@ -128,7 +128,7 @@ public class BaggingTest
 
         Bagging instance = new Bagging((Classifier)new DecisionTree());
 
-        ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
+        ClassificationDataSet train = FixedProblems.getCircles(5000, .1, 10.0);
         ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
 
         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
