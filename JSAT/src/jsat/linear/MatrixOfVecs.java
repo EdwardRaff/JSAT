@@ -152,6 +152,21 @@ public class MatrixOfVecs extends GenericMatrix
     {
         rows.get(i).mutableAdd(c, b);
     }
+    
+    @Override
+    public void multiply(Vec b, double z, Vec c)
+    {
+        if(this.cols() != b.length())
+            throw new ArithmeticException("Matrix dimensions do not agree, [" + rows() +"," + cols() + "] x [" + b.length() + ",1]" );
+        if(this.rows() != c.length())
+            throw new ArithmeticException("Target vector dimension does not agree with matrix dimensions. Matrix has " + rows() + " rows but tagert has " + c.length());
+
+        for (int i = 0; i < rows(); i++)
+        {
+            double dot = this.rows.get(i).dot(b);
+            c.increment(i, dot * z);
+        }
+    }
 
     @Override
     public void mutableMultiply(double c)
