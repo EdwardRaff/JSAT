@@ -158,14 +158,15 @@ public class BinomialTest
         instance.setTrials(7);
         instance.setP(0.5);
         
-        Vec samples = instance.sampleVec(10000, new XORWOW());
-        
+        //use odd number so median is always an actual int
+        Vec samples = instance.sampleVec(10001, new XORWOW());
+
         assertEquals(instance.mean(), samples.mean(), 2e-1);
-//        assertEquals(instance.median(), samples.median(), 1e-1);
-        assertTrue(samples.median() == 3 || samples.median() == 4);//two vali values for this case
+    //  assertEquals(instance.median(), samples.median(), 1e-1);
+        double median = samples.median();
+        assertTrue(median == 3 || median == 4);//two vali values for this case
         assertEquals(instance.variance(), samples.variance(), 2e-1);
         assertEquals(instance.standardDeviation(), samples.standardDeviation(), 2e-1);
         assertEquals(instance.skewness(), samples.skewness(), 2e-1);
-        
     }
 }
