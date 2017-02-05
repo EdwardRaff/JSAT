@@ -152,20 +152,18 @@ public class RandomBallCoverTest
                     List<? extends VecPaired<Vec, Double>> foundTest0 = collection0.search(vecCol.get(randIndex), neighbours);
                     List<? extends VecPaired<Vec, Double>> foundTest1 = collection1.search(vecCol.get(randIndex), neighbours);
 
-                    VectorArray<VecPaired<Vec, Double>>  testSearch0 = new VectorArray<VecPaired<Vec, Double>>(new EuclideanDistance(), foundTest0);
                     assertEquals(factory.getClass().getName() + " failed", foundTrue.size(), foundTest0.size());
-                    for(Vec v : foundTrue)
+                    for(int i = 0; i < foundTrue.size(); i++)
                     {
-                        List<? extends VecPaired<VecPaired<Vec, Double>, Double>> nn = testSearch0.search(v, 1);
-                        assertTrue(factory.getClass().getName() + " failed", nn.get(0).equals(v, 1e-13));
+                        assertTrue(factory.getClass().getName() + " failed " + (i+1) + "'th / " + neighbours + " " + foundTrue.get(i).pNormDist(2, foundTest0.get(i)),
+                                foundTrue.get(i).equals(foundTest0.get(i), 1e-13));
                     }
                     
-                    VectorArray<VecPaired<Vec, Double>>  testSearch1 = new VectorArray<VecPaired<Vec, Double>>(new EuclideanDistance(), foundTest1);
                     assertEquals(factory.getClass().getName() + " failed " + neighbours, foundTrue.size(), foundTest1.size());
-                    for(Vec v : foundTrue)
+                    for(int i = 0; i < foundTrue.size(); i++)
                     {
-                        List<? extends VecPaired<VecPaired<Vec, Double>, Double>> nn = testSearch1.search(v, 1);
-                        assertTrue(factory.getClass().getName() + " failed " + neighbours, nn.get(0).equals(v, 1e-13));
+                        assertTrue(factory.getClass().getName() + " failed " + (i+1) + "'th / " + neighbours + " " + foundTrue.get(i).pNormDist(2, foundTest1.get(i)),
+                                foundTrue.get(i).equals(foundTest1.get(i), 1e-13));
                     }
                     
 

@@ -10,11 +10,7 @@ import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.VecPairedComparable;
 import jsat.linear.distancemetrics.DistanceMetric;
-import jsat.utils.BoundedSortedList;
-import jsat.utils.DoubleList;
-import jsat.utils.FakeExecutor;
-import jsat.utils.IntList;
-import jsat.utils.ListUtils;
+import jsat.utils.*;
 import static jsat.utils.SystemInfo.LogicalCores;
 
 /**
@@ -35,8 +31,8 @@ import static jsat.utils.SystemInfo.LogicalCores;
 public class RandomBallCover<V extends Vec> implements VectorCollection<V>
 {
 
-	private static final long serialVersionUID = 2437771973228849200L;
-	private DistanceMetric dm;
+    private static final long serialVersionUID = 2437771973228849200L;
+    private DistanceMetric dm;
     /**
      * The indices match with their representatives in R
      */
@@ -231,7 +227,23 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
         for (int i = 0; i < R.size(); i++)
             if ((queryRDists[i] = dm.dist(R.get(i), query, qi, allVecs, distCache)) < queryRDists[bestRep])
                 bestRep = i;
+        //Other cluster reps R will get a chance to be added to the list later
         knn.add(new VecPairedComparable<V, Double>(allVecs.get(R.get(bestRep)), queryRDists[bestRep]));
+        
+        //need k'th nearest representative R for bounds check
+        int kth_best_rept;
+        if(neighbors == 1)
+            kth_best_rept = bestRep;
+        else if(neighbors < R.size())//need teh k'th closest, but if less than K we can't sure that bound
+        {
+            //TODO something more efficient here, all we really need is the dist too
+            IndexTable it = new IndexTable(queryRDists);
+            kth_best_rept = it.index(neighbors-1);
+        }
+        else
+        {
+            kth_best_rept = -1;//if somone uses this we will get an IndexOutOfBound, telling us about the bug! 
+        }
 
         for (int v : ownedVecs.get(bestRep))
             knn.add(new VecPairedComparable<V, Double>(allVecs.get(v), dm.dist(v, query, qi, allVecs, distCache)));
@@ -242,12 +254,15 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
             if (i == bestRep)
                 continue;
 
-            //Prune out representatives that are just too far
-            if (queryRDists[i] > knn.last().getPair() + repRadius[i])
-                continue;
-            //TODO this bound from the paper seems to not be working... figure out why
-//            else if (queryRDists[i] > 3 * queryRDists[bestRep])
-//                continue;
+            if(knn.size() == neighbors)//no prunnig until we reach k-nns
+            {
+                //Prune out representatives that are just too far
+                if (queryRDists[i] > knn.last().getPair() + repRadius[i])
+                    continue;
+                //check to make sure we can use this bound before attempting
+                else if (kth_best_rept >= 0 && queryRDists[i] > 3 * queryRDists[kth_best_rept])
+                    continue;
+            }
 
             //Add any new nn imediatly, hopefully shrinking the bound before
             //the next representative is tested
@@ -256,7 +271,7 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
             {
                 double rDist = ownedRDists.get(i).getD(j);
                 //Check the first inequality on a per point basis
-                if (queryRDists[i] > knn.last().getPair() + rDist)
+                if (knn.size() == neighbors && queryRDists[i] > knn.last().getPair() + rDist)
                     continue;
                 int indx = ownedVecs.get(i).get(j);
                 V v = allVecs.get(indx);
