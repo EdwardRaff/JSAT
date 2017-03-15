@@ -99,6 +99,55 @@ public class VectorCollectionUtils
     }
     
     /**
+     * Searches the given collection for all the neighbors within a distance of <tt>radius</tt> for every data point in the given search list. 
+     * @param <V0> the vector type in the collection
+     * @param <V1> the type of vector in the search collection 
+     * @param collection the collection to search from
+     * @param search the vectors to search for
+     * @param radius the distance to search for neighbors 
+     * @param threadpool the source of threads to perform the computation in parallel 
+     * @return The list of lists for all nearest neighbors 
+     */
+    public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allEpsNeighbors(final VectorCollection<V0> collection, List<V1> search, final double radius, ExecutorService threadpool)
+    {
+        List<List<? extends VecPaired<V0, Double>>> results = new ArrayList<List<? extends VecPaired<V0, Double>>>(search.size());
+        List<Future<List<List<? extends VecPaired<V0, Double>>>>> subResults = new ArrayList<Future<List<List<? extends VecPaired<V0, Double>>>>>(LogicalCores);
+        
+        for(final List<V1> subSearch : ListUtils.splitList(search, LogicalCores))
+        {
+            subResults.add(threadpool.submit(new Callable<List<List<? extends VecPaired<V0, Double>>>>() {
+
+                @Override
+                public List<List<? extends VecPaired<V0, Double>>> call() throws Exception
+                {
+                    List<List<? extends VecPaired<V0, Double>>> subResult = new ArrayList<List<? extends VecPaired<V0, Double>>>(subSearch.size());
+                    
+                    for(Vec v : subSearch )
+                        subResult.add(collection.search(v, radius));
+                    
+                    return subResult;
+                }
+            }));
+        }
+
+        try
+        {
+            for (List<List<? extends VecPaired<V0, Double>>> subResult : ListUtils.collectFutures(subResults))
+                results.addAll(subResult);
+        }
+        catch (ExecutionException ex)
+        {
+            Logger.getLogger(VectorCollectionUtils.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(VectorCollectionUtils.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return results;
+    }
+    
+    /**
      * Searches the given collection for the <tt>k</tt> nearest neighbors for every data point in the given search list. 
      * @param <V0> the vector type in the collection
      * @param <V1> the type of vector in the search collection 
