@@ -61,7 +61,7 @@ public class ModifiedOWLQNTest
     {
         System.out.println("optimize");
         Random rand = RandomUtil.getRandom();
-        Vec x0 = new DenseVector(10);
+        Vec x0 = new DenseVector(3);//D=3 means one local minima for easy evaluation
         for(int i = 0; i < x0.length(); i++)
             x0.set(i, rand.nextDouble()+0.5);
 
@@ -84,7 +84,7 @@ public class ModifiedOWLQNTest
     {
         System.out.println("optimize");
         Random rand = RandomUtil.getRandom();
-        Vec x0 = new DenseVector(10);
+        Vec x0 = new DenseVector(3);//D=3 means one local minima for easy evaluation
         for(int i = 0; i < x0.length(); i++)
             x0.set(i, rand.nextDouble()+0.5);
 

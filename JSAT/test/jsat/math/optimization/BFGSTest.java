@@ -51,7 +51,7 @@ public class BFGSTest
     {
         System.out.println("optimize");
         Random rand = RandomUtil.getRandom();
-        Vec x0 = new DenseVector(20);
+        Vec x0 = new DenseVector(3);//D=3 means one local minima for easy evaluation
         for(int i = 0; i < x0.length(); i++)
             x0.set(i, rand.nextDouble()+0.5);//make sure we get to the right local optima
 
