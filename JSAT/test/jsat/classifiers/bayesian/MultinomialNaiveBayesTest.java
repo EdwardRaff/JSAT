@@ -24,7 +24,7 @@ import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.datatransform.DataTransformProcess;
 import jsat.datatransform.NumericalToHistogram;
 import jsat.utils.SystemInfo;
-import jsat.utils.random.XOR96;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -75,8 +75,8 @@ public class MultinomialNaiveBayesTest
 
             ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-            ClassificationDataSet train =  FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
-            ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
+            ClassificationDataSet train =  FixedProblems.getSimpleKClassLinear(10000, 3, RandomUtil.getRandom());
+            ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, RandomUtil.getRandom());
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             if(useCatFeatures)
@@ -98,8 +98,8 @@ public class MultinomialNaiveBayesTest
             MultinomialNaiveBayes instance = new MultinomialNaiveBayes();
             
 
-            ClassificationDataSet train =  FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
-            ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
+            ClassificationDataSet train =  FixedProblems.getSimpleKClassLinear(10000, 3, RandomUtil.getRandom());
+            ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, RandomUtil.getRandom());
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             if(useCatFeatures)
@@ -119,8 +119,8 @@ public class MultinomialNaiveBayesTest
         {
             MultinomialNaiveBayes instance = new MultinomialNaiveBayes();
             
-            ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
-            ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, new XOR96());
+            ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, RandomUtil.getRandom());
+            ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, RandomUtil.getRandom());
             if(useCatFeatures)
             {
                 t1.applyTransform(new NumericalToHistogram(t1));

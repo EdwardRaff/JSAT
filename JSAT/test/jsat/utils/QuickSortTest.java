@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -50,7 +51,7 @@ public class QuickSortTest
     public void testSortD()
     {
         System.out.println("sort");
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         for(int size = 2; size < 10000; size*=2)
         {
             double[] x = new double[size];

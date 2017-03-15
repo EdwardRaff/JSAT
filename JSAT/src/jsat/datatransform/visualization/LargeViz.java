@@ -31,6 +31,7 @@ import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -190,13 +191,13 @@ public class LargeViz implements VisualizationTransform
     @Override
     public <Type extends DataSet> Type transform(DataSet<Type> d, ExecutorService ex)
     {
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         final ThreadLocal<Random> local_rand = new ThreadLocal<Random>()
         {
             @Override
             protected Random initialValue()
             {
-                return new XORWOW();
+                return RandomUtil.getRandom();
             }
         };
         final int N = d.getSampleSize();

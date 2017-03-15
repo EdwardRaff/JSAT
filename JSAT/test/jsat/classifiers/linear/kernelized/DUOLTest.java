@@ -9,6 +9,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -57,8 +58,8 @@ public class DUOLTest
 
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-        ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+        ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, RandomUtil.getRandom());
+        ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, RandomUtil.getRandom());
 
         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
         cme.evaluateTestSet(test);
@@ -76,8 +77,8 @@ public class DUOLTest
 
         DUOL instance = new DUOL(new RBFKernel(0.5));
         
-        ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-        ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+        ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, RandomUtil.getRandom());
+        ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, RandomUtil.getRandom());
 
         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
@@ -93,8 +94,8 @@ public class DUOLTest
 
         DUOL instance = new DUOL(new RBFKernel(0.5));
         
-        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, RandomUtil.getRandom());
+        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, RandomUtil.getRandom(), 2.0, 10.0);
 
         instance = instance.clone();
 

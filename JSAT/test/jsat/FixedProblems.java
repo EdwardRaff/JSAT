@@ -8,6 +8,7 @@ import jsat.linear.DenseVector;
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -51,7 +52,7 @@ public class FixedProblems
      */
     public static ClassificationDataSet getSimpleKClassLinear(int dataSetSize, int K)
     {
-        return getSimpleKClassLinear(dataSetSize, K, new XORWOW());
+        return getSimpleKClassLinear(dataSetSize, K, RandomUtil.getRandom());
     }
     /**
      * Generates a linearly separable multi class problem 
@@ -148,7 +149,7 @@ public class FixedProblems
     }
     public static ClassificationDataSet getCircles(int dataSetSize, double... radi )
     {
-        return getCircles(dataSetSize, new XORWOW(), radi);
+        return getCircles(dataSetSize, RandomUtil.getRandom(), radi);
     }
     
     public static ClassificationDataSet getCircles(int dataSetSize, Random rand, double... radi )

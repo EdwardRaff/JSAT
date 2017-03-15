@@ -14,7 +14,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.utils.DoubleList;
 import jsat.utils.IntSet;
-import jsat.utils.random.XOR96;
+import jsat.utils.random.RandomUtil;
 
 /**
  * An implementation of the Nystrom approximation for any Kernel Trick. The full
@@ -171,7 +171,7 @@ public class Nystrom extends DataTransformBase
     @Override
     public void fit(DataSet dataset)
     {
-        Random rand = new XOR96();
+        Random rand = RandomUtil.getRandom();
 
         if(ridge < 0)
             throw new IllegalArgumentException("ridge must be positive, not " + ridge);

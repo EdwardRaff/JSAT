@@ -27,6 +27,7 @@ import jsat.linear.DenseVector;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.RegressionModelEvaluation;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -77,8 +78,8 @@ public class RandomForestTest
         {
             RandomForest instance = new RandomForest();
 
-            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW(), coefs);
-            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(), coefs);
+            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, RandomUtil.getRandom(), coefs);
+            RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom(), coefs);
 
             RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
             if(useCatFeatures)
@@ -97,8 +98,8 @@ public class RandomForestTest
         {
             RandomForest instance = new RandomForest();
 
-            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW(), coefs);
-            RegressionDataSet test = FixedProblems.getLinearRegression(1000, new XORWOW(), coefs);
+            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, RandomUtil.getRandom(), coefs);
+            RegressionDataSet test = FixedProblems.getLinearRegression(1000, RandomUtil.getRandom(), coefs);
             
             train.applyTransform(new InsertMissingValuesTransform(0.1));
             test.applyTransform(new InsertMissingValuesTransform(0.01));
@@ -123,8 +124,8 @@ public class RandomForestTest
             
             ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW(), coefs);
-            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(), coefs);
+            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, RandomUtil.getRandom(), coefs);
+            RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom(), coefs);
 
             RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
             if(useCatFeatures)
@@ -152,7 +153,7 @@ public class RandomForestTest
             {
                 ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
                 //RF may not get boundry perfect, so use noiseless for testing
-                ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, new XORWOW(), 1.0, 10.0, 100.0);
+                ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, RandomUtil.getRandom(), 1.0, 10.0, 100.0);
 
                 ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
                 if(useCatFeatures)
@@ -181,7 +182,7 @@ public class RandomForestTest
             {
                 ClassificationDataSet train =  FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
                 //RF may not get boundry perfect, so use noiseless for testing
-                ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, new XORWOW(), 1.0, 10.0, 100.0);
+                ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, RandomUtil.getRandom(), 1.0, 10.0, 100.0);
 
                 ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
                 if(useCatFeatures)
@@ -208,7 +209,7 @@ public class RandomForestTest
             {
                 ClassificationDataSet train =  FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
                 //RF may not get boundry perfect, so use noiseless for testing
-                ClassificationDataSet test = FixedProblems.getCircles(1000, 0.0, new XORWOW(), 1.0, 10.0, 100.0);
+                ClassificationDataSet test = FixedProblems.getCircles(1000, 0.0, RandomUtil.getRandom(), 1.0, 10.0, 100.0);
 
                 train.applyTransform(new InsertMissingValuesTransform(0.1));
                 test.applyTransform(new InsertMissingValuesTransform(0.01));

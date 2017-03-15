@@ -16,6 +16,7 @@ import jsat.math.optimization.LBFGS;
 import jsat.math.optimization.WolfeNWLineSearch;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -82,7 +83,7 @@ public class LinearBatchTest
     @Test()
     public void testTrainWarmCFast()
     {
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(10000, new XORWOW());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(10000, RandomUtil.getRandom());
         
         LinearSGD warmModel = new LinearSGD(new SoftmaxLoss(), 1e-4, 0);
         warmModel.setEpochs(20);
@@ -155,7 +156,7 @@ public class LinearBatchTest
     public void testTrainWarmCMultieFast()
     {
         System.out.println("testTrainWarmCMultieFast");
-        ClassificationDataSet train = FixedProblems.getHalfCircles(1000, new XORWOW(), 0.1, 1.0, 5.0);
+        ClassificationDataSet train = FixedProblems.getHalfCircles(1000, RandomUtil.getRandom(), 0.1, 1.0, 5.0);
         
         LinearBatch warmModel = new LinearBatch(new HingeLoss(), 1e-2);
         warmModel.trainC(train);
@@ -254,7 +255,7 @@ public class LinearBatchTest
     @Test()
     public void testTrainWarmRFast()
     {
-        RegressionDataSet train = FixedProblems.getLinearRegression(100000, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(100000, RandomUtil.getRandom());
         train.applyTransform(new LinearTransform(train));//make this range better for convergence check
         
         LinearBatch warmModel = new LinearBatch(new SquaredLoss(), 1e-4);

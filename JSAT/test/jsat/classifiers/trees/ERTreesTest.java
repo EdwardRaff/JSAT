@@ -26,8 +26,7 @@ import jsat.datatransform.NumericalToHistogram;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.RegressionModelEvaluation;
 import jsat.utils.SystemInfo;
-import jsat.utils.random.XOR96;
-import jsat.utils.random.XORWOW;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -79,8 +78,8 @@ public class ERTreesTest
 
             ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-            ClassificationDataSet train = FixedProblems.getCircles(10000, new XOR96(), 1.0, 10.0, 100.0);
-            ClassificationDataSet test = FixedProblems.getCircles(1000, new XOR96(), 1.0, 10.0, 100.0);
+            ClassificationDataSet train = FixedProblems.getCircles(10000, RandomUtil.getRandom(), 1.0, 10.0, 100.0);
+            ClassificationDataSet test = FixedProblems.getCircles(1000, RandomUtil.getRandom(), 1.0, 10.0, 100.0);
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             if(useCatFeatures)
@@ -104,8 +103,8 @@ public class ERTreesTest
             instance.setBinaryCategoricalSplitting(i == 1);
             
 
-            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW());
-            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, RandomUtil.getRandom());
+            RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
 
             RegressionModelEvaluation cme = new RegressionModelEvaluation(instance, train);
             if(useCatFeatures)
@@ -130,8 +129,8 @@ public class ERTreesTest
 
             ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW());
-            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, RandomUtil.getRandom());
+            RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
 
             RegressionModelEvaluation cme = new RegressionModelEvaluation(instance, train, ex);
             if(useCatFeatures)
@@ -155,8 +154,8 @@ public class ERTreesTest
             instance.setBinaryCategoricalSplitting(i == 1);
             
 
-            ClassificationDataSet train =  FixedProblems.getCircles(10000, new XOR96(), 1.0, 10.0, 100.0);
-            ClassificationDataSet test = FixedProblems.getCircles(1000, new XOR96(), 1.0, 10.0, 100.0);
+            ClassificationDataSet train =  FixedProblems.getCircles(10000, RandomUtil.getRandom(), 1.0, 10.0, 100.0);
+            ClassificationDataSet test = FixedProblems.getCircles(1000, RandomUtil.getRandom(), 1.0, 10.0, 100.0);
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             if(useCatFeatures)
@@ -178,8 +177,8 @@ public class ERTreesTest
             ERTrees instance = new ERTrees();
             instance.setBinaryCategoricalSplitting(k == 1);
             
-            ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
-            ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, new XOR96());
+            ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, RandomUtil.getRandom());
+            ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, RandomUtil.getRandom());
             if(useCatFeatures)
             {
                 t1.applyTransform(new NumericalToHistogram(t1));

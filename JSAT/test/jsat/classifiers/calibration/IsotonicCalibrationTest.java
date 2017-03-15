@@ -24,7 +24,7 @@ import jsat.classifiers.svm.DCDs;
 import jsat.datatransform.LinearTransform;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
-import jsat.utils.random.XOR96;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -99,8 +99,8 @@ public class IsotonicCalibrationTest
     public void testClone()
     {
         System.out.println("clone");
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 2, new XOR96());
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 2, new XOR96() );
+        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 2, RandomUtil.getRandom());
+        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 2, RandomUtil.getRandom());
         
         t2.applyTransform(new LinearTransform(t2, 100, 105));
         

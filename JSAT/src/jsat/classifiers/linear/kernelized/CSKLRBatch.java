@@ -21,6 +21,7 @@ import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -268,7 +269,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
         
         curNorm = 0;
         T = 0;
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         
         IntList sampleOrder = new IntList(N);
         ListUtils.addRange(sampleOrder, 0, N, 1);

@@ -15,6 +15,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
 import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 import org.junit.After;
@@ -45,7 +46,7 @@ public class NaiveKMeansTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new XORWOW(), 2, 5);
+        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), RandomUtil.getRandom(), 2, 5);
         easyData10 = gdg.generateData(110);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
@@ -60,7 +61,7 @@ public class NaiveKMeansTest
     public void setUp()
     {
         //generate seeds that should lead to exact solution 
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-1e-10, 1e-10), new XORWOW(), 2, 5);
+        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-1e-10, 1e-10), RandomUtil.getRandom(), 2, 5);
         SimpleDataSet seedData = gdg.generateData(1);
         seeds = seedData.getDataVectors();
         for(Vec v : seeds)

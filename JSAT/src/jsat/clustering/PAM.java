@@ -20,6 +20,7 @@ import jsat.math.OnLineStatistics;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 import static jsat.clustering.SeedSelectionMethods.*;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -87,7 +88,7 @@ public class PAM extends KClustererBase
     public PAM(PAM toCopy)
     {
         this.dm = toCopy.dm.clone();
-        this.rand = new XORWOW();
+        this.rand = RandomUtil.getRandom();
         this.seedSelection = toCopy.seedSelection;
         if(toCopy.medoids != null)
             this.medoids = Arrays.copyOf(toCopy.medoids, toCopy.medoids.length);

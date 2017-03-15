@@ -6,6 +6,7 @@ import jsat.FixedProblems;
 import jsat.classifiers.*;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -60,7 +61,7 @@ public class ProjectronTest
             Projectron instance = new Projectron(new RBFKernel(0.5));
             instance.setUseMarginUpdates(useMargin);
             
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(1000, new XORWOW());
+            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(1000, RandomUtil.getRandom());
             //add some miss labled data to get the error code to cick in and get exercised
             for(int i = 0; i < 500; i+=20)
             {
@@ -70,7 +71,7 @@ public class ProjectronTest
                 train.addDataPoint(dp, badY);
             }
 
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, RandomUtil.getRandom());
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             cme.evaluateTestSet(test);
@@ -91,7 +92,7 @@ public class ProjectronTest
             Projectron instance = new Projectron(new RBFKernel(0.5));
             instance.setUseMarginUpdates(useMargin);
         
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(1000, new XORWOW());
+            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(1000, RandomUtil.getRandom());
             //add some miss labled data to get the error code to cick in and get exercised
             for(int i = 0; i < 500; i+=20)
             {
@@ -101,7 +102,7 @@ public class ProjectronTest
                 train.addDataPoint(dp, badY);
             }
 
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, RandomUtil.getRandom());
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             cme.evaluateTestSet(test);
 
@@ -116,8 +117,8 @@ public class ProjectronTest
 
         Projectron instance = new Projectron(new RBFKernel(0.5));
         
-        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, RandomUtil.getRandom());
+        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, RandomUtil.getRandom(), 2.0, 10.0);
 
         instance = instance.clone();
 

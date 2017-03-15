@@ -17,6 +17,7 @@ import jsat.utils.FakeExecutor;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -492,9 +493,18 @@ public abstract class DataSet<Type extends DataSet>
         return datasets;
     }
     
+    /**
+     * Splits the dataset randomly into proportionally sized partitions. 
+     *
+     * @param splits any array, where the length is the number of datasets to
+     * create and the value of in each index is the fraction of samples that
+     * should be placed into that dataset. The sum of values must be less than
+     * or equal to 1.0
+     * @return a list of new datasets
+     */
     public List<Type> randomSplit(double... splits)
     {
-        return randomSplit(new XORWOW(), splits);
+        return randomSplit(RandomUtil.getRandom(), splits);
     }
     
     /**
@@ -523,7 +533,7 @@ public abstract class DataSet<Type extends DataSet>
      */
     public List<Type> cvSet(int folds)
     {
-        return cvSet(folds, new XORWOW());
+        return cvSet(folds, RandomUtil.getRandom());
     }
     
     /**

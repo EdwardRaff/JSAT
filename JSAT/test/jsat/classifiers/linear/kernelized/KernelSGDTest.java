@@ -10,6 +10,7 @@ import jsat.distributions.kernels.RBFKernel;
 import jsat.lossfunctions.*;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -162,8 +163,8 @@ public class KernelSGDTest
 
         KernelSGD instance = new KernelSGD(new LogisticLoss(), new RBFKernel(0.5), 1e-4, KernelPoint.BudgetStrategy.MERGE_RBF, 100);
         
-        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, RandomUtil.getRandom());
+        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, RandomUtil.getRandom(), 2.0, 10.0);
 
         instance = instance.clone();
 

@@ -19,7 +19,7 @@ import jsat.linear.Matrix;
 import jsat.linear.RowColumnOps;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter.ParameterHolder;
-import jsat.utils.random.XOR96;
+import jsat.utils.random.RandomUtil;
 
 /**
  * A kernelized implementation of {@link PCA}. Because this works in a different
@@ -145,7 +145,7 @@ public class KernelPCA extends DataTransformBase
         else
         {
             int i = 0;
-            List<Vec> sample = Nystrom.sampleBasisVectors(k, ds, ds.getDataVectors(), samplingMethod, basisSize, false, new XOR96());
+            List<Vec> sample = Nystrom.sampleBasisVectors(k, ds, ds.getDataVectors(), samplingMethod, basisSize, false, RandomUtil.getRandom());
             vecs = new Vec[sample.size()];
             for(Vec v : sample)
                 vecs[i++] = v;

@@ -8,6 +8,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPointPair;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -128,7 +129,7 @@ public class DCDsTest
     @Test()
     public void testTrainWarmC()
     {
-        ClassificationDataSet train = FixedProblems.getHalfCircles(10000, new XORWOW(), 0.1, 0.5);
+        ClassificationDataSet train = FixedProblems.getHalfCircles(10000, RandomUtil.getRandom(), 0.1, 0.5);
         
         DCDs warmModel = new DCDs();
         warmModel.trainC(train);
@@ -162,7 +163,7 @@ public class DCDsTest
     @Test()
     public void testTrainWarR()
     {
-        RegressionDataSet train = FixedProblems.getSimpleRegression1(4000, new XORWOW());
+        RegressionDataSet train = FixedProblems.getSimpleRegression1(4000, RandomUtil.getRandom());
         double eps = train.getTargetValues().mean()/0.9;
         
         DCDs warmModel = new DCDs();

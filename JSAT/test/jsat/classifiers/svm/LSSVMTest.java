@@ -8,6 +8,7 @@ import jsat.classifiers.*;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -145,7 +146,7 @@ public class LSSVMTest
     @Test()
     public void testTrainWarmC()
     {
-        ClassificationDataSet train = FixedProblems.getHalfCircles(100, new XORWOW(), 0.1, 0.2);
+        ClassificationDataSet train = FixedProblems.getHalfCircles(100, RandomUtil.getRandom(), 0.1, 0.2);
         
         
         LSSVM warmModel = new LSSVM();
@@ -182,7 +183,7 @@ public class LSSVMTest
     @Test()
     public void testTrainWarmR()
     {
-        RegressionDataSet train = FixedProblems.getSimpleRegression1(75, new XORWOW());
+        RegressionDataSet train = FixedProblems.getSimpleRegression1(75, RandomUtil.getRandom());
         
         
         LSSVM warmModel = new LSSVM();

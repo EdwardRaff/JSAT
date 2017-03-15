@@ -18,6 +18,7 @@ import jsat.DataSet;
 import jsat.distributions.Distribution;
 import jsat.distributions.LogUniform;
 import jsat.exceptions.FailedToFitException;
+import jsat.utils.random.RandomUtil;
 
 /**
  * An implementation of Conservative Stochastic Kernel Logistic Regression. This
@@ -265,7 +266,7 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
         if(toClone.accelCache != null)
             this.accelCache = new DoubleList(toClone.accelCache);
         this.gamma = toClone.gamma;
-        this.rand = new XORWOW();
+        this.rand = RandomUtil.getRandom();
         this.setEpochs(toClone.getEpochs());
     }
 
@@ -412,7 +413,7 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
         alpha = new DoubleList();
         vecs = new ArrayList<Vec>();
         curNorm = 0;
-        rand = new XORWOW();
+        rand = RandomUtil.getRandom();
         if(k.supportsAcceleration())
             accelCache = new DoubleList();
     }

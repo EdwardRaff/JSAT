@@ -29,6 +29,7 @@ import jsat.regression.RegressionDataSet;
 import jsat.regression.RegressionModelEvaluation;
 import jsat.regression.Regressor;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -75,8 +76,8 @@ public class WaggingNormalTest
 
         WaggingNormal instance = new WaggingNormal((Regressor)new DecisionTree(), 50);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(1000, RandomUtil.getRandom());
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
@@ -94,8 +95,8 @@ public class WaggingNormalTest
 
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(1000, RandomUtil.getRandom());
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);

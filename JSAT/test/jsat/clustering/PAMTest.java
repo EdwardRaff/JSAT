@@ -23,6 +23,7 @@ import static jsat.TestTools.checkClusteringByCat;
 
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 import org.junit.AfterClass;
@@ -50,9 +51,9 @@ public class PAMTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        pam = new PAM(new EuclideanDistance(), new XORWOW(), SeedSelection.KPP);
+        pam = new PAM(new EuclideanDistance(), RandomUtil.getRandom(), SeedSelection.KPP);
         pam.setMaxIterations(1000);
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.05, 0.05), new XORWOW(), 2, 5);
+        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.05, 0.05), RandomUtil.getRandom(), 2, 5);
         easyData10 = gdg.generateData(100);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }

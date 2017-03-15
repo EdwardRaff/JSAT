@@ -26,7 +26,7 @@ import jsat.regression.RegressionDataSet;
 import jsat.regression.RegressionModelEvaluation;
 import jsat.regression.Regressor;
 import jsat.utils.IntSet;
-import jsat.utils.random.XORWOW;
+import jsat.utils.random.RandomUtil;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertEquals;
 
@@ -118,8 +118,8 @@ public class TestTools
      */
     public static boolean regressEvalLinear(Regressor instance, int N_train, int N_test)
     {
-        RegressionDataSet train = FixedProblems.getLinearRegression(N_train, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(N_test, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(N_train, RandomUtil.getRandom());
+        RegressionDataSet test = FixedProblems.getLinearRegression(N_test, RandomUtil.getRandom());
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
         return rme.getMeanError() <= test.getTargetValues().mean() * 1.5;
@@ -146,8 +146,8 @@ public class TestTools
      */
     public static boolean regressEvalLinear(Regressor instance, ExecutorService ex, int N_train, int N_test)
     {
-        RegressionDataSet train = FixedProblems.getLinearRegression(N_train, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(N_test, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(N_train, RandomUtil.getRandom());
+        RegressionDataSet test = FixedProblems.getLinearRegression(N_test, RandomUtil.getRandom());
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);
         return rme.getMeanError() <= test.getTargetValues().mean() * 1.5;

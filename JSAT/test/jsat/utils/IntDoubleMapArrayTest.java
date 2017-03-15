@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -42,7 +43,7 @@ public class IntDoubleMapArrayTest
     @Before
     public void setUp()
     {
-        rand = new XORWOW();
+        rand = RandomUtil.getRandom();
     }
     
     @After

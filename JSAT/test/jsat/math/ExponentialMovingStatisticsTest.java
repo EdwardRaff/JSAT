@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Random;
 import jsat.distributions.*;
 import jsat.linear.Vec;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -75,7 +76,7 @@ public class ExponentialMovingStatisticsTest
     public void testSetSmoothing()
     {
         System.out.println("setSmoothing");
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
 
         for (ContinuousDistribution dist : distributions)
         {
@@ -99,7 +100,7 @@ public class ExponentialMovingStatisticsTest
     public void testSetSmoothingDrifted()
     {
         System.out.println("setSmoothing Drift");
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
 
         for (ContinuousDistribution other_dist : distributions)
             for (ContinuousDistribution dist : distributions)

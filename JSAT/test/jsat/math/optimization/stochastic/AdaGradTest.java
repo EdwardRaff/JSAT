@@ -22,6 +22,7 @@ import jsat.linear.SubVector;
 import jsat.linear.Vec;
 import jsat.math.FunctionVec;
 import jsat.math.optimization.RosenbrockFunction;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -65,7 +66,7 @@ public class AdaGradTest
     public void testUpdate_3args()
     {
         System.out.println("update");
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         Vec x0 = new DenseVector(10);
         for(int i = 0; i < x0.length(); i++)
             x0.set(i, rand.nextDouble());
@@ -88,7 +89,7 @@ public class AdaGradTest
     public void testUpdate_5args()
     {
         System.out.println("update");
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         Vec xWithBias = new DenseVector(21);
         for(int i = 0; i < xWithBias.length(); i++)
             xWithBias.set(i, rand.nextDouble());

@@ -23,6 +23,7 @@ import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDoubleArray;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -69,7 +70,7 @@ public class NaiveKMeans extends KMeans
      */
     public NaiveKMeans(DistanceMetric dm, SeedSelection seedSelection)
     {
-        this(dm, seedSelection, new XORWOW());
+        this(dm, seedSelection, RandomUtil.getRandom());
     }
     
     /**

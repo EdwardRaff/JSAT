@@ -27,6 +27,7 @@ import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.regression.evaluation.MeanSquaredError;
 import jsat.regression.evaluation.RegressionScore;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -55,7 +56,7 @@ public class MDA implements TreeFeatureImportanceInference
         double baseScore;
         boolean percentIncrease;
         
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         if(data instanceof ClassificationDataSet)
         {
             ClassificationDataSet cds = (ClassificationDataSet) data;

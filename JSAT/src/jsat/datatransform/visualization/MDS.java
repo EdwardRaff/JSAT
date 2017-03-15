@@ -35,6 +35,7 @@ import jsat.math.OnLineStatistics;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDouble;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -176,7 +177,7 @@ public class MDS implements VisualizationTransform
     public SimpleDataSet transform(final Matrix delta, ExecutorService ex)
     {
         final int N = delta.rows();
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         
         final Matrix X = new DenseMatrix(N, targetSize);
         final List<Vec> X_views = new ArrayList<Vec>();

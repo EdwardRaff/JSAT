@@ -27,7 +27,7 @@ import jsat.math.decayrates.NoDecay;
 import jsat.math.optimization.stochastic.GradientUpdater;
 import jsat.math.optimization.stochastic.SimpleSGD;
 import jsat.utils.SystemInfo;
-import jsat.utils.random.XOR96;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -392,7 +392,7 @@ public class SGDNetworkTrainer implements Serializable
         B = new ArrayList<Vec>(layersActivation.size());
         
         
-        Random rand = new XOR96();
+        Random rand = RandomUtil.getRandom();
         
         for(int l = 1; l < layerSizes.length; l++)
         {
@@ -489,7 +489,7 @@ public class SGDNetworkTrainer implements Serializable
      */
     public double updateMiniBatch(List<Vec> x, List<Vec> y, ExecutorService ex)
     {
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         for(Matrix w : W_deltas)
             w.zeroOut();
         for(Vec b : B_deltas)

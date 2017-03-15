@@ -11,8 +11,7 @@ import jsat.FixedProblems;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
-import jsat.utils.random.XOR96;
-import jsat.utils.random.XORWOW;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -61,8 +60,8 @@ public class RBFNetTest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(2000, new XOR96());
-        ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(200, new XOR96());
+        ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(2000, RandomUtil.getRandom());
+        ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(200, RandomUtil.getRandom());
         
         ExecutorService threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         
@@ -90,8 +89,8 @@ public class RBFNetTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(2000, new XOR96());
-        ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(200, new XOR96());
+        ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(2000, RandomUtil.getRandom());
+        ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(200, RandomUtil.getRandom());
         
         
         for(RBFNet.Phase1Learner p1l : RBFNet.Phase1Learner.values())
@@ -118,8 +117,8 @@ public class RBFNetTest
     {
         System.out.println("train");
         
-        RegressionDataSet trainSet =  FixedProblems.getSimpleRegression1(2000, new XORWOW());
-        RegressionDataSet testSet =  FixedProblems.getSimpleRegression1(200, new XORWOW());
+        RegressionDataSet trainSet =  FixedProblems.getSimpleRegression1(2000, RandomUtil.getRandom());
+        RegressionDataSet testSet =  FixedProblems.getSimpleRegression1(200, RandomUtil.getRandom());
         
         ExecutorService threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         
@@ -150,8 +149,8 @@ public class RBFNetTest
     public void testTrain_RegressionDataSet()
     {
         System.out.println("train");
-        RegressionDataSet trainSet =  FixedProblems.getSimpleRegression1(2000, new XORWOW());
-        RegressionDataSet testSet =  FixedProblems.getSimpleRegression1(200, new XORWOW());
+        RegressionDataSet trainSet =  FixedProblems.getSimpleRegression1(2000, RandomUtil.getRandom());
+        RegressionDataSet testSet =  FixedProblems.getSimpleRegression1(200, RandomUtil.getRandom());
         
         for(RBFNet.Phase1Learner p1l : RBFNet.Phase1Learner.values())
             for(RBFNet.Phase2Learner p2l :  EnumSet.complementOf(EnumSet.of(RBFNet.Phase2Learner.CLOSEST_OPPOSITE_CENTROID)))

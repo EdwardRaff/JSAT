@@ -17,6 +17,7 @@ import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.IndexTable;
 import jsat.utils.ListUtils;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -204,7 +205,7 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
         
         setCacheMode(getCacheMode());//Initiates the cahce
         
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         double maxKii = 0;
         for(int i = 0; i < n; i++)
             maxKii = Math.max(maxKii, kEval(i, i));

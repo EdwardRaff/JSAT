@@ -17,6 +17,7 @@
 package jsat.distributions.discrete;
 
 import jsat.linear.Vec;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -151,7 +152,7 @@ public class PoissonTest
          * mean. This is known as overdispersion, an important concept that 
          * occurs with discrete data"
          */
-        Vec samples = instance.sampleVec(10000, new XORWOW());
+        Vec samples = instance.sampleVec(10000, RandomUtil.getRandom());
         
         assertEquals(instance.mean(), samples.mean(), 2e-1);
         assertEquals(instance.median(), samples.median(), 2e-1);

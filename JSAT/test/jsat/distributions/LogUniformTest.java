@@ -17,6 +17,7 @@
 package jsat.distributions;
 
 import jsat.linear.Vec;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -158,7 +159,7 @@ public class LogUniformTest
         System.out.println("skewness");
         LogUniform instance = new LogUniform(1e-2, 10);
         
-        Vec samples = instance.sampleVec(10000, new XORWOW());
+        Vec samples = instance.sampleVec(10000, RandomUtil.getRandom());
         assertEquals(instance.mean(), samples.mean(), 0.1);
         assertEquals(instance.median(), samples.median(), 0.1);
         assertEquals(instance.variance(), samples.variance(), 0.3);

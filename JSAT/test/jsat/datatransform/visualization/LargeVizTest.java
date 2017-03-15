@@ -32,6 +32,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.ManhattanDistance;
 import jsat.linear.vectorcollection.VectorArray;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -82,7 +83,7 @@ public class LargeVizTest
         
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         LargeViz instance = new LargeViz();
         
         
@@ -155,7 +156,7 @@ public class LargeVizTest
         
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         LargeViz instance = new LargeViz();
         
         

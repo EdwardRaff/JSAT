@@ -38,6 +38,7 @@ import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDouble;
 import jsat.utils.concurrent.ParallelUtils;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -156,7 +157,7 @@ public class TSNE implements VisualizationTransform
     @Override
     public <Type extends DataSet> Type transform(DataSet<Type> d, ExecutorService ex)
     {
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         final int N = d.getSampleSize();
         //If perp set too big, the search size would be larger than the dataset size. So min to N
         /**

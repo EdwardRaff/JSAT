@@ -11,6 +11,7 @@ import jsat.linear.Matrix;
 import jsat.linear.RandomMatrix;
 import jsat.linear.RandomVector;
 import jsat.linear.Vec;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -117,7 +118,7 @@ public class RFF_RBF extends DataTransformBase
     public void fit(DataSet data)
     {
         int featurSize = data.getNumNumericalVars();
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         transform = new RandomMatrixRFF_RBF(Math.sqrt(0.5/(sigma*sigma)), featurSize, dim, rand.nextLong());
         offsets = new RandomVectorRFF_RBF(dim, rand.nextLong());
         

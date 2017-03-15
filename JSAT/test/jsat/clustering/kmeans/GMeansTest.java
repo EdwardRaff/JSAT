@@ -15,6 +15,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
 import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 import org.junit.After;
@@ -41,7 +42,7 @@ public class GMeansTest
     @BeforeClass
     public static void setUpClass()
     {
-        GridDataGenerator gdg = new GridDataGenerator(new TruncatedDistribution(new Normal(0, 0.01), -0.15, 0.15), new XORWOW(), 2, 2);
+        GridDataGenerator gdg = new GridDataGenerator(new TruncatedDistribution(new Normal(0, 0.01), -0.15, 0.15), RandomUtil.getRandom(), 2, 2);
         easyData10 = gdg.generateData(50);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }

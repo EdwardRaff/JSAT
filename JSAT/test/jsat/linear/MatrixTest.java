@@ -9,7 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.math.OnLineStatistics;
 import jsat.utils.SystemInfo;
-import jsat.utils.random.XOR128;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -134,7 +134,7 @@ public class MatrixTest
         System.out.println("random");
         int rows = 100;
         int cols = 100;
-        Random rand = new XOR128();
+        Random rand = RandomUtil.getRandom();
 
         DenseMatrix result = Matrix.random(rows, cols, rand);
         OnLineStatistics stats = new OnLineStatistics();
