@@ -17,6 +17,7 @@ import jsat.lossfunctions.SquaredLoss;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -65,13 +66,13 @@ public class StackingTest
         
         Stacking stacking = new Stacking(new LogisticRegressionDCD(), new LinearBatch(new SoftmaxLoss(), 1e-15), new LinearBatch(new SoftmaxLoss(), 100), new LinearBatch(new SoftmaxLoss(), 1e10));
         
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(500, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(500, RandomUtil.getRandom());
         
         stacking = stacking.clone();
         stacking.trainC(train);
         stacking = stacking.clone();
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), stacking.classify(dpp.getDataPoint()).mostLikely());
@@ -84,13 +85,13 @@ public class StackingTest
         
         Stacking stacking = new Stacking(new LogisticRegressionDCD(), new LinearBatch(new SoftmaxLoss(), 1e-15), new LinearBatch(new SoftmaxLoss(), 100), new LinearBatch(new SoftmaxLoss(), 1e10));
         
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(500, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(500, RandomUtil.getRandom());
         
         stacking = stacking.clone();
         stacking.trainC(train, ex);
         stacking = stacking.clone();
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), stacking.classify(dpp.getDataPoint()).mostLikely());
@@ -101,13 +102,13 @@ public class StackingTest
     {
         Stacking stacking = new Stacking(new OneVSAll(new LogisticRegressionDCD(), true), new LinearBatch(new SoftmaxLoss(), 1e-15), new LinearBatch(new SoftmaxLoss(), 100), new LinearBatch(new SoftmaxLoss(), 1e10));
         
-        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, new Random());
+        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, RandomUtil.getRandom());
         
         stacking = stacking.clone();
         stacking.trainC(train);
         stacking = stacking.clone();
         
-        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, new Random());
+        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, RandomUtil.getRandom());
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), stacking.classify(dpp.getDataPoint()).mostLikely());
@@ -120,13 +121,13 @@ public class StackingTest
         
         Stacking stacking = new Stacking(new OneVSAll(new LogisticRegressionDCD(), true), new LinearBatch(new SoftmaxLoss(), 1e-15), new LinearBatch(new SoftmaxLoss(), 100), new LinearBatch(new SoftmaxLoss(), 1e10));
         
-        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, new Random());
+        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, RandomUtil.getRandom());
         
         stacking = stacking.clone();
         stacking.trainC(train, ex);
         stacking = stacking.clone();
         
-        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, new Random());
+        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, RandomUtil.getRandom());
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), stacking.classify(dpp.getDataPoint()).mostLikely());
@@ -138,13 +139,13 @@ public class StackingTest
         System.out.println("regression");
         
         Stacking stacking = new Stacking((Regressor)new LinearBatch(new AbsoluteLoss(), 1e-10), new LinearBatch(new SquaredLoss(), 1e-15), new LinearBatch(new AbsoluteLoss(), 100), new LinearBatch(new HuberLoss(), 1e1));
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new Random());
+        RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
         
         stacking = stacking.clone();
         stacking.train(train);
         stacking = stacking.clone();
         
-        RegressionDataSet test = FixedProblems.getLinearRegression(200, new Random());
+        RegressionDataSet test = FixedProblems.getLinearRegression(200, RandomUtil.getRandom());
         
         for(DataPointPair<Double> dpp : test.getAsDPPList())
         {
@@ -161,13 +162,13 @@ public class StackingTest
         System.out.println("regression MT");
         
         Stacking stacking = new Stacking((Regressor)new LinearBatch(new AbsoluteLoss(), 1e-10), new LinearBatch(new SquaredLoss(), 1e-15), new LinearBatch(new AbsoluteLoss(), 100), new LinearBatch(new HuberLoss(), 1e1));
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new Random());
+        RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
         
         stacking = stacking.clone();
         stacking.train(train, ex);
         stacking = stacking.clone();
         
-        RegressionDataSet test = FixedProblems.getLinearRegression(200, new Random());
+        RegressionDataSet test = FixedProblems.getLinearRegression(200, RandomUtil.getRandom());
         
         for(DataPointPair<Double> dpp : test.getAsDPPList())
         {

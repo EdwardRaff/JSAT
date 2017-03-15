@@ -59,12 +59,12 @@ public class DCDsTest
     {
         System.out.println("trainC");
         
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         DCDs instance = new DCDs();
         instance.trainC(train, threadPool);
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
@@ -77,12 +77,12 @@ public class DCDsTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
         DCDs instance = new DCDs();
         instance.trainC(train);
 
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
         for (DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
@@ -92,7 +92,7 @@ public class DCDsTest
     public void testTrain_RegressionDataSet_ExecutorService()
     {
         System.out.println("train");
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
 
         DCDs dcds = new DCDs();
         dcds.train(FixedProblems.getLinearRegression(400, rand), threadPool);
@@ -111,7 +111,7 @@ public class DCDsTest
     public void testTrain_RegressionDataSet()
     {
         System.out.println("train");
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
 
         DCDs dcds = new DCDs();
         dcds.train(FixedProblems.getLinearRegression(400, rand));

@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.Random;
 import jsat.math.Function;
 import jsat.math.IndexFunction;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Vec is a object representing the math concept of a vector. A vector could be 
@@ -1136,7 +1137,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public static Vec random(int length)
     {
-        return random(length, new Random());
+        return random(length, RandomUtil.getRandom());
     }
     
     /**

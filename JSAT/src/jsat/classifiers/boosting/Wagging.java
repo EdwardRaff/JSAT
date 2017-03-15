@@ -20,6 +20,7 @@ import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Wagging is a meta-classifier that is related to {@link Bagging}. Instead 
@@ -259,7 +260,7 @@ public class Wagging implements Classifier, Regressor, Parameterized
         int extra = iterations%SystemInfo.LogicalCores;
         
         int used = 0;
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         CountDownLatch latch = new CountDownLatch(chunkSize > 0 ? SystemInfo.LogicalCores : extra);
         while(used < iterations)
         {

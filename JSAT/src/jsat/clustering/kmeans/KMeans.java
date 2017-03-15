@@ -264,7 +264,7 @@ public abstract class KMeans extends KClustererBase implements Parameterized
             this.k = k;
             this.putSelf = que;
             clusterIDs = new int[dataSet.getSampleSize()];
-            rand = new Random();
+            rand = RandomUtil.getRandom();
         }
 
         public ClusterWorker(DataSet dataSet, BlockingQueue<ClusterWorker> que)

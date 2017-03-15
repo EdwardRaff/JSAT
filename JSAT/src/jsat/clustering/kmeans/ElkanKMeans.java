@@ -16,6 +16,7 @@ import jsat.linear.Vec;
 import jsat.linear.distancemetrics.*;
 import jsat.utils.*;
 import jsat.utils.concurrent.AtomicDoubleArray;
+import jsat.utils.random.RandomUtil;
 
 /**
  * An efficient implementation of the K-Means algorithm. This implementation uses
@@ -65,7 +66,7 @@ public class ElkanKMeans extends KMeans
      */
     public ElkanKMeans(DistanceMetric dm)
     {
-        this(dm, new Random());
+        this(dm, RandomUtil.getRandom());
     }
 
     /**

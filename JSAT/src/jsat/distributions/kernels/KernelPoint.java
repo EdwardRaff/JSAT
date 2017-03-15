@@ -15,6 +15,7 @@ import jsat.math.optimization.GoldenSearch;
 import jsat.regression.KernelRLS;
 import jsat.utils.DoubleList;
 import jsat.utils.ListUtils;
+import jsat.utils.random.RandomUtil;
 
 /**
  * The Kernel Point represents a kernelized weight vector by a linear 
@@ -581,7 +582,7 @@ public class KernelPoint
             normGood = false;
             if(getBasisSize() >= maxBudget)
             {
-                Random rand = new Random();//TODO should probably move this out
+                Random rand = RandomUtil.getRandom();//TODO should probably move this out
                 int toRemove = rand.nextInt(vecs.size());
                 removeIndex(toRemove);
             }

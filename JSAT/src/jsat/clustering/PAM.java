@@ -54,7 +54,7 @@ public class PAM extends KClustererBase
 
     public PAM(DistanceMetric dm)
     {
-        this(dm, new Random());
+        this(dm, RandomUtil.getRandom());
     }
 
     public PAM()

@@ -13,6 +13,7 @@ import jsat.datatransform.DataTransformProcess;
 import jsat.exceptions.UntrainedModelException;
 import jsat.math.OnLineStatistics;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Provides a mechanism to quickly perform an evaluation of a model on a data set. 
@@ -159,7 +160,7 @@ public class ClassificationModelEvaluation
      */
     public void evaluateCrossValidation(int folds)
     {
-        evaluateCrossValidation(folds, new Random());
+        evaluateCrossValidation(folds, RandomUtil.getRandom());
     }
     
     /**

@@ -4,6 +4,7 @@ import java.util.Random;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.FunctionVec;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -49,7 +50,7 @@ public class BFGSTest
     public void testOptimize()
     {
         System.out.println("optimize");
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         Vec x0 = new DenseVector(20);
         for(int i = 0; i < x0.length(); i++)
             x0.set(i, rand.nextDouble()+0.5);//make sure we get to the right local optima

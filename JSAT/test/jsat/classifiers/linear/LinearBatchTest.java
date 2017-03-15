@@ -68,12 +68,12 @@ public class LinearBatchTest
         {
             LinearBatch linearBatch = new LinearBatch(new HingeLoss(), 1e-4);
 
-            ClassificationDataSet train = FixedProblems.get2ClassLinear(500, new Random());
+            ClassificationDataSet train = FixedProblems.get2ClassLinear(500, RandomUtil.getRandom());
 
             linearBatch.setUseBiasTerm(useBias);
             linearBatch.trainC(train);
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
             for(DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), linearBatch.classify(dpp.getDataPoint()).mostLikely());
@@ -120,12 +120,12 @@ public class LinearBatchTest
         {
             LinearBatch linearBatch = new LinearBatch(new LogisticLoss(), 1e-4);
 
-            ClassificationDataSet train = FixedProblems.get2ClassLinear(500, new Random());
+            ClassificationDataSet train = FixedProblems.get2ClassLinear(500, RandomUtil.getRandom());
 
             linearBatch.setUseBiasTerm(useBias);
             linearBatch.trainC(train, ex);
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
             for(DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), linearBatch.classify(dpp.getDataPoint()).mostLikely());
@@ -140,12 +140,12 @@ public class LinearBatchTest
         {
             LinearBatch linearBatch = new LinearBatch(new HingeLoss(), 1e-4);
 
-            ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, new Random());
+            ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, RandomUtil.getRandom());
 
             linearBatch.setUseBiasTerm(useBias);
             linearBatch.trainC(train);
 
-            ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, new Random());
+            ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, RandomUtil.getRandom());
 
             for(DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), linearBatch.classify(dpp.getDataPoint()).mostLikely());
@@ -189,12 +189,12 @@ public class LinearBatchTest
         {
             LinearBatch linearBatch = new LinearBatch(new HingeLoss(), 1e-4);
 
-            ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, new Random());
+            ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, RandomUtil.getRandom());
 
             linearBatch.setUseBiasTerm(useBias);
             linearBatch.trainC(train, ex);
 
-            ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, new Random());
+            ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, RandomUtil.getRandom());
 
             for(DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), linearBatch.classify(dpp.getDataPoint()).mostLikely());
@@ -210,13 +210,13 @@ public class LinearBatchTest
         for(boolean useBias : new boolean[]{false, true})
         {
             LinearBatch linearBatch = new LinearBatch(new SquaredLoss(), 1e-4);
-            RegressionDataSet train = FixedProblems.getLinearRegression(500, new Random());
+            RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
             
             linearBatch.setUseBiasTerm(useBias);
             
             linearBatch.train(train);
 
-            RegressionDataSet test = FixedProblems.getLinearRegression(200, new Random());
+            RegressionDataSet test = FixedProblems.getLinearRegression(200, RandomUtil.getRandom());
 
             for(DataPointPair<Double> dpp : test.getAsDPPList())
             {
@@ -235,12 +235,12 @@ public class LinearBatchTest
         for(boolean useBias : new boolean[]{false, true})
         {
             LinearBatch linearBatch = new LinearBatch(new SquaredLoss(), 1e-4);
-            RegressionDataSet train = FixedProblems.getLinearRegression(500, new Random());
+            RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
 
             linearBatch.setUseBiasTerm(useBias);
             linearBatch.train(train, ex);
 
-            RegressionDataSet test = FixedProblems.getLinearRegression(200, new Random());
+            RegressionDataSet test = FixedProblems.getLinearRegression(200, RandomUtil.getRandom());
 
             for(DataPointPair<Double> dpp : test.getAsDPPList())
             {

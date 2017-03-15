@@ -30,6 +30,7 @@ import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
+import jsat.utils.random.RandomUtil;
 
 /**
  * An implementation of a Feed Forward Neural Network (NN) trained by Back
@@ -504,7 +505,7 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
         inputSize = dataSet.getNumNumericalVars();
         outputSize = dataSet.getClassSize();
         
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         
         setUp(rand);
         
@@ -535,7 +536,7 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
         inputSize = dataSet.getNumNumericalVars();
         outputSize = 1;
         
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         
         setUp(rand);
         

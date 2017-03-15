@@ -7,6 +7,7 @@ import static jsat.distributions.kernels.KernelPoint.getH;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 import jsat.utils.DoubleList;
+import jsat.utils.random.RandomUtil;
 
 /**
  * This class represents a list of {@link KernelPoint} objects. This is done to 
@@ -552,7 +553,7 @@ public class KernelPoints
         {
             if(getBasisSize() >= maxBudget)
             {
-                int toRemove = new Random().nextInt(getBasisSize());
+                int toRemove = RandomUtil.getRandom().nextInt(getBasisSize());
                 if (getBasisSize() == maxBudget)
                     this.points.get(0).removeIndex(toRemove);//now remove alpha from others
                 for (int i = 1; i < this.points.size(); i++)

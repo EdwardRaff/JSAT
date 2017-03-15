@@ -11,6 +11,7 @@ import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.utils.DoubleList;
+import jsat.utils.random.RandomUtil;
 
 /**
  *
@@ -58,7 +59,7 @@ public class CLARA extends PAM
 
     public CLARA(DistanceMetric dm)
     {
-        this(dm, new Random());
+        this(dm, RandomUtil.getRandom());
     }
 
     public CLARA()

@@ -13,6 +13,7 @@ import jsat.parameters.Parameter.ParameterHolder;
 import jsat.utils.FakeExecutor;
 import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 
 /**
  * RANSAC is a randomized meta algorithm that is useful for fitting a model to a
@@ -110,7 +111,7 @@ public class RANSAC implements Regressor, Parameterized
             this.baseModel = baseModel;
             this.maxIterations = maxIterations;
             this.dataset = dataset;
-            rand = new Random();
+            rand = RandomUtil.getRandom();
         }
         
         

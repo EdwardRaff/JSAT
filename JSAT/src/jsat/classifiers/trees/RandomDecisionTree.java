@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.DataPointPair;
 import jsat.utils.ModifiableCountDownLatch;
+import jsat.utils.random.RandomUtil;
 
 /**
  * An extension of Decision Trees, it ignores the given set of features to use-
@@ -110,7 +111,7 @@ public class RandomDecisionTree extends DecisionTree
     private void fillWithRandomFeatures(Set<Integer> options, final int featureCount)
     {
         options.clear();
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         
         while(options.size() < numFeatures)
         {

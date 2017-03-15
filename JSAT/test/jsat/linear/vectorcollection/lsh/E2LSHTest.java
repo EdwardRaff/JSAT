@@ -7,6 +7,7 @@ import java.util.Random;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -63,7 +64,7 @@ public class E2LSHTest
             mainVecs.add(dv);
         }
         
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         List<Vec> extraVecs = new ArrayList<Vec>();
         for(int i = 0; i < mainVecs.size(); i++)
         {

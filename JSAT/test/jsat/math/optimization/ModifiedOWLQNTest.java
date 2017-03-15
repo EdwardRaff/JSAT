@@ -14,6 +14,7 @@ import jsat.lossfunctions.SoftmaxLoss;
 import jsat.math.Function;
 import jsat.math.FunctionBase;
 import jsat.math.FunctionVec;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -59,7 +60,7 @@ public class ModifiedOWLQNTest
     public void testOptimize()
     {
         System.out.println("optimize");
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         Vec x0 = new DenseVector(10);
         for(int i = 0; i < x0.length(); i++)
             x0.set(i, rand.nextDouble()+0.5);
@@ -82,7 +83,7 @@ public class ModifiedOWLQNTest
     public void testOptimizeGDsteps()
     {
         System.out.println("optimize");
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         Vec x0 = new DenseVector(10);
         for(int i = 0; i < x0.length(); i++)
             x0.set(i, rand.nextDouble()+0.5);
@@ -106,7 +107,7 @@ public class ModifiedOWLQNTest
     public void testOptimizeReg()
     {
         System.out.println("optimize");
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         
         
         

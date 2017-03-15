@@ -20,6 +20,7 @@ import jsat.linear.vectorcollection.VectorCollectionFactory;
 import jsat.math.decayrates.*;
 import jsat.parameters.*;
 import jsat.utils.FakeExecutor;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Learning Vector Quantization (LVQ) is an algorithm that extends {@link SOM} 
@@ -481,7 +482,7 @@ public class LVQ implements Classifier, Parameterized
             TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
         else
             TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadPool);
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         int classCount = dataSet.getPredicting().getNumOfCategories();
         weights = new Vec[classCount*representativesPerClass];
         Vec[] weightsPrev = new Vec[weights.length];

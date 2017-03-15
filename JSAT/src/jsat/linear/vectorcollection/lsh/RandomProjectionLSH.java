@@ -272,7 +272,7 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
             }
             else
                 pool = null;
-            seedMult = new Random().nextLong();
+            seedMult = RandomUtil.getRandom().nextLong();
         }
 
         public NormalMatrix(NormalMatrix toCopy)

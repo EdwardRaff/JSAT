@@ -30,6 +30,7 @@ import jsat.utils.FakeExecutor;
 import jsat.utils.IndexTable;
 import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Provides an implementation of the ReliefF algorithm for feature importance computing. 
@@ -262,7 +263,7 @@ public class ReliefF extends RemoveAttributeTransform
                 public void run()
                 {
                     double[] wLocal = new double[w.length];
-                    Random rand = new Random();
+                    Random rand = RandomUtil.getRandom();
                     for(int iter = 0; iter < mm; iter++)
                     {
                         final int k = rand.nextInt(cds.getSampleSize());

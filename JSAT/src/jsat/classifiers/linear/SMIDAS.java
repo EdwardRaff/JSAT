@@ -14,6 +14,7 @@ import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Implements the iterative and single threaded stochastic solver for 
@@ -218,7 +219,7 @@ public class SMIDAS extends StochasticSTLinearL1
         double lossScore = 0;
         w = new DenseVector(d);
         
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         
         for(int t = 0; t < epochs; t++)
         {

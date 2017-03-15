@@ -16,6 +16,7 @@ import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
 import jsat.utils.ListUtils;
+import jsat.utils.random.RandomUtil;
 
 /**
  * An implementation of Stochastic Gradient Boosting (SGB) for the Squared Error
@@ -264,7 +265,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
         
         final int randSampleSize = (int) Math.round(resids.getSampleSize()*trainingProportion);
         final List<DataPointPair<Double>> randSampleList = new ArrayList<DataPointPair<Double>>(randSampleSize);
-        final Random rand = new Random();
+        final Random rand = RandomUtil.getRandom();
 
         for(int iter = 0; iter < maxIterations; iter++)
         {

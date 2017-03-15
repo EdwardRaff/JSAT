@@ -15,6 +15,7 @@ import jsat.linear.IndexValue;
 import jsat.linear.SparseVector;
 import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Implements an iterative and single threaded form of fast 
@@ -221,7 +222,7 @@ public class LinearL1SCD extends StochasticSTLinearL1
         final double[] z = new double[m];
         final double beta = loss.beta();
 
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         for (int t = 1; t <= epochs; t++)
         {
             int j = rand.nextInt(d + 1);//+1 for the bias term

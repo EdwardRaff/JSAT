@@ -22,6 +22,7 @@ import jsat.utils.ModifiableCountDownLatch;
 import jsat.utils.Pair;
 import jsat.utils.ProbailityMatch;
 import jsat.utils.SimpleList;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Provides an implementation of Vantage Point Trees, as described in 
@@ -114,7 +115,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
 
     public VPTree(List<V> list, DistanceMetric dm, VPSelection vpSelection)
     {
-        this(list, dm, vpSelection, new Random(), 80, 40);
+        this(list, dm, vpSelection, RandomUtil.getRandom(), 80, 40);
     }
     
     public VPTree(List<V> list, DistanceMetric dm)

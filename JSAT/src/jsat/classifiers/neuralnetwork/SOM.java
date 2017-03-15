@@ -19,6 +19,7 @@ import jsat.math.decayrates.DecayRate;
 import jsat.math.decayrates.ExponetialDecay;
 import jsat.parameters.*;
 import jsat.utils.*;
+import jsat.utils.random.RandomUtil;
 
 /**
  * An implementation of a Self Organizing Map, also called a Kohonen Map. It is 
@@ -357,7 +358,7 @@ public class SOM implements Classifier, Parameterized
         
         double neighborRadius = intitalizeWeights(D);
         
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         
         Vec scratch = new DenseVector(D);
         /**

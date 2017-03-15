@@ -5,6 +5,7 @@ import jsat.FixedProblems;
 import jsat.classifiers.*;
 import jsat.lossfunctions.LogisticLoss;
 import jsat.lossfunctions.SquaredLoss;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -51,12 +52,12 @@ public class SCDTest
     {
         System.out.println("trainC");
         
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
         
         SCD scd = new SCD(new LogisticLoss(), 1e-6, 100);
         scd.trainC(train);
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
         {

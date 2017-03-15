@@ -8,6 +8,7 @@ import jsat.datatransform.*;
 import jsat.regression.*;
 import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Sequential Forward Selection (SFS) is a greedy method of selecting a subset 
@@ -137,7 +138,7 @@ public class SFS implements DataTransform
     
     private void search(int minFeatures, int maxFeatures, DataSet dataSet, int folds)
     {
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         int nF = dataSet.getNumFeatures();
         int nCat = dataSet.getNumCategoricalVars();
         

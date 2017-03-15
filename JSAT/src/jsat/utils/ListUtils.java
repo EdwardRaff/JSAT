@@ -9,6 +9,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import jsat.utils.random.RandomUtil;
 
 /**
  *
@@ -205,6 +206,6 @@ public class ListUtils
      */
     public static <T> void randomSample(List<T> source, List<T> dest, int samples)
     {
-        randomSample(source, dest, samples, new Random());
+        randomSample(source, dest, samples, RandomUtil.getRandom());
     }
 }

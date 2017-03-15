@@ -1,6 +1,7 @@
 package jsat.linear;
 
 import java.util.Random;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Stores a Matrix full of random values in constant O(1) space by re-computing 
@@ -51,7 +52,7 @@ abstract public class RandomMatrix extends GenericMatrix
      */
     public RandomMatrix(int rows, int cols)
     {
-        this(rows, cols, new Random().nextLong());
+        this(rows, cols, RandomUtil.getRandom().nextLong());
     }
     
     /**

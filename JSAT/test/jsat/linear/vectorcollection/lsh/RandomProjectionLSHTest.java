@@ -9,6 +9,7 @@ import jsat.linear.distancemetrics.CosineDistanceNormalized;
 import jsat.linear.vectorcollection.VectorArray;
 import jsat.math.OnLineStatistics;
 import jsat.utils.IntSet;
+import jsat.utils.random.RandomUtil;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -58,7 +59,7 @@ public class RandomProjectionLSHTest
         System.out.println("search");
         
         List<VecPaired<Vec, Integer>> normalVecs = new ArrayList<VecPaired<Vec, Integer>>();
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         
         for(int i = 0; i < 100; i++)
         {
@@ -107,7 +108,7 @@ public class RandomProjectionLSHTest
     {
         System.out.println("search");
         List<VecPaired<Vec, Integer>> normalVecs = new ArrayList<VecPaired<Vec, Integer>>();
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         
         for(int i = 0; i < 100; i++)
         {

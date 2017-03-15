@@ -11,6 +11,7 @@ import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
+import jsat.utils.random.RandomUtil;
 
 /**
  * plus-L minus-R Selection (LRS) is a greedy method of selecting a subset 
@@ -175,7 +176,7 @@ public class LRS implements DataTransform
         Set<Integer> available = new IntSet(nF);
         ListUtils.addRange(available, 0, nF, 1);
         
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         double[] pBestScore = new double[]{Double.POSITIVE_INFINITY};
         
         if (L > R)
