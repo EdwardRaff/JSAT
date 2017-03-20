@@ -5,6 +5,7 @@ import java.util.Random;
 import jsat.FixedProblems;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPointPair;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -47,9 +48,9 @@ public class SCWTest
     public void testTrainC_Full()
     {
         System.out.println("TrainC_Full");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
      
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
         for (SCW.Mode mode : SCW.Mode.values())
         {   
@@ -65,9 +66,9 @@ public class SCWTest
     public void testTrainC_Diag()
     {
         System.out.println("TrainC_Diag");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
      
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
         for (SCW.Mode mode : SCW.Mode.values())
         {   

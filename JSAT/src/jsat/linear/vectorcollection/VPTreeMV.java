@@ -22,10 +22,9 @@ import jsat.utils.Pair;
 public class VPTreeMV<V extends Vec> extends VPTree<V>
 {
 
+    private static final long serialVersionUID = 6668184445206226077L;
 
-	private static final long serialVersionUID = 6668184445206226077L;
-
-	public VPTreeMV(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations, ExecutorService threadpool)
+    public VPTreeMV(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations, ExecutorService threadpool)
     {
         super(list, dm, vpSelection, rand, sampleSize, searchIterations, threadpool);
     }
@@ -43,6 +42,11 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
     public VPTreeMV(List<V> list, DistanceMetric dm)
     {
         super(list, dm);
+    }
+
+    public VPTreeMV(DistanceMetric dm)
+    {
+        super(dm);
     }
 
     @Override
@@ -80,11 +84,9 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
     
     public static class VPTreeMVFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 4265451324896792148L;
-		private VPSelection vpSelectionMethod;
+
+        private static final long serialVersionUID = 4265451324896792148L;
+        private VPSelection vpSelectionMethod;
 
         public VPTreeMVFactory(VPSelection vpSelectionMethod)
         {

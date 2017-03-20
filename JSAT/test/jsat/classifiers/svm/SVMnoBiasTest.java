@@ -16,6 +16,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import static java.lang.Math.*;
 import java.util.Arrays;
+import jsat.utils.random.RandomUtil;
 
 /**
  *
@@ -90,7 +91,7 @@ public class SVMnoBiasTest
                 
                 //test warm start off corrupted solution
                 double[] a = classifier.alphas;
-                Random rand = new XORWOW();
+                Random rand = RandomUtil.getRandom();
                 for(int i = 0; i < a.length; i++)
                     a[i] = min(max(a[i]+rand.nextDouble()*2-1, 0), 10);
                 

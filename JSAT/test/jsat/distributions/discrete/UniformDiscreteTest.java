@@ -17,6 +17,7 @@
 package jsat.distributions.discrete;
 
 import jsat.linear.Vec;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -149,7 +150,7 @@ public class UniformDiscreteTest
         System.out.println("sample");
         UniformDiscrete instance = new UniformDiscrete(2, 9);
         
-        Vec samples = instance.sampleVec(10000, new XORWOW());
+        Vec samples = instance.sampleVec(10000, RandomUtil.getRandom());
         
         assertEquals(instance.mean(), samples.mean(), 2e-1);
 //        assertEquals(instance.median(), samples.median(), 2e-1);

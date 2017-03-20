@@ -1,6 +1,7 @@
 package jsat.utils;
 
 import java.util.Random;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -46,7 +47,7 @@ public class StringUtilsTest
     public void testParseInt()
     {
         System.out.println("parseInt");
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         for(int radix = Character.MIN_RADIX; radix <= Character.MAX_RADIX; radix++)
         {
             for(int trials = 0; trials < 1000; trials++)

@@ -33,6 +33,7 @@ import jsat.regression.RegressionDataSet;
 import jsat.regression.RegressionModelEvaluation;
 import jsat.regression.Regressor;
 import jsat.utils.FakeExecutor;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -248,7 +249,7 @@ public class RandomSearch extends ModelSearch
          */
         final List<Classifier> paramsToEval = new ArrayList<Classifier>();
         
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         for(int trial = 0; trial < trials; trial++)
         {
             for(int i = 0; i < searchParams.size(); i++)
@@ -375,7 +376,7 @@ public class RandomSearch extends ModelSearch
          */
         final List<Regressor> paramsToEval = new ArrayList<Regressor>();
         
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         for(int trial = 0; trial < trials; trial++)
         {
             for(int i = 0; i < searchParams.size(); i++)

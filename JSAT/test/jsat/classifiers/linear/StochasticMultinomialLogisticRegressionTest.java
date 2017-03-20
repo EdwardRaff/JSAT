@@ -8,6 +8,7 @@ import java.util.Random;
 import jsat.FixedProblems;
 import jsat.classifiers.*;
 import jsat.exceptions.UntrainedModelException;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -55,7 +56,7 @@ public class StochasticMultinomialLogisticRegressionTest
     {
         System.out.println("trainC");
         
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
         
         
         for(StochasticMultinomialLogisticRegression.Prior prior : StochasticMultinomialLogisticRegression.Prior.values())
@@ -65,7 +66,7 @@ public class StochasticMultinomialLogisticRegressionTest
             smlgr.setPrior(prior);
             smlgr.trainC(train);
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
+            ClassificationDataSet test = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
 
             for(DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), smlgr.classify(dpp.getDataPoint()).mostLikely());
@@ -83,7 +84,7 @@ public class StochasticMultinomialLogisticRegressionTest
         
         Classifier cloned = smlgr.clone();
         
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
         cloned.trainC(train);
         
         

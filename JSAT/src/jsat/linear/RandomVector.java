@@ -1,6 +1,7 @@
 package jsat.linear;
 
 import java.util.Random;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Stores a Vector full of random values in constant O(1) space by re-computing 
@@ -32,7 +33,7 @@ public abstract class RandomVector extends Vec
      */
     public RandomVector(int length)
     {
-        this(length, new Random().nextLong());
+        this(length, RandomUtil.getRandom().nextLong());
     }
 
     /**

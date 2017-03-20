@@ -10,6 +10,7 @@ import jsat.linear.Matrix;
 import jsat.linear.RandomMatrix;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -124,7 +125,7 @@ public class JLTransform extends DataTransformBase
     public void fit(DataSet data)
     {
         final int d = data.getNumNumericalVars();
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         Matrix oldR = R = new RandomMatrixJL(k, d, rand.nextLong(), mode);
 
         if(inMemory)

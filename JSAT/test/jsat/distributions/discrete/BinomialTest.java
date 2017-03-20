@@ -17,6 +17,7 @@
 package jsat.distributions.discrete;
 
 import jsat.linear.Vec;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -159,7 +160,7 @@ public class BinomialTest
         instance.setP(0.5);
         
         //use odd number so median is always an actual int
-        Vec samples = instance.sampleVec(10001, new XORWOW());
+        Vec samples = instance.sampleVec(10001, RandomUtil.getRandom());
 
         assertEquals(instance.mean(), samples.mean(), 2e-1);
     //  assertEquals(instance.median(), samples.median(), 1e-1);

@@ -24,6 +24,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.datatransform.LinearTransform;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -73,8 +74,8 @@ public class LogisticRegressionTest
 
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(100, new XORWOW());
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(100, new XORWOW());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(100, RandomUtil.getRandom());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(100, RandomUtil.getRandom());
 
         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
         cme.evaluateTestSet(test);
@@ -91,8 +92,8 @@ public class LogisticRegressionTest
 
         LogisticRegression instance = new LogisticRegression();
 
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(100, new XORWOW());
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(100, new XORWOW());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(100, RandomUtil.getRandom());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(100, RandomUtil.getRandom());
 
         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
@@ -108,8 +109,8 @@ public class LogisticRegressionTest
 
         LogisticRegression instance = new LogisticRegression();
 
-        ClassificationDataSet t1 = FixedProblems.get2ClassLinear(100, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.get2ClassLinear(100, new XORWOW());
+        ClassificationDataSet t1 = FixedProblems.get2ClassLinear(100, RandomUtil.getRandom());
+        ClassificationDataSet t2 = FixedProblems.get2ClassLinear(100, RandomUtil.getRandom());
         t2.applyTransform(new LinearTransform(t2, 0.5, 1));
 
         instance = instance.clone();

@@ -28,6 +28,7 @@ import jsat.linear.Matrix;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -78,7 +79,7 @@ public class MDSTest
         
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         MDS instance = new MDS();
         
         //create a small data set, and apply a random projection to a higher dimension

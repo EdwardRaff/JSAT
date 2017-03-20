@@ -346,6 +346,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
         }
         
         //Check for numerical issues
+        
         if(v_t <= 0)//semi positive definit, should not happen
             throw new FailedToFitException("Numerical issues occured");
         

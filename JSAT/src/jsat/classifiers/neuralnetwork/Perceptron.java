@@ -19,6 +19,7 @@ import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.utils.PairedReturn;
+import jsat.utils.random.RandomUtil;
 
 /**
  * The perceptron is a simple algorithm that attempts to find a hyperplane that 
@@ -140,7 +141,7 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
         
         int partions = Runtime.getRuntime().availableProcessors();
         
-        Random r = new Random();
+        Random r = RandomUtil.getRandom();
         int numerVars = dataSet.getNumNumericalVars();
         
         weights = new DenseVector(numerVars);
@@ -229,7 +230,7 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
         List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
         Collections.shuffle(dataPoints);
         
-        Random r = new Random();
+        Random r = RandomUtil.getRandom();
         int numerVars = dataSet.getNumNumericalVars();
         
         weights = new DenseVector(numerVars);

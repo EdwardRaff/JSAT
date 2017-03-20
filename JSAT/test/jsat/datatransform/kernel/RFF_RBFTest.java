@@ -23,6 +23,7 @@ import jsat.classifiers.*;
 import jsat.classifiers.svm.DCDs;
 import jsat.datatransform.DataModelPipeline;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -71,8 +72,8 @@ public class RFF_RBFTest
         
         DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new RFF_RBF(0.5, 100, true));
 
-        ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-        ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+        ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, RandomUtil.getRandom());
+        ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, RandomUtil.getRandom());
 
         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
         cme.evaluateTestSet(test);
@@ -90,8 +91,8 @@ public class RFF_RBFTest
 
         DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new RFF_RBF(0.5, 100, true));
 
-        ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-        ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+        ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, RandomUtil.getRandom());
+        ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, RandomUtil.getRandom());
 
         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
@@ -107,8 +108,8 @@ public class RFF_RBFTest
 
         DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new RFF_RBF(0.5, 100, false));
         
-        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, RandomUtil.getRandom());
+        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, RandomUtil.getRandom(), 2.0, 10.0);
 
         instance = instance.clone();
 

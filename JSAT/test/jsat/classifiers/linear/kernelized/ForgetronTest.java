@@ -7,6 +7,7 @@ import jsat.FixedProblems;
 import jsat.classifiers.*;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -56,7 +57,7 @@ public class ForgetronTest
 
         for(boolean selfTuned : new boolean[]{true, false})
         {
-            ClassificationDataSet train = FixedProblems.getCircles(1000, 0.0, new XORWOW(), 1.0, 4.0);
+            ClassificationDataSet train = FixedProblems.getCircles(1000, 0.0, RandomUtil.getRandom(), 1.0, 4.0);
             
             Forgetron instance = new Forgetron(new RBFKernel(0.5), 40);
             instance.setSelfTurned(selfTuned);
@@ -71,7 +72,7 @@ public class ForgetronTest
                 train.addDataPoint(dp, badY);
             }
 
-            ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, new XORWOW(), 1, 4);
+            ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, RandomUtil.getRandom(), 1, 4);
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             cme.evaluateTestSet(test);
@@ -89,7 +90,7 @@ public class ForgetronTest
         
         for(boolean selfTuned : new boolean[]{true, false})
         {
-            ClassificationDataSet train = FixedProblems.getCircles(1000, 0.0, new XORWOW(), 1.0, 4.0);
+            ClassificationDataSet train = FixedProblems.getCircles(1000, 0.0, RandomUtil.getRandom(), 1.0, 4.0);
             
             Forgetron instance = new Forgetron(new RBFKernel(0.5), 40);
             instance.setSelfTurned(selfTuned);
@@ -104,7 +105,7 @@ public class ForgetronTest
                 train.addDataPoint(dp, badY);
             }
 
-            ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, new XORWOW(), 1, 4);
+            ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, RandomUtil.getRandom(), 1, 4);
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             cme.evaluateTestSet(test);
 
@@ -120,8 +121,8 @@ public class ForgetronTest
         Forgetron instance = new Forgetron(new RBFKernel(0.5), 100);
         instance.setEpochs(30);
         
-        ClassificationDataSet t1 = FixedProblems.getCircles(500, 0.0, new XORWOW(), 1, 4);
-        ClassificationDataSet t2 = FixedProblems.getCircles(500, 0.0, new XORWOW(), 2.0, 10.0);
+        ClassificationDataSet t1 = FixedProblems.getCircles(500, 0.0, RandomUtil.getRandom(), 1, 4);
+        ClassificationDataSet t2 = FixedProblems.getCircles(500, 0.0, RandomUtil.getRandom(), 2.0, 10.0);
 
         instance = instance.clone();
 

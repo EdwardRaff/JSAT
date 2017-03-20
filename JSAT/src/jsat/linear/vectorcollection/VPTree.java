@@ -22,7 +22,7 @@ import jsat.utils.ModifiableCountDownLatch;
 import jsat.utils.Pair;
 import jsat.utils.ProbailityMatch;
 import jsat.utils.SimpleList;
-import jsat.utils.random.XORWOW;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Provides an implementation of Vantage Point Trees, as described in 
@@ -115,7 +115,7 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
 
     public VPTree(List<V> list, DistanceMetric dm, VPSelection vpSelection)
     {
-        this(list, dm, vpSelection, new Random(), 80, 40);
+        this(list, dm, vpSelection, RandomUtil.getRandom(), 80, 40);
     }
     
     public VPTree(List<V> list, DistanceMetric dm)
@@ -128,7 +128,7 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         this.dm = dm;
         if(!dm.isSubadditive())
             throw new RuntimeException("VPTree only supports metrics that support the triangle inequality");
-        this.rand = new XORWOW();
+        this.rand = RandomUtil.getRandom();
         this.sampleSize = 80;
         this.searchIterations = 40;
         this.size = 0;
@@ -140,7 +140,7 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
     
     /**
      * Copy constructor
-     * @param toClone the object ot copy
+     * @param toClone the object to copy
      */
     protected VPTree(VPTree<V> toClone)
     {

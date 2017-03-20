@@ -6,6 +6,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.linear.Vec;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -119,7 +120,7 @@ public class AMM extends OnlineAMM
     {   
         IntList randOrder = new IntList(dataSet.getSampleSize());
         ListUtils.addRange(randOrder, 0, dataSet.getSampleSize(), 1);
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         
         int[] Z = new int[randOrder.size()];
         

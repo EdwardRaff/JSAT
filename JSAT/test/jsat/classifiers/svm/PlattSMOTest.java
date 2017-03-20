@@ -11,6 +11,7 @@ import jsat.distributions.kernels.LinearKernel;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -155,7 +156,7 @@ public class PlattSMOTest
     public void testTrainWarmCFastSMO()
     {
         //problem needs to be non-linear to make SMO work harder
-        ClassificationDataSet train = FixedProblems.getHalfCircles(250, new XORWOW(), 0.1, 0.2);
+        ClassificationDataSet train = FixedProblems.getHalfCircles(250, RandomUtil.getRandom(), 0.1, 0.2);
         
         
         PlattSMO warmModel = new PlattSMO(new LinearKernel(1));
@@ -189,7 +190,7 @@ public class PlattSMOTest
     @Test()
     public void testTrainWarmCFastOther()
     {
-        ClassificationDataSet train = FixedProblems.getHalfCircles(250, new XORWOW(), 0.1, 0.2);
+        ClassificationDataSet train = FixedProblems.getHalfCircles(250, RandomUtil.getRandom(), 0.1, 0.2);
         
         
         DCDs warmModel = new DCDs();
@@ -224,7 +225,7 @@ public class PlattSMOTest
     @Test()
     public void testTrainWarmRFastOther()
     {
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(1000, RandomUtil.getRandom());
         double eps = train.getTargetValues().mean()/20;
         
         DCDs warmModel = new DCDs();

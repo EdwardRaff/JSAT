@@ -26,6 +26,7 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
 import jsat.text.GreekLetters;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -70,7 +71,7 @@ public class JSATDataTest
         
         simpleData = new SimpleDataSet(categories, 20);
         
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         
         for(int i = 0; i < 10; i++)
         {

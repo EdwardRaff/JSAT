@@ -11,6 +11,7 @@ import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -38,7 +39,7 @@ public class JLTransformTest
     public static void setUpClass()
     {
         List<DataPoint> dps = new ArrayList<DataPoint>(100);
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         
         for(int i = 0; i < 100; i++)
         {

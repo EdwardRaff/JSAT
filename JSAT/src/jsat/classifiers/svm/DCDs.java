@@ -23,6 +23,7 @@ import java.util.*;
 import jsat.DataSet;
 import jsat.distributions.Distribution;
 import jsat.distributions.Exponential;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Implements Dual Coordinate Descent with shrinking (DCDs) training algorithms
@@ -395,7 +396,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
          * From profling Shufling & RNG generation takes a suprising amount of 
          * time on some data sets, so use one of our fast ones
          */
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
 
         for(int t = 0; t < maxIterations; t++ )
         {
@@ -583,7 +584,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
          * From profling Shufling & RNG generation takes a suprising amount of 
          * time on some data sets, so use one of our fast ones
          */
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         
         double M = Double.POSITIVE_INFINITY;
 

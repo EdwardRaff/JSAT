@@ -12,7 +12,7 @@ import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.vectorcollection.VectorCollection;
 import jsat.linear.vectorcollection.VectorCollectionFactory;
 import jsat.utils.BoundedSortedList;
-import jsat.utils.random.XOR96;
+import jsat.utils.random.RandomUtil;
 
 /**
  * An implementation of Locality Sensitive Hashing for the 
@@ -255,11 +255,9 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
      */
     private static final class NormalMatrix extends RandomMatrix
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = -5274754647385324984L;
-		private final double[] pool;
+
+        private static final long serialVersionUID = -5274754647385324984L;
+        private final double[] pool;
         private final long seedMult;
 
         public NormalMatrix(int rows, int cols, int poolSize)
@@ -268,13 +266,13 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
             if(poolSize > 0)
             {
                 pool = new double[poolSize];
-                Random rand = new XOR96();
+                Random rand = RandomUtil.getRandom();
                 for(int i = 0; i < pool.length; i++)
                     pool[i] = rand.nextGaussian();
             }
             else
                 pool = null;
-            seedMult = new Random().nextLong();
+            seedMult = RandomUtil.getRandom().nextLong();
         }
 
         public NormalMatrix(NormalMatrix toCopy)

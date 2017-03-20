@@ -13,6 +13,7 @@ import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -215,7 +216,7 @@ public class SCD implements Classifier, Regressor, Parameterized, SingleWeightVe
         final double beta = loss.getDeriv2Max();
         double[] z = new double[y.length];///stores w.dot(x)
         w = new DenseVector(columns.length);
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         for (int iter = 0; iter < iterations; iter++)
         {
             final int j = rand.nextInt(columns.length);

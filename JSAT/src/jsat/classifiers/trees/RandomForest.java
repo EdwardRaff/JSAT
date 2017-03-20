@@ -28,6 +28,7 @@ import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDoubleArray;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Random Forest is an extension of {@link Bagging} that is applied only to
@@ -313,7 +314,7 @@ public class RandomForest implements Classifier, Regressor, Parameterized
             roundShare = roundsToDistribut;//All the rounds get shoved onto one thread
         
         //Random used for creating more random objects, faster to duplicate such a small recourse then share and lock
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         List<Future<LearningWorker>> futures = new ArrayList<Future<LearningWorker>>(SystemInfo.LogicalCores);
         
         int[][] counts = null;

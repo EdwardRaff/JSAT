@@ -20,6 +20,7 @@ import java.util.Random;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.linear.Vec;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -39,7 +40,7 @@ public class InsertMissingValuesTransform implements InPlaceTransform
      */
     public InsertMissingValuesTransform(double prob)
     {
-        this(prob, new XORWOW());
+        this(prob, RandomUtil.getRandom());
     }
 
     /**

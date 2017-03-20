@@ -19,7 +19,7 @@ package jsat.classifiers.svm.extended;
 import jsat.FixedProblems;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
-import jsat.utils.random.XOR96;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -68,8 +68,8 @@ public class CPMTest
         System.out.println("trainC");
         CPM instance = new CPM(2, 20, 1.5, 50);
         
-        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 2, new XOR96());
-        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 2, new XOR96());
+        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 2, RandomUtil.getRandom());
+        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 2, RandomUtil.getRandom());
 
         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
@@ -85,8 +85,8 @@ public class CPMTest
     {
         System.out.println("clone");
         
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(10000, 2, new XOR96());
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(10000, 2, new XOR96());
+        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(10000, 2, RandomUtil.getRandom());
+        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(10000, 2, RandomUtil.getRandom());
         
         CPM instance = new CPM(2, 20, 1.5, 50);
         

@@ -43,6 +43,7 @@ import jsat.utils.IntList;
 import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -282,7 +283,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
             @Override
             protected List<Vec> getCentroids(DataSet data, int centroids, DistanceMetric dm, ExecutorService ex)
             {
-                Random rand = new XORWOW();
+                Random rand = RandomUtil.getRandom();
                 List<Vec> toRet = new ArrayList<Vec>();
                 Set<Integer> points = new IntSet();
                 

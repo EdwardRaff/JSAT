@@ -22,6 +22,7 @@ import java.util.concurrent.Executors;
 import jsat.FixedProblems;
 import jsat.datatransform.LinearTransform;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -68,8 +69,8 @@ public class OrdinaryKrigingTest
 
         OrdinaryKriging instance = new OrdinaryKriging(new OrdinaryKriging.PowVariogram());
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
@@ -87,8 +88,8 @@ public class OrdinaryKrigingTest
 
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);
@@ -105,8 +106,8 @@ public class OrdinaryKrigingTest
 
         OrdinaryKriging instance = new OrdinaryKriging(new OrdinaryKriging.PowVariogram());
 
-        RegressionDataSet t1 = FixedProblems.getLinearRegression(100, new XORWOW());
-        RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet t1 = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
+        RegressionDataSet t2 = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
         t2.applyTransform(new LinearTransform(t2, 1, 10));
 
         instance = instance.clone();

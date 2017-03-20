@@ -17,6 +17,7 @@ import jsat.math.OnLineStatistics;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -320,7 +321,7 @@ public class GapStatistic extends KClustererBase implements Parameterized
         for(int i = 0; i < N; i++)
             Xp.add(new DataPoint(new DenseVector(D)));
         
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         
         //info needed for sampling
         //min/max for each row/col to smaple uniformly from

@@ -11,6 +11,7 @@ import jsat.classifiers.DataPoint;
 import jsat.distributions.ContinuousDistribution;
 import jsat.distributions.Uniform;
 import jsat.linear.DenseVector;
+import jsat.utils.random.RandomUtil;
 
 /**
  * This is a utility to generate data in a grid fashion. 
@@ -66,7 +67,7 @@ public class GridDataGenerator
      */
     public GridDataGenerator(ContinuousDistribution noiseSource, int... dimensions)
     {
-        this(noiseSource, new Random(), dimensions);
+        this(noiseSource, RandomUtil.getRandom(), dimensions);
     }
 
     /**
@@ -74,7 +75,7 @@ public class GridDataGenerator
      */
     public GridDataGenerator()
     {
-        this(new Uniform(-0.25, 0.25), new Random(), 2, 5);
+        this(new Uniform(-0.25, 0.25), RandomUtil.getRandom(), 2, 5);
     }
     
     

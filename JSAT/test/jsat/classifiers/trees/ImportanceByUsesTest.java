@@ -23,6 +23,7 @@ import jsat.datatransform.NumericalToHistogram;
 import jsat.linear.ConcatenatedVec;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -77,7 +78,7 @@ public class ImportanceByUsesTest
             int randomFeatures = 30;
 
             //make the circles close to force tree to do lots of splits / make it harder
-            ClassificationDataSet train = FixedProblems.getCircles(10000, new XORWOW(), 1.0, 1.35);
+            ClassificationDataSet train = FixedProblems.getCircles(10000, RandomUtil.getRandom(), 1.0, 1.35);
             int good_featres = train.getNumNumericalVars();
             ClassificationDataSet train_noise = new ClassificationDataSet(train.getNumNumericalVars()+randomFeatures, train.getCategories(), train.getPredicting());
 
@@ -104,7 +105,7 @@ public class ImportanceByUsesTest
 
 
             //categorical features, make space wider b/c we lose resolution 
-            train = FixedProblems.getCircles(10000, new XORWOW(), 1.0, 1.5);
+            train = FixedProblems.getCircles(10000, RandomUtil.getRandom(), 1.0, 1.5);
     //        train.applyTransform(new PCA(train, 2, 0));
             good_featres = train.getNumNumericalVars();
             train_noise = new ClassificationDataSet(train.getNumNumericalVars()+randomFeatures, train.getCategories(), train.getPredicting());

@@ -26,6 +26,7 @@ import jsat.distributions.multivariate.MetricKDE;
 import jsat.distributions.multivariate.MultivariateKDE;
 import jsat.distributions.multivariate.ProductKDE;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -118,8 +119,8 @@ public class NadarayaWatsonTest
         {
             NadarayaWatson instance = new NadarayaWatson(kde);
 
-            RegressionDataSet t1 = FixedProblems.getLinearRegression(200, new XORWOW());
-            RegressionDataSet t2 = FixedProblems.getLinearRegression(200, new XORWOW());
+            RegressionDataSet t1 = FixedProblems.getLinearRegression(200, RandomUtil.getRandom());
+            RegressionDataSet t2 = FixedProblems.getLinearRegression(200, RandomUtil.getRandom());
             t2.applyTransform(new LinearTransform(t2, 1, 10));
 
             instance = instance.clone();

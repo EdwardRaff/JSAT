@@ -3,6 +3,7 @@ package jsat.math;
 import java.util.Collections;
 import java.util.Random;
 import jsat.utils.DoubleList;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -36,7 +37,7 @@ public class FastMathTest
     @Before
     public void setUp()
     {
-        rand = new XORWOW();
+        rand = RandomUtil.getRandom();
     }
     
     @After

@@ -27,6 +27,7 @@ import jsat.classifiers.svm.DCDs;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.regression.*;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.*;
 import static org.junit.Assert.*;
@@ -69,8 +70,8 @@ public class LWLTest
 
         LWL instance = new LWL((Regressor)new DCDs(), 30, new EuclideanDistance());
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(5000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(200, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(5000, RandomUtil.getRandom());
+        RegressionDataSet test = FixedProblems.getLinearRegression(200, RandomUtil.getRandom());
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
@@ -88,8 +89,8 @@ public class LWLTest
 
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(5000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(200, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(5000, RandomUtil.getRandom());
+        RegressionDataSet test = FixedProblems.getLinearRegression(200, RandomUtil.getRandom());
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);

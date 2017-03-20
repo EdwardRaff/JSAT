@@ -4,14 +4,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import jsat.exceptions.FailedToFitException;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.VecPairedComparable;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.utils.*;
 import static jsat.utils.SystemInfo.LogicalCores;
+import static java.lang.Math.*;
 
 /**
  * An implementation of the exact search for the Random Ball Cover algorithm. 
@@ -28,7 +33,7 @@ import static jsat.utils.SystemInfo.LogicalCores;
  *
  * @author Edward Raff
  */
-public class RandomBallCover<V extends Vec> implements VectorCollection<V>
+public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
 {
 
     private static final long serialVersionUID = 2437771973228849200L;
@@ -86,6 +91,7 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
             catch (InterruptedException ex1)
             {
                 //Wont happen with a fake executor, nothing to through the interupted exception in that case
+                throw new FailedToFitException(ex1);
             }
         }
     }
@@ -99,6 +105,16 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
     {
         this(vecs, dm, new FakeExecutor());
     }
+    
+    public RandomBallCover(DistanceMetric dm)
+    {
+        this.dm = dm;
+        this.size = 0;
+        this.allVecs = new ArrayList<V>();
+        if(dm.supportsAcceleration())
+            this.distCache = new DoubleList();
+        this.R = new IntList();
+    }
 
     /**
      * Copy constructor
@@ -108,28 +124,34 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
     {
         this.dm = other.dm.clone();
         this.size = other.size;
-        this.allVecs = new ArrayList<V>(other.allVecs);
-        this.distCache = new DoubleList(other.distCache);
-        this.ownedVecs = new ArrayList<List<Integer>>(other.ownedVecs.size());
-        this.ownedRDists = new ArrayList<DoubleList>(other.ownedRDists.size());
-        for(int i = 0; i < other.ownedRDists.size(); i++)
-        {
-            this.ownedRDists.add(new DoubleList(other.ownedRDists.get(i)));
-            this.ownedVecs.add(new IntList(other.ownedVecs.get(i)));
-        }
+        if(other.allVecs != null)
+            this.allVecs = new ArrayList<V>(other.allVecs);
+        if(other.distCache != null)
+            this.distCache = new DoubleList(other.distCache);
+        if(other.ownedVecs != null)
+            this.ownedVecs = new ArrayList<List<Integer>>(other.ownedVecs.size());
+        if(other.ownedRDists != null)
+            this.ownedRDists = new ArrayList<DoubleList>(other.ownedRDists.size());
+        if(other.ownedRDists != null)
+            for(int i = 0; i < other.ownedRDists.size(); i++)
+            {
+                this.ownedRDists.add(new DoubleList(other.ownedRDists.get(i)));
+                this.ownedVecs.add(new IntList(other.ownedVecs.get(i)));
+            }
         this.R = new IntList(other.R);
-        this.repRadius = Arrays.copyOf(other.repRadius, other.repRadius.length);
+        if(other.repRadius != null)
+            this.repRadius = Arrays.copyOf(other.repRadius, other.repRadius.length);
     }
 
     private void setUp(List<Integer> vecIndices, ExecutorService execServ) throws InterruptedException
     {
-        int repCount = (int) Math.max(1, Math.sqrt(vecIndices.size()));;
+        int repCount = (int) Math.max(1, Math.sqrt(vecIndices.size()));
         Collections.shuffle(vecIndices);
         
-        R = vecIndices.subList(0, repCount);
+        R = new IntList(vecIndices.subList(0, repCount));
         repRadius = new double[R.size()];
         ownedRDists = new ArrayList<DoubleList>(repRadius.length);
-        vecIndices = vecIndices.subList(repCount, vecIndices.size());
+        vecIndices = new IntList(vecIndices.subList(repCount, vecIndices.size()));
         ownedVecs = new ArrayList<List<Integer>>(repCount);
 
         for (int i = 0; i < repCount; i++)
@@ -179,18 +201,44 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
     {
         List<VecPairedComparable<V, Double>> knn = new ArrayList<VecPairedComparable<V, Double>>();
         
+        List<ProbailityMatch<Integer>> results = search_(query, range);
+        
+        for(ProbailityMatch<Integer> r : results)
+            knn.add(new VecPairedComparable<V, Double>(allVecs.get(r.getMatch()), r.getProbability()));
+        
+        return knn;
+    }
+    
+    /**
+     * Performs a range search but returns the integers indecies of the vectors, rather than the vector objects
+     * @param query
+     * @param range 
+     */
+    private List<ProbailityMatch<Integer>> search_(Vec query, double range)
+    {
+        List<ProbailityMatch<Integer>> knn = new ArrayList<ProbailityMatch<Integer>>();
+        
         List<Double> qi = dm.getQueryInfo(query);
+        
+        if(repRadius == null)//brute force search b/c small collection
+        {
+            for(int i = 0; i < allVecs.size(); i++)
+                knn.add(new ProbailityMatch<Integer>(dm.dist(i, query, qi, allVecs, distCache), i));
+            return knn;
+        }
 
         //Find the best representative r_q, and add its owned children to knn list. 
         double[] queryRDists = new double[R.size()];
 
         for (int i = 0; i < R.size(); i++)
             if ((queryRDists[i] = dm.dist(R.get(i), query, qi, allVecs, distCache)) <= range)
-                knn.add(new VecPairedComparable<V, Double>(allVecs.get(R.get(i)), queryRDists[i]));
+                knn.add(new ProbailityMatch<Integer>(queryRDists[i], R.get(i)));
 
+        IndexTable sorted = new IndexTable(queryRDists);
         //k-nn search through the rest of the data set
-        for (int i = 0; i < R.size(); i++)
+        for (int i_indx = 0; i_indx < R.size(); i_indx++)
         {
+            int i = sorted.index(i_indx);
             //Prune our representatives that are just too far
             if (queryRDists[i] > range + repRadius[i])
                 continue;
@@ -203,9 +251,8 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
                 double rDist = ownedRDists.get(i).getD(j);
                 if (queryRDists[i] > range + rDist)//first inqueality on a per point basis
                     continue;
-                V v = allVecs.get(ownedVecs.get(i).get(j));
                 if ((dist = dm.dist(ownedVecs.get(i).get(j), query, qi, allVecs, distCache)) <= range)
-                    knn.add(new VecPairedComparable<V, Double>(v, dist));
+                    knn.add(new ProbailityMatch<Integer>(dist, ownedVecs.get(i).get(j)));
             }
         }
 
@@ -219,6 +266,14 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
         BoundedSortedList<VecPairedComparable<V, Double>> knn = new BoundedSortedList<VecPairedComparable<V, Double>>(neighbors);
         
         List<Double> qi = dm.getQueryInfo(query);
+        
+        if(repRadius == null)//brute force search b/c small collection
+        {
+            for(int i = 0; i < allVecs.size(); i++)
+                knn.add(new VecPairedComparable<V, Double>(allVecs.get(i),
+                        dm.dist(i, query, qi, allVecs, distCache)));
+            return knn;
+        }
 
         //Find the best representative r_q, and add its owned children to knn list. 
         double[] queryRDists = new double[R.size()];
@@ -231,28 +286,20 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
         knn.add(new VecPairedComparable<V, Double>(allVecs.get(R.get(bestRep)), queryRDists[bestRep]));
         
         //need k'th nearest representative R for bounds check
+        IndexTable it = new IndexTable(queryRDists);
         int kth_best_rept;
-        if(neighbors == 1)
-            kth_best_rept = bestRep;
-        else if(neighbors < R.size())//need teh k'th closest, but if less than K we can't sure that bound
-        {
-            //TODO something more efficient here, all we really need is the dist too
-            IndexTable it = new IndexTable(queryRDists);
+        if(neighbors < R.size())//need teh k'th closest, but if less than K we can't sure that bound
             kth_best_rept = it.index(neighbors-1);
-        }
-        else
-        {
+        else//You are asking for too many neighbors, we can't use the 2nd bound
             kth_best_rept = -1;//if somone uses this we will get an IndexOutOfBound, telling us about the bug! 
-        }
 
         for (int v : ownedVecs.get(bestRep))
             knn.add(new VecPairedComparable<V, Double>(allVecs.get(v), dm.dist(v, query, qi, allVecs, distCache)));
         
         //k-nn search through the rest of the data set
-        for (int i = 0; i < R.size(); i++)
-        {
-            if (i == bestRep)
-                continue;
+        for (int sorted_order = 1; sorted_order < R.size(); sorted_order++)
+        {//start at 1 b/c we brute forced the closest rep first
+            final int i = it.index(sorted_order);
 
             if(knn.size() == neighbors)//no prunnig until we reach k-nns
             {
@@ -267,13 +314,15 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
             //Add any new nn imediatly, hopefully shrinking the bound before
             //the next representative is tested
             knn.add(new VecPairedComparable<V, Double>(allVecs.get(R.get(i)), queryRDists[i]));
+            final List<Integer> L_i_index = ownedVecs.get(i);
+            final DoubleList L_i_radius = ownedRDists.get(i);
             for (int j = 0; j < ownedVecs.get(i).size(); j++)
             {
-                double rDist = ownedRDists.get(i).getD(j);
+                double rDist = L_i_radius.getD(j);
                 //Check the first inequality on a per point basis
                 if (knn.size() == neighbors && queryRDists[i] > knn.last().getPair() + rDist)
                     continue;
-                int indx = ownedVecs.get(i).get(j);
+                int indx = L_i_index.get(j);
                 V v = allVecs.get(indx);
 
                 knn.add(new VecPairedComparable<V, Double>(v, dm.dist(indx, query, qi, allVecs, distCache) ));
@@ -281,6 +330,130 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
         }
 
         return knn;
+    }
+    
+    @Override
+    public void insert(V x)
+    {
+        final int new_indx = allVecs.size();
+        allVecs.add(x);
+        List<Double> qi = dm.getQueryInfo(x);
+        if(distCache != null)
+            distCache.addAll(qi);
+        size++;
+        if(size < 10)//brute force for now
+        {
+            R.add(new_indx);//use R for brute force
+            return;
+        }
+        else if(repRadius == null)//initial normal build
+        {
+            try
+            {
+                R.add(new_indx);
+                setUp(new IntList(R), new FakeExecutor());
+            }
+            catch (InterruptedException ex)
+            {
+                throw new FailedToFitException(ex);
+            }
+            return;
+        }
+        //else, normal addition
+
+        //Find the best representative 
+        double[] queryRDists = new double[R.size()];
+        Arrays.fill(queryRDists, Double.MAX_VALUE);
+        int bestRep = 0;
+        for (int i = 0; i < R.size(); i++)
+            if ((queryRDists[i] = dm.dist(R.get(i), x, qi, allVecs, distCache)) < queryRDists[bestRep])
+                bestRep = i;
+        //Add new point and update information
+        ownedVecs.get(bestRep).add(new_indx);
+        ownedRDists.get(bestRep).add(queryRDists[bestRep]);
+        repRadius[bestRep] = Math.max(repRadius[bestRep], queryRDists[bestRep]);
+        
+        if(pow(ceil(sqrt(size)), 2) != size)
+            return;//we are done
+        //else, expand R set
+        int new_r_vec_indx = -1;
+        {//lets randomly sample a point that isn't a rep
+            int ran_val = new Random().nextInt(size-R.size()-1);
+            int R_pos = 0;
+            while(ran_val >= 0)
+            {
+                if(ran_val >= ownedVecs.get(R_pos).size())
+                    ran_val -= ownedVecs.get(R_pos++).size();
+                else//found the list to grab from
+                {
+                    new_r_vec_indx = ownedVecs.get(R_pos).remove(ran_val);
+                    ownedRDists.get(R_pos).remove(ran_val);
+                    //update radius
+                    repRadius[R_pos] = 0;
+                    for(double d : ownedRDists.get(R_pos))
+                        repRadius[R_pos] = Math.max(repRadius[R_pos], d);
+                    //stop loop
+                    break;
+                    
+                }
+            }
+            
+        }
+        //We now have a new rep, we need to find the people it will own
+        double max_radius = 0;
+        for(double d : repRadius)
+            max_radius = Math.max(max_radius, d);
+        List<ProbailityMatch<Integer>> potentialChildren = search_(allVecs.get(new_r_vec_indx), max_radius);
+        //add new R to set after to avoid search issues
+        repRadius = Arrays.copyOf(repRadius, repRadius.length+1);
+        R.add(new_r_vec_indx);
+        ownedRDists.add(new DoubleList());
+        ownedVecs.add(new IntList());
+        final int r_new = R.size()-1;
+        for(ProbailityMatch<Integer> pc : potentialChildren)
+        {
+            double d_y_r_new = pc.getProbability();
+            int y_indx = pc.getMatch();
+            if(R.contains(y_indx))//skip, we can't take ownerhsip of a rep
+                continue;
+            //find who owns y_indx
+            int r_y = 0;
+            int r_y_indx = -1;//index in owned list of the data point
+            
+            for(int i = 0; i < R.size()-1; i++)//technicaly this is O(n), but its really fast - so who cares
+            {
+                List<Integer> L_ry = ownedVecs.get(i);
+                for(int j = 0; j < L_ry.size(); j++)
+                    if(L_ry.get(j) == y_indx)
+                    {
+                        r_y = i;
+                        r_y_indx = j;
+                        i = R.size();
+                        break;
+                    }
+            }
+            
+            double d_y_ry = ownedRDists.get(r_y).getD(r_y_indx);
+            
+            if(d_y_ry > d_y_r_new)//change ownership
+            {
+                ownedVecs.get(r_y).remove(r_y_indx);
+                ownedVecs.get(r_new).add(y_indx);
+                //update radius info
+                ownedRDists.get(r_new).add(d_y_r_new);
+                if(d_y_r_new > repRadius[r_new])
+                    repRadius[r_new] = Math.max(repRadius[r_new], d_y_r_new);
+                ownedRDists.get(r_y).remove(r_y_indx);
+                if(d_y_ry >= repRadius[r_y])
+                {
+                    repRadius[r_y] = 0;
+                    for(double d : ownedRDists.get(r_y))
+                        repRadius[r_y] = Math.max(repRadius[r_y], d);
+                }
+                
+            }
+            
+        }
     }
 
     @Override
@@ -294,7 +467,7 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
     {
         return new RandomBallCover<V>(this);
     }
-    
+
     public static class RandomBallCoverFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
 

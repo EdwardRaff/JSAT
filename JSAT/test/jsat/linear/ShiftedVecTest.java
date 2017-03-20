@@ -4,6 +4,7 @@ package jsat.linear;
 
 import java.util.Iterator;
 import java.util.Random;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -79,7 +80,7 @@ public class ShiftedVecTest
         b_dense.mutableAdd(shift_b);
         b_sparse.mutableAdd(shift_b);
         
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         rand_x = new DenseVector(a_base.length());
         rand_y = new DenseVector(a_base.length());
         
@@ -165,7 +166,7 @@ public class ShiftedVecTest
         System.out.println("set");
         ShiftedVec a = new ShiftedVec(a_base, shift_a);
         
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         for(int round = 0; round < 100; round++)
         {
             int indx = rand.nextInt(a.length());

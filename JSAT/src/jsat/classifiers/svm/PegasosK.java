@@ -22,6 +22,7 @@ import jsat.parameters.Parameterized;
 import jsat.utils.FakeExecutor;
 import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Implements the kernelized version of the {@link Pegasos} algorithm for SVMs. 
@@ -202,7 +203,7 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
             throw new FailedToFitException("Pegasos only supports binary classification problems");
         try
         {
-            Random rand = new Random();
+            Random rand = RandomUtil.getRandom();
             final int m = dataSet.getSampleSize();
 
             alphas = new double[m];

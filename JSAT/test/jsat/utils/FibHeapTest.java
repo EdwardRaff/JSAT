@@ -17,6 +17,7 @@
 package jsat.utils;
 
 import java.util.*;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -170,7 +171,7 @@ public class FibHeapTest
         SortedMap<Long, Double> map = new TreeMap<Long, Double>();
         Map<Long, FibHeap.FibNode<Long>> heapNodes = new HashMap<Long, FibHeap.FibNode<Long>>();
         
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         
         for(int trials = 0; trials < 10; trials++)
         for(int maxSize = 1; maxSize < 2000; maxSize*=2)

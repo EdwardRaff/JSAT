@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -91,7 +92,7 @@ public class ConcatenatedVecTest
     public void testSet()
     {
         System.out.println("set");
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         for(int i = 0; i < dvec.length(); i++)
         {
             double nv = rand.nextDouble();

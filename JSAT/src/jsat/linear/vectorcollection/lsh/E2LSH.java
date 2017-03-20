@@ -16,6 +16,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.ManhattanDistance;
 import jsat.utils.IntList;
 import jsat.utils.IntSet;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -133,7 +134,7 @@ public class E2LSH<V extends Vec>
         
 //        L = (int) ceil(pow(vecs.size(), log(1/p1)/log(1/p2)));
         
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         createTablesAndHashes(rand);
     }
     

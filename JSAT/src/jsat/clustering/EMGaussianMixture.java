@@ -20,6 +20,7 @@ import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.ListUtils;
 import static jsat.utils.SystemInfo.LogicalCores;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -138,7 +139,7 @@ public class EMGaussianMixture extends KClustererBase implements MultivariateDis
         if(means.size() < K)
         {
             means.clear();
-            means.addAll(SeedSelectionMethods.selectIntialPoints(dataSet, K, dm, accelCache, new XORWOW(), seedSelection, threadpool));
+            means.addAll(SeedSelectionMethods.selectIntialPoints(dataSet, K, dm, accelCache, RandomUtil.getRandom(), seedSelection, threadpool));
             for(Vec v : means)
                 means_qi.add(dm.getQueryInfo(v));
         }

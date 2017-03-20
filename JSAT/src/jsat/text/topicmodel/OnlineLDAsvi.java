@@ -23,8 +23,7 @@ import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.ParallelUtils;
-import jsat.utils.random.XOR96;
-import jsat.utils.random.XORWOW;
+import jsat.utils.random.RandomUtil;
 
 /**
  * This class provides an implementation of <i>Latent Dirichlet Allocation</i>
@@ -466,7 +465,7 @@ public class OnlineLDAsvi implements Parameterized
                 @Override
                 public void run()
                 {
-                    Random rand = new XORWOW();
+                    Random rand = RandomUtil.getRandom();
                     for(int d = ParallelUtils.getStartBlock(docs.size(), ID, P); d < ParallelUtils.getEndBlock(docs.size(), ID, P); d++)
                     {
                         final Vec doc = docs.get(d);
@@ -593,7 +592,7 @@ public class OnlineLDAsvi implements Parameterized
     {
         Vec gamma = new DenseVector(K);
 
-        Random rand = new XOR96();
+        Random rand = RandomUtil.getRandom();
         double lambdaInv = (W * K) / (D * 100.0);
 
         for (int j = 0; j < gamma.length(); j++)
@@ -803,7 +802,7 @@ public class OnlineLDAsvi implements Parameterized
         Arrays.fill(lastUsed, -1);
         
         final double lambdaInv = (K*W)/(D*100.0);
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         for(int i = 0; i < K; i++)
         {
             Vec lambda_i = new DenseVector(W);

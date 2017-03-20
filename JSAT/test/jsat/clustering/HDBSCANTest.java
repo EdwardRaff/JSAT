@@ -21,6 +21,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.vectorcollection.VectorArray.VectorArrayFactory;
 import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 import org.junit.AfterClass;
@@ -47,7 +48,7 @@ public class HDBSCANTest
     public static void setUpClass() throws Exception
     {
         hdbscan = new HDBSCAN();
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new XORWOW(), 2, 5);
+        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), RandomUtil.getRandom(), 2, 5);
         easyData10 = gdg.generateData(40);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }

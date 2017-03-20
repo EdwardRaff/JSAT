@@ -24,6 +24,7 @@ import jsat.datatransform.LinearTransform;
 import jsat.distributions.kernels.LinearKernel;
 import jsat.linear.DenseVector;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -70,10 +71,10 @@ public class RANSACTest
 
         RANSAC instance = new RANSAC(new KernelRLS(new LinearKernel(1), 1e-1), 10, 20, 40, 5);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
         for(int i = 0; i < 20; i++)
             train.addDataPoint(DenseVector.random(train.getNumNumericalVars()), train.getTargetValues().mean());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
@@ -91,10 +92,10 @@ public class RANSACTest
 
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
         for(int i = 0; i < 20; i++)
             train.addDataPoint(DenseVector.random(train.getNumNumericalVars()), train.getTargetValues().mean());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);
@@ -111,10 +112,10 @@ public class RANSACTest
 
         RANSAC instance = new RANSAC(new KernelRLS(new LinearKernel(1), 1e-1), 10, 20, 40, 5);
 
-        RegressionDataSet t1 = FixedProblems.getLinearRegression(500, new XORWOW());
+        RegressionDataSet t1 = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
         for(int i = 0; i < 20; i++)
             t1.addDataPoint(DenseVector.random(t1.getNumNumericalVars()), t1.getTargetValues().mean());
-        RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet t2 = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
         t2.applyTransform(new LinearTransform(t2, 1, 10));
 
         instance = instance.clone();

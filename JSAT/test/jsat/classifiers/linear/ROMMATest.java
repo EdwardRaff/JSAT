@@ -4,6 +4,7 @@ package jsat.classifiers.linear;
 import java.util.Random;
 import jsat.FixedProblems;
 import jsat.classifiers.*;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -51,7 +52,7 @@ public class ROMMATest
         System.out.println("supportsWeightedData");
         ROMMA nonAggro = new ROMMA();
         ROMMA aggro = new ROMMA();
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         nonAggro.setEpochs(1);
         nonAggro.trainC(train);
@@ -59,7 +60,7 @@ public class ROMMATest
         aggro.setEpochs(1);
         aggro.trainC(train);
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), aggro.classify(dpp.getDataPoint()).mostLikely());

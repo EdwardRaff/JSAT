@@ -12,6 +12,7 @@ import jsat.regression.Regressor;
 import jsat.utils.IntList;
 import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Sequential Backward Selection (SBS) is a greedy method of selecting a subset 
@@ -131,7 +132,7 @@ public class SBS extends RemoveAttributeTransform
     
     private void search(DataSet dataSet, Object learner, int minFeatures, int maxFeatures, int folds)
     {
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         int nF = dataSet.getNumFeatures();
         int nCat = dataSet.getNumCategoricalVars();
         

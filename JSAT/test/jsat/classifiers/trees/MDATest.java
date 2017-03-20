@@ -26,6 +26,7 @@ import jsat.linear.ConcatenatedVec;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -116,7 +117,7 @@ public class MDATest
         
         
         //make the circles close to force tree to do lots of splits / make it harder
-        ClassificationDataSet train = getHarderC(10000, new XORWOW());
+        ClassificationDataSet train = getHarderC(10000, RandomUtil.getRandom());
         int good_featres = 2;
         
         
@@ -135,7 +136,7 @@ public class MDATest
         
         
         //categorical features, make space wider b/c we lose resolution 
-        train = getHarderC(10000, new XORWOW());
+        train = getHarderC(10000, RandomUtil.getRandom());
 
         
         train.applyTransform(new NumericalToHistogram(train, 7));
@@ -162,7 +163,7 @@ public class MDATest
         
         
         //make the circles close to force tree to do lots of splits / make it harder
-        RegressionDataSet train = getHarderR(10000, new XORWOW());
+        RegressionDataSet train = getHarderR(10000, RandomUtil.getRandom());
         int good_featres = 2;
         
         
@@ -181,7 +182,7 @@ public class MDATest
         
         
         //categorical features, make space wider b/c we lose resolution 
-        train = getHarderR(10000, new XORWOW());
+        train = getHarderR(10000, RandomUtil.getRandom());
 
         
         train.applyTransform(new NumericalToHistogram(train, 7));

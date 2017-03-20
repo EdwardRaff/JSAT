@@ -21,7 +21,7 @@ import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 import jsat.utils.ListUtils;
-import jsat.utils.random.XOR96;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Base class for various Kernel K Means implementations. Because the Kernelized 
@@ -235,7 +235,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         else
             this.W = W;
         
-        Random rand = new XOR96();
+        Random rand = RandomUtil.getRandom();
         for (int i = 0; i < N; i++)
         {
             int to = rand.nextInt(K);

@@ -13,6 +13,7 @@ import jsat.exceptions.UntrainedModelException;
 import jsat.math.OnLineStatistics;
 import jsat.regression.evaluation.RegressionScore;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Provides a mechanism to quickly evaluate a regression model on a data set. 
@@ -143,7 +144,7 @@ public class RegressionModelEvaluation
      */
     public void evaluateCrossValidation(int folds)
     {
-        evaluateCrossValidation(folds, new Random());
+        evaluateCrossValidation(folds, RandomUtil.getRandom());
     }
     
     /**

@@ -4,6 +4,7 @@ package jsat.classifiers.linear;
 import java.util.Random;
 import jsat.FixedProblems;
 import jsat.classifiers.*;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -49,7 +50,7 @@ public class PassiveAggressiveTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
         
         for(PassiveAggressive.Mode mode : PassiveAggressive.Mode.values())
         {
@@ -57,7 +58,7 @@ public class PassiveAggressiveTest
             pa.setMode(mode);
             pa.trainC(train);
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
+            ClassificationDataSet test = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
 
             for(DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), pa.classify(dpp.getDataPoint()).mostLikely());

@@ -12,8 +12,7 @@ import jsat.TestTools;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
-import jsat.utils.random.XOR96;
-import jsat.utils.random.XORWOW;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -62,8 +61,8 @@ public class DReDNetSimpleTest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(2000, new XOR96());
-        ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(200, new XOR96());
+        ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(2000, RandomUtil.getRandom());
+        ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(200, RandomUtil.getRandom());
         
         ExecutorService threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
@@ -85,8 +84,8 @@ public class DReDNetSimpleTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(2000, new XOR96());
-        ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(200, new XOR96());
+        ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(2000, RandomUtil.getRandom());
+        ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(200, RandomUtil.getRandom());
         
         
         DReDNetSimple net = new DReDNetSimple(500).clone();

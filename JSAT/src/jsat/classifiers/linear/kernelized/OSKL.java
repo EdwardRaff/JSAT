@@ -18,6 +18,7 @@ import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -141,7 +142,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
         if(toCopy.accelCache != null)
             this.accelCache = new DoubleList(toCopy.accelCache);
         
-        this.rand = new XORWOW();
+        this.rand = RandomUtil.getRandom();
     }
     
     /**
@@ -290,7 +291,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
-        rand = new XORWOW();
+        rand = RandomUtil.getRandom();
         vecs = new ArrayList<Vec>();
         alphas = new DoubleList();
         alphaAveraged = new DoubleList();

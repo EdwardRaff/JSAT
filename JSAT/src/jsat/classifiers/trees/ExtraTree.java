@@ -18,6 +18,7 @@ import jsat.regression.Regressor;
 import jsat.utils.IntList;
 import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
+import jsat.utils.random.RandomUtil;
 
 /**
  * The ExtraTree is an Extremely Randomized Tree. Splits are chosen at random, 
@@ -173,7 +174,7 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         Stack<List<DataPointPair<Integer>>> reusableLists  = new Stack<List<DataPointPair<Integer>>>();
         IntList features = new IntList(dataSet.getNumFeatures());
         ListUtils.addRange(features, 0, dataSet.getNumFeatures(), 1);
@@ -591,7 +592,7 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
     @Override
     public void train(RegressionDataSet dataSet)
     {
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         Stack<List<DataPointPair<Double>>> reusableLists  = new Stack<List<DataPointPair<Double>>>();
         IntList features = new IntList(dataSet.getNumFeatures());
         ListUtils.addRange(features, 0, dataSet.getNumFeatures(), 1);

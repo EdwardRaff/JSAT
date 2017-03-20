@@ -5,6 +5,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.*;
+import jsat.utils.random.RandomUtil;
 
 /**
  * DefaultVectorCollectionFactory is a generic factory that attempts to return a
@@ -45,7 +46,7 @@ public class DefaultVectorCollectionFactory<V extends Vec> implements VectorColl
             return kd;
         }
         
-        return new VPTree<V>(source, distanceMetric, VPTree.VPSelection.Random, new Random(), 50, 50);
+        return new VPTree<V>(source, distanceMetric, VPTree.VPSelection.Random, RandomUtil.getRandom(), 50, 50);
     }
 
     @Override
@@ -70,7 +71,7 @@ public class DefaultVectorCollectionFactory<V extends Vec> implements VectorColl
             KDTree<V> kd = new KDTree<V>(source, distanceMetric, pivotSelect, threadpool);
             return kd;
         }
-        return new VPTree<V>(source, distanceMetric, VPTree.VPSelection.Random, new Random(), 50, 50, threadpool);
+        return new VPTree<V>(source, distanceMetric, VPTree.VPSelection.Random, RandomUtil.getRandom(), 50, 50, threadpool);
     }
 
     @Override

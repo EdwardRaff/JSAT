@@ -151,6 +151,20 @@ public class IntList extends AbstractList<Integer> implements Serializable
     }
 
     @Override
+    public boolean addAll(Collection<? extends Integer> c)
+    {
+        int initSize = size();
+        if(c  == this)
+            System.out.println("W");
+        enlargeIfNeeded(c.size());
+        for(int i : c)
+            add(i);
+        return initSize != size();
+    }
+    
+    
+
+    @Override
     public Integer remove(int index)
     {
         if(index < 0 || index > size())

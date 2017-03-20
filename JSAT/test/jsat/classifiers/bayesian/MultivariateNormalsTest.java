@@ -22,7 +22,7 @@ import jsat.FixedProblems;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.utils.SystemInfo;
-import jsat.utils.random.XOR96;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -100,8 +100,8 @@ public class MultivariateNormalsTest
     {
         System.out.println("clone");
         
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, new XOR96());
+        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, RandomUtil.getRandom());
+        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, RandomUtil.getRandom());
         
         MultivariateNormals instance = new MultivariateNormals();
         

@@ -24,6 +24,7 @@ import jsat.classifiers.svm.DCDs;
 import jsat.datatransform.DataModelPipeline;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -76,8 +77,8 @@ public class KernelPCATest
         {
             DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new KernelPCA(new RBFKernel(0.5), 20, 100, sampMethod)); 
 
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, RandomUtil.getRandom());
+            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, RandomUtil.getRandom());
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             cme.evaluateTestSet(test);
@@ -97,8 +98,8 @@ public class KernelPCATest
         {
             DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new KernelPCA(new RBFKernel(0.5), 20, 100, sampMethod)); 
         
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, RandomUtil.getRandom());
+            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, RandomUtil.getRandom());
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             cme.evaluateTestSet(test);
@@ -115,8 +116,8 @@ public class KernelPCATest
 
         DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new KernelPCA(new RBFKernel(0.5), 20, 100, Nystrom.SamplingMethod.KMEANS)); 
         
-        ClassificationDataSet t1 = FixedProblems.getCircles(500, 0.0, new XORWOW(), 1.0, 4.0);
-        ClassificationDataSet t2 = FixedProblems.getCircles(500, 0.0, new XORWOW(), 2.0, 10.0);
+        ClassificationDataSet t1 = FixedProblems.getCircles(500, 0.0, RandomUtil.getRandom(), 1.0, 4.0);
+        ClassificationDataSet t2 = FixedProblems.getCircles(500, 0.0, RandomUtil.getRandom(), 2.0, 10.0);
 
         instance = instance.clone();
 

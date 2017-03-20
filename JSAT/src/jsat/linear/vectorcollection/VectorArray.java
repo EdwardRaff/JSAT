@@ -23,11 +23,10 @@ import jsat.utils.ProbailityMatch;
  * 
  * @author Edward Raff
  */
-public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCollection<V>
+public class VectorArray<V extends Vec> extends ArrayList<V> implements IncrementalCollection<V>
 {
-
-	private static final long serialVersionUID = 5365949686370986234L;
-	private DistanceMetric distanceMetric;
+    private static final long serialVersionUID = 5365949686370986234L;
+    private DistanceMetric distanceMetric;
     private List<Double> distCache;
 
     public VectorArray(DistanceMetric distanceMetric, int initialCapacity)
@@ -66,6 +65,12 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCo
             this.distCache = distanceMetric.getAccelerationCache(this);
         else
             this.distCache = null;
+    }
+    
+    @Override
+    public void insert(V x)
+    {
+        add(x);
     }
 
     @Override
@@ -143,15 +148,12 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCo
         
         return clone;
     }
-    
+
     public static class VectorArrayFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = -7470849503958877157L;
+        private static final long serialVersionUID = -7470849503958877157L;
 
-		@Override
+        @Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
         {
             return new VectorArray<V>(distanceMetric, source);

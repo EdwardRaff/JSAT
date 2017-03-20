@@ -23,6 +23,7 @@ import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.distributions.Normal;
 import jsat.utils.GridDataGenerator;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -69,7 +70,7 @@ public class ImputerTest
     public void testFit()
     {
         System.out.println("fit");
-        GridDataGenerator gdg = new GridDataGenerator(new Normal(0.0, 0.5), new XORWOW(), 1, 1, 1, 1);
+        GridDataGenerator gdg = new GridDataGenerator(new Normal(0.0, 0.5), RandomUtil.getRandom(), 1, 1, 1, 1);
         
         SimpleDataSet data = gdg.generateData(10000);
         //remove class label feature

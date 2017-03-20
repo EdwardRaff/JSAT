@@ -14,6 +14,7 @@ import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -103,7 +104,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
         this.maxCoeff = toCopy.maxCoeff;
         this.lossC = toCopy.lossC.clone();
         this.uniformSampling = toCopy.uniformSampling;
-        this.rand = new XORWOW();
+        this.rand = RandomUtil.getRandom();
         if(toCopy.vecs != null)
         {
             this.vecs = new ArrayList<Vec>(budget);
@@ -264,7 +265,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
             accelCache = null;
         if(!uniformSampling)
             dist = new double[budget];
-        rand = new XORWOW();
+        rand = RandomUtil.getRandom();
     }
     
     @Override

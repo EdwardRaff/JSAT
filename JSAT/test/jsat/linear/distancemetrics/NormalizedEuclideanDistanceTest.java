@@ -26,6 +26,7 @@ import jsat.classifiers.DataPoint;
 import jsat.distributions.multivariate.NormalM;
 import jsat.linear.*;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -109,7 +110,7 @@ public class NormalizedEuclideanDistanceTest
         
         NormalM normal = new NormalM(new ConstantVector(0.0, 5), trueCov.clone());
         NormalizedEuclideanDistance dist = new NormalizedEuclideanDistance();
-        dist.train(normal.sample(30000, new XORWOW()));
+        dist.train(normal.sample(30000, RandomUtil.getRandom()));
         
         List<Double> cache = dist.getAccelerationCache(vecs);
         List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
@@ -165,7 +166,7 @@ public class NormalizedEuclideanDistanceTest
         
         NormalM normal = new NormalM(new ConstantVector(0.0, 5), trueCov.clone());
         NormalizedEuclideanDistance dist = new NormalizedEuclideanDistance();
-        dist.train(normal.sample(30000, new XORWOW()), ex);
+        dist.train(normal.sample(30000, RandomUtil.getRandom()), ex);
         
         List<Double> cache = dist.getAccelerationCache(vecs);
         List<Double> cache2 = dist.getAccelerationCache(vecs, ex);

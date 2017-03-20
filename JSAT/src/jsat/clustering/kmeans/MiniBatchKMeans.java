@@ -11,6 +11,7 @@ import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.*;
 import jsat.utils.*;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Implements the mini-batch algorithms for k-means. This is a stochastic algorithm, 
@@ -223,7 +224,7 @@ public class MiniBatchKMeans extends KClustererBase
         else
             distCache = dm.getAccelerationCache(source, threadpool);
         
-        means = SeedSelectionMethods.selectIntialPoints(dataSet, clusters, dm, distCache, new Random(), seedSelection, threadpool);
+        means = SeedSelectionMethods.selectIntialPoints(dataSet, clusters, dm, distCache, RandomUtil.getRandom(), seedSelection, threadpool);
         
         final List<List<Double>> meanQIs = new ArrayList<List<Double>>(means.size());
         for (int i = 0; i < means.size(); i++)

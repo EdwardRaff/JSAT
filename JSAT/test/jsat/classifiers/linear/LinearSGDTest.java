@@ -16,6 +16,7 @@ import jsat.math.optimization.stochastic.GradientUpdater;
 import jsat.math.optimization.stochastic.RMSProp;
 import jsat.math.optimization.stochastic.SimpleSGD;
 import jsat.regression.RegressionDataSet;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -70,11 +71,11 @@ public class LinearSGDTest
                 linearsgd.setUseBias(useBias);
                 linearsgd.setGradientUpdater(gu);
 
-                ClassificationDataSet train = FixedProblems.get2ClassLinear(500, new Random());
+                ClassificationDataSet train = FixedProblems.get2ClassLinear(500, RandomUtil.getRandom());
 
                 linearsgd.trainC(train);
 
-                ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+                ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
                 for(DataPointPair<Integer> dpp : test.getAsDPPList())
                     assertEquals(dpp.getPair().longValue(), linearsgd.classify(dpp.getDataPoint()).mostLikely());
@@ -94,11 +95,11 @@ public class LinearSGDTest
                 linearsgd.setUseBias(useBias);
                 linearsgd.setGradientUpdater(gu);
 
-                ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, new Random());
+                ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, RandomUtil.getRandom());
 
                 linearsgd.trainC(train);
 
-                ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, new Random());
+                ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, RandomUtil.getRandom());
 
                 for(DataPointPair<Integer> dpp : test.getAsDPPList())
                     assertEquals(dpp.getPair().longValue(), linearsgd.classify(dpp.getDataPoint()).mostLikely());

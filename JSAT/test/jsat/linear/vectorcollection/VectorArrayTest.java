@@ -24,6 +24,7 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -74,7 +75,7 @@ public class VectorArrayTest
     public void testSearch_Vec_double()
     {
         System.out.println("search");
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         
         VectorArray<Vec> vecCol = new VectorArray<Vec>(new EuclideanDistance());
         vecCol.addAll(simpleSet);
@@ -103,7 +104,7 @@ public class VectorArrayTest
     public void testSearch_Vec_int()
     {
         System.out.println("search");
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         
         VectorArray<Vec> vecCol = new VectorArray<Vec>(new EuclideanDistance());
         for(Vec v : simpleSet)

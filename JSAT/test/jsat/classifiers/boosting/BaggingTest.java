@@ -27,6 +27,7 @@ import jsat.regression.RegressionDataSet;
 import jsat.regression.RegressionModelEvaluation;
 import jsat.regression.Regressor;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.*;
 import static org.junit.Assert.*;
@@ -69,8 +70,8 @@ public class BaggingTest
 
         Bagging instance = new Bagging((Regressor)new DecisionTree());
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(5000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(5000, RandomUtil.getRandom());
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
@@ -88,8 +89,8 @@ public class BaggingTest
 
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(5000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(5000, RandomUtil.getRandom());
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);

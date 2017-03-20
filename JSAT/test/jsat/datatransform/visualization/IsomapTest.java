@@ -29,6 +29,7 @@ import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.vectorcollection.VectorArray;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -79,7 +80,7 @@ public class IsomapTest
         
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         
-        Random rand = new XORWOW();
+        Random rand = RandomUtil.getRandom();
         Isomap instance = new Isomap();
         
         

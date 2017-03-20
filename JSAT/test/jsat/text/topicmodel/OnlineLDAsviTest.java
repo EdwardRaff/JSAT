@@ -13,6 +13,7 @@ import jsat.distributions.multivariate.Dirichlet;
 import jsat.linear.*;
 import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 import org.junit.After;
@@ -92,7 +93,7 @@ public class OnlineLDAsviTest
                 double alpha = 0.1;
                 List<DataPoint> docs = new ArrayList<DataPoint>();
                 Dirichlet dirichlet = new Dirichlet(new ConstantVector(alpha, basis.size()));
-                Random rand = new XORWOW();
+                Random rand = RandomUtil.getRandom();
                 for(Vec topicSample : dirichlet.sample(100000, rand))
                 {
                     Vec doc = new DenseVector(basis.get(0).length());

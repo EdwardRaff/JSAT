@@ -20,6 +20,7 @@ import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Implements Dual Coordinate Descent (DCD) training algorithms for a Linear 
@@ -320,7 +321,7 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
         List<Integer> A = new IntList(vecs.length);
         ListUtils.addRange(A, 0, vecs.length, 1);
         
-        Random rand = new Random();
+        Random rand = RandomUtil.getRandom();
         for(int t = 0; t < maxIterations; t++ )
         {
             if(onlineVersion)

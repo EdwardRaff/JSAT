@@ -176,4 +176,36 @@ public class VPTreeMVTest
         }
         
     }
+    
+    @Test
+    public void testSearch_Vec_int_incramental()
+    {
+        System.out.println("search");
+        Random rand = new XORWOW(123);
+        
+        VectorArray<Vec> vecCol = new VectorArray<Vec>(new EuclideanDistance());
+        for(int i = 0; i < 1000; i++)
+            vecCol.add(DenseVector.random(3, rand));
+        
+        
+        IncrementalCollection<Vec> collection0 = new VPTreeMV<Vec>(new EuclideanDistance());
+        for(Vec v : vecCol)
+            collection0.insert(v);
+            
+        for(int iters = 0; iters < 10; iters++)
+            for(int neighbours : new int[]{1, 2, 5, 10, 20})
+            {
+                int randIndex=  rand.nextInt(vecCol.size());
+
+                List<? extends VecPaired<Vec, Double>> foundTrue = vecCol.search(vecCol.get(randIndex), neighbours);
+                List<? extends VecPaired<Vec, Double>> foundTest0 = collection0.search(vecCol.get(randIndex), neighbours);
+        
+                assertEquals(collection0.getClass().getName() + " failed", foundTrue.size(), foundTest0.size());
+                for(int i = 0; i < foundTrue.size(); i++)
+                {
+                    assertTrue(collection0.getClass().getName() + " failed " + (i+1) + "'th / " + neighbours + " " + foundTrue.get(i).pNormDist(2, foundTest0.get(i)),
+                            foundTrue.get(i).equals(foundTest0.get(i), 1e-13));
+                }
+            }
+    }
 }

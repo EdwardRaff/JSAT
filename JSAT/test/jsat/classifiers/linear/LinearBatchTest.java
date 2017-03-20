@@ -16,6 +16,7 @@ import jsat.math.optimization.LBFGS;
 import jsat.math.optimization.WolfeNWLineSearch;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -67,12 +68,12 @@ public class LinearBatchTest
         {
             LinearBatch linearBatch = new LinearBatch(new HingeLoss(), 1e-4);
 
-            ClassificationDataSet train = FixedProblems.get2ClassLinear(500, new Random());
+            ClassificationDataSet train = FixedProblems.get2ClassLinear(500, RandomUtil.getRandom());
 
             linearBatch.setUseBiasTerm(useBias);
             linearBatch.trainC(train);
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
             for(DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), linearBatch.classify(dpp.getDataPoint()).mostLikely());
@@ -82,7 +83,7 @@ public class LinearBatchTest
     @Test()
     public void testTrainWarmCFast()
     {
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(10000, new XORWOW());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(10000, RandomUtil.getRandom());
         
         LinearSGD warmModel = new LinearSGD(new SoftmaxLoss(), 1e-4, 0);
         warmModel.setEpochs(20);
@@ -119,12 +120,12 @@ public class LinearBatchTest
         {
             LinearBatch linearBatch = new LinearBatch(new LogisticLoss(), 1e-4);
 
-            ClassificationDataSet train = FixedProblems.get2ClassLinear(500, new Random());
+            ClassificationDataSet train = FixedProblems.get2ClassLinear(500, RandomUtil.getRandom());
 
             linearBatch.setUseBiasTerm(useBias);
             linearBatch.trainC(train, ex);
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
             for(DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), linearBatch.classify(dpp.getDataPoint()).mostLikely());
@@ -139,12 +140,12 @@ public class LinearBatchTest
         {
             LinearBatch linearBatch = new LinearBatch(new HingeLoss(), 1e-4);
 
-            ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, new Random());
+            ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, RandomUtil.getRandom());
 
             linearBatch.setUseBiasTerm(useBias);
             linearBatch.trainC(train);
 
-            ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, new Random());
+            ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, RandomUtil.getRandom());
 
             for(DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), linearBatch.classify(dpp.getDataPoint()).mostLikely());
@@ -155,7 +156,7 @@ public class LinearBatchTest
     public void testTrainWarmCMultieFast()
     {
         System.out.println("testTrainWarmCMultieFast");
-        ClassificationDataSet train = FixedProblems.getHalfCircles(1000, new XORWOW(), 0.1, 1.0, 5.0);
+        ClassificationDataSet train = FixedProblems.getHalfCircles(1000, RandomUtil.getRandom(), 0.1, 1.0, 5.0);
         
         LinearBatch warmModel = new LinearBatch(new HingeLoss(), 1e-2);
         warmModel.trainC(train);
@@ -188,12 +189,12 @@ public class LinearBatchTest
         {
             LinearBatch linearBatch = new LinearBatch(new HingeLoss(), 1e-4);
 
-            ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, new Random());
+            ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, RandomUtil.getRandom());
 
             linearBatch.setUseBiasTerm(useBias);
             linearBatch.trainC(train, ex);
 
-            ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, new Random());
+            ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, RandomUtil.getRandom());
 
             for(DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), linearBatch.classify(dpp.getDataPoint()).mostLikely());
@@ -209,13 +210,13 @@ public class LinearBatchTest
         for(boolean useBias : new boolean[]{false, true})
         {
             LinearBatch linearBatch = new LinearBatch(new SquaredLoss(), 1e-4);
-            RegressionDataSet train = FixedProblems.getLinearRegression(500, new Random());
+            RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
             
             linearBatch.setUseBiasTerm(useBias);
             
             linearBatch.train(train);
 
-            RegressionDataSet test = FixedProblems.getLinearRegression(200, new Random());
+            RegressionDataSet test = FixedProblems.getLinearRegression(200, RandomUtil.getRandom());
 
             for(DataPointPair<Double> dpp : test.getAsDPPList())
             {
@@ -234,12 +235,12 @@ public class LinearBatchTest
         for(boolean useBias : new boolean[]{false, true})
         {
             LinearBatch linearBatch = new LinearBatch(new SquaredLoss(), 1e-4);
-            RegressionDataSet train = FixedProblems.getLinearRegression(500, new Random());
+            RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
 
             linearBatch.setUseBiasTerm(useBias);
             linearBatch.train(train, ex);
 
-            RegressionDataSet test = FixedProblems.getLinearRegression(200, new Random());
+            RegressionDataSet test = FixedProblems.getLinearRegression(200, RandomUtil.getRandom());
 
             for(DataPointPair<Double> dpp : test.getAsDPPList())
             {
@@ -254,7 +255,7 @@ public class LinearBatchTest
     @Test()
     public void testTrainWarmRFast()
     {
-        RegressionDataSet train = FixedProblems.getLinearRegression(100000, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(100000, RandomUtil.getRandom());
         train.applyTransform(new LinearTransform(train));//make this range better for convergence check
         
         LinearBatch warmModel = new LinearBatch(new SquaredLoss(), 1e-4);

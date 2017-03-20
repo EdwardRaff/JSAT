@@ -15,6 +15,7 @@ import jsat.classifiers.DataPointPair;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -63,14 +64,14 @@ public class BBRTest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         for (BBR.Prior prior : BBR.Prior.values())
         {
             BBR lr = new BBR(0.01, 1000, prior);
             lr.trainC(train, ex);
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
             for (DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), lr.classify(dpp.getDataPoint()).mostLikely());
@@ -84,14 +85,14 @@ public class BBRTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
         for (BBR.Prior prior : BBR.Prior.values())
         {
             BBR lr = new BBR(0.01, 1000, prior);
             lr.trainC(train);
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
             for (DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), lr.classify(dpp.getDataPoint()).mostLikely());

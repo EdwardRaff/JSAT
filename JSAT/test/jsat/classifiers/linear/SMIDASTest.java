@@ -4,6 +4,7 @@ import java.util.Random;
 import jsat.FixedProblems;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPointPair;
+import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -50,13 +51,13 @@ public class SMIDASTest
     {
         System.out.println("trainC");
         
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
         
         SMIDAS smidas = new SMIDAS(0.1);
         smidas.setLoss(StochasticSTLinearL1.Loss.LOG);
         smidas.trainC(train);
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), smidas.classify(dpp.getDataPoint()).mostLikely());

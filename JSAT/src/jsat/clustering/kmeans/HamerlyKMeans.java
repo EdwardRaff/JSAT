@@ -23,6 +23,7 @@ import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDoubleArray;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -60,7 +61,7 @@ public class HamerlyKMeans extends KMeans
      */
     public HamerlyKMeans(DistanceMetric dm, SeedSelectionMethods.SeedSelection seedSelection)
     {
-        this(dm, seedSelection, new XORWOW());
+        this(dm, seedSelection, RandomUtil.getRandom());
     }
     
     /**

@@ -20,6 +20,7 @@ import jsat.parameters.*;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Base class for the numerous implementations of k-means that exist. This base
@@ -86,7 +87,7 @@ public abstract class KMeans extends KClustererBase implements Parameterized
     {
         this.dm = toCopy.dm.clone();
         this.seedSelection = toCopy.seedSelection;
-        this.rand = new XORWOW();
+        this.rand = RandomUtil.getRandom();
         if (toCopy.nearestCentroidDist != null)
             this.nearestCentroidDist = Arrays.copyOf(toCopy.nearestCentroidDist, toCopy.nearestCentroidDist.length);
         if (toCopy.means != null)
@@ -263,7 +264,7 @@ public abstract class KMeans extends KClustererBase implements Parameterized
             this.k = k;
             this.putSelf = que;
             clusterIDs = new int[dataSet.getSampleSize()];
-            rand = new Random();
+            rand = RandomUtil.getRandom();
         }
 
         public ClusterWorker(DataSet dataSet, BlockingQueue<ClusterWorker> que)
