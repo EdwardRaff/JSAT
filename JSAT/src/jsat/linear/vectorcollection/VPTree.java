@@ -22,6 +22,7 @@ import jsat.utils.ModifiableCountDownLatch;
 import jsat.utils.Pair;
 import jsat.utils.ProbailityMatch;
 import jsat.utils.SimpleList;
+import jsat.utils.random.XORWOW;
 
 /**
  * Provides an implementation of Vantage Point Trees, as described in 
@@ -38,7 +39,7 @@ import jsat.utils.SimpleList;
  * 
  * @author Edward Raff
  */
-public class VPTree<V extends Vec> implements VectorCollection<V>
+public class VPTree<V extends Vec> implements IncrementalCollection<V>
 {
 
     private static final long serialVersionUID = -7271540108746353762L;
@@ -122,6 +123,21 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         this(list, dm, VPSelection.Random);
     }
     
+    public VPTree(DistanceMetric dm)
+    {
+        this.dm = dm;
+        if(!dm.isSubadditive())
+            throw new RuntimeException("VPTree only supports metrics that support the triangle inequality");
+        this.rand = new XORWOW();
+        this.sampleSize = 80;
+        this.searchIterations = 40;
+        this.size = 0;
+        this.vpSelection = VPSelection.Random;
+        this.allVecs = new ArrayList<V>();
+        if(dm.supportsAcceleration())
+            this.distCache = new DoubleList();
+    }
+    
     /**
      * Copy constructor
      * @param toClone the object ot copy
@@ -129,10 +145,10 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     protected VPTree(VPTree<V> toClone)
     {
         this.dm = toClone.dm.clone();
-        this.rand = this.rand == null ? null : new Random(rand.nextInt());
+        this.rand = toClone.rand == null ? null : new Random(toClone.rand.nextInt());
         this.sampleSize = toClone.sampleSize;
         this.searchIterations = toClone.searchIterations;
-        this.root = toClone.root == null ? null : toClone.root.clone();
+        this.root = cloneChangeContext(toClone.root);
         this.vpSelection = toClone.vpSelection;
         this.size = toClone.size;
         this.maxLeafSize = toClone.maxLeafSize;
@@ -140,6 +156,16 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             this.allVecs = new ArrayList<V>(toClone.allVecs);
         if(toClone.distCache != null)
             this.distCache = new DoubleList(toClone.distCache);
+    }
+
+    private TreeNode cloneChangeContext(TreeNode toClone)
+    {
+        if (toClone != null)
+            if (toClone instanceof jsat.linear.vectorcollection.VPTree.VPLeaf)
+                return new VPLeaf((VPLeaf) toClone);
+            else
+                return new VPNode((VPNode) toClone);
+        return null;
     }
 
     /**
@@ -155,6 +181,42 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     public int size()
     {
         return size;
+    }
+
+    @Override
+    public void insert(V x)
+    {
+        int indx = size++;
+        allVecs.add(x);
+        if(distCache != null)
+            distCache.addAll(dm.getQueryInfo(x));
+        
+        
+        if(root == null)
+        {
+            ArrayList<Pair<Double, Integer>> list = new ArrayList<Pair<Double, Integer>>();
+            list.add(new Pair<Double, Integer>(Double.MAX_VALUE, indx));
+            root = new VPLeaf(list);
+            return;
+        }
+        ///else, do a normal insert
+        root.insert(indx, Double.MAX_VALUE);
+        if(root instanceof jsat.linear.vectorcollection.VPTree.VPLeaf)//is root a leaf?
+        {
+            VPLeaf leaf = (VPLeaf) root;
+            if(leaf.points.size() > maxLeafSize*maxLeafSize)//check to expand
+            {
+                //hacky, but works
+                int orig_leaf_isze = maxLeafSize;
+                maxLeafSize = maxLeafSize*maxLeafSize;//call normal construct with adjusted leaf size to stop expansion
+                ArrayList<Pair<Double, Integer>> S = new ArrayList<Pair<Double, Integer>>();
+                for(int i = 0; i < leaf.points.size(); i++)
+                    S.add(new Pair<Double, Integer>(Double.MAX_VALUE, leaf.points.getI(i)));
+                root = makeVPTree(S);
+                maxLeafSize = orig_leaf_isze;//restor
+            }
+        }
+        //else, normal non-leaf root insert handles expansion when needed
     }
         
     @Override
@@ -390,6 +452,15 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     private abstract class TreeNode implements Cloneable, Serializable
     {
         /**
+         * Inserts the given data point into the tree structure. The vector
+         * should have already been added to {@link #allVecs}.
+         *
+         * @param x_indx the index of the vector to insert
+         * @param dist_to_parent the distance of the current point to the parent
+         * node's vantage point. May be {@link Double#MAX_VALUE} if root node.
+         */
+        public abstract void insert(int x_indx, double dist_to_parent);
+        /**
          * Performs a KNN query on this node.
          * 
          * @param query the query vector
@@ -430,6 +501,73 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         public VPNode(int p)
         {
             this.p = p;
+        }
+
+        public VPNode(VPNode toCopy)
+        {
+            this(toCopy.p);
+            this.left_low  = toCopy.left_low;
+            this.left_high = toCopy.left_high;
+            this.right_low = toCopy.right_low;
+            this.right_high = toCopy.right_high;
+            this.left = cloneChangeContext(toCopy.left);
+            this.right = cloneChangeContext(toCopy.right);
+        }
+        
+        
+        @Override
+        public void insert(int x_indx, double dist_to_parent)
+        {
+            double dist = dm.dist(p, x_indx, allVecs, distCache);
+            TreeNode child;
+            if(dist*2 < left_high+right_low)
+            {
+                left_high = Math.max(left_high, dist);
+                left_low = Math.min(left_low, dist);
+                child = left = maybeExpandChild(left);
+            }
+            else
+            {
+                right_high = Math.max(right_high, dist);
+                right_low = Math.min(right_low, dist);
+                child = right = maybeExpandChild(right);
+            }
+            child.insert(x_indx, dist);
+        }
+
+        /**
+         * If the given node is a leaf node, this will check if it is time to
+         * expand the leaf, and return the new non-leaf child. Otherwise, it
+         * will return the original node.
+         *
+         * @param child the child node to potentially expand
+         * @return the node that should be used as the child node
+         */
+        private TreeNode maybeExpandChild(TreeNode child)
+        {
+            //have to use fully qualified path b/c non-static child member
+            if(child instanceof jsat.linear.vectorcollection.VPTree.VPLeaf)
+            {
+                IntList childs_children = ((VPLeaf) child).points;
+                if(childs_children.size() <= maxLeafSize*maxLeafSize)
+                    return child;
+                List<Pair<Double, Integer>> S = new ArrayList<Pair<Double, Integer>>(childs_children.size());
+                for(int indx : childs_children)
+                    S.add(new Pair<Double, Integer>(Double.MAX_VALUE, indx));//double value will be set apprioatly later
+                int vpIndex = selectVantagePointIndex(S);
+                
+                final VPNode node = new VPNode(S.get(vpIndex).getSecondItem());
+                
+                //move VP to front, its self dist is zero and we dont want it used in computing bounds. 
+                Collections.swap(S, 0, vpIndex);
+                int splitIndex = sortSplitSet(S.subList(1, S.size()), node)+1;//ofset by 1 b/c we sckipped the VP, which was moved to the front
+                
+                node.right = new VPLeaf(S.subList(splitIndex+1, S.size()));
+                node.left = new VPLeaf(S.subList(1, splitIndex+1));
+                return node;
+            }
+            else
+                return child;
         }
         
         private boolean searchInLeft(double x, double tau)
@@ -489,41 +627,43 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         @Override
         public TreeNode clone()
         {
-            VPNode clone = new VPNode(p);
-            clone.left_low  = this.left_low;
-            clone.left_high = this.left_high;
-            clone.right_low = this.right_low;
-            clone.right_high = this.right_high;
-            if(this.left != null)
-                clone.left = this.left.clone();
-            if(this.right != null)
-                clone.right = this.right.clone();
-            return clone;
+            return new VPNode(this);
         }
     }
     
     private class VPLeaf extends TreeNode
     {
-        int[] points;
-        double[] bounds;
+        /**
+         * The index in {@link #allVecs} for each data point stored in this Leaf node
+         */
+        IntList points;
+        /**
+         * The distance of each point in this leaf to the parent node we came from. 
+         */
+        DoubleList bounds;
         
         public VPLeaf(List<Pair<Double, Integer>> points)
         {
-            this.points = new int[points.size()];
-            this.bounds = new double[this.points.length];
-            for(int i = 0; i < this.points.length; i++)
+            this.points = new IntList(points.size());
+            this.bounds = new DoubleList(points.size());
+            for(int i = 0; i < points.size(); i++)
             {
-                this.points[i] = points.get(i).getSecondItem();
-                this.bounds[i] = points.get(i).getFirstItem();
+                this.points.add(points.get(i).getSecondItem());
+                this.bounds.add(points.get(i).getFirstItem());
             }
         }
         
-        public VPLeaf(int[] points, double[] bounds)
+        public VPLeaf(VPLeaf toCopy)
         {
-            this.bounds = Arrays.copyOf(bounds, bounds.length);
-            this.points = new int[points.length];
-            for(int i = 0; i < points.length; i++)
-                this.points[i] = points[i];
+            this.bounds = new DoubleList(toCopy.bounds);
+            this.points = new IntList(toCopy.points);
+        }
+
+        @Override
+        public void insert(int x_indx, double dist_to_parent)
+        {
+            this.points.add(x_indx);
+            this.bounds.add(dist_to_parent);
         }
 
         @Override
@@ -533,18 +673,23 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             
             //The zero check, for the case that the leaf is the ONLY node, x will be passed as 0.0 <= Max value will be true 
             double tau = list.size() == 0 ? Double.MAX_VALUE : list.get(list.size()-1).getProbability();
-            for (int i = 0; i < points.length; i++)
+            for (int i = 0; i < points.size(); i++)
+            {
+                int point_i = points.getI(i);
+                double bound_i = bounds.getD(i);
                 if (list.size() < k)
                 {
-                    list.add(new ProbailityMatch<V>(dm.dist(points[i], query, qi, allVecs, distCache), allVecs.get(points[i])));
+                    
+                    list.add(new ProbailityMatch<V>(dm.dist(point_i, query, qi, allVecs, distCache), allVecs.get(point_i)));
                     tau = list.get(list.size() - 1).getProbability();
                 }
-                else if (bounds[i] - tau <= x && x <= bounds[i] + tau)//Bound check agains the distance to our parrent node, provided by x
-                    if ((dist = dm.dist(points[i], query, qi, allVecs, distCache)) < tau)
+                else if (bound_i - tau <= x && x <= bound_i + tau)//Bound check agains the distance to our parrent node, provided by x
+                    if ((dist = dm.dist(point_i, query, qi, allVecs, distCache)) < tau)
                     {
-                        list.add(new ProbailityMatch<V>(dist, allVecs.get(points[i])));
+                        list.add(new ProbailityMatch<V>(dist, allVecs.get(point_i)));
                         tau = list.get(list.size() - 1).getProbability();
                     }
+            }
         }
 
         @Override
@@ -552,26 +697,28 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         {
             double dist = Double.MAX_VALUE;
             
-            for (int i = 0; i < points.length; i++)
-                if (bounds[i] - range <= x && x <= bounds[i] + range)//Bound check agains the distance to our parrent node, provided by x
-                    if ((dist = dm.dist(points[i], query, qi, allVecs, distCache)) < range)
-                        list.add(new VecPairedComparable<V, Double>(allVecs.get(points[i]), dist));
+            for (int i = 0; i < points.size(); i++)
+            {
+                int point_i = points.getI(i);
+                double bound_i = bounds.getD(i);
+                if (bound_i - range <= x && x <= bound_i + range)//Bound check agains the distance to our parrent node, provided by x
+                    if ((dist = dm.dist(point_i, query, qi, allVecs, distCache)) < range)
+                        list.add(new VecPairedComparable<V, Double>(allVecs.get(point_i), dist));
+            }
         }
 
         @Override
         public TreeNode clone()
         {
-            return new VPLeaf(points, bounds);
+            return new VPLeaf(this);
         }
     }
     
     public static class VPTreeFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = -2739851193676265510L;
-		private VPSelection vpSelectionMethod;
+
+        private static final long serialVersionUID = -2739851193676265510L;
+        private VPSelection vpSelectionMethod;
 
         public VPTreeFactory(VPSelection vpSelectionMethod)
         {
