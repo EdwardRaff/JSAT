@@ -31,6 +31,7 @@ import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.classifiers.neuralnetwork.RBFNet;
 import jsat.clustering.kmeans.ElkanKernelKMeans;
 import jsat.clustering.kmeans.KernelKMeans;
@@ -70,7 +71,7 @@ import jsat.utils.SystemInfo;
  *
  * @author Edward Raff
  */
-public class DCSVM extends SupportVectorLearner implements Classifier, Parameterized
+public class DCSVM extends SupportVectorLearner implements Classifier, Parameterized, BinaryScoreClassifier
 {
     private double C = 1;
     private double tolerance = 1e-3;
@@ -216,6 +217,7 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
         return cr;
     }
     
+    @Override
     public double getScore(DataPoint dp)
     {
         if (vecs == null)
