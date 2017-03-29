@@ -182,6 +182,15 @@ public class IntList extends AbstractList<Integer> implements Serializable
     }
     
     /**
+     * Efficiently sorts this list of integers using {@link Arrays#sort(int[])
+     * }.
+     */
+    public void sort()
+    {
+        Arrays.sort(array, 0, end);
+    }
+
+    /**
      * Creates and returns an unmodifiable view of the given int array that 
      * requires only a small object allocation. 
      * 
