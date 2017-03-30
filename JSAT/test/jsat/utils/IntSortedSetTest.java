@@ -133,28 +133,30 @@ public class IntSortedSetTest
     public void testSubSet()
     {
         System.out.println("subset");
+
         SortedSet<Integer> groundTruth = new TreeSet<Integer>();
         IntSortedSet testSet = new IntSortedSet();
-        
-        for(int i = 1; i < 20; i++)
-            for(int j = i*20; j < (i+1)*20; j+=i)
+
+        for (int i = 1; i < 20; i++)
+            for (int j = i * 20; j < (i + 1) * 20; j += i)
             {
                 groundTruth.add(j);
                 testSet.add(j);
             }
-        
+
         assertSameContent(groundTruth, testSet);
-        
+
         Random rand = RandomUtil.getRandom();
-        
+
         testHeadSet(groundTruth, testSet, rand, 3);
         testTailSet(groundTruth, testSet, rand, 3);
         testSubSet(groundTruth, testSet, rand, 3);
-        
     }
 
     private void testHeadSet(SortedSet<Integer> groundTruth, SortedSet<Integer> testSet, Random rand, int depth)
     {
+        if(groundTruth.isEmpty() || groundTruth.last() - groundTruth.first() <= 0 || groundTruth.last() <= 0)//avoid bad tests
+            return;
         int toElement = rand.nextInt(groundTruth.last());
         
         SortedSet<Integer> g_s = groundTruth.headSet(toElement);
@@ -163,7 +165,11 @@ public class IntSortedSetTest
         assertSameContent(g_s, t_s);
         for(int i = 0; i < 5; i++)
         {
-            int new_val = rand.nextInt(toElement);
+            int new_val;
+            if(toElement <= 0)
+                new_val = Math.min(toElement-1, -rand.nextInt(1000));
+            else
+                new_val = rand.nextInt(toElement);
             g_s.add(new_val);
             t_s.add(new_val);
         }
@@ -177,6 +183,8 @@ public class IntSortedSetTest
     
     private void testTailSet(SortedSet<Integer> groundTruth, SortedSet<Integer> testSet, Random rand, int depth)
     {
+        if(groundTruth.isEmpty() || groundTruth.last() - groundTruth.first() <= 0)//avoid bad tests
+            return;
         int fromElement = groundTruth.first() + rand.nextInt(groundTruth.last() - groundTruth.first());
         
         SortedSet<Integer> g_s = groundTruth.tailSet(fromElement);
@@ -199,6 +207,8 @@ public class IntSortedSetTest
     
     private void testSubSet(SortedSet<Integer> groundTruth, SortedSet<Integer> testSet, Random rand, int depth)
     {
+        if(groundTruth.isEmpty() || groundTruth.last() - groundTruth.first() <= 0)//avoid bad tests
+            return;
         int fromElement = groundTruth.first() + rand.nextInt(groundTruth.last() - groundTruth.first());
         int toElement = fromElement + rand.nextInt(groundTruth.last() - fromElement);
         
@@ -208,6 +218,8 @@ public class IntSortedSetTest
         assertSameContent(g_s, t_s);
         for(int i = 0; i < 5; i++)
         {
+            if(fromElement == toElement)
+                continue;//we can't add anything
             int new_val = fromElement+rand.nextInt(toElement-fromElement);
             g_s.add(new_val);
             t_s.add(new_val);
