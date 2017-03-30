@@ -75,7 +75,6 @@ public class IntSetTest
         {
             int val = iter.next();
             count++;
-            assertTrue(prev < val);
             prev = val;
         }
         assertEquals(5, set.size());
