@@ -84,7 +84,13 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
     
     public CoverTree(List<V> source, DistanceMetric dm, ExecutorService threadpool)
     {
+        this(source, dm, threadpool, false);
+    }
+    
+    public CoverTree(List<V> source, DistanceMetric dm, ExecutorService threadpool, boolean looseBounds)
+    {
         this.dm = dm;
+        setLooseBounds(looseBounds);
         this.vecs = new ArrayList<V>(source);
         this.accell_cache = dm.getAccelerationCache(vecs, threadpool);
         //Cover Tree is sensative to insertion order, so lets make sure its random
@@ -101,6 +107,15 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
 //            System.out.println("\t" + pos + " vs " + this.root.magnitude());
         }
 //        System.out.println(this.vecs.size() + " vs " + this.root.magnitude());
+        if(!this.looseBounds)//pre-compute all max-dist bounds used during search
+        {
+            this.root.maxdist();
+            Iterator<TreeNode> iter = this.root.descendants();
+            while(iter.hasNext())
+            {
+                iter.next().maxdist();
+            }
+        }
     }
 
     public CoverTree(CoverTree<V> toCopy)
@@ -184,18 +199,27 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
         double p_x_dist = p.dist(x_indx);
         if(p_x_dist > p.covdist())//line 1
         {
-            while(p_x_dist > 2*p.covdist() && !p.isLeaf())//line 2
-            {
-                //3: remove any leaf q from p 
-                TreeNode q;
-                q = p.removeAnyLeaf();
-                //4: p' = tree with root q and p as only child
-                TreeNode p_prime = q;
-                p_prime.addChild(p);
-                p_prime.fixLevel();
-                p = p_prime;//5: p = p'
-                p_x_dist = p.dist(x_indx);
-            }
+            /*
+             * If the insetion point x has a distance that is SUPER far away, 
+             * the below bound may never hold. Thus, lets detect loops and short
+             * circuit
+             */
+            final int start_indx = p.vec_indx;
+            if(p_x_dist - pow(p.level+1) < 2*p.covdist())//if this is true, the condition will be true for p AND ALL CHILDREN OF P
+                while(p_x_dist > 2*p.covdist() && !p.isLeaf())//line 2
+                {
+                    //3: remove any leaf q from p 
+                    TreeNode q;
+                    q = p.removeAnyLeaf();
+                    //4: p' = tree with root q and p as only child
+                    TreeNode p_prime = q;
+                    p_prime.addChild(p);
+                    p_prime.fixLevel();
+                    p = p_prime;//5: p = p'
+                    p_x_dist = p.dist(x_indx);
+                    if(p.vec_indx == start_indx)//WE HAVE DONE THIS BEFORE
+                        break;
+                }
             //6: return tree with x as root and p as only child
             TreeNode X = new TreeNode(x_indx);
             X.addChild(p);
@@ -259,7 +283,7 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
         }
     }
     
-
+    
     @Override
     public void insert(V x)
     {
