@@ -57,15 +57,18 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
         
         if(S.size() >= maxLeafSize*4)
         {
+            //Adjust to avoid degenerate cases that create a long string of tiny splits. Most imbalacned slpit can be 1:20
+            int minSplitSize = Math.max(maxLeafSize, S.size()/20);
+            
             OnLineStatistics rightV = new OnLineStatistics();
             OnLineStatistics leftV = new OnLineStatistics();
-            for(int i = 0; i < maxLeafSize; i++)
+            for(int i = 0; i < minSplitSize; i++)
                 leftV.add(S.get(i).getFirstItem());
-            for(int i = maxLeafSize; i < S.size(); i++)
+            for(int i = minSplitSize; i < S.size(); i++)
                 rightV.add(S.get(i).getFirstItem());
-            splitIndex = maxLeafSize;
-            double bestVar = leftV.getVarance()*maxLeafSize+rightV.getVarance()*(S.size()-maxLeafSize);
-            for(int i = maxLeafSize+1; i < S.size()-maxLeafSize; i++)
+            splitIndex = minSplitSize;
+            double bestVar = leftV.getVarance()*minSplitSize+rightV.getVarance()*(S.size()-minSplitSize);
+            for(int i = minSplitSize+1; i < S.size()-minSplitSize; i++)
             {
                 double tmp = S.get(i).getFirstItem();
                 leftV.add(tmp);
