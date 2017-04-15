@@ -37,4 +37,19 @@ See the [wiki](https://github.com/EdwardRaff/JSAT/wiki) for more information as 
 
 Updates to JSAT may be slowed as I begin a PhD program in Computer Science. The project isn’t abandoned! I just have limited free time, and will be balancing my PhD work with a full time job. If you discover more hours in the day, please let me know! Development will be further slowed due to some health issues. I had to spend much of my time recently on this but am begining to improve. I'll continue to try and be prompt on any bug reports and emails, but new features will be a bit slower. 
 
+## Citations
 
+If you use JSAT and find it helpful, citations are appreciated! Please cite the [JSAT paper](http://www.jmlr.org/papers/v18/16-131.html) published at JMLR. If your feeling a little lazy, the bibtex is below:
+
+```
+@article{JMLR:v18:16-131,
+author = {Raff, Edward},
+journal = {Journal of Machine Learning Research},
+number = {23},
+pages = {1--5},
+title = {JSAT: Java Statistical Analysis Tool, a Library for Machine Learning},
+url = {http://jmlr.org/papers/v18/16-131.html},
+volume = {18},
+year = {2017}
+}
+```
