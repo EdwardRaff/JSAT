@@ -419,6 +419,7 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
          * indexing ability. We then fix-up the RBC structure at the end. 
          */
         int[] whoOwnsMe = new int[allVecs.size()];
+        Arrays.fill(whoOwnsMe, -1);
         double[] distToMyOwner = new double[allVecs.size()];
         for (int i = 0; i < R.size() - 1; i++)//technicaly this is O(n), but its really fast - so who cares
         {
@@ -432,16 +433,15 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
         boolean[] R_is_dirty = new boolean[R.size()];
         Arrays.fill(R_is_dirty, false);
         R_is_dirty[r_new] = true;
-        IntSet r_set_indx = new IntSet(R);
         
         for(ProbailityMatch<Integer> pc : potentialChildren)
         {
             double d_y_r_new = pc.getProbability();
             int y_indx = pc.getMatch();
-            if(r_set_indx.contains(y_indx))//skip, we can't take ownerhsip of a rep
-                continue;
             //find who owns y_indx
             int r_y = whoOwnsMe[y_indx];
+            if(r_y == -1)//Represantative, skip
+                continue;
             
             double d_y_ry = distToMyOwner[y_indx];
             
@@ -463,6 +463,8 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
         for(int i = 0; i < whoOwnsMe.length; i++)
         {
             int r_i = whoOwnsMe[i];
+            if(r_i == -1)//Represantative, skip
+                continue;
             if(R_is_dirty[r_i])
             {
                 repRadius[r_i] = Math.max(repRadius[r_i], distToMyOwner[i]);
