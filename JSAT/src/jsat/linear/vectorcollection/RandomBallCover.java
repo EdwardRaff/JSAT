@@ -410,49 +410,65 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
         ownedRDists.add(new DoubleList());
         ownedVecs.add(new IntList());
         final int r_new = R.size()-1;
+        
+        /*
+         * Existing structure of RBC bookkeping dosn't lend itself to the insertion case. 
+         * B/c the R set expansion is rare, we don't modify that internal structure. 
+         * Instead, we will create a new temporary strucutre to store things 
+         * based on the index of the data point. This gives us easy direct 
+         * indexing ability. We then fix-up the RBC structure at the end. 
+         */
+        int[] whoOwnsMe = new int[allVecs.size()];
+        double[] distToMyOwner = new double[allVecs.size()];
+        for (int i = 0; i < R.size() - 1; i++)//technicaly this is O(n), but its really fast - so who cares
+        {
+            List<Integer> L_ry = ownedVecs.get(i);
+            for (int j = 0; j < L_ry.size(); j++)
+            {
+                whoOwnsMe[L_ry.get(j)] = i;
+                distToMyOwner[L_ry.get(j)] = ownedRDists.get(i).getD(j);
+            }
+        }
+        boolean[] R_is_dirty = new boolean[R.size()];
+        Arrays.fill(R_is_dirty, false);
+        R_is_dirty[r_new] = true;
+        IntSet r_set_indx = new IntSet(R);
+        
         for(ProbailityMatch<Integer> pc : potentialChildren)
         {
             double d_y_r_new = pc.getProbability();
             int y_indx = pc.getMatch();
-            if(R.contains(y_indx))//skip, we can't take ownerhsip of a rep
+            if(r_set_indx.contains(y_indx))//skip, we can't take ownerhsip of a rep
                 continue;
             //find who owns y_indx
-            int r_y = 0;
-            int r_y_indx = -1;//index in owned list of the data point
+            int r_y = whoOwnsMe[y_indx];
             
-            for(int i = 0; i < R.size()-1; i++)//technicaly this is O(n), but its really fast - so who cares
-            {
-                List<Integer> L_ry = ownedVecs.get(i);
-                for(int j = 0; j < L_ry.size(); j++)
-                    if(L_ry.get(j) == y_indx)
-                    {
-                        r_y = i;
-                        r_y_indx = j;
-                        i = R.size();
-                        break;
-                    }
-            }
-            
-            double d_y_ry = ownedRDists.get(r_y).getD(r_y_indx);
+            double d_y_ry = distToMyOwner[y_indx];
             
             if(d_y_ry > d_y_r_new)//change ownership
             {
-                ownedVecs.get(r_y).remove(r_y_indx);
-                ownedVecs.get(r_new).add(y_indx);
-                //update radius info
-                ownedRDists.get(r_new).add(d_y_r_new);
-                if(d_y_r_new > repRadius[r_new])
-                    repRadius[r_new] = Math.max(repRadius[r_new], d_y_r_new);
-                ownedRDists.get(r_y).remove(r_y_indx);
-                if(d_y_ry >= repRadius[r_y])
-                {
-                    repRadius[r_y] = 0;
-                    for(double d : ownedRDists.get(r_y))
-                        repRadius[r_y] = Math.max(repRadius[r_y], d);
-                }
-                
+                R_is_dirty[r_y] = true;
+                whoOwnsMe[y_indx] = r_new;
+                distToMyOwner[y_indx] = d_y_r_new;
             }
-            
+        }
+        //update representative radi
+        for (int r_indx = 0; r_indx < R.size(); r_indx++)
+            if(R_is_dirty[r_indx])//clear vecs so we can re-populate
+            {
+                repRadius[r_indx] = 0;
+                ownedRDists.get(r_indx).clear();
+                ownedVecs.get(r_indx).clear();
+            }
+        for(int i = 0; i < whoOwnsMe.length; i++)
+        {
+            int r_i = whoOwnsMe[i];
+            if(R_is_dirty[r_i])
+            {
+                repRadius[r_i] = Math.max(repRadius[r_i], distToMyOwner[i]);
+                ownedRDists.get(r_i).add(distToMyOwner[i]);
+                ownedVecs.get(r_i).add(i);
+            }
         }
     }
 
