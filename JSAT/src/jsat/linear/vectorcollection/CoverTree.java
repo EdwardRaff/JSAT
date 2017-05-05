@@ -29,6 +29,7 @@ import java.util.concurrent.ExecutorService;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
+import jsat.linear.VecPairedComparable;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.math.FastMath;
 import jsat.utils.BoundedSortedList;
@@ -138,7 +139,9 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
     @Override
     public List<? extends VecPaired<V, Double>> search(Vec query, double range)
     {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<VecPairedComparable<V, Double>> knn = new ArrayList<VecPairedComparable<V, Double>>();
+        this.root.findNN(range, query, dm.getQueryInfo(query), knn, -1.0);
+        return knn;
     }
 
     @Override
@@ -401,6 +404,37 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
 //                {
 //                    knn.add(new ProbailityMatch<V>(q.dist(x, x_qi), vecs.get(q.vec_indx)));
 //                }
+            }
+        }
+        
+        public void findNN(double radius, Vec x, List<Double> x_qi, List<VecPairedComparable<V, Double>> knn, double my_dist_to_x)
+        {
+            TreeNode p = this;
+            
+            double p_x_dist;
+            if(my_dist_to_x < 0)
+            {
+                p_x_dist = p.dist(x, x_qi);
+            }
+            else
+                p_x_dist = my_dist_to_x;
+            if(p_x_dist <= radius)
+                knn.add(new VecPairedComparable<V, Double>(vecs.get(p.vec_indx), p_x_dist));
+            //3: for each child q of p , no need to sort b/c radius search
+            double[] q_x_dist = new double[p.numChildren()];
+            for(int q_indx = 0; q_indx < p.numChildren(); q_indx++)//compute dists and add to knn while we are at it
+            {
+                TreeNode q = p.getChild(q_indx);
+                q_x_dist[q_indx] = q.dist(x, x_qi);
+                //DO NOT ADD DISTANCE TO KNN YET, we will do it on recursion
+            }
+            //get them in sorted order
+            for(int i = 0; i < q_x_dist.length; i++)
+            {
+                TreeNode q = p.getChild(i);
+                //4:  if d(y,x)>d(y,q)−maxdist(q) then
+                if(radius > q_x_dist[i] - q.maxdist())
+                    q.findNN(radius, x, x_qi, knn, q_x_dist[i]);//Line 5:
             }
         }
         
