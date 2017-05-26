@@ -42,8 +42,23 @@ import jsat.utils.ProbailityMatch;
 import jsat.utils.random.XORWOW;
 
 /**
+ * This class implements the Cover-tree algorithm for answering nearest neighbor
+ * queries. In particular, it uses the "Simplified Cover-tree" algorithm. <br>
+ * Note, this implementation does not yet support parallel construction. 
+ * <br>
+ * 
+ * See:
+ * <ul>
+ * <li>Beygelzimer, A., Kakade, S., & Langford, J. (2006). Cover trees for
+ * nearest neighbor. In International Conference on Machine Learning (pp.
+ * 97–104). New York: ACM. Retrieved from
+ * <a href="http://www.cs.princeton.edu/courses/archive/spr05/cos598E/bib/covertree.pdf">here</a></li>
+ * <li>Izbicki, M., & Shelton, C. R. (2015). Faster Cover Trees. In Proceedings
+ * of the Thirty-Second International Conference on Machine Learning (Vol.
+ * 37).</li>
+ * </ul>
  *
- * @author edraff
+ * @author Edward Raff
  */
 public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
 {
