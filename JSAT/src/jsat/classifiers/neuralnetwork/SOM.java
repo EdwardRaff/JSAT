@@ -481,8 +481,8 @@ public class SOM implements Classifier, Parameterized
                                     denom += dp.getWeight();
                                     mean.mutableAdd(dp.getWeight(), dp.getNumericalValues());
                                 }
-
-                                mean.mutableDivide(denom);
+                                if(denom > 0)
+                                    mean.mutableDivide(denom);
 
                                 updateWeight(mean, localScratch2.get(), weights[x][y], learnRate);
                                 
