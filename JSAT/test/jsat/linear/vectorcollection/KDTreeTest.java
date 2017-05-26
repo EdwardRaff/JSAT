@@ -27,6 +27,7 @@ import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -74,10 +75,10 @@ public class KDTreeTest
     public void testSearch_Vec_double()
     {
         System.out.println("search");
-        Random rand = new XORWOW(123);
+        Random rand = RandomUtil.getRandom();
         
         VectorArray<Vec> vecCol = new VectorArray<Vec>(new EuclideanDistance());
-        for(int i = 0; i < 250; i++)
+        for(int i = 0; i < 2050; i++)
             vecCol.add(DenseVector.random(3, rand));
         
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
@@ -91,14 +92,14 @@ public class KDTreeTest
             collection1 = collection1.clone();
             
             for(int iters = 0; iters < 10; iters++)
-                for(double range : new double[]{0.25, 0.5, 0.75, 2.0})
+                for(double range : new double[]{0.001, 0.1, 0.25, 0.5})
                 {
                     int randIndex=  rand.nextInt(vecCol.size());
 
                     List<? extends VecPaired<Vec, Double>> foundTrue = vecCol.search(vecCol.get(randIndex), range);
                     List<? extends VecPaired<Vec, Double>> foundTest0 = collection0.search(vecCol.get(randIndex), range);
                     List<? extends VecPaired<Vec, Double>> foundTest1 = collection1.search(vecCol.get(randIndex), range);
-
+                    
                     VectorArray<VecPaired<Vec, Double>>  testSearch0 = new VectorArray<VecPaired<Vec, Double>>(new EuclideanDistance(), foundTest0);
                     assertEquals(factory.getClass().getName() + " failed", foundTrue.size(), foundTest0.size());
                     for(Vec v : foundTrue)
@@ -128,10 +129,10 @@ public class KDTreeTest
     public void testSearch_Vec_int()
     {
         System.out.println("search");
-        Random rand = new XORWOW(123);
+        Random rand = RandomUtil.getRandom();
         
         VectorArray<Vec> vecCol = new VectorArray<Vec>(new EuclideanDistance());
-        for(int i = 0; i < 250; i++)
+        for(int i = 0; i < 2050; i++)
             vecCol.add(DenseVector.random(3, rand));
         
         for(VectorCollectionFactory<Vec> factory : collectionFactories)
