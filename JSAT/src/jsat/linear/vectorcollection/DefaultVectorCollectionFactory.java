@@ -18,64 +18,34 @@ import jsat.utils.random.RandomUtil;
 public class DefaultVectorCollectionFactory<V extends Vec> implements VectorCollectionFactory<V>
 {
 
-	private static final long serialVersionUID = -7442543159507721642L;
-	private static final int VEC_ARRAY_CUT_OFF = 20; 
+    private static final long serialVersionUID = -7442543159507721642L;
+    private static final int VEC_ARRAY_CUT_OFF = 20;
     private static final int KD_TREE_CUT_OFF = 14;
     private static final int KD_TREE_PIVOT = 5;
     private static final int BRUTE_FORCE_DIM = 1000;
+
     @Override
     public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
     {
         if(source.size() < VEC_ARRAY_CUT_OFF)
-        {
             return new VectorArray<V>(distanceMetric, source);
-        }
-        int dimension = source.get(0).length();
-        if(dimension >= BRUTE_FORCE_DIM)
-        {
-            return new VectorArray<V>(distanceMetric, source);
-        }
-        if(dimension < KD_TREE_CUT_OFF && 
-                ( distanceMetric instanceof EuclideanDistance || 
-                distanceMetric instanceof ChebyshevDistance || 
-                distanceMetric instanceof ManhattanDistance || 
-                distanceMetric instanceof MinkowskiDistance))
-        {
-            KDTree.PivotSelection pivotSelect = dimension <= KD_TREE_PIVOT ? KDTree.PivotSelection.Variance : KDTree.PivotSelection.Incremental;
-            KDTree<V> kd = new KDTree<V>(source, distanceMetric, pivotSelect);
-            return kd;
-        }
-        
-        return new VPTree<V>(source, distanceMetric, VPTree.VPSelection.Random, RandomUtil.getRandom(), 50, 50);
+        if(distanceMetric.isSymmetric() && distanceMetric.isIndiscemible() && distanceMetric.isSubadditive())
+            return new VPTreeMV<V>(source, distanceMetric);
+        return new VectorArray<V>(distanceMetric, source);
     }
 
     @Override
     public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
     {
         if(source.size() < VEC_ARRAY_CUT_OFF)
-        {
             return new VectorArray<V>(distanceMetric, source);
-        }
-        int dimension = source.get(0).length();
-        if(dimension >= BRUTE_FORCE_DIM)
-        {
-            return new VectorArray<V>(distanceMetric, source);
-        }
-        if(dimension < KD_TREE_CUT_OFF && 
-                ( distanceMetric instanceof EuclideanDistance || 
-                distanceMetric instanceof ChebyshevDistance || 
-                distanceMetric instanceof ManhattanDistance || 
-                distanceMetric instanceof MinkowskiDistance))
-        {
-            KDTree.PivotSelection pivotSelect = dimension <= KD_TREE_PIVOT ? KDTree.PivotSelection.Variance : KDTree.PivotSelection.Incremental;
-            KDTree<V> kd = new KDTree<V>(source, distanceMetric, pivotSelect, threadpool);
-            return kd;
-        }
-        return new VPTree<V>(source, distanceMetric, VPTree.VPSelection.Random, RandomUtil.getRandom(), 50, 50, threadpool);
+        if(distanceMetric.isSymmetric() && distanceMetric.isIndiscemible() && distanceMetric.isSubadditive())
+            return new VPTreeMV<V>(source, distanceMetric, VPTree.VPSelection.Random, RandomUtil.getRandom(), 1, 1, threadpool);
+        return new VectorArray<V>(distanceMetric, source);
     }
 
     @Override
-    public VectorCollectionFactory<V> clone()
+    public DefaultVectorCollectionFactory<V> clone()
     {
         return new DefaultVectorCollectionFactory<V>();
     }
