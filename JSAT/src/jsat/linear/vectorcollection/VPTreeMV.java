@@ -44,6 +44,11 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
         super(list, dm);
     }
 
+    public VPTreeMV(List<V> list, DistanceMetric dm, ExecutorService threadpool)
+    {
+        super(list, dm, threadpool);
+    }
+
     public VPTreeMV(DistanceMetric dm)
     {
         super(dm);

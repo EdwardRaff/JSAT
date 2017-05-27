@@ -118,6 +118,11 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         this(list, dm, vpSelection, RandomUtil.getRandom(), 80, 40);
     }
     
+    public VPTree(List<V> list, DistanceMetric dm, ExecutorService threadpool)
+    {
+        this(list, dm, VPSelection.Random, RandomUtil.getRandom(), 80, 40, threadpool);
+    }
+    
     public VPTree(List<V> list, DistanceMetric dm)
     {
         this(list, dm, VPSelection.Random);
