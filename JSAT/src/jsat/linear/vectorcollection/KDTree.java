@@ -150,6 +150,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
          */
         protected int locatin;
         protected int axis;
+        protected double pivot_s;
         
         protected KDNode left;
         protected KDNode right;
@@ -163,6 +164,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         public KDNode(KDNode toCopy)
         {
             this(toCopy.locatin, toCopy.axis);
+            this.pivot_s = toCopy.pivot_s;
             if(toCopy.left != null)
                 this.left = toCopy.left.clone();
             if(toCopy.left != null)
@@ -218,7 +220,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         
         protected void searchK(int k, BoundedSortedList<ProbailityMatch<V>> knn, Vec target, List<Double> qi)
         {
-            double pivot_s = allVecs.get(locatin).get(axis);
+            double pivot_s = this.pivot_s;
             //Cut hr in to two sub-hyperrectangles left-hr and right-hr
 //            double[] left_hi = Arrays.copyOf(hr_hi, hr_hi.length);
 //            left_hi[axis] = pivot_s;
@@ -261,7 +263,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         
         protected void searchR(double radius, List<VecPairedComparable<V, Double>> rnn, Vec target, List<Double> qi)
         {
-            double pivot_s = allVecs.get(locatin).get(axis);
+            double pivot_s = this.pivot_s;
             //Cut hr in to two sub-hyperrectangles left-hr and right-hr
 //            double[] left_hi = Arrays.copyOf(hr_hi, hr_hi.length);
 //            left_hi[axis] = pivot_s;
@@ -349,7 +351,13 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
      */
     private KDNode buildTree(final List<Integer> data, final int depth, final ExecutorService threadpool, final ModifiableCountDownLatch mcdl)
     {
-        if(depth == 0)
+        if(data == null || data.isEmpty())
+        {
+            if(threadpool != null)//Threadpool null checks since no thread pool means do single threaded
+                mcdl.countDown();
+            return null;
+        }
+        else if(depth == 0)
         {
             hr_hi = new double[allVecs.get(0).length()];
             hr_low = new double[allVecs.get(0).length()];
@@ -361,12 +369,6 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
                     hr_hi[i] = Math.max(hr_hi[i], v.get(i));
                     hr_low[i] = Math.min(hr_low[i], v.get(i));
                 }
-        }
-        if(data == null || data.isEmpty())
-        {
-            if(threadpool != null)//Threadpool null checks since no thread pool means do single threaded
-                mcdl.countDown();
-            return null;
         }
         int mod = allVecs.get(0).length();
         
@@ -416,6 +418,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         //else, continue as planned
         
         final KDNode node = new KDNode(data.get(medianIndex), pivot);
+        node.pivot_s = allVecs.get(data.get(medianIndex)).get(pivot);
         
         //We could save code lines by making only one path threadpool dependent. 
         //But this order has better locality for single threaded, while the 
