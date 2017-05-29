@@ -211,7 +211,7 @@ public class HamerlyKMeans extends KMeans
              */
             double[] m = new double[means.size()];
             Arrays.fill(m, 0.0);
-            for(int i = 0; i < assignment.length; i++)
+            for(int i = 0; i < N; i++)
                 m[assignment[i]] = Math.max(m[assignment[i]], u[i]);
             double[] updateB = new double[m.length];
             //Algorithm 3, new bounds update scheme. See "Geometric methods to accelerate k-means algorithms"
