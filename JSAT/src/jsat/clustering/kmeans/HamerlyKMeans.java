@@ -8,7 +8,6 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
@@ -20,30 +19,38 @@ import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.utils.DoubleList;
-import jsat.utils.FakeExecutor;
+import jsat.utils.IndexTable;
 import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDoubleArray;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 
 /**
  * An efficient implementation of the K-Means algorithm. This implementation uses
  * the triangle inequality to accelerate computation while maintaining the exact
- * same solution. This requires that the {@link DistanceMetric} used support 
- * {@link DistanceMetric#isSubadditive() }. It uses only O(n) extra memory. <br>
+ * same solution. This requires that the {@link DistanceMetric} used
+ * support {@link DistanceMetric#isSubadditive() }. It uses only O(n) extra
+ * memory. <br>
  * <br>
- * See: Hamerly, G. (2010). <i>Making k-means even faster</i>. SIAM 
- * International Conference on Data Mining (SDM) (pp. 130–140). Retrieved from 
- * <a href="http://72.32.205.185/proceedings/datamining/2010/dm10_012_hamerlyg.pdf">here</a>
+ * See:
+ * <ul>
+ * <li>Hamerly, G. (2010). <i>Making k-means even faster</i>. SIAM International
+ * Conference on Data Mining (SDM) (pp. 130–140). Retrieved from
+ * <a href="http://72.32.205.185/proceedings/datamining/2010/dm10_012_hamerlyg.pdf">here</a></li>
+ * <li>Ryšavý, P., & Hamerly, G. (2016). Geometric methods to accelerate k-means
+ * algorithms. In Proceedings of the 2016 SIAM International Conference on Data
+ * Mining (pp. 324–332). Philadelphia, PA: Society for Industrial and Applied
+ * Mathematics.
+ * <a href="http://doi.org/10.1137/1.9781611974348.37">http://doi.org/10.1137/1.9781611974348.37</a></li>
+ * </ul>
  * 
  * @author Edward Raff
  */
 public class HamerlyKMeans extends KMeans
 {
 
-	private static final long serialVersionUID = -4960453870335145091L;
+    private static final long serialVersionUID = -4960453870335145091L;
 
-	/**
+    /**
      * Creates a new k-Means object 
      * @param dm the distance metric to use for clustering
      * @param seedSelection the method of initial seed selection
@@ -97,12 +104,7 @@ public class HamerlyKMeans extends KMeans
         final List<Vec> X = dataSet.getDataVectors();
         final List<Double> distAccel;//used like htis b/c we want it final for convinence, but input may be null
         if(accelCache == null)
-        {
-            if(threadpool == null || threadpool instanceof FakeExecutor)
-                distAccel = dm.getAccelerationCache(X);
-            else
-                distAccel = dm.getAccelerationCache(X, threadpool);
-        }
+            distAccel = dm.getAccelerationCache(X, threadpool);
         else
             distAccel = accelCache;
         
@@ -114,17 +116,34 @@ public class HamerlyKMeans extends KMeans
             means.addAll(selectIntialPoints(dataSet, k, dm, distAccel, rand, seedSelection, threadpool));
         }
 
+        /**
+         * Used in bound updates. Contains the centroid means from the previous iteration
+         */
+        final Vec[] oldMeans = new Vec[means.size()];
+        /**
+         * Distance each mean has moved from one iteration to the next
+         */
+        final double[] distanceMoved = new double[means.size()];
         //Make our means dense
         for (int i = 0; i < means.size(); i++)
+        {
             if (means.get(i).isSparse())
                 means.set(i, new DenseVector(means.get(i)));
+            oldMeans[i] = new DenseVector(means.get(i));
+        }
 
         /**
          * vector sum of all points in cluster j <br>
          * denoted c'(j)
          */
         final Vec[] cP = new Vec[k];
+        /**
+         * Will get intialized in the Initialize function
+         */
         final Vec[] tmpVecs = new Vec[k];
+        final Vec[] tmpVecs2 = new Vec[k];
+        for(int i = 0; i < tmpVecs2.length; i++)
+            tmpVecs2[i] = new DenseVector(oldMeans[0].length());
         /**
          * weighted number of points assigned to cluster j,<br>
          * denoted q(j)
@@ -175,12 +194,28 @@ public class HamerlyKMeans extends KMeans
             if(means.get(i).isSparse())
                 means.set(i, new DenseVector(means.get(i)));
         final AtomicInteger updates = new AtomicInteger(N);
+        /**
+         * How many iterations over the dataset did this take? 
+         */
+        int iteration = 0;
         while(updates.get() > 0)
         {
-            moveCenters(means, tmpVecs, cP, q, p, meanQI);
-            UpdateBounds(p, assignment, u, l);
+            moveCenters(means, oldMeans, tmpVecs, cP, q, p, meanQI);
             updates.set(0);
-            updateS(s, means, threadpool, meanQI);
+            updateS(s, distanceMoved, means, oldMeans, threadpool, meanQI);
+            /**
+             * we maintain m(ci), which is the radius of a hypersphere centered
+             * at centroid ci that contains all points assigned to ci. (Note
+             * that m(ci) is easily obtained as the maximum upper-bound of all
+             * points in the cluster.)
+             */
+            double[] m = new double[means.size()];
+            Arrays.fill(m, 0.0);
+            for(int i = 0; i < assignment.length; i++)
+                m[assignment[i]] = Math.max(m[assignment[i]], u[i]);
+            double[] updateB = new double[m.length];
+            //Algorithm 3, new bounds update scheme. See "Geometric methods to accelerate k-means algorithms"
+            EnhancedUpdateBounds(means, distanceMoved, m, s, oldMeans, tmpVecs, tmpVecs2, updateB, p, assignment, u, l);
             
             if(threadpool == null)
             {
@@ -234,6 +269,7 @@ public class HamerlyKMeans extends KMeans
                     Logger.getLogger(HamerlyKMeans.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            iteration++;
         }
         
         if (returnError)
@@ -265,6 +301,78 @@ public class HamerlyKMeans extends KMeans
         }
         else
             return 0;//who cares
+    }
+
+    private void EnhancedUpdateBounds(final List<Vec> means1, final double[] distanceMoved, double[] m, final double[] s, final Vec[] oldMeans, final Vec[] tmpVecs, final Vec[] tmpVecs2, double[] updateB, final double[] p, final int[] assignment, final double[] u, final double[] l)
+    {
+        //NOTE: special here c'j eans the new cluster location.  Only for algorithm 3 update. Rest of code uses different notation
+        //Paper uses current and next, but we are coding current and previous
+        //so in the paper's termonology, c'j would be the current mean, and cj the previous
+        for (int i = 0; i < means1.size(); i++)
+        {
+            //3: update←−∞
+            double update = Double.NEGATIVE_INFINITY;
+            //4: for each cj in centroids that fulfill (3.10) in decreasing order of ||c'j −cj|| do.
+            IndexTable c_order = new IndexTable(distanceMoved);
+            c_order.reverse();//we want decreasing order
+            for (int order = 0; order < c_order.length(); order++)
+            {
+                int j = c_order.index(order);
+                if(j == i)
+                    continue;
+                //check (3.10)
+                if(2*m[j] + s[j] < distanceMoved[j] )//paper uses s(c_i) for half the distance, but our code uses it for the full distance
+                    continue;//you didn't satisfy (3.10)
+                //5: if ||c'j −cj|| ≤ update then break
+                if(distanceMoved[j] <= update)
+                    break;
+                //6: update ← max{update calculated by Algorithm 2 using ci and cj, update}
+                double algo2_1_out;
+                //begin Algorithm 2 Algorithm for update of l(x, cj) in the multidimensional case, where c(x) = ci
+                //3: t← eq (3.6)
+                oldMeans[i].copyTo(tmpVecs[i]);
+                means1.get(j).copyTo(tmpVecs2[i]);
+                tmpVecs[i].mutableSubtract(oldMeans[j]);//tmpVec[i] = (ci - cj)
+                tmpVecs2[i].mutableSubtract(oldMeans[j]);//tmpVec2[i] = (c'j - cj)
+                double t = tmpVecs[i].dot(tmpVecs2[i])/(distanceMoved[j]*distanceMoved[j]);
+                //4: dist←||cj + t · (c'j −cj)−ci||
+                //can be re-arragned as  ||cj −ci + t · (c'j −cj)||
+                // = || (cj −ci) + t · (c'j −cj)||
+                // = || -(ci - cj) + t · (c'j −cj)||
+//                        double dist = oldMeans[j].add(means.get(j).subtract(oldMeans[j]).multiply(t)).subtract(oldMeans[i]).pNorm(2);
+                tmpVecs[i].mutableMultiply(-1);
+                tmpVecs[i].mutableAdd(t, tmpVecs2[i]);
+                double dist = tmpVecs2[i].pNorm(2);
+                //5: cix ← (3.7)
+                double c_ix = dist*2/distanceMoved[j];
+                //6: ciy ←1−2t
+                double c_iy = 1 - 2 * t;
+                //7: r ←  (3.9)
+                double r = m[i]*2/distanceMoved[j];
+                //8: return update calculated by Algorithm 1 (using r and ci = (cix, ciy)) multiplied by ||c'j−cj||/2
+                //Algorithm 1 Algorithm for update of l(x, cj) in the simplified two dimensional case, where c(x) = ci.
+                //3: if cix ≤ r then return max{0,min{2, 2(r − ciy)}}
+                if(c_ix <= r)
+                    algo2_1_out = Math.max(0, Math.min(2, 2*(r-c_iy)));
+                else
+                {
+                    //4: if ciy > r then
+                    if(c_iy > r)
+                        c_iy--;//5:ciy ←ciy −1
+                    //7: return eq (3.2)
+                    double proj_norm_sqrd = Math.sqrt(c_ix * c_ix + c_iy * c_iy);
+                    proj_norm_sqrd *= proj_norm_sqrd;
+                    algo2_1_out = 2*(c_ix*r-c_iy*Math.sqrt(proj_norm_sqrd-r*r))/proj_norm_sqrd;
+                }
+                //end Algorithm 1
+                algo2_1_out *= distanceMoved[j]/2;
+                //end Algorithm 2
+                update = Math.max(algo2_1_out, update);
+            }
+            updateB[i] = update;
+        }
+        //"The appropriate place to calculate the maximum upper bound is before any centroids move", ok we can do upper bound now
+        UpdateBounds(p, assignment, u, l, updateB);
     }
 
     /**
@@ -305,7 +413,16 @@ public class HamerlyKMeans extends KMeans
         return 0;//no change
     }
     
-    private void updateS(final double[] s, final List<Vec> means, final ExecutorService threadpool, final List<List<Double>> meanQIs)
+    /**
+     * 
+     * @param s updated by this method call
+     * @param distanceMoved distance each cluster has moved from the previous locations. Updated by this method call. 
+     * @param means the new cluster means
+     * @param oldMeans the old cluster means
+     * @param threadpool
+     * @param meanQIs 
+     */
+    private void updateS(final double[] s, final double[] distanceMoved, final List<Vec> means, final Vec[] oldMeans, final ExecutorService threadpool, final List<List<Double>> meanQIs)
     {
         final int tasks = means.size();
         final CountDownLatch latch = new CountDownLatch(tasks);
@@ -315,24 +432,28 @@ public class HamerlyKMeans extends KMeans
         if (meanCache != null)
             for (List<Double> qi : meanQIs)
                 meanCache.addAll(qi);
+        
+        final ThreadLocal<double[]> localS = new ThreadLocal<double[]>()
+        {
+            @Override
+            protected double[] initialValue()
+            {
+                return  new double[s.length];
+            }
+        };
 
         for (int j = 0; j < means.size(); j++)
         {
             if(threadpool == null)
             {
+                distanceMoved[j] = dm.dist(oldMeans[j], means.get(j));
                 double tmp;
-                double min = Double.POSITIVE_INFINITY;
-                int otherIndx = Integer.MAX_VALUE;
                 for(int jp = j+1; jp < means.size(); jp++)
-                    if((tmp = dm.dist(j, jp, means, meanCache)) < min)
-                    {
-                        min = tmp;
-                        otherIndx = jp;
-                    }
-                s[j] = Math.min(min, s[j]);
-                //trick to avoid computing twice as many distances as needed
-                if(otherIndx < s.length)//if index i is our min, we may be their min too
-                    s[otherIndx] = Math.min(s[otherIndx], s[j]);
+                {
+                    tmp = dm.dist(j, jp, means, meanCache);
+                    s[j] = Math.min(s[j], tmp);
+                    s[jp] = Math.min(s[jp], tmp);
+                }
             }
             else
             {
@@ -342,22 +463,23 @@ public class HamerlyKMeans extends KMeans
                     @Override
                     public void run()
                     {
+                        double[] sTmp = localS.get();
+                        Arrays.fill(sTmp, Double.POSITIVE_INFINITY);
+                        distanceMoved[J] = dm.dist(oldMeans[J], means.get(J));
                         double tmp;
-                        double min = Double.POSITIVE_INFINITY;
-                        int otherIndx = Integer.MAX_VALUE;
-                        for (int jp = J+1; jp < means.size(); jp++)
-                            if ((tmp = dm.dist(J, jp, means, meanCache)) < min)
-                            {
-                                min = tmp;
-                                otherIndx = jp;
-                            }
-
-                        synchronized (s)
+                        for (int jp = J + 1; jp < means.size(); jp++)
                         {
-                            min = s[J] = Math.min(min, s[J]);
-                            if (otherIndx < s.length)
-                                s[otherIndx] = Math.min(min, s[otherIndx]);
+                            tmp = dm.dist(J, jp, means, meanCache);
+                            sTmp[J] = Math.min(sTmp[J], tmp);
+                            sTmp[jp] = Math.min(sTmp[jp], tmp);
                         }
+                        
+                        synchronized(s)
+                        {
+                            for(int i = 0; i < s.length; i++)
+                                s[i] = Math.min(s[i], sTmp[i]);
+                        }
+                        
                         latch.countDown();
                     }
                 });
@@ -490,11 +612,13 @@ public class HamerlyKMeans extends KMeans
         return lIndex;
     }
     
-    private void moveCenters(List<Vec> means, Vec[] tmpSpace, Vec[] cP, AtomicDoubleArray q, double[] p, final List<List<Double>> meanQI)
+    private void moveCenters(List<Vec> means, Vec[] oldMeans, Vec[] tmpSpace, Vec[] cP, AtomicDoubleArray q, double[] p, final List<List<Double>> meanQI)
     {
         for(int j = 0; j < means.size(); j++)
         {
             double count = q.get(j);
+            //save old mean
+            means.get(j).copyTo(oldMeans[j]);
             if(count > 0)
             {
                 //compute new mean
@@ -517,7 +641,14 @@ public class HamerlyKMeans extends KMeans
         }
     }
     
-    private void UpdateBounds(double[] p, int[] a, double[] u, double[] l)
+    /**
+     * 
+     * @param p distance that c(j) last moved, denoted p(j)
+     * @param a
+     * @param u
+     * @param l 
+     */
+    private void UpdateBounds(double[] p, int[] a, double[] u, double[] l, double[] updateB)
     {
         double secondHighest = Double.NEGATIVE_INFINITY;
         int shIndex = -1;
@@ -553,9 +684,9 @@ public class HamerlyKMeans extends KMeans
             final int j = a[i];
             u[i] += p[j];
             if(r == j)
-                l[i] -= p[rP];
+                l[i] -= Math.min(p[rP], updateB[j]);
             else
-                l[i] -= p[r];
+                l[i] -= Math.min(p[r], updateB[j]);
         }
     }
 
