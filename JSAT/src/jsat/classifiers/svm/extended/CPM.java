@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.classifiers.*;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.distributions.Distribution;
 import jsat.distributions.LogUniform;
 import jsat.distributions.Uniform;
@@ -43,6 +44,11 @@ import jsat.utils.ListUtils;
  * hyper-planes to create a non-linear classifier. Increasing the number of
  * hyper-planes increases training/prediction time, but also increases the
  * amount of non-linearity the model can tolerate.<br>
+ * <br>
+ * While the CPM implements the {@link BinaryScoreClassifier} interface, the CPM
+ * decision algorithm does not completely lend itself to producing a natural
+ * score in this manner. For this reason you may observe unusual behavior from
+ * the CPM if you rely on this interface, compared with other approaches.
  *
  *
  * <br>See: Kantchelian, A., Tschantz, M. C., Huang, L., Bartlett, P. L.,
@@ -52,7 +58,7 @@ import jsat.utils.ListUtils;
  * from <a href="http://dl.acm.org/citation.cfm?id=2969033.2969189">here</a>
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class CPM implements Classifier, Parameterized
+public class CPM implements BinaryScoreClassifier, Classifier, Parameterized
 {
     private static final long serialVersionUID = 3171068484917637037L;
     
@@ -284,6 +290,17 @@ public class CPM implements Classifier, Parameterized
         else
             cr.setProb(1, 1.0);
         return cr;
+    }
+
+    @Override
+    public double getScore(DataPoint dp)
+    {
+        Vec x = dp.getNumericalValues();
+        
+        double pos_score = Wp.multiply(x).add(bp).max();
+        double neg_score = Wn.multiply(x).add(bn).max();
+        
+        return pos_score-neg_score;
     }
 
     @Override
