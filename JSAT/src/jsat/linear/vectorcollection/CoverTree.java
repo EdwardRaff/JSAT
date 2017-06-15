@@ -72,11 +72,12 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
     private static final int min_pow_map = -120;
     private static final int max_pow_map = 1000;
     private static final float[] pow_map = new float[max_pow_map-min_pow_map];
-    private static final double log2_base = Math.log(1.3)/Math.log(2);
+    private static final double base = 1.3;
+    private static final double log2_base = Math.log(base)/Math.log(2);
     static
     {
         for(int pow_indx = min_pow_map; pow_indx < max_pow_map; pow_indx++)
-            pow_map[pow_indx-min_pow_map] = (float) Math.pow(1.3, pow_indx);
+            pow_map[pow_indx-min_pow_map] = (float) Math.pow(base, pow_indx);
     }
     
     private static double pow(int expo)
@@ -84,7 +85,7 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
         if(expo >= min_pow_map && expo < max_pow_map)
             return pow_map[expo-min_pow_map];
         else
-            return Math.pow(1.3, expo);
+            return Math.pow(base, expo);
     }
 
     public CoverTree(DistanceMetric dm)
@@ -223,8 +224,8 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
              * circuit
              */
             final int start_indx = p.vec_indx;
-            if(p_x_dist - pow(p.level+1) < 2*p.covdist())//if this is true, the condition will be true for p AND ALL CHILDREN OF P
-                while(p_x_dist > 2*p.covdist() && !p.isLeaf())//line 2
+            if(p_x_dist - pow(p.level+1) < base*p.covdist())//if this is true, the condition will be true for p AND ALL CHILDREN OF P
+                while(p_x_dist > base*p.covdist() && !p.isLeaf())//line 2
                 {
                     //3: remove any leaf q from p 
                     TreeNode q;
