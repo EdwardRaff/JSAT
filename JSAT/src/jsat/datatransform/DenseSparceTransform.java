@@ -45,36 +45,32 @@ public class DenseSparceTransform implements DataTransform
     {
         Vec orig = dp.getNumericalValues();
 
-        if (orig instanceof SparseVector)
+        final int nnz = orig.nnz();
+        if (nnz / (double) orig.length() < factor)///make sparse
         {
-            SparseVector sv = (SparseVector) orig;
-            if (sv.nnz() / (double) sv.length() < factor)///Stay sparce
+            if(orig.isSparse())//already sparse, just return
                 return dp;
+            //else, make sparse
+            SparseVector sv = new SparseVector(orig.length(), nnz);//TODO create a constructor for this 
+            for(int i  = 0; i < orig.length(); i++)
+                if(orig.get(i) != 0)
+                    sv.set(i, orig.get(i));
 
-            DenseVector dv = new DenseVector(sv.length());
-            Iterator<IndexValue> iter = sv.getNonZeroIterator();
+            return new DataPoint(sv, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+        }
+        else//make dense
+        {
+            if(!orig.isSparse())//already dense, just return
+                return dp;
+            DenseVector dv = new DenseVector(orig.length());
+            Iterator<IndexValue> iter = orig.getNonZeroIterator();
             while (iter.hasNext())
             {
                 IndexValue indexValue = iter.next();
                 dv.set(indexValue.getIndex(), indexValue.getValue());
             }
             return new DataPoint(dv, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
-
         }
-        //Else, we are currently dense
-        int nnz = 0;
-        for(int i  = 0; i < orig.length(); i++)
-            if(orig.get(i) != 0)
-                nnz++;
-        if(nnz / (double)orig.length() > factor)//Stay dense
-            return dp;
-        //Else, to sparce
-        SparseVector sv = new SparseVector(orig.length(), nnz);//TODO create a constructor for this 
-        for(int i  = 0; i < orig.length(); i++)
-            if(orig.get(i) != 0)
-                sv.set(i, orig.get(i));
-
-        return new DataPoint(sv, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
     }
 
     @Override
