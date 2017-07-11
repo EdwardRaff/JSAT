@@ -286,9 +286,15 @@ public class SMOTE implements Classifier, Parameterized
                             int nn = rand.nextInt(smoteNeighbors)+1;//index 0 is ourselve
                             VecPaired<Vec, Double> vec_nn = nns_id.get(sampleIndex).get(nn);
                             double gap = rand.nextDouble();
+                            
+                            // x ~ U(0, 1)
+                            //new = sample + x * diff
+                            //where diff = (sample - other)
+                            //equivalent to
+                            //new = sample * (x+1) + other * x
                             Vec newVal = V_id.get(sampleIndex).clone();
-                            newVal.mutableMultiply(gap);
-                            newVal.mutableAdd(1-gap, vec_nn);
+                            newVal.mutableMultiply(gap+1);
+                            newVal.mutableAdd(gap, vec_nn);
                             local_new.add(new DataPoint(newVal));
                         }
                         
