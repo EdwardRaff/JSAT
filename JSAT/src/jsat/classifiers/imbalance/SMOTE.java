@@ -64,14 +64,17 @@ import jsat.utils.random.RandomUtil;
 public class SMOTE implements Classifier, Parameterized
 {
     @ParameterHolder
-    private Classifier baseClassifier;
-    private DistanceMetric dm;
-    private int smoteNeighbors;
-    private double targetRatio;
+    protected Classifier baseClassifier;
+    protected DistanceMetric dm;
+    protected int smoteNeighbors;
+    protected double targetRatio;
     
     /**
      * Creates a new SMOTE model that will over-sample the minority classes so
-     * that there is a balanced number of data points in each class.
+     * that there is a balanced number of data points in each class.<br>
+     * This implementation extends the original SMOTE algorithm to the
+     * multi-class case.
+     *
      *
      * @param baseClassifier the base classifier to use after the SMOTEing is
      * done.

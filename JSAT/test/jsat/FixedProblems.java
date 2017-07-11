@@ -44,6 +44,31 @@ public class FixedProblems
         return train;
     }
     
+    
+    /**
+     * Creates a 2D linearly separable problem 
+     * @param dataSetSize0 size of the first class
+     * @param dataSetSize1 size of the second class
+     * @param sep the separation between the two classes. The true decision
+     * boundary stays in the same location regardless of this value
+     * @param rand source of randomness
+     * @return a 2d testing set
+     */
+    public static ClassificationDataSet get2ClassLinear2D(int dataSetSize0, int dataSetSize1, double sep, Random rand)
+    {
+        ClassificationDataSet train = new ClassificationDataSet(2, new CategoricalData[0], new CategoricalData(2));
+        
+        NormalM a = new NormalM(DenseVector.toDenseVec(sep, sep), Matrix.eye(2));
+        NormalM b = new NormalM(DenseVector.toDenseVec(-sep, -sep), Matrix.eye(2));
+        
+        for(Vec s : a.sample(dataSetSize0, rand))
+            train.addDataPoint(s, new int[0], 0);
+        for(Vec s : b.sample(dataSetSize1, rand))
+            train.addDataPoint(s, new int[0], 1);
+        
+        return train;
+    }
+    
     /**
      * Generates a linearly separable binary classification problem
      * @param dataSetSize0 the number of points to generated for the first class
