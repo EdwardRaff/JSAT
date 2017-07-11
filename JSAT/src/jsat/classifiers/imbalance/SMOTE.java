@@ -1,0 +1,351 @@
+/*
+ * Copyright (C) 2017 Edward Raff
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package jsat.classifiers.imbalance;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import jsat.classifiers.CategoricalResults;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.Classifier;
+import jsat.classifiers.DataPoint;
+import jsat.classifiers.DataPointPair;
+import jsat.exceptions.FailedToFitException;
+import jsat.linear.DenseVector;
+import jsat.linear.Vec;
+import jsat.linear.VecPaired;
+import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.linear.vectorcollection.DefaultVectorCollectionFactory;
+import jsat.linear.vectorcollection.VectorCollection;
+import jsat.linear.vectorcollection.VectorCollectionUtils;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameter.ParameterHolder;
+import jsat.parameters.Parameterized;
+import jsat.utils.FakeExecutor;
+import jsat.utils.IntList;
+import jsat.utils.ListUtils;
+import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
+import jsat.utils.random.RandomUtil;
+
+/**
+ * This class implements the Synthetic Minority Over-sampling TEchnique (SMOTE)
+ * for dealing with class imbalance. It does this by over-sampling the minority
+ * classes to bring their total count up to parity (or some target ratio) with
+ * the majority class. This is done by interpolating between minority points and
+ * their neighbors to create new synthetic points that are not present in the
+ * current dataset. For this reason SMOTE only works with numeric feature
+ * vectors.<br>
+ * <br>
+ * See: Chawla, N., Bowyer, K., Hall, L., & Kegelmeyer, P. (2002). SMOTE:
+ * synthetic minority over-sampling technique. Artificial Intelligence Research,
+ * 16, 321–357. Retrieved from <a href="http://arxiv.org/abs/1106.1813">here</a>
+ * @author Edward Raff
+ */
+public class SMOTE implements Classifier, Parameterized
+{
+    @ParameterHolder
+    private Classifier baseClassifier;
+    private DistanceMetric dm;
+    private int smoteNeighbors;
+    private double targetRatio;
+    
+    /**
+     * Creates a new SMOTE model that will over-sample the minority classes so
+     * that there is a balanced number of data points in each class.
+     *
+     * @param baseClassifier the base classifier to use after the SMOTEing is
+     * done.
+     */
+    public SMOTE(Classifier baseClassifier)
+    {
+        this(baseClassifier, new EuclideanDistance());
+    }
+    
+    /**
+     * Creates a new SMOTE model that will over-sample the minority classes so
+     * that there is a balanced number of data points in each class.
+     *
+     * @param baseClassifier the base classifier to use after the SMOTEing is
+     * done.
+     * @param dm the distance metric to use for determining nearest neighbors
+     */
+    public SMOTE(Classifier baseClassifier, DistanceMetric dm)
+    {
+        this(baseClassifier, dm, 1.0);
+    }
+    
+    /**
+     * Creates a new SMOTE model.
+     *
+     * @param baseClassifier the base classifier to use after the SMOTEing is
+     * done.
+     * @param dm the distance metric to use for determining nearest neighbors
+     * @param targetRatio the desired ratio of samples for each class with respect to the majority class. 
+     */
+    public SMOTE(Classifier baseClassifier, DistanceMetric dm, double targetRatio)
+    {
+        this(baseClassifier, dm, 5, targetRatio);
+    }
+
+    /**
+     * Creates a new SMOTE object 
+     * @param baseClassifier the base classifier to use after the SMOTEing is done. 
+     * @param dm the distance metric to use for determining nearest neighbors
+     * @param smoteNeighbors the number of neighbors to look at when interpolating points
+     * @param targetRatio the desired ratio of samples for each class with respect to the majority class. 
+     */
+    public SMOTE(Classifier baseClassifier, DistanceMetric dm, int smoteNeighbors, double targetRatio)
+    {
+        setBaseClassifier(baseClassifier);
+        setDistanceMetric(dm);
+        setSmoteNeighbors(smoteNeighbors);
+        setTargetRatio(targetRatio);
+    }
+
+    
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public SMOTE(SMOTE toCopy)
+    {
+        this.baseClassifier = toCopy.baseClassifier.clone();
+        this.dm = toCopy.dm.clone();
+        this.smoteNeighbors = toCopy.smoteNeighbors;
+        this.targetRatio = toCopy.targetRatio;
+    }
+
+    /**
+     * Sets the metric used to determine the nearest neighbors of each point. 
+     * @param dm the distance metric to use. 
+     */
+    public void setDistanceMetric(DistanceMetric dm)
+    {
+        this.dm = dm;
+    }
+
+    /**
+     * 
+     * @return the distance metric to use
+     */
+    public DistanceMetric getDistanceMetric()
+    {
+        return dm;
+    }
+
+    /**
+     * Sets the number of neighbors that will be used to be candidates for
+     * interpolation. The default value recommended in the original paper is 5.
+     *
+     * @param smoteNeighbors the number of candidate neighbors to select from
+     * when creating synthetic data points.
+     */
+    public void setSmoteNeighbors(int smoteNeighbors)
+    {
+        if(smoteNeighbors < 1)
+            throw new IllegalArgumentException("number of neighbors considered must be a positive value");
+        this.smoteNeighbors = smoteNeighbors;
+    }
+
+    /**
+     * 
+     * @return the number of candidate neighbors to select from
+     * when creating synthetic data points.
+     */
+    public int getSmoteNeighbors()
+    {
+        return smoteNeighbors;
+    }
+
+    /**
+     * Sets the desired ratio of samples for each class compared to the majority
+     * class. A ratio of 1.0 will oversample the minority classes until they
+     * have just as many data points as the majority class. If any minority
+     * class already exists at a ratio equal to or above this ratio, no over
+     * samples will be created for that class. If the target ratio is greater
+     * than one, all classes <i>including the majority class</i> will be
+     * over-sampled to the desired ratio.
+     *
+     * @param targetRatio the target ratio between each class and the majority
+     * class
+     */
+    public void setTargetRatio(double targetRatio)
+    {
+        this.targetRatio = targetRatio;
+    }
+
+    /**
+     * 
+     * @return the target ratio between each class and the majority
+     * class
+     */
+    public double getTargetRatio()
+    {
+        return targetRatio;
+    }
+    
+    
+
+    /**
+     * Sets the classifier to use after the dataset has been modified
+     * @param baseClassifier the classifier to use for training and prediction
+     */
+    public void setBaseClassifier(Classifier baseClassifier)
+    {
+        this.baseClassifier = baseClassifier;
+    }
+
+    /**
+     * 
+     * @return the classifier used by the model
+     */
+    public Classifier getBaseClassifier()
+    {
+        return baseClassifier;
+    }
+
+    @Override
+    public CategoricalResults classify(DataPoint data)
+    {
+        return baseClassifier.classify(data);
+    }
+
+    @Override
+    public void trainC(final ClassificationDataSet dataSet, ExecutorService threadPool)
+    {
+        if(dataSet.getNumCategoricalVars() != 0)
+            throw new FailedToFitException("SMOTE only works with numeric-only feature values");
+        
+        if(threadPool == null)
+            threadPool = new FakeExecutor();
+        
+        List<Vec> vAll = dataSet.getDataVectors();
+        IntList[] classIndex = new IntList[dataSet.getClassSize()];
+        for(int i = 0; i < classIndex.length; i++)
+            classIndex[i] = new IntList();
+        for(int i = 0; i < dataSet.getSampleSize(); i++)
+            classIndex[dataSet.getDataPointCategory(i)].add(i);
+        
+        double[] priors = dataSet.getPriors();
+        Vec ratios = DenseVector.toDenseVec(priors).clone();//yes, make a copy - I want the priors around too!
+        /**
+         * How many samples does it take to reach parity with the majority class
+         */
+        final int majorityNum = (int) (dataSet.getSampleSize()*ratios.max());
+        ratios.mutableDivide(ratios.max());
+        
+        final List<DataPointPair<Integer>> synthetics = new ArrayList<DataPointPair<Integer>>();
+        
+        //Go through and perform oversampling of each class
+        for(final int classID : ListUtils.range(0, dataSet.getClassSize()))
+        {
+            final int samplesNeeded = (int) (majorityNum * targetRatio - classIndex[classID].size());
+            if(samplesNeeded <= 0)
+                continue;
+            //collect the vectors we need to interpolate with
+            final List<Vec> V_id = new ArrayList<Vec>();
+            for(int i : classIndex[classID])
+                V_id.add(vAll.get(i));
+            VectorCollection<Vec> VC_id = new DefaultVectorCollectionFactory<Vec>().getVectorCollection(V_id, dm, threadPool);
+            //find all the nearest neighbors for each point so we know who to interpolate with
+            final List<List<? extends VecPaired<Vec, Double>>> nns_id = VectorCollectionUtils.allNearestNeighbors(VC_id, V_id, smoteNeighbors+1, threadPool);
+            
+            final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+            for (final int threadID : ListUtils.range(0, SystemInfo.LogicalCores))
+                threadPool.submit(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        Random rand = RandomUtil.getRandom();
+                        List<DataPoint> local_new = new ArrayList<DataPoint>();
+                        for(int i = ParallelUtils.getStartBlock(samplesNeeded, threadID); i < ParallelUtils.getEndBlock(samplesNeeded, threadID); i++)
+                        {
+                            int sampleIndex = i % V_id.size();
+                            //which of the neighbors should we use?
+                            int nn = rand.nextInt(smoteNeighbors)+1;//index 0 is ourselve
+                            VecPaired<Vec, Double> vec_nn = nns_id.get(sampleIndex).get(nn);
+                            double gap = rand.nextDouble();
+                            Vec newVal = V_id.get(sampleIndex).clone();
+                            newVal.mutableMultiply(gap);
+                            newVal.mutableAdd(1-gap, vec_nn);
+                            local_new.add(new DataPoint(newVal));
+                        }
+                        
+                        synchronized(synthetics)
+                        {
+                            for(DataPoint v : local_new)
+                                synthetics.add(new DataPointPair<Integer>(v, classID));
+                        }
+                        
+                        latch.countDown();
+                    }
+                });
+            
+            try
+            {
+                latch.await();
+            }
+            catch (InterruptedException ex)
+            {
+                Logger.getLogger(SMOTE.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+        }
+        
+        ClassificationDataSet newDataSet = new ClassificationDataSet(ListUtils.mergedView(synthetics, dataSet.getAsDPPList()), dataSet.getPredicting());
+        
+        baseClassifier.trainC(newDataSet, threadPool);
+    }
+
+    @Override
+    public void trainC(ClassificationDataSet dataSet)
+    {
+        trainC(dataSet, new FakeExecutor());
+    }
+
+    @Override
+    public boolean supportsWeightedData()
+    {
+        return false;
+    }
+
+    @Override
+    public SMOTE clone()
+    {
+        return new SMOTE(this);
+    }
+
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return Parameter.getParamsFromMethods(this);
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return Parameter.toParameterMap(getParameters()).get(paramName);
+    }
+    
+}

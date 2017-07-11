@@ -45,6 +45,25 @@ public class FixedProblems
     }
     
     /**
+     * Generates a linearly separable binary classification problem
+     * @param dataSetSize0 the number of points to generated for the first class
+     * @param dataSetSize1 the number of points to generated for the second class
+     * @param rand the source of randomness 
+     * @return a binary classification data set that is linearly separable
+     */
+    public static ClassificationDataSet get2ClassLinear(int dataSetSize0, int dataSetSize1, Random rand)
+    {
+        ClassificationDataSet train = new ClassificationDataSet(c2l_m0.length(), new CategoricalData[0], new CategoricalData(2));
+        
+        for(Vec s : c2l_c0.sample(dataSetSize0, rand))
+            train.addDataPoint(s, new int[0], 0);
+        for(Vec s : c2l_c1.sample(dataSetSize1, rand))
+            train.addDataPoint(s, new int[0], 1);
+        
+        return train;
+    }
+    
+    /**
      * Generates a linearly separable multi class problem 
      * @param dataSetSize the number of data points to generate per class
      * @param K the number of classes to generate

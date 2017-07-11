@@ -140,6 +140,36 @@ public class ListUtils
     }
     
     /**
+     * Returns a list of integers with values in the given range
+     * @param start the starting integer value (inclusive)
+     * @param to the ending integer value (exclusive)
+     * @return a list of integers containing the specified range of integers
+     */
+    public static IntList range(int start, int to)
+    {
+        return range(start, to, 1);
+    }
+    
+    /**
+     * Returns a list of integers with values in the given range
+     * @param start the starting integer value (inclusive)
+     * @param to the ending integer value (exclusive)
+     * @param step the step size between values
+     * @return a list of integers containing the specified range of integers
+     */
+    public static IntList range(int start, int to, int step)
+    {
+        if(to < start)
+            throw new RuntimeException("starting index " + start + " must be less than or equal to ending index" + to);
+        else if(step < 1)
+            throw new RuntimeException("Step size must be a positive integer, not " + step);
+        IntList toRet = new IntList((to-start)/step);
+        for(int i = start; i < to; i+=step)
+            toRet.add(i);
+        return toRet;
+    }
+    
+    /**
      * Obtains a random sample without replacement from a source list and places
      * it in the destination list. This is done without modifying the source list. 
      * 
