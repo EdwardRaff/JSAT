@@ -573,7 +573,13 @@ public class ClassificationModelEvaluation
             nameLength = Math.max(nameLength, entry.getKey().getName().length()+2);
         final String pfx = "%-" + nameLength;//prefix
         for(Entry<ClassificationScore, OnLineStatistics> entry : scoreMap.entrySet())
-            System.out.printf(pfx+"s %-5f (%-5f)\n", entry.getKey().getName(), entry.getValue().getMean(), entry.getValue().getStandardDeviation());
+        {
+            OnLineStatistics stats = entry.getValue();
+            if(stats.getMax() == stats.getMin())//max = min = no varaince / 1 entry
+                System.out.printf(pfx+"s %-5f\n", entry.getKey().getName(), stats.getMean());
+            else
+                System.out.printf(pfx+"s %-5f (%-5f)\n", entry.getKey().getName(), stats.getMean(), stats.getStandardDeviation());
+        }
     }
     
     /**
