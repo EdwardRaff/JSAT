@@ -118,11 +118,11 @@ public class SparseVector extends  Vec
     public SparseVector(int[] indexes, double[] values, int length, int used)
     {
         if(values.length != indexes.length)
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Index and Value arrays must have the same length, instead index was " + indexes.length + " and values was " + values.length);
         if(used < 0 || used > length || used > values.length)
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Bad used value. Used must be in the range of 0 and min of values length (" + values.length + ") and array length (" + length + "), instead was given " + used);
         if(length <= 0)
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Length of sparse vector must be positive, not " + length);
         this.used = used;
         this.length = length;
         this.indexes = indexes;
