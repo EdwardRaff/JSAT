@@ -58,4 +58,38 @@ public class LinearTools
         return max(abs(delta_L.max()), abs(delta_L.min())) / (cds.getSampleSize());
     }
     
+    /**
+     * Many linear classifiers can be phrased in two equivalent forms, that only change the notation for the regularized. These forms are:<br>
+     * C <big>&sum;</big><sub>i</sub> &#x2113;(w,x<sub>i</sub>) + &Omega;(w) <br>
+     * and<br>
+     * 1/N <big>&sum;</big><sub>i</sub> &#x2113;(w,x<sub>i</sub>) + &lambda; &Omega;(w) <br>
+     * 
+     * This method converts the regularization parameter &lambda; to the form used as C
+     * 
+     * @param lambda the regularization parameter &lambda;
+     * @param N the number of data points in the training set 
+     * @return 
+     */
+    public static double lambda2C(double lambda, double N)
+    {
+        return 1/(lambda*N);
+    }
+    
+/**
+     * Many linear classifiers can be phrased in two equivalent forms, that only change the notation for the regularized. These forms are:<br>
+     * C <big>&sum;</big><sub>i</sub> &#x2113;(w,x<sub>i</sub>) + &Omega;(w) <br>
+     * and<br>
+     * 1/N <big>&sum;</big><sub>i</sub> &#x2113;(w,x<sub>i</sub>) + &lambda; &Omega;(w) <br>
+     * 
+     * This method converts the regularization parameter C to the form used as &lambda;
+     * 
+     * @param C the regularization parameter C
+     * @param N the number of data points in the training set 
+     * @return 
+     */
+    public static double c2Lambda(double C, double N)
+    {
+        return 1/(C*N);
+    }
+    
 }
