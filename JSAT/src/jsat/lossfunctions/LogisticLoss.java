@@ -18,10 +18,9 @@ public class LogisticLoss implements LossC
      * the edge of numerical double precision
      */
 
+    private static final long serialVersionUID = -3929171604513497068L;
 
-	private static final long serialVersionUID = -3929171604513497068L;
-
-	/**
+    /**
      * Computes the logistic loss
      *
      * @param pred the predicted value
@@ -125,5 +124,22 @@ public class LogisticLoss implements LossC
     public CategoricalResults getClassification(double score)
     {
         return classify(score);
+    }
+
+    @Override
+    public double getConjugate(double b, double pred, double y)
+    {
+        if(b < 0 || b > 1)
+            return Double.POSITIVE_INFINITY;
+        //else
+        if(0.5-abs(0.5-b) < 1e-13) // you are so close tot he edges of making log(b) return NaN, so lets round you out 
+            return 0;//This is 
+        return b * log(b) + (1-b) * log(1-b); //log(max(1e, b)) done to avoid NaN with -0 inputs
+    }
+
+    @Override
+    public double lipschitz()
+    {
+        return 4;
     }
 }

@@ -15,9 +15,9 @@ public class HingeLoss implements LossMC
 {
 
 
-	private static final long serialVersionUID = -7001702646530236153L;
+    private static final long serialVersionUID = -7001702646530236153L;
 
-	/**
+    /**
      * Computes the HingeLoss loss
      *
      * @param pred the predicted value
@@ -142,5 +142,22 @@ public class HingeLoss implements LossMC
         CategoricalResults toRet = new CategoricalResults(processed.length());
         toRet.setProb(maxIndx, 1.0);
         return toRet;
+    }
+
+    @Override
+    public double getConjugate(double b, double pred, double y)
+    {
+        if(b < -1 || b > 0)
+            return Double.POSITIVE_INFINITY;
+        //else
+        return b;
+    }
+
+    @Override
+    public double lipschitz()
+    {
+        //"Both hinge loss and absolute deviation loss are 1-Lipschitz" 
+        //Shalev-Shwartz, S., & Zhang, T. (2012). Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization. Journal ofMachine Learning Research, 14, 567–599. Machine Learning; Learning; Optimization and Control. Retrieved from http://arxiv.org/abs/1209.1873
+        return 1;
     }
 }

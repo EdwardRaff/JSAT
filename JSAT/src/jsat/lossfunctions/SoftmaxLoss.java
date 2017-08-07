@@ -13,9 +13,9 @@ import jsat.math.MathTricks;
 public class SoftmaxLoss extends LogisticLoss implements LossMC
 {
 
-	private static final long serialVersionUID = 3936898932252996024L;
+    private static final long serialVersionUID = 3936898932252996024L;
 
-	@Override
+    @Override
     public double getLoss(Vec processed, int y)
     {
         return -Math.log(processed.get(y));
