@@ -10,10 +10,9 @@ package jsat.lossfunctions;
 public class AbsoluteLoss implements LossR
 {
 
+    private static final long serialVersionUID = -3398199227407867808L;
 
-	private static final long serialVersionUID = -3398199227407867808L;
-
-	/**
+    /**
      * Computes the absolute loss
      *
      * @param pred the predicted value
@@ -76,5 +75,13 @@ public class AbsoluteLoss implements LossR
     public double getRegression(double score)
     {
         return score;
+    }
+
+    @Override
+    public double lipschitz()
+    {
+        //see Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization
+        //"absolute deviation loss are 1-Lipschitz."
+        return 1.0;
     }
 }

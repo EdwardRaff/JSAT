@@ -11,9 +11,8 @@ package jsat.lossfunctions;
 public class HuberLoss implements LossR
 {
 
-
-	private static final long serialVersionUID = -4463269746356262940L;
-	private double c;
+    private static final long serialVersionUID = -4463269746356262940L;
+    private double c;
 
     /**
      * Creates a new HuberLoss loss
@@ -124,5 +123,12 @@ public class HuberLoss implements LossR
     public double getRegression(double score)
     {
         return score;
+    }
+
+    @Override
+    public double lipschitz()
+    {
+        //TODO I know it is lipschitz, but I don't know the constant!
+        return 0;
     }
 }

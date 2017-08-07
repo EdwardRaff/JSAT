@@ -62,11 +62,6 @@ public interface LossC extends LossFunc
      */
     public double getConjugate(double b, double pred, double y);
     
-    /**
-     * If this loss is L-Lipschitz (1/L Lipschitz smooth), this method will return the value of L. If it is not L-Lipschitz, a value of 0 will be returned.  
-     * @return the L-Lipschitz  constant, or 0 if this loss is not L-Lipschitz;
-     */
-    public double lipschitz();
     
     @Override
     public LossC clone();

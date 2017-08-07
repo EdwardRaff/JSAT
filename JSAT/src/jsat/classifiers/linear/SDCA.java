@@ -270,7 +270,7 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel
         
         Random rand = RandomUtil.getRandom();
         
-        double gamma = ((LossC)loss).lipschitz();
+        double gamma = loss.lipschitz();
         
         for(int epoch = 0; epoch < max_epochs; epoch++)
         {

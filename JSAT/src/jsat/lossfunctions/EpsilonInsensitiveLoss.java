@@ -11,10 +11,9 @@ package jsat.lossfunctions;
 public class EpsilonInsensitiveLoss implements LossR
 {
 
+    private static final long serialVersionUID = -8735274561429676350L;
 
-	private static final long serialVersionUID = -8735274561429676350L;
-
-	/**
+    /**
      * Computes the &epsilon;-insensitive loss
      *
      * @param pred the predicted value
@@ -102,5 +101,12 @@ public class EpsilonInsensitiveLoss implements LossR
     public double getRegression(double score)
     {
         return score;
+    }
+
+    @Override
+    public double lipschitz()
+    {
+        //see "Are Loss Functions All the Same?"
+        return 1;
     }
 }
