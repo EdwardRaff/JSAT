@@ -123,6 +123,13 @@ public class SDCATest
             {
                 Random rand = RandomUtil.getRandom();
                 ClassificationDataSet data = new ClassificationDataSet(6, new CategoricalData[0], new CategoricalData(2));
+                /**
+                 * B/c of the what SDCA works, it has trouble picking just 1 of
+                 * perfectly correlated features. So we will make a 2nd version
+                 * of the dataset which has 1 pure strong feature, 2 weak
+                 * features with noise, and 3 weak features.
+                 */
+                ClassificationDataSet dataN = new ClassificationDataSet(6, new CategoricalData[0], new CategoricalData(2));
 
                 for (int i = 0; i < 500; i++)
                 {
@@ -130,6 +137,11 @@ public class SDCATest
                     double Z2 = rand.nextDouble() * 20 - 10;
                     Vec v = DenseVector.toDenseVec(Z1, -Z1, Z1, Z2, -Z2, Z2);
                     data.addDataPoint(v, (int) (Math.signum(Z1 + 0.1 * Z2) + 1) / 2);
+                    
+                    double eps_1 = rand.nextGaussian()*10;
+                    double eps_2 = rand.nextGaussian()*10;
+                    v = DenseVector.toDenseVec(Z1, -Z1/10 + eps_1, Z1/10+ eps_2, Z2, -Z2, Z2);
+                    dataN.addDataPoint(v, (int) (Math.signum(Z1 + 0.1 * Z2) + 1) / 2);
                 }
 
                 for (LossC loss : new LossC[]{new LogisticLoss(), new HingeLoss()})
@@ -140,10 +152,39 @@ public class SDCATest
 
                     double maxLam = LinearTools.maxLambdaLogisticL1(data);
 
-                    sdca.setMaxIters(1000);
+                    sdca.setMaxIters(100);
                     sdca.setUseBias(false);
+                    
                     sdca.setAlpha(1.0);
                     //SDCA dosn't do fully L1 well, so skip to elastic and L2 tests
+                    sdca.setLambda(maxLam / 100);
+                    double search_const = 0.025;
+                    while(w.nnz() != 1)// I should be able to find a value of lambda that results in only 1 feature
+                    {//SDCA requires a bit more searching b/c it behaved differently than normal coordinate descent solvers when selecting features
+                        do
+                        {
+                            sdca.setLambda(sdca.getLambda() * (1+search_const));
+                            sdca.trainC(dataN);
+                            w = sdca.getRawWeight(0);
+                        }
+                        while (w.nnz() > 1);
+
+                        //did we go too far?
+                        while (w.nnz() == 0)
+                        {
+                            sdca.setLambda(sdca.getLambda()/ (1+search_const/3));
+                            sdca.trainC(dataN);
+                            w = sdca.getRawWeight(0);
+                        }
+                        search_const *= 0.95;
+                    }
+                    
+                    assertEquals(1, w.nnz());
+                    int nonZeroIndex = w.getNonZeroIterator().next().getIndex();
+                    assertTrue(nonZeroIndex == 0);//should be one of the more important weights
+                    assertEquals(1, (int)Math.signum(w.get(nonZeroIndex)));
+                    
+                    //elastic case
 
                     sdca.setLambda(maxLam / 1000);
                     sdca.setAlpha(0.5);//now we should get the top 3 on

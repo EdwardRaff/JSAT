@@ -107,7 +107,7 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel
         if(alpha < 0 || alpha > 1 || Double.isNaN(alpha))
             throw new IllegalArgumentException("alpha must be in [0, 1], not " + alpha);
         
-        this.alpha = Math.min(alpha, 0.99);
+        this.alpha = alpha;
     }
 
     /***
@@ -237,8 +237,36 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel
             x_norms[i] /= scaling;
         
 
-        final double lambda_effective = lambda/scaling;
-        final double sigma_p = (alpha/(1-alpha));
+        final double lambda_effective;
+        final double sigma_p;
+        final double tol_effective;
+        
+        if(alpha == 1)//Lasso case, but we MUST have some l2 reg to make this work
+        {
+            /*
+             * See Section 5.5 Lasso, in "Accelerated proximal stochastic dual 
+             * coordinate ascent for regularized loss minimization" paper. 
+             * y_bar is given for the regression case. It appears y_bar's 
+             * definition is in fact, the average loss of the 0 vector. We can 
+             * compute this quickly.  
+             */
+            //TODO add support for weights in this
+            //TODO we don't need to iterate over all points. loss will have the same output for each class, we can just iterate on the labels and average by class proportions
+            double y_bar = 0;
+            for(int i = 0; i < N; i++)
+                y_bar += ((LossC)loss).getLoss(0.0, dataSet.getDataPointCategory(i)*2-1);
+            y_bar /= N;
+            
+            sigma_p = lambda;
+            lambda_effective = tol * Math.pow(lambda / Math.max(y_bar, 1e-7), 2) ;
+            tol_effective = tol/2;
+        }
+        else
+        {
+            lambda_effective = lambda/scaling;
+            sigma_p = (alpha/(1-alpha));
+            tol_effective = tol;
+        }
         
         Random rand = RandomUtil.getRandom();
         
@@ -313,7 +341,7 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel
             double gap = Math.abs(primal_loss_est-dual_loss_est)/N;
             
 //            System.out.println("Epoch " + epoch + " has gap " + gap);
-            if(gap < tol)
+            if(gap < tol_effective)
             {
 //                System.out.println("\tGap: " + gap + "  Epoch: " + epoch);
                 break;
