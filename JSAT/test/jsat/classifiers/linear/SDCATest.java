@@ -4,8 +4,8 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.FixedProblems;
-import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.*;
+import jsat.datatransform.LinearTransform;
 import jsat.linear.*;
 import jsat.lossfunctions.HingeLoss;
 import jsat.lossfunctions.LogisticLoss;
@@ -226,60 +226,51 @@ public class SDCATest
         }
     }
     
-    private static class DumbWeightHolder implements Classifier, SimpleWeightVectorModel
+    @Test
+    public void testWarmOther()
     {
-        public Vec w;
-        public double b;
-
-        @Override
-        public CategoricalResults classify(DataPoint data)
+        Random rand  = RandomUtil.getRandom();
+        ClassificationDataSet train = new ClassificationDataSet(600, new CategoricalData[0], new CategoricalData(2));
+        
+        for(int i = 0; i < 200; i++)
         {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public void trainC(ClassificationDataSet dataSet)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public boolean supportsWeightedData()
-        {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public Classifier clone()
-        {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public Vec getRawWeight(int index)
-        {
-            return w;
-        }
-
-        @Override
-        public double getBias(int index)
-        {
-            return b;
-        }
-
-        @Override
-        public int numWeightsVecs()
-        {
-            return 1;
+            double Z1 = rand.nextDouble()*20-10;
+            double Z2 = rand.nextDouble()*20-10;
+            
+            Vec v = new DenseVector(train.getNumNumericalVars());
+            for(int j = 0; j < v.length(); j++)
+            {
+                if (j > 500)
+                {
+                    if (j % 2 == 0)
+                        v.set(j, Z2 * ((j + 1) / 600.0) + rand.nextGaussian() / (j + 1));
+                    else
+                        v.set(j, Z1 * ((j + 1) / 600.0) + rand.nextGaussian() / (j + 1));
+                }
+                else
+                    v.set(j, rand.nextGaussian()*20);
+            }
+            
+            train.addDataPoint(v, (int) (Math.signum(Z1+0.1*Z2)+1)/2);
         }
         
+        train.applyTransform(new LinearTransform(train));
+        
+        SDCA truth = new SDCA();
+        truth.setMaxIters(1000);
+        truth.setAlpha(0.5);
+        truth.setLoss(new LogisticLoss());
+        truth.setTolerance(1e-10);
+        truth.trainC(train);
+        
+        SDCA warm = new SDCA();
+        warm.setMaxIters(1000);
+        warm.setLoss(new LogisticLoss());
+        warm.setAlpha(0.5);
+        warm.setTolerance(1e-7);
+        warm.trainC(train, truth);
+        
+        assertEquals(0, warm.getRawWeight(0).subtract(truth.getRawWeight(0)).pNorm(2), 1e-4);
+        assertTrue(warm.epochs_taken + " ?< " + truth.epochs_taken, warm.epochs_taken < truth.epochs_taken);
     }
-    
-    
 }

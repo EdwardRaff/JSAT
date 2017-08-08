@@ -16,14 +16,19 @@
  */
 package jsat.classifiers.linear;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
+import jsat.DataSet;
 import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
+import jsat.classifiers.WarmClassifier;
+import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
@@ -33,13 +38,15 @@ import jsat.lossfunctions.LossFunc;
 import jsat.lossfunctions.LossMC;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
+import jsat.utils.IntList;
+import jsat.utils.ListUtils;
 import jsat.utils.random.RandomUtil;
 
 /**
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel
+public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel, WarmClassifier
 {
     private LossFunc loss = new LogisticLoss();
     private boolean useBias = true;
@@ -48,6 +55,10 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel
     private double alpha = 0.5;
     private int max_epochs = 200;
     private double[] dual_alphas;
+    /**
+     * Returns the number of epochs SDCA took until reaching convergence. 
+     */
+    protected int epochs_taken;
     
     private Vec[] ws;
     private double[] bs;
@@ -211,13 +222,42 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        final int N = dataSet.getSampleSize();
-        final int D = dataSet.getNumNumericalVars();
+        if(dataSet.getPredicting().getNumOfCategories() !=2)
+            throw new RuntimeException("Current SDCA implementation only support binary classification problems");
+        
+        double[] targets = new double[dataSet.getSampleSize()];
+        for(int i = 0; i < targets.length; i++)
+            targets[i] = dataSet.getDataPointCategory(i)*2-1;
+        
+        trainProxSDCA(dataSet, targets, null);
+    }
+    
+    @Override
+    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool)
+    {
+        trainC(dataSet, warmSolution);
+    }
+
+    @Override
+    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
+    {
+        if(warmSolution == null || !(warmSolution instanceof SDCA))
+            throw new FailedToFitException("SDCA implementation can only be warm-started from another instance of SDCA");
         
         if(dataSet.getPredicting().getNumOfCategories() !=2)
             throw new RuntimeException("Current SDCA implementation only support binary classification problems");
         
-        dual_alphas = new double[N];
+        double[] targets = new double[dataSet.getSampleSize()];
+        for(int i = 0; i < targets.length; i++)
+            targets[i] = dataSet.getDataPointCategory(i)*2-1;
+        
+        trainProxSDCA(dataSet, targets, ((SDCA)warmSolution).dual_alphas);
+    }
+    
+    private void trainProxSDCA(DataSet dataSet, double[] targets, double[] warm_alphas)
+    {
+        final int N = dataSet.getSampleSize();
+        final int D = dataSet.getNumNumericalVars();
         
         ws = new Vec[]{new DenseVector(D)};
         Vec v = new DenseVector(D);
@@ -254,7 +294,7 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel
             //TODO we don't need to iterate over all points. loss will have the same output for each class, we can just iterate on the labels and average by class proportions
             double y_bar = 0;
             for(int i = 0; i < N; i++)
-                y_bar += ((LossC)loss).getLoss(0.0, dataSet.getDataPointCategory(i)*2-1);
+                y_bar += loss.getLoss(0.0, targets[i]);
             y_bar /= N;
             
             sigma_p = lambda;
@@ -267,23 +307,49 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel
             sigma_p = (alpha/(1-alpha));
             tol_effective = tol;
         }
+
+        //init dual alphas, and any warm-start on the solutions
+        if (warm_alphas == null)
+            dual_alphas = new double[N];
+        else
+        {
+            if (N != warm_alphas.length)
+                throw new FailedToFitException("SDCA only supports warm-start training from the same dataset. A dataset of side " + N + " was given for training, but the warm solution was trained on " + warm_alphas.length + " points.");
+            this.dual_alphas = Arrays.copyOf(warm_alphas, warm_alphas.length);
+
+            for(int i = 0; i < N; i++)
+            {
+                v.mutableAdd(dual_alphas[i], dataSet.getDataPoint(i).getNumericalValues());
+                if (useBias)
+                    bs[0] += dual_alphas[i];
+            }
+            //noramlize 
+            v.mutableDivide(scaling * lambda_effective * N);
+            bs[0] /= (scaling * lambda_effective * N);
+        }
         
         Random rand = RandomUtil.getRandom();
         
         double gamma = loss.lipschitz();
         
+        IntList epoch_order = new IntList(N);
+        ListUtils.addRange(epoch_order, 0, N, 1);
+        
+        
+        epochs_taken = 0;
         for(int epoch = 0; epoch < max_epochs; epoch++)
         {
+            epochs_taken++;
             double dual_loss_est = 0;
             double primal_loss_est = 0;
-            for(int count = 0; count < N; count++)
+            Collections.shuffle(epoch_order, rand);
+            for(int i : epoch_order)
             {
-                int i = rand.nextInt(N);
 
                 double alpha_i_prev = dual_alphas[i];
 
                 Vec x = dataSet.getDataPoint(i).getNumericalValues();
-                int y = dataSet.getDataPointCategory(i)*2-1;
+                double y = targets[i];
                 //lets lazily determine what w should look like! 
                 for(IndexValue iv : x)
                 {
@@ -296,12 +362,12 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel
                 final double raw_score = w_lazy.dot(x)/scaling+bs[0];
 
                 //Option II 
-                final double lossD = ((LossC)loss).getDeriv(raw_score, y);
+                final double lossD = loss.getDeriv(raw_score, y);
                 double u = -lossD;
                 double q = u - alpha_i_prev;//also called z in older paper
                 double q_sqrd = q*q;
                 //Option III
-                double phi_i = ((LossC)loss).getLoss(raw_score, y);
+                double phi_i = loss.getLoss(raw_score, y);
                 double conjg = ((LossC)loss).getConjugate(-alpha_i_prev, raw_score, y);
                 double x_norm = x_norms[i];
                 double x_norm_sqrd = x_norm*x_norm;
@@ -316,7 +382,7 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel
                 //for convergence check at end of epoch, record point estiamte of average primal and dual losses
                 primal_loss_est += phi_i;
                 if(!Double.isInfinite(conjg))
-                    dual_loss_est += conjg;
+                    dual_loss_est += -conjg;
                 
                 
                 if(s == 0)
@@ -328,13 +394,11 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel
                 dual_alphas[i] += alpha_i_delta;
                 //v^(t) ←v^(t−1) +(λn)^-1 X_i ∆α_i
                 v.mutableAdd(alpha_i_delta/(scaling*lambda_effective*N), x);
-                if(Double.isNaN(v.get(0)))
-                    break;
                 if(useBias)
                     bs[0] += alpha_i_delta/(scaling*lambda_effective*N);
                 //w^(t) ←∇g∗(v^(t))
                 //we do this lazily only when we need it! 
-                
+
             }
             //gap is technically missing an estiamte of the regularization terms in the primal-dual gap 
             //But this looks close enough? Plus I don't need to do book keeping since w dosn't exist fully... 
@@ -400,5 +464,11 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel
     public int numWeightsVecs()
     {
         return ws.length;
+    }
+
+    @Override
+    public boolean warmFromSameDataOnly()
+    {
+        return true;
     }
 }
