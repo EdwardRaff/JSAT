@@ -128,7 +128,7 @@ public class HuberLoss implements LossR
     @Override
     public double lipschitz()
     {
-        //TODO I know it is lipschitz, but I don't know the constant!
-        return 0;
+        //Huber interpolated between Asbolute loss and Squared loss, with are both L-Lipschitz, so Huber is too
+        return 1;
     }
 }
