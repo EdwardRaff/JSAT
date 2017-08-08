@@ -72,6 +72,12 @@ public class SquaredLoss implements LossR
     {
         return deriv2(pred, y);
     }
+    
+    @Override
+    public double getConjugate(double b, double pred, double y)
+    {
+        return b*b*0.5+b*y;
+    }
 
     @Override
     public double getDeriv2Max()

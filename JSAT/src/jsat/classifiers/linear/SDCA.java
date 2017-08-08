@@ -36,8 +36,12 @@ import jsat.lossfunctions.LogisticLoss;
 import jsat.lossfunctions.LossC;
 import jsat.lossfunctions.LossFunc;
 import jsat.lossfunctions.LossMC;
+import jsat.lossfunctions.LossR;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
+import jsat.regression.RegressionDataSet;
+import jsat.regression.Regressor;
+import jsat.regression.WarmRegressor;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 import jsat.utils.random.RandomUtil;
@@ -46,7 +50,7 @@ import jsat.utils.random.RandomUtil;
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel, WarmClassifier
+public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightVectorModel, WarmClassifier, WarmRegressor
 {
     private LossFunc loss = new LogisticLoss();
     private boolean useBias = true;
@@ -212,6 +216,13 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel,
             return ((LossMC)loss).getClassification(pred);
         }
     }
+    
+    @Override
+    public double regress(DataPoint data)
+    {
+        Vec x = data.getNumericalValues();
+        return ((LossR)loss).getRegression(ws[0].dot(x)+bs[0]);
+    }
 
     @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
@@ -253,6 +264,38 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel,
         
         trainProxSDCA(dataSet, targets, ((SDCA)warmSolution).dual_alphas);
     }
+
+    @Override
+    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    {
+        train(dataSet);
+    }
+
+    @Override
+    public void train(RegressionDataSet dataSet)
+    {
+        double[] targets = new double[dataSet.getSampleSize()];
+        for(int i = 0; i < targets.length; i++)
+            targets[i] = dataSet.getTargetValue(i);
+        
+        trainProxSDCA(dataSet, targets, null);
+    }
+
+    @Override
+    public void train(RegressionDataSet dataSet, Regressor warmSolution, ExecutorService threadPool)
+    {
+        train(dataSet, warmSolution);
+    }
+
+    @Override
+    public void train(RegressionDataSet dataSet, Regressor warmSolution)
+    {
+        double[] targets = new double[dataSet.getSampleSize()];
+        for(int i = 0; i < targets.length; i++)
+            targets[i] = dataSet.getTargetValue(i);
+        
+        trainProxSDCA(dataSet, targets, ((SDCA)warmSolution).dual_alphas);
+    }
     
     private void trainProxSDCA(DataSet dataSet, double[] targets, double[] warm_alphas)
     {
@@ -271,10 +314,14 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel,
         for(int i = 0; i < N; i++)
         {
             x_norms[i] = dataSet.getDataPoint(i).getNumericalValues().pNorm(2);
-            scaling = Math.max(scaling, x_norms[i]);
+            //Scaling seems to muck up regresion... so lets leave it alone for now
+//            scaling = Math.max(scaling, x_norms[i]);
         }
         for(int i = 0; i < N; i++)
             x_norms[i] /= scaling;
+        if(dataSet instanceof RegressionDataSet)//also scale the target values! Otherwise we will get weirdness when re-noramalizing htem
+            for(int i = 0; i < N; i++)
+                targets[i] /= scaling;
         
 
         final double lambda_effective;
@@ -368,7 +415,7 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel,
                 double q_sqrd = q*q;
                 //Option III
                 double phi_i = loss.getLoss(raw_score, y);
-                double conjg = ((LossC)loss).getConjugate(-alpha_i_prev, raw_score, y);
+                double conjg = loss.getConjugate(-alpha_i_prev, raw_score, y);
                 double x_norm = x_norms[i];
                 double x_norm_sqrd = x_norm*x_norm;
                 
@@ -431,7 +478,7 @@ public class SDCA implements Classifier, Parameterized, SimpleWeightVectorModel,
     }
 
     @Override
-    public Classifier clone()
+    public SDCA clone()
     {
         return this;
     }

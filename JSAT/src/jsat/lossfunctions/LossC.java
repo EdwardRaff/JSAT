@@ -48,20 +48,7 @@ public interface LossC extends LossFunc
      * @return the categorical results with the correct probability values for 
      * this loss function. 
      */
-    public CategoricalResults getClassification(double score);
-    
-    /**
-     * Computes the result of the conjugate function of this loss. This function
-     * is generally optional, and should return {@link Double#NaN} if not
-     * properly implemented. Some optimization algorithms do require a working
-     * implementation though.
-     * @param b the primary input to the function
-     * @param pred the predicted score in (-Infinity, Infinity)
-     * @param y the true class label in {-1, 1}
-     * @return the result of the conjugate function of this loss
-     */
-    public double getConjugate(double b, double pred, double y);
-    
+    public CategoricalResults getClassification(double score);    
     
     @Override
     public LossC clone();

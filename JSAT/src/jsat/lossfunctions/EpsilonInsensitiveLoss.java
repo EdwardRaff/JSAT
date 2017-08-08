@@ -86,6 +86,12 @@ public class EpsilonInsensitiveLoss implements LossR
     }
 
     @Override
+    public double getConjugate(double b, double pred, double y)
+    {
+        return Double.NaN;
+    }
+
+    @Override
     public double getDeriv2Max()
     {
         return 0;
