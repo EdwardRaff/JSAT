@@ -28,15 +28,14 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.WarmClassifier;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
+import jsat.distributions.Uniform;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
-import jsat.lossfunctions.LogisticLoss;
-import jsat.lossfunctions.LossC;
-import jsat.lossfunctions.LossFunc;
-import jsat.lossfunctions.LossMC;
-import jsat.lossfunctions.LossR;
+import jsat.lossfunctions.*;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
@@ -47,15 +46,27 @@ import jsat.utils.ListUtils;
 import jsat.utils.random.RandomUtil;
 
 /**
+ * This class implements the Proximal Stochastic Dual Coordinate Ascent (SDCA)
+ * algorithm for learning general linear models with Elastic-Net regularization.
+ * It is a fast learning algorithm, and can be used for generic Logistic or
+ * least-squares regression with elastic-net regularization.<br>
+ * It can work with any {@link LossFunc} to determine if it solves a
+ * classification or regression problem, so long as the
+ * {@link LossFunc#getConjugate(double, double, double) conjugate} method of the
+ * loss is implemented properly. This is especially useful for more exotic
+ * cases, like using the robust {@link HuberLoss Huber loss} in a L1 regularized
+ * scenario. <br>
+ * NOTE: The current implementation dose not support any multi-class loss
+ * function, though that isn't a limitation of the algorithm.
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
 public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightVectorModel, WarmClassifier, WarmRegressor
 {
-    private LossFunc loss = new LogisticLoss();
+    private LossFunc loss;
     private boolean useBias = true;
     private double tol = 0.001;
-    private double lambda = 1e-4;
+    private double lambda;
     private double alpha = 0.5;
     private int max_epochs = 200;
     private double[] dual_alphas;
@@ -66,6 +77,73 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
     
     private Vec[] ws;
     private double[] bs;
+
+    /**
+     * Creates a new SDCA learner for {@link LogisticLoss logistic-regression}. 
+     * Pure L2 or L1 regularization can be obtained using the
+     * {@link #setAlpha(double) alpha} parameter.
+     */
+    public SDCA()
+    {
+        this(1e-5);
+    }
+
+    /**
+     * <br>The implementation will use Elastic-Net regularization by default.
+     * Pure L2 or L1 regularization can be obtained using the
+     * {@link #setAlpha(double) alpha} parameter.
+     * @param lambda the regularization penalty to use. 
+     */
+    public SDCA(double lambda)
+    {
+        this(lambda, new LogisticLoss());
+    }
+
+    /**
+     * Creates a new SDCA learner for either a classification or regression
+     * problem, the type of which is determined by the LossFunction given.
+     * <br>The implementation will use Elastic-Net regularization by default.
+     * Pure L2 or L1 regularization can be obtained using the
+     * {@link #setAlpha(double) alpha} parameter.
+     *
+     * @param lambda the regularization penalty to use.
+     * @param loss the loss function to use for training, which determines if it
+     * implements classification or regression
+     */
+    public SDCA(double lambda, LossFunc loss)
+    {
+        setLoss(loss);
+        setLambda(lambda);
+    }
+    
+
+    /**
+     * Copy Constructor
+     * @param toCopy the object to copy
+     */
+    public SDCA(SDCA toCopy)
+    {
+        this.loss = toCopy.loss.clone();
+        this.useBias = toCopy.useBias;
+        this.tol = toCopy.tol;
+        this.lambda = toCopy.lambda;
+        this.alpha = toCopy.alpha;
+        this.max_epochs = toCopy.max_epochs;
+        this.epochs_taken = toCopy.epochs_taken;
+        if(toCopy.dual_alphas != null)
+            this.dual_alphas = Arrays.copyOf(toCopy.dual_alphas, toCopy.dual_alphas.length);
+        if(toCopy.ws != null)
+        {
+            this.ws = new Vec[toCopy.ws.length];
+            this.bs = new double[toCopy.bs.length];
+            for(int i = 0; i < toCopy.ws.length; i++)
+            {
+                this.ws[i] = toCopy.ws[i].clone();
+                this.bs[i] = toCopy.bs[i];
+            }
+        }
+        
+    }
     
     /**
      * Sets whether or not an implicit bias term will be added to the data set
@@ -182,9 +260,13 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
     }
     
     /**
-     * Sets the loss function used for the model. The loss function controls 
-     * whether or not regression, binary classification, or multi-class 
-     * classification is supported. 
+     * Sets the loss function used for the model. The loss function controls
+     * whether or not regression, binary classification, or multi-class
+     * classification is supported. <br>
+     * <b>NOTE:</b> SDCA requires that the given loss function implement the
+     * {@link LossFunc#getConjugate(double, double, double) conjugate} method,
+     * otherwise it will not work with this algorithm.
+     *
      * @param loss the loss function to use
      */
     public void setLoss(LossFunc loss)
@@ -303,10 +385,7 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
         final int D = dataSet.getNumNumericalVars();
         
         ws = new Vec[]{new DenseVector(D)};
-        Vec v = new DenseVector(D);
-        //We need a lazily updated w to keep our work sparse! 
-        final double[] w_lazy_backing = new double[D];
-        final DenseVector w_lazy = new DenseVector(w_lazy_backing);
+        DenseVector v = new DenseVector(D);
         bs = new double[1];
         
         final double[] x_norms = new double[N];
@@ -354,6 +433,22 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
             sigma_p = (alpha/(1-alpha));
             tol_effective = tol;
         }
+        
+        //set up the weight vector used during training. If using elatic-net, we will do lazy-updates of the values
+        //otherswise, we can just re-use v
+        final double[] w_lazy_backing;
+        final DenseVector w_lazy;
+        if(alpha > 0)
+        {
+            //We need a lazily updated w to keep our work sparse! 
+            w_lazy_backing = new double[D];
+            w_lazy = new DenseVector(w_lazy_backing);
+        }
+        else//alpha = 0, we can just re-use v! 
+        {
+            w_lazy_backing =null;
+            w_lazy = v;
+        }
 
         //init dual alphas, and any warm-start on the solutions
         if (warm_alphas == null)
@@ -397,15 +492,16 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
 
                 Vec x = dataSet.getDataPoint(i).getNumericalValues();
                 double y = targets[i];
-                //lets lazily determine what w should look like! 
-                for(IndexValue iv : x)
-                {
-                    final int j = iv.getIndex();
-                    final double v_j = v.get(j);
-                    final double v_j_sign = Math.signum(v_j);
-                    final double v_j_abs = Math.abs(v_j);
-                    w_lazy_backing[j] = v_j_sign * Math.max(v_j_abs-sigma_p, 0.0);
-                }
+                if(alpha > 0)//lets lazily determine what w should look like! 
+                    for(IndexValue iv : x)
+                    {
+                        final int j = iv.getIndex();
+                        final double v_j = v.get(j);
+                        final double v_j_sign = Math.signum(v_j);
+                        final double v_j_abs = Math.abs(v_j);
+                        w_lazy_backing[j] = v_j_sign * Math.max(v_j_abs-sigma_p, 0.0);
+                    }
+                //else, w_lazy points to v, which has the correct values
                 final double raw_score = w_lazy.dot(x)/scaling+bs[0];
 
                 //Option II 
@@ -480,7 +576,7 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
     @Override
     public SDCA clone()
     {
-        return this;
+        return new SDCA(this);
     }
 
     @Override
@@ -517,5 +613,31 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
     public boolean warmFromSameDataOnly()
     {
         return true;
+    }
+    
+    /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setLambda(double) lambda}. 
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the lambda parameter 
+     */
+    public static Distribution guessLambda(DataSet d)
+    {
+        int N = d.getSampleSize();
+        return new LogUniform(1.0/(N*50), Math.min(1.0/(N/50), 1.0));
+    }
+    
+    
+    /**
+     * Guess the distribution to use for the regularization balance
+     * {@link #setAlpha(double) alpha}. 
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the lambda parameter 
+     */
+    public static Distribution guessAlpha(DataSet d)
+    {
+        return new Uniform(0.0, 0.5);
     }
 }
