@@ -7,12 +7,7 @@ import jsat.FixedProblems;
 import jsat.classifiers.*;
 import jsat.datatransform.LinearTransform;
 import jsat.linear.*;
-import jsat.lossfunctions.AbsoluteLoss;
-import jsat.lossfunctions.HingeLoss;
-import jsat.lossfunctions.LogisticLoss;
-import jsat.lossfunctions.LossC;
-import jsat.lossfunctions.LossR;
-import jsat.lossfunctions.SquaredLoss;
+import jsat.lossfunctions.*;
 import jsat.math.OnLineStatistics;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
@@ -73,9 +68,9 @@ public class SDCATest
     {
         System.out.println("trainR");
         for(double alpha : new double[]{0.0, 0.5, 1.0})
-            for(LossR loss : new LossR[]{new SquaredLoss(), new AbsoluteLoss()})
+            for(LossR loss : new LossR[]{new SquaredLoss(), new AbsoluteLoss(), new HuberLoss(), new EpsilonInsensitiveLoss(1.0)})
             {
-                RegressionDataSet train = FixedProblems.getLinearRegression(4000, RandomUtil.getRandom());
+                RegressionDataSet train = FixedProblems.getLinearRegression(400, RandomUtil.getRandom());
 
                 SDCA sdca = new SDCA();
                 sdca.setLoss(loss);
@@ -95,7 +90,10 @@ public class SDCATest
                     double relErr = (truth-pred)/truth;
                     avgRelError.add(relErr);
                 }
-                assertEquals("Loss: " + loss.toString() + " alpha: " + alpha, 0.0, avgRelError.getMean(), 0.1);//Give it a decent wiggle room b/c of regularization
+                if(loss instanceof AbsoluteLoss || loss instanceof EpsilonInsensitiveLoss)//sensative to small errors make it a little off at time
+                    assertEquals("Loss: " + loss.toString() + " alpha: " + alpha, 0.0, avgRelError.getMean(), 0.2);
+                else
+                    assertEquals("Loss: " + loss.toString() + " alpha: " + alpha, 0.0, avgRelError.getMean(), 0.01);
             }
     }
     

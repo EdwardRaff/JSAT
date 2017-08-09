@@ -110,7 +110,10 @@ public class HuberLoss implements LossR
     @Override
     public double getConjugate(double b, double pred, double y)
     {
-        return Double.NaN;
+        //from "Regression tasks in machine learning via Fenchel duality"
+        if(-c < b && b < c)
+            return b*b*0.5+b*y;
+        return Double.POSITIVE_INFINITY;
     }
 
     @Override

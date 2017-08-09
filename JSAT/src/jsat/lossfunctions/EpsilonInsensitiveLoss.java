@@ -88,7 +88,10 @@ public class EpsilonInsensitiveLoss implements LossR
     @Override
     public double getConjugate(double b, double pred, double y)
     {
-        return Double.NaN;
+        //from "Regression tasks in machine learning via Fenchel duality"
+        if(Math.abs(b) < eps)
+            return b*y+eps*Math.abs(b);
+        return Double.POSITIVE_INFINITY;
     }
 
     @Override
