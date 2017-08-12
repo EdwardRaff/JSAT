@@ -88,7 +88,7 @@ public class RandomSearchTest
         System.out.println("testClassification");
         RandomSearch instance = new RandomSearch((Classifier)new DumbModel(), 5);
         
-        instance.setTrials(5*5*5*5);
+        instance.setTrials(5*5*5*5*5);
         
         instance.addParameter("Param1", new UniformDiscrete(0, 5));
         instance.addParameter("Param2", new Uniform(0.0, 5.0));
@@ -111,7 +111,7 @@ public class RandomSearchTest
         System.out.println("testClassificationAutoAdd");
         RandomSearch instance = new RandomSearch((Classifier)new DumbModel(), 5);
         
-        instance.setTrials(5*5*5*5);
+        instance.setTrials(5*5*5*5*5);
         
         instance.autoAddParameters(classData);
         
@@ -132,7 +132,7 @@ public class RandomSearchTest
         System.out.println("testClassificationEx");
         RandomSearch instance = new RandomSearch((Classifier)new DumbModel(), 5);
         
-        instance.setTrials(5*5*5*5);
+        instance.setTrials(5*5*5*5*5);
         
         instance.addParameter("Param1", new UniformDiscrete(0, 5));
         instance.addParameter("Param2", new Uniform(0.0, 5.0));
@@ -154,7 +154,7 @@ public class RandomSearchTest
     {
         System.out.println("testRegression");
         RandomSearch instance = new RandomSearch((Regressor)new DumbModel(), 5);
-        instance.setTrials(5*5*5*5);
+        instance.setTrials(5*5*5*5*5);
         
         instance.addParameter("Param1", new UniformDiscrete(0, 5));
         instance.addParameter("Param2", new Uniform(0.0, 5.0));
@@ -176,7 +176,7 @@ public class RandomSearchTest
     {
         System.out.println("testRegressionEx");
         RandomSearch instance = new RandomSearch((Regressor)new DumbModel(), 5);
-        instance.setTrials(5*5*5*5);
+        instance.setTrials(5*5*5*5*5);
         
         instance.addParameter("Param1", new UniformDiscrete(0, 5));
         instance.addParameter("Param2", new Uniform(0.0, 5.0));
