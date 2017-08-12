@@ -196,7 +196,7 @@ public class ARFFLoader
         int k = 0;
         for (int i = 0; i < isReal.size(); i++)
             if (isReal.get(i))
-                dataSet.setNumericName(variableNames.get(k), k++);
+                dataSet.setNumericName(variableNames.get(i), k++);
         
         return dataSet;
     }
