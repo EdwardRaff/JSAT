@@ -16,8 +16,8 @@ import java.util.Iterator;
 public class VecPaired<V extends Vec, P> extends Vec
 {
 
-	private static final long serialVersionUID = 8039272826439917423L;
-	private V vector;
+    private static final long serialVersionUID = 8039272826439917423L;
+    private V vector;
     private P pair;
 
     public VecPaired(V v, P p)
@@ -299,11 +299,9 @@ public class VecPaired<V extends Vec, P> extends Vec
     }
 
     @Override
-    public Iterator<IndexValue> getNonZeroIterator()
+    public Iterator<IndexValue> getNonZeroIterator(int start)
     {
-        if(extractTrueVec(vector) instanceof SparseVector)
-            return extractTrueVec(vector).getNonZeroIterator();
-        return super.getNonZeroIterator();
+        return extractTrueVec(vector).getNonZeroIterator(start);
     }
     
     /**
