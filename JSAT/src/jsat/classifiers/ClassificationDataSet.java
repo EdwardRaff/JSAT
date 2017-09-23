@@ -240,6 +240,12 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
     {
         ArrayList<ClassificationDataSet> cvList = new ArrayList<ClassificationDataSet>();
         
+        while (cvList.size() < folds)
+        {
+            ClassificationDataSet clone = new ClassificationDataSet(numNumerVals, categories, predicting.clone());
+            cvList.add(clone);
+        }
+        
         IntList rndOrder = new IntList();
         
         int curFold = 0;
@@ -252,8 +258,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
             
             for(int i : rndOrder)
             {
-                cvList.get(curFold).datapoints.add(subPoints.get(i));
-                cvList.get(curFold).category.add(c);
+                cvList.get(curFold).addDataPoint(subPoints.get(i), c);
                 curFold = (curFold + 1) % folds;
             }
         }
