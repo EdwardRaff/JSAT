@@ -265,6 +265,7 @@ public class SDCATest
     @Test
     public void testWarmOther()
     {
+        System.out.println("testWarm");
         Random rand  = RandomUtil.getRandom();
         ClassificationDataSet train = new ClassificationDataSet(600, new CategoricalData[0], new CategoricalData(2));
         

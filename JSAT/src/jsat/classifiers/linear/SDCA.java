@@ -390,19 +390,22 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
         
         final double[] x_norms = new double[N];
         double scaling = 1;
+        /*
+         * SDCA seems scale sensative for classification, but  insensative for 
+         * regression. In fact, re-scaling is breaking regression... so lets 
+         * just not scale when doing regression! Weird, should dig in more later. 
+         */
+        final boolean is_regression = dataSet instanceof RegressionDataSet;
         for(int i = 0; i < N; i++)
         {
             x_norms[i] = dataSet.getDataPoint(i).getNumericalValues().pNorm(2);
-            //Scaling seems to muck up regresion... so lets leave it alone for now
-//            scaling = Math.max(scaling, x_norms[i]);
+            //Scaling seems to muck up regresion... so dont!
+            if(!is_regression)
+                scaling = Math.max(scaling, x_norms[i]);
         }
         for(int i = 0; i < N; i++)
             x_norms[i] /= scaling;
-        if(dataSet instanceof RegressionDataSet)//also scale the target values! Otherwise we will get weirdness when re-noramalizing htem
-            for(int i = 0; i < N; i++)
-                targets[i] /= scaling;
         
-
         final double lambda_effective;
         final double sigma_p;
         final double tol_effective;
@@ -423,7 +426,7 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
                 y_bar += loss.getLoss(0.0, targets[i]);
             y_bar /= N;
             
-            sigma_p = lambda;
+            sigma_p = lambda/scaling;
             lambda_effective = tol * Math.pow(lambda / Math.max(y_bar, 1e-7), 2) ;
             tol_effective = tol/2;
         }
@@ -509,17 +512,16 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
                 double u = -lossD;
                 double q = u - alpha_i_prev;//also called z in older paper
                 double q_sqrd = q*q;
+                if(q_sqrd <= 1e-32)
+                    continue;//avoid a NaN from div by zero
                 //Option III
                 double phi_i = loss.getLoss(raw_score, y);
                 double conjg = loss.getConjugate(-alpha_i_prev, raw_score, y);
                 double x_norm = x_norms[i];
                 double x_norm_sqrd = x_norm*x_norm;
-                
-                if(q_sqrd < 1e-14)
-                    continue;//going to produce a zero in s, but will end up with NaN b/c of floating point
-                //can happen qhen loss is zero and alpha_i is zero
 
-                double s = (phi_i + conjg + raw_score*alpha_i_prev + gamma*q_sqrd/2)/(q_sqrd*(gamma+x_norm_sqrd/(lambda_effective*N)));
+                double denom = q_sqrd*(gamma+x_norm_sqrd/(lambda_effective*N));
+                double s = (phi_i + conjg + raw_score*alpha_i_prev + gamma*q_sqrd/2)/denom;
                 s = Math.min(1, s);
                 
                 //for convergence check at end of epoch, record point estiamte of average primal and dual losses
