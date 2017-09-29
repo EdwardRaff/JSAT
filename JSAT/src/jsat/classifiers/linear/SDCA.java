@@ -426,13 +426,13 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
                 y_bar += loss.getLoss(0.0, targets[i]);
             y_bar /= N;
             
-            sigma_p = lambda/scaling;
+            sigma_p = lambda;
             lambda_effective = tol * Math.pow(lambda / Math.max(y_bar, 1e-7), 2) ;
             tol_effective = tol/2;
         }
         else
         {
-            lambda_effective = lambda/scaling;
+            lambda_effective = lambda;
             sigma_p = (alpha/(1-alpha));
             tol_effective = tol;
         }
@@ -563,9 +563,8 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
             final double v_j = v.get(j);
             final double v_j_sign = Math.signum(v_j);
             final double v_j_abs = Math.abs(v_j);
-            ws[0].set(j, scaling*v_j_sign * Math.max(v_j_abs - sigma_p, 0.0));
+            ws[0].set(j, v_j_sign * Math.max(v_j_abs - sigma_p, 0.0)/scaling);
         }
-        bs[0] *= scaling;
 //        System.out.println(ws[0].nnz() + " " + lambda  + " " +  sigma_p + " " + ws[0]);
     }
 

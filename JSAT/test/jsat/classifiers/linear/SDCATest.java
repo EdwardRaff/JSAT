@@ -6,6 +6,7 @@ import java.util.concurrent.Executors;
 import jsat.FixedProblems;
 import jsat.classifiers.*;
 import jsat.datatransform.LinearTransform;
+import jsat.datatransform.PNormNormalization;
 import jsat.linear.*;
 import jsat.lossfunctions.*;
 import jsat.math.OnLineStatistics;
@@ -146,6 +147,35 @@ public class SDCATest
                     assertEquals(dpp.getPair().longValue(), sdca.classify(dpp.getDataPoint()).mostLikely());
             }
     }
+    
+    @Test
+    public void testScale()
+    {
+        System.out.println("testScale");
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(1000, RandomUtil.getRandom());
+        
+        Vec base = null;
+        for(double max : new double[]{1.0, 2.0, 4.0, 5.0, 6.0, 10.0, 20.0, 50.0})
+        {
+            SDCA sdca = new SDCA();
+            
+            sdca.setUseBias(false);//bias term makes scaling non-trivial, so remove from this test
+            sdca.setLoss(new LogisticLoss());
+            sdca.setLambda(1.0 / train.getSampleSize());
+            sdca.setAlpha(0.0);
+            
+            ClassificationDataSet t = train.shallowClone();
+            t.applyTransform(new LinearTransform(t, 0, max));
+            
+            sdca.trainC(t);
+            if(base == null)
+                base = sdca.getRawWeight(0).clone();
+            else
+                assertTrue("Failed on scale " + max, base.equals(sdca.getRawWeight(0).multiply(max), 0.1));
+//            System.out.println(sdca.getRawWeight(0).multiply(max));
+//            System.out.println(sdca.getBias(0));
+        }
+    }
 
     /**
      * Test of setLambda method, of class NewGLMNET.
@@ -180,6 +210,8 @@ public class SDCATest
                     v = DenseVector.toDenseVec(Z1, -Z1/10 + eps_1, Z1/10+ eps_2, Z2, -Z2, Z2);
                     dataN.addDataPoint(v, (int) (Math.signum(Z1 + 0.1 * Z2) + 1) / 2);
                 }
+                data.applyTransform(new PNormNormalization());
+                dataN.applyTransform(new PNormNormalization());
 
                 for (LossC loss : new LossC[]{new LogisticLoss(), new HingeLoss()})
                 {
@@ -294,7 +326,7 @@ public class SDCATest
         train.applyTransform(new LinearTransform(train));
         
         SDCA truth = new SDCA();
-        truth.setMaxIters(10000);
+        truth.setMaxIters(1000);
         truth.setAlpha(0.5);
         truth.setLoss(new LogisticLoss());
         truth.setTolerance(1e-10);
@@ -302,7 +334,7 @@ public class SDCATest
         truth.trainC(train);
         
         SDCA warm = new SDCA();
-        warm.setMaxIters(1000);
+        warm.setMaxIters(100);
         warm.setLoss(new LogisticLoss());
         warm.setAlpha(0.5);
         warm.setTolerance(1e-7);
