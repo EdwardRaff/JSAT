@@ -697,18 +697,18 @@ public class CSV
                 writer.write(Double.toString(targetVal));
                 nothingWrittenYet = false;
             }
-            
+
             DataPoint dp = data.getDataPoint(i);
             Vec v =dp.getNumericalValues();
             int[] c = dp.getCategoricalValues();
-            
-            
+
+
             //write out numeric features first
             for(int j = 0; j < v.length(); j++)
             {
                 if(!nothingWrittenYet)
                     writer.write(delimiter);
-                
+
                 //bellow handles NaN correctly, rint will just return NaN and then toString prints "NaN"
                 double val = v.get(j);
                 if(Math.rint(val) == val)//cast to long before writting to save space
@@ -730,6 +730,115 @@ public class CSV
         }
         
         writer.flush();
+    }
+    
+    /**
+     * Returns a DataWriter object which can be used to stream a set of
+     * arbitrary datapoints into the given output stream. This works in a thread
+     * safe manner. Uses the default delimiter {@link #DEFAULT_DELIMITER}
+     *
+     * @param out the location to store all the data
+     * @param catInfo information about the categorical features to be written
+     * @param dim information on how many numeric features exist
+     * @param predicting information on the class label, may be {@code null} if not a classification dataset
+     * @param type what type of data set (simple, classification, regression) to be written
+     * @return the DataWriter that the actual points can be streamed through
+     * @throws IOException 
+     */
+    static public DataWriter getWriter(OutputStream out, CategoricalData[] catInfo, int dim, CategoricalData predicting, DataWriter.DataSetType type) throws IOException
+    {
+        return getWriter(out, catInfo, dim, predicting, type, DEFAULT_DELIMITER);
+    }
+    
+    /**
+     * Returns a DataWriter object which can be used to stream a set of
+     * arbitrary datapoints into the given output stream. This works in a thread
+     * safe manner.
+     *
+     * @param out the location to store all the data
+     * @param catInfo information about the categorical features to be written
+     * @param dim information on how many numeric features exist
+     * @param predicting information on the class label, may be {@code null} if not a classification dataset
+     * @param type what type of data set (simple, classification, regression) to be written
+     * @param delimiter the character delimiter between features
+     * @return the DataWriter that the actual points can be streamed through
+     * @throws IOException 
+     */
+    static public DataWriter getWriter(OutputStream out, CategoricalData[] catInfo, int dim, CategoricalData predicting, DataWriter.DataSetType type, final char delimiter) throws IOException
+    {
+        //first, create safe categorical feature names to write out
+        final String[][] catNamesToUse = getSafeNames(catInfo, delimiter);
+        final String[] classNames;
+        if(DataWriter.DataSetType.CLASSIFICATION == type)
+        {
+            if(predicting == null)
+                throw new RuntimeException("Can't create CSV writer without prediction target information (was null) ");
+            classNames = getSafeNames(new CategoricalData[]{predicting}, delimiter)[0];
+        }
+        else
+            classNames = null;
+        
+        DataWriter dw = new DataWriter(out, catInfo, dim, type)
+        {
+            @Override
+            protected void writeHeader(CategoricalData[] catInfo, int dim, DataWriter.DataSetType type, OutputStream out)
+            {
+                //CSV format has no header! 
+            }
+            
+            @Override
+            protected void pointToBytes(DataPoint dp, double label, ByteArrayOutputStream byteOut)
+            {
+                PrintWriter writer = new PrintWriter(byteOut);
+                boolean nothingWrittenYet = true;
+            
+                //target feature always goes at the front
+                if(type == DataWriter.DataSetType.CLASSIFICATION)
+                {
+                    int targetClass = (int) label;
+                    writer.write(classNames[targetClass]);
+                    nothingWrittenYet = false;
+                }
+                else if(type == DataWriter.DataSetType.REGRESSION)
+                {
+                    double targetVal = label;
+                    writer.write(Double.toString(targetVal));
+                    nothingWrittenYet = false;
+                }
+
+                Vec v =dp.getNumericalValues();
+                int[] c = dp.getCategoricalValues();
+
+
+                //write out numeric features first
+                for(int j = 0; j < v.length(); j++)
+                {
+                    if(!nothingWrittenYet)
+                        writer.write(delimiter);
+
+                    //bellow handles NaN correctly, rint will just return NaN and then toString prints "NaN"
+                    double val = v.get(j);
+                    if(Math.rint(val) == val)//cast to long before writting to save space
+                        writer.write(Long.toString((long) val));
+                    else
+                        writer.write(Double.toString(val));
+                    nothingWrittenYet = false;
+                }
+                //then categorical features, useing the safe names we constructed earlier
+                for(int j = 0; j < c.length; j++)
+                {
+                    if(!nothingWrittenYet)
+                        writer.write(delimiter);
+                    if(c[j] >= 0)
+                        writer.write(catNamesToUse[j][c[j]]);
+                    //else, its negative - which is missing, so not writing anything out should result in the correct behavior
+                    nothingWrittenYet = false;
+                }
+                writer.write("\n");
+                writer.flush();
+            }
+        };
+        return dw;
     }
 
 

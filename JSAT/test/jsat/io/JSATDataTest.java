@@ -135,7 +135,19 @@ public class JSATDataTest
             baos = new ByteArrayOutputStream();
             JSATData.writeData(byteIntegerData, baos, fpStoreMethod);
 
-            bin = new ByteArrayInputStream(baos.toByteArray());
+            byte[] raw_read_back = baos.toByteArray();
+            bin = new ByteArrayInputStream(raw_read_back);
+
+            readBack = JSATData.load(bin);
+
+            checkDataSet(byteIntegerData, readBack);
+            
+            //what if we muck the number of data points to be a negative value? indicates streaming write scenario
+            raw_read_back[17] = -1;
+            raw_read_back[18] = -1;
+            raw_read_back[19] = -1;
+            raw_read_back[20] = -1;
+            bin = new ByteArrayInputStream(raw_read_back);
 
             readBack = JSATData.load(bin);
 
@@ -165,10 +177,22 @@ public class JSATDataTest
         baos = new ByteArrayOutputStream();
         JSATData.writeData(simpleData, baos);
         
-        bin = new ByteArrayInputStream(baos.toByteArray());
+        byte[] raw_read_back = baos.toByteArray();
+        bin = new ByteArrayInputStream(raw_read_back);
         
         readBack = JSATData.load(bin);
         
+        checkDataSet(simpleData, readBack);
+        
+        //what if we muck the number of data points to be a negative value? indicates streaming write scenario
+        raw_read_back[17] = -1;
+        raw_read_back[18] = -1;
+        raw_read_back[19] = -1;
+        raw_read_back[20] = -1;
+        bin = new ByteArrayInputStream(raw_read_back);
+
+        readBack = JSATData.load(bin);
+
         checkDataSet(simpleData, readBack);
     }
     
@@ -213,8 +237,20 @@ public class JSATDataTest
         readBack = JSATData.loadClassification(bin);
         checkDataSet(cds, readBack);
         //check forcing as simple
-        bin = new ByteArrayInputStream(baos.toByteArray());
+        byte[] raw_read_back = baos.toByteArray();
+        bin = new ByteArrayInputStream(raw_read_back);
         readBack = JSATData.load(bin, true);
+        checkDataSet(simpleData, readBack);
+        
+        //what if we muck the number of data points to be a negative value? indicates streaming write scenario
+        raw_read_back[17] = -1;
+        raw_read_back[18] = -1;
+        raw_read_back[19] = -1;
+        raw_read_back[20] = -1;
+        bin = new ByteArrayInputStream(raw_read_back);
+
+        readBack = JSATData.load(bin, true);
+
         checkDataSet(simpleData, readBack);
     }
     
@@ -258,9 +294,24 @@ public class JSATDataTest
         readBack = JSATData.loadRegression(bin);
         checkDataSet(rds, readBack);
         //check forcing as simple
-        bin = new ByteArrayInputStream(baos.toByteArray());
+        byte[] raw_read_back = baos.toByteArray();
+        bin = new ByteArrayInputStream(raw_read_back);
         readBack = JSATData.load(bin, true);
         checkDataSet(simpleData, readBack);
+        
+        //what if we muck the number of data points to be a negative value? indicates streaming write scenario
+        raw_read_back[17] = -1;
+        raw_read_back[18] = -1;
+        raw_read_back[19] = -1;
+        raw_read_back[20] = -1;
+        bin = new ByteArrayInputStream(raw_read_back);
+
+        readBack = JSATData.load(bin, true);
+
+        checkDataSet(simpleData, readBack);
+        
+        //Check data-writer appraoch looks like mucked version of binary
+        
     }
 
     private void checkDataSet(DataSet ogData, DataSet cpData)

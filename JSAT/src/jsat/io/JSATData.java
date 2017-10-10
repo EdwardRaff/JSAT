@@ -18,6 +18,8 @@ package jsat.io;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import jsat.*;
@@ -316,104 +318,163 @@ public class JSATData
     public static <Type extends DataSet<Type>> void writeData(DataSet<Type> dataset, OutputStream outRaw, FloatStorageMethod fpStore) throws IOException
     {
         fpStore = FloatStorageMethod.getMethod(dataset, fpStore);
-        DataOutputStream out = new DataOutputStream(outRaw);
         
-        out.write(MAGIC_NUMBER);
-        
-        int numNumeric = dataset.getNumNumericalVars();
-        int numCat = dataset.getNumCategoricalVars();
-        
-        DatasetTypeMarker marker = DatasetTypeMarker.STANDARD;
-        if(dataset instanceof RegressionDataSet)
-        {
-            numNumeric++;
-            marker = DatasetTypeMarker.REGRESSION;
-        }
+        DataWriter.DataSetType type;
+        CategoricalData predicting;
         if(dataset instanceof ClassificationDataSet)
         {
-            numCat++;
-            marker = DatasetTypeMarker.CLASSIFICATION;
+            type = DataWriter.DataSetType.CLASSIFICATION;
+            predicting = ((ClassificationDataSet)dataset).getPredicting();
+        }
+        else if(dataset instanceof RegressionDataSet)
+        {
+            type = DataWriter.DataSetType.REGRESSION;
+            predicting = null;
+        }
+        else
+        {
+            type = DataWriter.DataSetType.SIMPLE;
+            predicting = null;
         }
         
-        out.writeByte(marker.ordinal());
-        out.writeByte(fpStore.ordinal());
-        out.writeInt(numNumeric);
-        out.writeInt(numCat);
-        out.writeInt(dataset.getSampleSize());
-        
-        for(CategoricalData category : dataset.getCategories())
-        {
-            //first, whats the name of the i'th category
-            writeString(category.getCategoryName(), out);
-            
-            out.writeInt(category.getNumOfCategories());//output the number of categories 
-            for(int i = 0; i < category.getNumOfCategories(); i++)//the option names
-                writeString(category.getOptionName(i), out);
-        }
-        //extra for classification dataset
-        if(dataset instanceof ClassificationDataSet)
-        {
-            CategoricalData category = ((ClassificationDataSet)dataset).getPredicting();
-            //first, whats the name of the i'th category
-            writeString(category.getCategoryName(), out);
-            
-            out.writeInt(category.getNumOfCategories());//output the number of categories 
-            for(int i = 0; i < category.getNumOfCategories(); i++)//the option names
-                writeString(category.getOptionName(i), out);
-        }
+        DataWriter dw = getWriter(outRaw, dataset.getCategories(), dataset.getNumNumericalVars(), predicting, fpStore, type);
         
         //write out all the datapoints
         for(int i = 0; i < dataset.getSampleSize(); i++)
         {
-            DataPoint dp = dataset.getDataPoint(i);
-            
-            fpStore.writeFP(dp.getWeight(), out);
-            for(int val : dp.getCategoricalValues())
-                out.writeInt(val);
-            if(dataset instanceof ClassificationDataSet)
-            {
-                out.writeInt(((ClassificationDataSet)dataset).getDataPointCategory(i));
-            }
-            
-            Vec numericVals = dp.getNumericalValues();
-            
-            out.writeBoolean(numericVals.isSparse());
-            if(numericVals.isSparse())
-            {
-                if(marker == DatasetTypeMarker.REGRESSION)
-                    out.writeInt(numericVals.nnz()+1);//+1 for the target value, which may actually be zero...
-                else
-                    out.writeInt(numericVals.nnz());
-                
-                for(IndexValue iv : numericVals)
-                {
-                    out.writeInt(iv.getIndex());
-                    fpStore.writeFP(iv.getValue(), out);
-                }
-            }
-            else
-            {
-                for(int j = 0; j < numericVals.length(); j++)
-                    fpStore.writeFP(numericVals.get(j), out);
-            }
-            
-            //append the target value 
-            if(dataset instanceof RegressionDataSet)
-            {
-                /* 
-                 * if dense, we only need to just add the extra double. If 
-                 * sparse, we do the index and then the double. 
-                 */
-                if (numericVals.isSparse())
-                    out.writeInt(numericVals.length());
-
-                fpStore.writeFP(((RegressionDataSet)dataset).getTargetValue(i), out);
-            }
+            double label = 0;
+            if (dataset instanceof ClassificationDataSet)
+                label = ((ClassificationDataSet) dataset).getDataPointCategory(i);
+            else if (dataset instanceof RegressionDataSet)
+                label = ((RegressionDataSet) dataset).getTargetValue(i);
+            dw.writePoint(dataset.getDataPoint(i), label);
         }
         
+        dw.finish();
+        outRaw.flush();
+    }
+    
+    /**
+     * Returns a DataWriter object which can be used to stream a set of arbitrary datapoints into the given output stream. This works in a thread safe manner. 
+     * 
+     * @param out the location to store all the data
+     * @param catInfo information about the categorical features to be written
+     * @param dim information on how many numeric features exist
+     * @param predicting information on the class label, may be {@code null} if not a classification dataset
+     * @param fpStore the format floating point values should be stored as
+     * @param type what type of data set (simple, classification, regression) to be written
+     * @return the DataWriter that the actual points can be streamed through
+     * @throws IOException 
+     */
+    public static DataWriter getWriter(OutputStream out, CategoricalData[] catInfo, int dim, final CategoricalData predicting, final FloatStorageMethod fpStore, DataWriter.DataSetType type) throws IOException
+    {
+        return new DataWriter(out, catInfo, dim, type)
+        {
+            @Override
+            protected void writeHeader(CategoricalData[] catInfo, int dim, DataWriter.DataSetType type, OutputStream out) throws IOException
+            {
+                DataOutputStream data_out = new DataOutputStream(out);
         
-        out.flush();
-        out.close();
+                data_out.write(JSATData.MAGIC_NUMBER);
+
+                int numNumeric = dim;
+                int numCat = catInfo.length;
+
+                DatasetTypeMarker marker = DatasetTypeMarker.STANDARD;
+                if(type == type.REGRESSION)
+                {
+                    numNumeric++;
+                    marker = DatasetTypeMarker.REGRESSION;
+                }
+                if(type == type.CLASSIFICATION)
+                {
+                    numCat++;
+                    marker = DatasetTypeMarker.CLASSIFICATION;
+                }
+
+                data_out.writeByte(marker.ordinal());
+                data_out.writeByte(fpStore.ordinal());
+                data_out.writeInt(numNumeric);
+                data_out.writeInt(numCat);
+                data_out.writeInt(-1);//-1 used to indicate a potentially variable number of files
+
+                for(CategoricalData category : catInfo)
+                {
+                    //first, whats the name of the i'th category
+                    writeString(category.getCategoryName(), data_out);
+
+                    data_out.writeInt(category.getNumOfCategories());//output the number of categories 
+                    for(int i = 0; i < category.getNumOfCategories(); i++)//the option names
+                        writeString(category.getOptionName(i), data_out);
+                }
+                //extra for classification dataset
+                if(type == DataWriter.DataSetType.CLASSIFICATION)
+                {
+                    CategoricalData category = predicting;
+                    //first, whats the name of the i'th category
+                    writeString(category.getCategoryName(), data_out);
+
+                    data_out.writeInt(category.getNumOfCategories());//output the number of categories 
+                    for(int i = 0; i < category.getNumOfCategories(); i++)//the option names
+                        writeString(category.getOptionName(i), data_out);
+                }
+                data_out.flush();
+            }
+            
+            @Override
+            protected void pointToBytes(DataPoint dp, double label, ByteArrayOutputStream byteOut)
+            {
+                try
+                {
+                    DataOutputStream data_out = new DataOutputStream(byteOut);
+                    fpStore.writeFP(dp.getWeight(), data_out);
+                    for(int val : dp.getCategoricalValues())
+                        data_out.writeInt(val);
+                    if(type == DataWriter.DataSetType.CLASSIFICATION)
+                        data_out.writeInt((int) label);
+                    
+                    Vec numericVals = dp.getNumericalValues();
+                    
+                    data_out.writeBoolean(numericVals.isSparse());
+                    if(numericVals.isSparse())
+                    {
+                        if(type == DataWriter.DataSetType.REGRESSION)
+                            data_out.writeInt(numericVals.nnz()+1);//+1 for the target value, which may actually be zero...
+                        else
+                            data_out.writeInt(numericVals.nnz());
+                        
+                        for(IndexValue iv : numericVals)
+                        {
+                            data_out.writeInt(iv.getIndex());
+                            fpStore.writeFP(iv.getValue(), data_out);
+                        }
+                    }
+                    else
+                    {
+                        for(int j = 0; j < numericVals.length(); j++)
+                            fpStore.writeFP(numericVals.get(j), data_out);
+                    }
+                    
+                    //append the target value
+                    if(type == DataWriter.DataSetType.REGRESSION)
+                    {
+                        /*
+                        * if dense, we only need to just add the extra double. If
+                        * sparse, we do the index and then the double.
+                        */
+                        if (numericVals.isSparse())
+                            data_out.writeInt(numericVals.length());
+                        
+                        fpStore.writeFP(label, data_out);
+                    }
+                    data_out.flush();
+                }
+                catch (IOException ex)
+                {
+                    Logger.getLogger(JSATData.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        };
     }
     
     /**
@@ -565,74 +626,84 @@ public class JSATData
         }
         
         //read in all the data points
-        for(int i = 0; i < N; i++)
+        if(N < 0)
+            N = Integer.MAX_VALUE;
+        try
         {
-            double weight = fpStore.readFP(in);//in.readDouble();
-            int[] catVals = new int[numCat];
-            double target = 0;
-            
-            for(int j = 0; j < catVals.length; j++)
-                catVals[j] = in.readInt();
-            
-            if(marker ==  DatasetTypeMarker.CLASSIFICATION)
+            for(int i = 0; i < N; i++)
             {
-                //int can be stored losselessly in a double, so this is safe
-                target = in.readInt();
-            }
             
-            boolean sparse = in.readBoolean();
-            Vec numericVals;
-            
-            
-            if(sparse)
-            {
-                int nnz = in.readInt();
-                if(marker == DatasetTypeMarker.REGRESSION)
-                    nnz--;//don't count the target value
-                int[] indicies = new int[nnz];
-                double[] values = new double[nnz];
-                for(int j = 0; j < nnz; j++)
-                {
-                    indicies[j] = in.readInt();
-                    values[j] = fpStore.readFP(in);
-                }
-                numericVals = new SparseVector(indicies, values, numNumeric, nnz);
-            }
-            else
-            {
-                numericVals = new DenseVector(numNumeric);
-                for(int j = 0; j < numNumeric; j++)
-                    numericVals.set(j, fpStore.readFP(in));
-            }
-            
-            //get the target value 
-            if(marker == DatasetTypeMarker.REGRESSION)
-            {
-                /* 
-                 * if dense, we only need to just add the extra double. If 
-                 * sparse, we do the index and then the double. 
-                 */
-                if (numericVals.isSparse())
-                    in.readInt();//don't care, its the last index value - so its the target
+                double weight = fpStore.readFP(in);//in.readDouble();
+                int[] catVals = new int[numCat];
+                double target = 0;
 
-                target = fpStore.readFP(in);
-            }
+                for(int j = 0; j < catVals.length; j++)
+                    catVals[j] = in.readInt();
+
+                if(marker ==  DatasetTypeMarker.CLASSIFICATION)
+                {
+                    //int can be stored losselessly in a double, so this is safe
+                    target = in.readInt();
+                }
+
+                boolean sparse = in.readBoolean();
+                Vec numericVals;
+
+
+                if(sparse)
+                {
+                    int nnz = in.readInt();
+                    if(marker == DatasetTypeMarker.REGRESSION)
+                        nnz--;//don't count the target value
+                    int[] indicies = new int[nnz];
+                    double[] values = new double[nnz];
+                    for(int j = 0; j < nnz; j++)
+                    {
+                        indicies[j] = in.readInt();
+                        values[j] = fpStore.readFP(in);
+                    }
+                    numericVals = new SparseVector(indicies, values, numNumeric, nnz);
+                }
+                else
+                {
+                    numericVals = new DenseVector(numNumeric);
+                    for(int j = 0; j < numNumeric; j++)
+                        numericVals.set(j, fpStore.readFP(in));
+                }
+
+                //get the target value 
+                if(marker == DatasetTypeMarker.REGRESSION)
+                {
+                    /* 
+                     * if dense, we only need to just add the extra double. If 
+                     * sparse, we do the index and then the double. 
+                     */
+                    if (numericVals.isSparse())
+                        in.readInt();//don't care, its the last index value - so its the target
+
+                    target = fpStore.readFP(in);
+                }
+
+                DataPoint dp = new DataPoint(numericVals, catVals, categories, weight);
+
+                switch(marker)
+                {
+                    case CLASSIFICATION:
+                        ((ClassificationDataSet) data).addDataPoint(dp, (int) target);
+                        break;
+                    case REGRESSION:
+                        ((RegressionDataSet) data).addDataPoint(dp, target);
+                        break;
+                    default:
+                        ((SimpleDataSet) data).add(dp);
+                }
             
-            DataPoint dp = new DataPoint(numericVals, catVals, categories, weight);
-            
-            switch(marker)
-            {
-                case CLASSIFICATION:
-                    ((ClassificationDataSet) data).addDataPoint(dp, (int) target);
-                    break;
-                case REGRESSION:
-                    ((RegressionDataSet) data).addDataPoint(dp, target);
-                    break;
-                default:
-                    ((SimpleDataSet) data).add(dp);
             }
         }
-        
+        catch (EOFException eo)
+        {
+            //No problem
+        }
         
         in.close();
         return data;

@@ -412,6 +412,14 @@ public class CSVTest
                 CSV.write(truth_data, writter, ',');
                 SimpleDataSet simpleIn = CSV.read(new StringReader(extraLines.toString()+writter.toString()), ',', lines_to_skip, '#', new HashSet<Integer>(Arrays.asList(3, 4, 5)));
                 compareDataSetPoints(truth_data, simpleIn);
+                
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                DataWriter dw = CSV.getWriter(baos, truth_data.getCategories(), truth_data.getNumNumericalVars(), null, DataWriter.DataSetType.SIMPLE, ',');
+                for(int i = 0; i < truth_data.getSampleSize(); i++)
+                    dw.writePoint(truth_data.getDataPoint(i), 0);
+                dw.close();
+                simpleIn = CSV.read(new StringReader(extraLines.toString()+new String(baos.toByteArray())), ',', lines_to_skip, '#', new HashSet<Integer>(Arrays.asList(3, 4, 5)));
+                compareDataSetPoints(truth_data, simpleIn);
             }
             catch (IOException ex)
             {

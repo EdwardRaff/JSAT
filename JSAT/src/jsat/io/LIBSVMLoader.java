@@ -5,6 +5,7 @@ import java.util.*;
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.DataPoint;
 import jsat.datatransform.DenseSparceTransform;
 import jsat.linear.*;
 import jsat.regression.RegressionDataSet;
@@ -518,6 +519,58 @@ public class LIBSVMLoader
         }
         writer.flush();
         writer.close();
+    }
+    
+    /**
+     * Returns a DataWriter object which can be used to stream a set of
+     * arbitrary datapoints into the given output stream. This works in a thread
+     * safe manner.<br>
+     * Categorical information dose not need to be specified since LIBSVM files can't store categorical features. 
+     *
+     * @param out the location to store all the data
+     * @param dim information on how many numeric features exist
+     * @param type what type of data set (simple, classification, regression) to be written
+     * @return the DataWriter that the actual points can be streamed through
+     * @throws IOException 
+     */
+    public static DataWriter getWriter(OutputStream out, int dim, DataWriter.DataSetType type) throws IOException
+    {
+        DataWriter dw = new DataWriter(out, new CategoricalData[0], dim, type)
+        {
+            @Override
+            protected void writeHeader(CategoricalData[] catInfo, int dim, DataWriter.DataSetType type, OutputStream out)
+            {
+                //nothing to do, LIBSVM format has no header
+            }
+            
+            @Override
+            protected void pointToBytes(DataPoint dp, double label, ByteArrayOutputStream byteOut)
+            {
+                PrintWriter writer = new PrintWriter(byteOut);
+                
+                //write out label
+                if(this.type == DataSetType.REGRESSION)
+                    writer.write(label + " ");
+                else if(this.type == DataSetType.CLASSIFICATION)
+                    writer.write((int)label + " ");
+                else if(this.type == DataSetType.SIMPLE)
+                    writer.write("0 ");
+                
+                Vec vals = dp.getNumericalValues();
+                for(IndexValue iv : vals)
+                {
+                    double val = iv.getValue();
+                    if(Math.rint(val) == val)//cast to long before writting to save space
+                        writer.write((iv.getIndex()+1) + ":" + (long)val + " ");//+1 b/c 1 based indexing
+                    else
+                        writer.write((iv.getIndex()+1) + ":" + val + " ");//+1 b/c 1 based indexing
+                }
+                writer.write("\n");
+                writer.flush();
+            }
+        };
+        
+        return dw;
     }
     
     /**

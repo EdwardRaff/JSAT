@@ -131,13 +131,30 @@ public class LIBSVMLoaderTest
                         input.append(newLine);
 
                     RegressionDataSet dataSet = LIBSVMLoader.loadR(new StringReader(input.toString()), 0.5, 5);
-
+                    
                     assertEquals(i + 1, dataSet.getSampleSize());
                     for (int j = 0; j < i + 1; j++)
                     {
                         assertEquals(expetedLabel.get(j), dataSet.getTargetValue(j), 0.0);
                         assertTrue(expectedVec.get(j).equals(dataSet.getDataPoint(j).getNumericalValues()));
                     }
+                    
+                    //can I use the DataWriter to export and re-import the same data?
+                    ByteArrayOutputStream out_tmp = new ByteArrayOutputStream();
+                    DataWriter dw = LIBSVMLoader.getWriter(out_tmp, dataSet.getNumNumericalVars(), DataWriter.DataSetType.REGRESSION);
+                    for(int k = 0; k < dataSet.getSampleSize(); k++)
+                        dw.writePoint(dataSet.getDataPoint(k), dataSet.getTargetValue(k));
+                    dw.close();
+
+                    RegressionDataSet dataSet2 = LIBSVMLoader.loadR(new StringReader(new String(out_tmp.toByteArray())), 0.5, 5);
+                    
+                    assertEquals(dataSet.getSampleSize(), dataSet2.getSampleSize());
+                    for (int j = 0; j < i + 1; j++)
+                    {
+                        assertEquals(dataSet.getTargetValue(j), dataSet2.getTargetValue(j), 0.0);
+                        assertTrue(dataSet2.getDataPoint(j).getNumericalValues().equals(dataSet.getDataPoint(j).getNumericalValues()));
+                    }
+                    
                 }
     }
 
