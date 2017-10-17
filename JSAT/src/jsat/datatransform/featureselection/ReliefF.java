@@ -206,7 +206,6 @@ public class ReliefF extends RemoveAttributeTransform
         if(!(data instanceof ClassificationDataSet))
             throw new FailedToFitException("RelifF only works with classification datasets, not " + data.getClass().getSimpleName());
         final ClassificationDataSet cds = (ClassificationDataSet) data;
-        super.fit(data);
         this.w = new double[cds.getNumNumericalVars()];
         final double[] minVals = new double[w.length];
         Arrays.fill(minVals, Double.POSITIVE_INFINITY);

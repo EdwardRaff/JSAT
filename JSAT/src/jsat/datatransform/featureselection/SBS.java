@@ -126,7 +126,6 @@ public class SBS extends RemoveAttributeTransform
     @Override
     public void fit(DataSet data)
     {
-        super.fit(data); 
         search(data, evaluator, minFeatures, maxFeatures, folds);
     }
     

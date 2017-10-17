@@ -7,6 +7,7 @@ import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.linear.*;
 import jsat.utils.IntList;
+import jsat.utils.IntSet;
 
 /**
  * This Data Transform allows the complete removal of specific features from the
@@ -27,6 +28,7 @@ public class RemoveAttributeTransform implements DataTransform
      */
     protected int[] catIndexMap;
     protected int[] numIndexMap;
+    protected CategoricalData[] newCatHeader;
     
     private Set<Integer> categoricalToRemove;
     private Set<Integer> numericalToRemove;
@@ -121,7 +123,7 @@ public class RemoveAttributeTransform implements DataTransform
     @Override
     public void fit(DataSet data)
     {
-        if (categoricalToRemove != null && numericalToRemove != null)
+        if (catIndexMap == null || numIndexMap == null)
             setUp(data, categoricalToRemove, numericalToRemove);
     }
     
@@ -142,12 +144,14 @@ public class RemoveAttributeTransform implements DataTransform
                 throw new RuntimeException("The data set does not have a numercal value " + i + " to remove");
         
         catIndexMap = new int[dataSet.getNumCategoricalVars()-categoricalToRemove.size()];
+        newCatHeader = new CategoricalData[catIndexMap.length];
         numIndexMap = new int[dataSet.getNumNumericalVars()-numericalToRemove.size()];
         int k = 0;
         for(int i = 0; i < dataSet.getNumCategoricalVars(); i++)
         {
             if(categoricalToRemove.contains(i))
                 continue;
+            newCatHeader[k] = dataSet.getCategories()[i].clone();
             catIndexMap[k++] = i;
         }
         k = 0;
@@ -165,10 +169,20 @@ public class RemoveAttributeTransform implements DataTransform
      */
     protected RemoveAttributeTransform(RemoveAttributeTransform other)
     {
+        if(other.categoricalToRemove != null)
+            this.categoricalToRemove = new IntSet(other.categoricalToRemove);
+        if(other.numericalToRemove != null)
+            this.numericalToRemove = new IntSet(other.numericalToRemove);
         if(other.catIndexMap != null)
             this.catIndexMap = Arrays.copyOf(other.catIndexMap, other.catIndexMap.length);
         if(other.numIndexMap != null)
             this.numIndexMap = Arrays.copyOf(other.numIndexMap, other.numIndexMap.length);
+        if(other.newCatHeader != null)
+        {
+            this.newCatHeader = new CategoricalData[other.newCatHeader.length];
+            for(int i = 0; i < this.newCatHeader.length; i++)
+                this.newCatHeader[i] = other.newCatHeader[i].clone();
+        }
     }
     
     /**
@@ -218,7 +232,10 @@ public class RemoveAttributeTransform implements DataTransform
             newNumVals = new DenseVector(numIndexMap.length);
 
         for(int i = 0; i < catIndexMap.length; i++)
+        {
             newCatVals[i] = catVals[catIndexMap[i]];
+            newCatData[i] = dp.getCategoricalData()[catIndexMap[i]];
+        }
 
         int k = 0;
 
