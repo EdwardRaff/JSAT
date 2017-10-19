@@ -482,8 +482,11 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
         
         
         epochs_taken = 0;
+        int primal_converg_check = 0;
+        
         for(int epoch = 0; epoch < max_epochs; epoch++)
         {
+            double prevPrimal = Double.POSITIVE_INFINITY;
             epochs_taken++;
             double dual_loss_est = 0;
             double primal_loss_est = 0;
@@ -555,6 +558,17 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
 //                System.out.println("\tGap: " + gap + "  Epoch: " + epoch);
                 break;
             }
+            //Sometime's gap dosn't work well when alphas hit weird ranges
+            //lets check if the primal hasn't changed much in a while
+            if(prevPrimal-primal_loss_est/N < tol_effective/5)
+            {
+                if(primal_converg_check++ > 10)
+                    break;
+            }
+            else
+                primal_converg_check = 0;
+            
+            prevPrimal = primal_loss_est/N;
         }
         
         //apply full sparsity patternt to w
