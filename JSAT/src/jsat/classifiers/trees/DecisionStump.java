@@ -683,8 +683,6 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             if( (rightVal-leftVal) < 1e-14 )//Values are too close!
                 continue;
 
-            subScores[0] = leftSide;
-            subScores[1] = rightSide;
             double curGain = ImpurityScore.gain(origScore, wholeRescale, leftSide, rightSide);
 
             if(curGain >= bestGain)
@@ -693,6 +691,8 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                 bestGain = curGain;
                 bestSplit = curSplit;
                 splitIndex = i+1;
+                subScores[0] = leftSide.clone();
+                subScores[1] = rightSide.clone();
             }
         }
         if(splitIndex == -1)
