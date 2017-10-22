@@ -45,6 +45,8 @@ public class StandardizeTransform implements InPlaceTransform
         Vec[] vecs = dataset.getColumnMeanVariance();
         means = vecs[0];
         stdDevs = vecs[1];
+        for(int i = 0; i < stdDevs.length(); i++)//convert variant to stndDev
+            stdDevs.set(i, Math.sqrt(stdDevs.get(i)+1e-10));
     }
     
     /**
