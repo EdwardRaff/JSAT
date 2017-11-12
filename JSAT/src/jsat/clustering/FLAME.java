@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import jsat.DataSet;
+import jsat.exceptions.FailedToFitException;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
@@ -36,8 +37,8 @@ import jsat.utils.concurrent.AtomicDoubleArray;
 public class FLAME extends ClustererBase implements Parameterized
 {
 
-	private static final long serialVersionUID = 2393091020100706517L;
-	private DistanceMetric dm;
+    private static final long serialVersionUID = 2393091020100706517L;
+    private DistanceMetric dm;
     private int k;
     private int maxIterations;
     private VectorCollectionFactory<VecPaired<Vec, Integer>> vectorCollectionFactory = new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>();
@@ -199,6 +200,8 @@ public class FLAME extends ClustererBase implements Parameterized
     @Override
     public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
     {
+        if(k >= dataSet.getSampleSize())
+            throw new FailedToFitException("Number of k-neighbors (" + k + ") can not be larger than the number of datapoints (" + dataSet.getSampleSize() + ")");
         try
         {
             final int n = dataSet.getSampleSize();
