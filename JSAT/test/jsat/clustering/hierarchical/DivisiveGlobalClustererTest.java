@@ -12,11 +12,15 @@ import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.kmeans.ElkanKMeans;
 import jsat.clustering.evaluation.DaviesBouldinIndex;
+import jsat.clustering.kmeans.HamerlyKMeans;
+import jsat.clustering.kmeans.NaiveKMeans;
 import jsat.distributions.Uniform;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
 import jsat.utils.IntSet;
+import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -39,9 +43,9 @@ public class DivisiveGlobalClustererTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 2);
+        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.05, 0.05), RandomUtil.getRandom(), 2, 2);
         easyData = gdg.generateData(60);
-        ex = Executors.newFixedThreadPool(10);
+        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
 
     @AfterClass
@@ -53,7 +57,7 @@ public class DivisiveGlobalClustererTest
     public void setUp()
     {
         DistanceMetric dm = new EuclideanDistance();
-        dgc = new DivisiveGlobalClusterer(new ElkanKMeans(dm), new DaviesBouldinIndex(dm));
+        dgc = new DivisiveGlobalClusterer(new HamerlyKMeans(), new DaviesBouldinIndex(dm));
     }
     
     @After

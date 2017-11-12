@@ -219,7 +219,7 @@ public class DivisiveGlobalClusterer extends KClustererBase
                 {
                     bestKEval = bestSplitVal;
                     bestK = k;
-                    System.out.println("Best k is now " + k + " at " + bestKEval);
+//                    System.out.println("Best k is now " + k + " at " + bestKEval);
                 }
             }
         }
