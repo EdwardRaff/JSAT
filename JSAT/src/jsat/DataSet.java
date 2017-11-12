@@ -708,16 +708,30 @@ public abstract class DataSet<Type extends DataSet>
      */
     public Matrix getDataMatrix()
     {
-        DenseMatrix matrix = new DenseMatrix(this.getSampleSize(), this.getNumNumericalVars());
-        
-        for(int i = 0; i < getSampleSize(); i++)
+        if(this.getSampleSize() > 0 && this.getDataPoint(0).getNumericalValues().isSparse())
         {
-            Vec row = getDataPoint(i).getNumericalValues();
-            for(int j = 0; j < row.length(); j++)
-                matrix.set(i, j, row.get(j));
+            SparseVector[] vecs = new SparseVector[this.getSampleSize()];
+            for(int i = 0; i < getSampleSize(); i++)
+            {
+                Vec row = getDataPoint(i).getNumericalValues();
+                vecs[i] = new SparseVector(row);
+            }
+            
+            return new SparseMatrix(vecs);
         }
-        
-        return matrix;
+        else
+        {
+            DenseMatrix matrix = new DenseMatrix(this.getSampleSize(), this.getNumNumericalVars());
+
+            for(int i = 0; i < getSampleSize(); i++)
+            {
+                Vec row = getDataPoint(i).getNumericalValues();
+                for(int j = 0; j < row.length(); j++)
+                    matrix.set(i, j, row.get(j));
+            }
+
+            return matrix;
+        }
     }
     
     /**
