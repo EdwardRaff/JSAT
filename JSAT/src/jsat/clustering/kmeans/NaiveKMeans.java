@@ -8,7 +8,6 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
@@ -23,8 +22,8 @@ import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDoubleArray;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 
 /**
  * An implementation of Lloyd's K-Means clustering algorithm using the 
@@ -40,13 +39,12 @@ import jsat.utils.random.XORWOW;
 public class NaiveKMeans extends KMeans
 {
 
+    private static final long serialVersionUID = 6164910874898843069L;
 
-	private static final long serialVersionUID = 6164910874898843069L;
-
-	/**
-     * Creates a new naive k-Means cluster using 
-     * {@link SeedSelection#KPP k-means++} for the 
-     * seed selection and the {@link EuclideanDistance}
+    /**
+     * Creates a new naive k-Means cluster using
+     * {@link SeedSelection#KPP k-means++} for the seed selection and the
+     * {@link EuclideanDistance}
      */
     public NaiveKMeans()
     {
@@ -161,17 +159,17 @@ public class NaiveKMeans extends KMeans
             }
         };
         
+        final int N = dataSet.getSampleSize();
         Arrays.fill(assignment, -1);
         do
         {
             changes.set(0);
-            int extra = dataSet.getSampleSize() % SystemInfo.LogicalCores;
-            int start = 0;
             final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-            while(start < dataSet.getSampleSize())
+            
+            for(int id = 0; id < SystemInfo.LogicalCores; id++)
             {
-                final int s = start;
-                final int end = start + blockSize + (extra-- > 0 ? 1 : 0);
+                final int s = ParallelUtils.getStartBlock(N, id);
+                final int end = ParallelUtils.getEndBlock(N, id);
                 threadpool.submit(new Runnable()
                 {
                     @Override
@@ -220,8 +218,6 @@ public class NaiveKMeans extends KMeans
                         latch.countDown();
                     }
                 });
-                
-                start = end;
             }
             
             try

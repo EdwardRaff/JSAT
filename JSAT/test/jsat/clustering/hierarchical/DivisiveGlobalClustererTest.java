@@ -57,7 +57,7 @@ public class DivisiveGlobalClustererTest
     public void setUp()
     {
         DistanceMetric dm = new EuclideanDistance();
-        dgc = new DivisiveGlobalClusterer(new HamerlyKMeans(), new DaviesBouldinIndex(dm));
+        dgc = new DivisiveGlobalClusterer(new NaiveKMeans(), new DaviesBouldinIndex(dm));
     }
     
     @After
