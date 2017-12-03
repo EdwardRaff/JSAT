@@ -5,7 +5,11 @@
 
 JSAT is a library for quickly getting started with Machine Learning problems. It is developed in my free time, and made available for use under the GPL 3. Part of the library is for self education, as such - all code is self contained. JSAT has no external dependencies, and is pure Java. I also aim to make the library suitably fast for small to medium size problems. As such, much of the code supports parallel execution.
 
+The current master branch of JSAT is going through a larger refactoring as JSAT moves to Java 8. This may cause some examples to break if used against the head version, but they should be fixible with minimal changes.
+
 ## Get JSAT
+
+Ther current release of JSAT is version 0.0.9, and supports Java 6. The current master branch is now Java 8+. 
 
 You can download JSAT from maven central, add the below to your pom file
 
@@ -14,7 +18,7 @@ You can download JSAT from maven central, add the below to your pom file
   <dependency>
     <groupId>com.edwardraff</groupId>
     <artifactId>JSAT</artifactId>
-    <version>0.0.8</version>
+    <version>0.0.9</version>
   </dependency>
 </dependencies>
 ```
@@ -35,7 +39,7 @@ See the [wiki](https://github.com/EdwardRaff/JSAT/wiki) for more information as 
 
 ## Note
 
-Updates to JSAT may be slowed as I begin a PhD program in Computer Science. The project isn’t abandoned! I just have limited free time, and will be balancing my PhD work with a full time job. If you discover more hours in the day, please let me know! Development will be further slowed due to some health issues. I had to spend much of my time recently on this but am begining to improve. I'll continue to try and be prompt on any bug reports and emails, but new features will be a bit slower. 
+Updates to JSAT may be slowed as I begin a PhD program in Computer Science. The project isn’t abandoned! I just have limited free time, and will be balancing my PhD work with a full time job. If you discover more hours in the day, please let me know! Development will be further slowed due to some health issues. I'll continue to try and be prompt on any bug reports and emails, but new features will be a bit slower. Please use the github issues first for contact. 
 
 ## Citations
 
