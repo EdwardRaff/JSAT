@@ -579,7 +579,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             throw new FailedToFitException(ex1);
         }
         
-        if(bestGain.get() <= 1e-9 || splittingAttribute == -1)//We could not find a good split at all (as good as zero)
+        if(splittingAttribute == -1)//We could not find a good split at all
         {
             bestSplit.clear();
             bestSplit.add(dataPoints);
