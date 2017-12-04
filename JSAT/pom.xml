@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.edwardraff</groupId>
     <artifactId>JSAT</artifactId>
-    <version>0.0.9-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Java Statistical Analysis Tool</name>
     <description>A general purpose Machine Learning library.</description>
@@ -28,8 +28,8 @@
     </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.6</maven.compiler.source>
-        <maven.compiler.target>1.6</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <skipTests>false</skipTests><!--configured netbeans to set this to true when we ask the IDE to build -->
         <additionalparam>-Xdoclint:none</additionalparam>
     </properties>
