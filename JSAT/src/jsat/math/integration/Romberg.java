@@ -1,21 +1,41 @@
 
 package jsat.math.integration;
 
-import jsat.math.Function;
 import static java.lang.Math.*;
+import jsat.math.Function1D;
 /**
+ * This class provides an implementation of the Romberg method for
+ * numerically computing an integral
  *
  * @author Edward Raff
  */
 public class Romberg
 {
 
-    public static double romb(Function f, double a, double b)
+    /**
+     * Numerically computes the integral of the given function
+     *
+     * @param f the function to integrate
+     * @param a the lower limit of the integral
+     * @param b the upper limit of the integral
+     * @return an approximation of the integral of
+     * &int;<sub>a</sub><sup>b</sup>f(x) , dx
+     */
+    public static double romb(Function1D f, double a, double b)
     {
         return romb(f, a, b, 20);
     }
 
-    public static double romb(Function f, double a, double b, int max)
+    /**
+     * Numerically computes the integral of the given function
+     *
+     * @param f the function to integrate
+     * @param a the lower limit of the integral
+     * @param b the upper limit of the integral
+     * @param max the maximum number of extrapolation steps to perform. 
+     * &int;<sub>a</sub><sup>b</sup>f(x) , dx
+     */
+    public static double romb(Function1D f, double a, double b, int max)
     {
         // see http://en.wikipedia.org/wiki/Romberg's_method
 
@@ -46,7 +66,6 @@ public class Romberg
                 return s[k];
             else lastVal = s[k];
         }
-
 
         return s[max-1];
     }

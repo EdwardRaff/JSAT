@@ -1,64 +1,69 @@
 
 package jsat.math.rootfinding;
 
-import jsat.linear.Vec;
-import jsat.math.Function;
 import static java.lang.Math.*;
+import jsat.math.Function1D;
+
 /**
- *
+ * This class provides an implementation of the popular ZeroIn root finder. 
+ * 
  * @author Edward Raff
  */
 public class Zeroin implements RootFinder
 {
 
-	private static final long serialVersionUID = -8359510619103768778L;
+    private static final long serialVersionUID = -8359510619103768778L;
 
-	public static double root(double a, double b, Function f, double... args)
+    /**
+     * Performs root finding on the function {@code f}.
+     *
+     * @param a the left bound on the root (i.e., f(a) &lt; 0)
+     * @param b the right bound on the root (i.e., f(b) &gt; 0)
+     * @param f the function to find the root of
+     * @return the value of variable {@code pos} that produces a zero value
+     * output
+     */
+    public static double root(double a, double b, Function1D f)
     {
-        return root(1e-15, 1000, a, b, 0, f, args);
-    }
-    
-    public static double root(double eps, double a, double b, Function f, double... args)
-    {
-        return root(eps, 1000, a, b, 0, f, args);
-    }
-    
-    public static double root(double eps, double a, double b, int pos, Function f, double... args)
-    {
-        return root(eps, 1000, a, b, pos, f, args);
+        return root(1e-15, 1000, a, b, f);
     }
     
     /**
-     * Performs root finding on the function {@code f}. 
+     * Performs root finding on the function {@code f}.
+     *
+     * @param eps the desired accuracy of the result
+     * @param a the left bound on the root (i.e., f(a) &lt; 0)
+     * @param b the right bound on the root (i.e., f(b) &gt; 0)
+     * @param f the function to find the root of
+     * @return the value of variable {@code pos} that produces a zero value
+     * output
+     */
+    public static double root(double eps, double a, double b, Function1D f)
+    {
+        return root(eps, 1000, a, b, f);
+    }
+    
+    /**
+     * Performs root finding on the function {@code f}.
+     *
      * @param eps the desired accuracy of the result
      * @param maxIterations the maximum number of iterations to perform
-     * @param a the left bound on the root
-     * @param b the right bound on the root
-     * @param pos the position of the argument array that should be used as the variable to alter
+     * @param a the left bound on the root (i.e., f(a) &lt; 0)
+     * @param b the right bound on the root (i.e., f(b) &gt; 0)
      * @param f the function to find the root of
-     * @param args the array of variable values for the function, one of which will be altered in the search
-     * @return the value of variable {@code pos} that produces a zero value output 
+     * @return the value of variable {@code pos} that produces a zero value
+     * output
      */
-    public static double root(double eps, int maxIterations, double a, double b, int pos, Function f, double... args)
+    public static double root(double eps, int maxIterations, double a, double b, Function1D f)
     {
-        //We assume 1 dimensional function then 
-        if(args == null ||args.length == 0)
-        {
-            pos = 0;
-            args = new double[1];
-        }
-        
         /*
          * Code has few comments, taken fro algorithum descriptoin http://en.wikipedia.org/wiki/Brent%27s_method#Algorithm ,
          * which is from Brent's book (according to comments, I would like to get the book either way)
          * 
          */
-        
    
-        args[pos] = a;
-        double fa = f.f(args);
-        args[pos] = b;
-        double fb = f.f(args);
+        double fa = f.f(a);
+        double fb = f.f(b);
         
         if(abs(fa-0) < 2*eps)
             return a;
@@ -116,8 +121,7 @@ public class Zeroin implements RootFinder
             else
                 mflag = false;
             
-            args[pos] = s;
-            fs = f.f(args);
+            fs = f.f(s);
             d = c;
             c = b;
             
@@ -152,16 +156,13 @@ public class Zeroin implements RootFinder
         return b;
     }
 
-    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, double... args)
+    @Override
+    public double root(double eps, int maxIterations, double[] initialGuesses, Function1D f)
     {
-        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args);
+        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], f);
     }
-
-    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, Vec args)
-    {
-        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args.arrayCopy());
-    }
-
+    
+    @Override
     public int guessesNeeded()
     {
         return 2;

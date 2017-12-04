@@ -10,7 +10,7 @@ import jsat.classifiers.linear.kernelized.Projectron;
 import jsat.linear.*;
 import jsat.math.FastMath;
 import jsat.math.Function;
-import jsat.math.FunctionBase;
+import jsat.math.Function1D;
 import jsat.math.optimization.GoldenSearch;
 import jsat.regression.KernelRLS;
 import jsat.utils.DoubleList;
@@ -659,25 +659,16 @@ public class KernelPoint
         if(a_m == a_n)
             return 0.5;
         
-        final Function f = new FunctionBase()
+        final Function1D f = (double x) ->
         {
-            /**
-			 * 
-			 */
-			private static final long serialVersionUID = -6891301465754898634L;
-
-			@Override
-            public double f(Vec x)
-            {
-                final double h = x.get(0);
-                //negative to maximize isntead of minimize
-                /*
-                 * We aren't solving to a super high degree of accuracy anyway, 
-                 * so use an approximate pow. Its impact is only noticible for 
-                 * very small budget sizes
-                 */
-                return -(a_m * FastMath.pow(k_mn, (1 - h) * (1 - h)) + a_n * FastMath.pow(k_mn, h * h));
-            }
+            final double h = x;
+            //negative to maximize isntead of minimize
+            /*
+            * We aren't solving to a super high degree of accuracy anyway,
+            * so use an approximate pow. Its impact is only noticible for
+            * very small budget sizes
+            */
+            return -(a_m * FastMath.pow(k_mn, (1 - h) * (1 - h)) + a_n * FastMath.pow(k_mn, h * h));
         };
         
         /*
@@ -692,15 +683,15 @@ public class KernelPoint
          */
         if(Math.signum(a_m) != Math.signum(a_n))
             if(a_m < 0)//we give a 
-                return GoldenSearch.minimize(1e-3, 100, 0.0, 0.2, 0, f, 0.0);
+                return GoldenSearch.minimize(1e-3, 100, 0.0, 0.2, f);
             else if(a_n < 0)
-                return GoldenSearch.minimize(1e-3, 100, 0.8, 1.0, 0, f, 0.0);
+                return GoldenSearch.minimize(1e-3, 100, 0.8, 1.0, f);
         
         
         if(a_m > a_n)
-            return GoldenSearch.minimize(1e-3, 100, 0.5, 1.0, 0, f, 0.0);
+            return GoldenSearch.minimize(1e-3, 100, 0.5, 1.0, f);
         else
-            return GoldenSearch.minimize(1e-3, 100, 0.0, 0.5, 0, f, 0.0);
+            return GoldenSearch.minimize(1e-3, 100, 0.0, 0.5, f);
             
     }
     

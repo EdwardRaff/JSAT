@@ -5,6 +5,7 @@ import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.rootfinding.RiddersMethod;
 import static java.lang.Math.*;
+import jsat.math.rootfinding.Zeroin;
 /**
  *
  * @author Edward Raff
@@ -12,12 +13,9 @@ import static java.lang.Math.*;
 public class Kolmogorov extends ContinuousDistribution
 {
 
+    private static final long serialVersionUID = 7319511918364286930L;
 
-
-
-	private static final long serialVersionUID = 7319511918364286930L;
-
-	public Kolmogorov()
+    public Kolmogorov()
     {
     }
     
@@ -66,26 +64,12 @@ public class Kolmogorov extends ContinuousDistribution
         }
         
     }
-
-    private final Function fCDF = new Function() {
-
-		private static final long serialVersionUID = -716553015542184045L;
-
-		public double f(double... x)
-        {
-            return cdf(x[0])-x[1];
-        }
-
-        public double f(Vec x)
-        {
-            return f(x.get(0), x.get(1));
-        }
-    };
     
     @Override
     public double invCdf(double p)
     {
-        return RiddersMethod.root(0, 5, fCDF, p, p);
+//        return RiddersMethod.root(0, 5, fCDF, p, p);
+        return Zeroin.root(0.0, 5.0, (x) -> this.cdf(x) - p);
     }
 
     @Override

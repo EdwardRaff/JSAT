@@ -1,6 +1,7 @@
 
 package jsat.classifiers.neuralnetwork;
 
+import java.io.Serializable;
 import static java.lang.Math.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,8 +19,7 @@ import jsat.linear.DenseMatrix;
 import jsat.linear.DenseVector;
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
-import jsat.math.Function;
-import jsat.math.FunctionBase;
+import jsat.math.Function1D;
 import jsat.math.decayrates.DecayRate;
 import jsat.math.decayrates.ExponetialDecay;
 import jsat.parameters.IntParameter;
@@ -560,7 +560,7 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
      * used to predict from inputs and train the network by propagating the 
      * errors back through the network. 
      */
-    public static abstract class  ActivationFunction implements Function
+    public static abstract class  ActivationFunction implements Function1D, Serializable
     {
         private static final long serialVersionUID = 8002040194215453918L;
 
@@ -592,19 +592,12 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
          * 
          * @return the function for computing the derivative of the response
          */
-        abstract public Function getD();
-        
+        abstract public Function1D getD();
 
         @Override
-        public double f(double... x)
+        public double f(double x)
         {
-            return response(x[0]);
-        }
-
-        @Override
-        public double f(Vec x)
-        {
-            return response(x.get(0));
+            return response(x);
         }
 
     }
@@ -639,7 +632,7 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
         }
 
         @Override
-        public Function getD()
+        public Function1D getD()
         {
             return logitPrime;
         }
@@ -651,16 +644,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
         }
     };
     
-    private static final Function logitPrime = new FunctionBase()
+    private static final Function1D logitPrime = (double x) ->
     {
-        private static final long serialVersionUID = 7201403465671204173L;
-
-        @Override
-        public double f(Vec x)
-        {
-            double xx = x.get(0);
-            return xx * (1 - xx);
-        }
+        return x * (1 - x);
     };
 
     /**
@@ -690,27 +676,15 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
         }
         
         @Override
-        public Function getD()
+        public Function1D getD()
         {
-            return tanhPrime;
+            return (x)-> 1-x*x;
         }
 
         @Override
         public String toString()
         {
             return "Tanh";
-        }
-    };
-    
-    private static final Function tanhPrime = new FunctionBase() 
-    {
-        private static final long serialVersionUID = -7271551720122166947L;
-
-        @Override
-        public double f(Vec x)
-        {
-            double xx = x.get(0);
-            return 1-xx*xx;
         }
     };
     
@@ -744,9 +718,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
         }
 
         @Override
-        public Function getD()
+        public Function1D getD()
         {
-            return softsignPrime;
+            return (x) -> Math.pow(1-abs(x), 2);
         }
 
         @Override
@@ -756,26 +730,14 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
         }
     };
     
-    private static final Function softsignPrime = new FunctionBase() 
-    {
-        private static final long serialVersionUID = -6726314880590071199L;
-
-        @Override
-        public double f(Vec x)
-        {
-            double xx = 1-abs(x.get(0));
-                    return xx*xx;
-        }
-    };
-    
     /**
      * Creates the weights for the hidden layers and output layer
      * @param rand source of randomness
      */
     private void setUp(Random rand)
     {
-        Ws = new ArrayList<Matrix>(npl.length);
-        bs = new ArrayList<Vec>(npl.length);
+        Ws = new ArrayList<>(npl.length);
+        bs = new ArrayList<>(npl.length);
         
         //First Hiden layer takes input raw
         DenseMatrix W = new DenseMatrix(npl[0], inputSize);

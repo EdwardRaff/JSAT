@@ -2,11 +2,15 @@
 package jsat.math.rootfinding;
 
 import java.io.Serializable;
-import jsat.linear.Vec;
-import jsat.math.Function;
+import jsat.math.Function1D;
 
 /**
- * This interface defines a general contract for the numerical computation of a root of a given function
+ * This interface defines a general contract for the numerical computation of a
+ * root of a given function. A root of a function {@code f} is a point {@code x}
+ * for which {@code f(x) = 0}. A function may have any number of roots
+ * (including no roots).
+  
+ *
  * @author Edward Raff
  */
 public interface RootFinder extends Serializable
@@ -22,20 +26,7 @@ public interface RootFinder extends Serializable
      * @param args the values to be passed to the function as arguments
      * @return the value of the variable at the index <tt>pos</tt> that makes the function return 0
      */
-    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, double... args);
-    
-    /**
-     * Attempts to numerical compute the root of a given function, such that f(<tt>args</tt>) = 0. Only one variable may be altered at a time
-     * 
-     * @param eps the accuracy desired for the solution
-     * @param maxIterations the maximum number of steps allowed before forcing a return of the current solution. 
-     * @param initialGuesses an array containing the initial guess values
-     * @param f the function to find the root of
-     * @param pos the index of the argument that will be allowed to alter in order to find the root. Starts from 0
-     * @param args the values to be passed to the function as arguments
-     * @return the value of the variable at the index <tt>pos</tt> that makes the function return 0
-     */
-    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, Vec args);
+    public double root(double eps, int maxIterations, double[] initialGuesses, Function1D f);    
     
     /**
      * Different root finding methods require different numbers of initial guesses. 

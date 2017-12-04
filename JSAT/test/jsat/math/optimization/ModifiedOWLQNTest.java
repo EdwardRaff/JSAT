@@ -12,7 +12,6 @@ import jsat.linear.Vec;
 import jsat.lossfunctions.LossFunc;
 import jsat.lossfunctions.SoftmaxLoss;
 import jsat.math.Function;
-import jsat.math.FunctionBase;
 import jsat.math.FunctionVec;
 import jsat.utils.random.RandomUtil;
 import org.junit.After;
@@ -178,7 +177,7 @@ public class ModifiedOWLQNTest
 
     }
 
-    public class LossFunction extends FunctionBase
+    public class LossFunction implements Function
     {
 
         private final ClassificationDataSet D;

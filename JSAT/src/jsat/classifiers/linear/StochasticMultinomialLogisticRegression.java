@@ -572,12 +572,12 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
             Vec[] ms = dataSet.getColumnMeanVariance();
             means = ms[0];
             stdDevs = ms[1];
-            stdDevs.applyFunction(MathTricks.sqrtFunc);
+            stdDevs.applyFunction(Math::sqrt);
 
             //Now transform it so that stdDevs holds standard deviations, and means is the mean / standDev
             means.pairwiseDivide(stdDevs);
 
-            stdDevs.applyFunction(MathTricks.invsFunc);
+            stdDevs.applyFunction((x)-> 1/x);
         }
         
         

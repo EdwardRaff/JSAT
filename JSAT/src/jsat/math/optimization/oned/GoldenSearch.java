@@ -16,9 +16,11 @@
  */
 package jsat.math.optimization.oned;
 
-import jsat.math.Function;
+import jsat.math.Function1D;
 
 /**
+ * The class provides an implementation of the Golden Search method of function
+ * minimization.
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
@@ -37,7 +39,7 @@ public class GoldenSearch
      * @param maxSteps the maximum number of search steps to take
      * @return the value {@code x} that appears to minimize {@code f(x)}
      */
-    public static double findMin(double min, double max, Function f, double eps, int maxSteps)
+    public static double findMin(double min, double max, Function1D f, double eps, int maxSteps)
     {
         double a = min, b = max;
         double fa = f.f(a), fb = f.f(b);

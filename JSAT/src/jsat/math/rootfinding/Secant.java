@@ -1,53 +1,72 @@
 
 package jsat.math.rootfinding;
 
-import jsat.linear.Vec;
-import jsat.math.Function;
+import jsat.math.Function1D;
 
 /**
+ * This class provides an implementation of the Secant method of finding roots
+ * of functions.
  *
  * @author Edward Raff
  */
 public class Secant implements RootFinder
 {  
 
-	private static final long serialVersionUID = -5175113107084930582L;
+    private static final long serialVersionUID = -5175113107084930582L;
 
-	public static double root(double a, double b, Function f, double... args)
+    
+    /**
+     * Performs root finding on the function {@code f}.
+     *
+     * @param a the left bound on the root (i.e., f(a) &lt; 0)
+     * @param b the right bound on the root (i.e., f(b) &gt; 0)
+     * @param f the function to find the root of
+     * @return the value of variable {@code pos} that produces a zero value
+     * output
+     */
+    public static double root(double a, double b, Function1D f)
     {
-        return root(1e-15, 1000, a, b, 0, f, args);
+        return root(1e-15, a, b, f);
+    }
+
+    /**
+     * Performs root finding on the function {@code f}.
+     *
+     * @param eps the desired accuracy of the result
+     * @param a the left bound on the root (i.e., f(a) &lt; 0)
+     * @param b the right bound on the root (i.e., f(b) &gt; 0)
+     * @param f the function to find the root of
+     * @return the value of variable {@code pos} that produces a zero value
+     * output
+     */
+    public static double root(double eps, double a, double b, Function1D f)
+    {
+        return root(eps, 1000, a, b, f);
     }
     
-    public static double root(double eps, double a, double b, Function f, double... args)
+    /**
+     * Performs root finding on the function {@code f}.
+     *
+     * @param eps the desired accuracy of the result
+     * @param maxIterations the maximum number of iterations to perform
+     * @param a the left bound on the root (i.e., f(a) &lt; 0)
+     * @param b the right bound on the root (i.e., f(b) &gt; 0)
+     * @param f the function to find the root of
+     * @return the value of variable {@code pos} that produces a zero value
+     * output
+     */
+    public static double root(double eps, int maxIterations, double a, double b, Function1D f)
     {
-        return root(eps, 1000, a, b, 0, f, args);
-    }
-    
-    public static double root(double eps, double a, double b, int pos, Function f, double... args)
-    {
-        return root(eps, 1000, a, b, pos, f, args);
-    }
-    
-    public static double root(double eps, int maxIterations, double x0, double x1, int pos, Function f, double... args)
-    {
-        //We assume 1 dimensional function then 
-        if(args == null ||args.length == 0)
-        {
-            pos = 0;
-            args = new double[1];
-        }
-   
-        args[pos] = x0;
+        double x0 = a;
+        double x1 = b;
         /**
          * f(x0)
          */
-        double fx0 = f.f(args);
+        double fx0 = f.f(x0);
         
         while(Math.abs(x1-x0) > 2*eps && maxIterations-- > 0)
         {
-            args[pos] = x1;
-            
-            double fx1 = f.f(args);
+            double fx1 = f.f(x1);
             
             double nextX = x1 - fx1*(x1-x0)/(fx1-fx0);
             
@@ -59,16 +78,13 @@ public class Secant implements RootFinder
         return x1;
     }
 
-    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, double... args)
+    @Override
+    public double root(double eps, int maxIterations, double[] initialGuesses, Function1D f)
     {
-        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args);
+        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], f);
     }
 
-    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, Vec args)
-    {
-        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args.arrayCopy());
-    }
-
+    @Override
     public int guessesNeeded()
     {
         return 2;

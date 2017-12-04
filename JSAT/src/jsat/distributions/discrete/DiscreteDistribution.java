@@ -19,7 +19,7 @@ package jsat.distributions.discrete;
 import jsat.distributions.Distribution;
 import jsat.linear.Vec;
 import jsat.math.Function;
-import jsat.math.FunctionBase;
+import jsat.math.Function1D;
 import jsat.math.rootfinding.Zeroin;
 
 /**
@@ -73,6 +73,8 @@ abstract public class DiscreteDistribution extends Distribution
     @Override
     public double invCdf(double p)
     {
+        if (p < 0 || p > 1)
+            throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
         //two special case checks, as they can cause a failure to get a positive and negative value on the ends, which means we can't do a search for the root
         //Special case check, p < min value
         if(min() >= Integer.MIN_VALUE)
@@ -83,51 +85,29 @@ abstract public class DiscreteDistribution extends Distribution
             if(p > cdf(max()-1))
                 return max();
         //stewpwise nature fo discrete can cause problems for search, so we will use a smoothed cdf to pass in
-        double toRet= invCdf(p, new FunctionBase()
+//        double toRet= invCdf(p, );
+
+        //Lets use an interpolated version of the CDF so that our numerical methods will behave better
+        Function1D cdfInterpolated = (double x) ->
         {
-            @Override
-            public double f(Vec x)
-            {
-                double query = x.get(0);
-                //if it happens to fall on an int we just compute the regular value
-                if(Math.rint(query) == query)
-                    return cdf((int)query);
-                //else, interpolate
-                double larger = query+1;
-                double diff = larger-query;
-                return cdf(query)*diff + cdf(larger)*(1-diff);
-            }
-        });
+            double query = x;
+            //if it happens to fall on an int we just compute the regular value
+            if(Math.rint(query) == query)
+                return cdf((int)query) - p;
+            //else, interpolate
+            double larger = query+1;
+            double diff = larger-query;
+            return cdf(query)*diff + cdf(larger)*(1-diff) - p;
+        };
         
+        
+        double a = Double.isInfinite(min()) ? Integer.MIN_VALUE*.95 : min();
+        double b = Double.isInfinite(max()) ? Integer.MAX_VALUE*.95 : max();
+        
+        double toRet = Zeroin.root(1e-6, a, b, cdfInterpolated);
         return Math.round(toRet);
     }
 
-    @Override
-    protected double invCdf(final double p, final Function cdf)
-    {
-        if (p < 0 || p > 1)
-            throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
-        //we can't use the max/min b/c we might overflow on some of the computations, so lets tone it down a little
-        double a = Double.isInfinite(min()) ? Integer.MIN_VALUE*.95 : min();
-        double b = Double.isInfinite(max()) ? Integer.MAX_VALUE*.95 : max();
-
-        Function newCDF = new Function()
-        {
-
-            @Override
-            public double f(double... x)
-            {
-                return cdf.f(x) - p;
-            }
-
-            @Override
-            public double f(Vec x)
-            {
-                return f(x.get(0));
-            }
-        };
-        return Zeroin.root(1e-6, a, b, newCDF, p);
-    }
     
     @Override
     abstract public DiscreteDistribution clone();

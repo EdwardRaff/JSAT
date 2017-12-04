@@ -1,47 +1,64 @@
 
 package jsat.math.rootfinding;
 
-import jsat.linear.Vec;
-import jsat.math.Function;
 import static java.lang.Math.*;
+import jsat.math.Function1D;
 
 /**
- *
+ * Provides an implementation of Ridder's method for root finding. 
  * @author Edward Raff
  */
 public class RiddersMethod implements RootFinder
 {
 
-	private static final long serialVersionUID = 8154909945080099018L;
+    private static final long serialVersionUID = 8154909945080099018L;
 
-	public static double root(double a, double b, Function f, double... args)
+    /**
+     * Performs root finding on the function {@code f}.
+     *
+     * @param a the left bound on the root (i.e., f(a) &lt; 0)
+     * @param b the right bound on the root (i.e., f(b) &gt; 0)
+     * @param f the function to find the root of
+     * @return the value of variable {@code pos} that produces a zero value
+     * output
+     */
+    public static double root(double a, double b, Function1D f)
     {
-        return root(1e-15, 1000, a, b, 0, f, args);
+        return root(1e-15, a, b, f);
     }
     
-    public static double root(double eps, double a, double b, Function f, double... args)
+    /**
+     * Performs root finding on the function {@code f}.
+     *
+     * @param eps the desired accuracy of the result
+     * @param a the left bound on the root (i.e., f(a) &lt; 0)
+     * @param b the right bound on the root (i.e., f(b) &gt; 0)
+     * @param f the function to find the root of
+     * @return the value of variable {@code pos} that produces a zero value
+     * output
+     */
+    public static double root(double eps, double a, double b, Function1D f)
     {
-        return root(eps, 1000, a, b, 0, f, args);
+        return root(eps, 1000, a, b, f);
     }
     
-    public static double root(double eps, double a, double b, int pos, Function f, double... args)
+    /**
+     * Performs root finding on the function {@code f}.
+     *
+     * @param eps the desired accuracy of the result
+     * @param maxIterations the maximum number of iterations to perform
+     * @param a the left bound on the root (i.e., f(a) &lt; 0)
+     * @param b the right bound on the root (i.e., f(b) &gt; 0)
+     * @param f the function to find the root of
+     * @return the value of variable {@code pos} that produces a zero value
+     * output
+     */
+    public static double root(double eps, int maxIterations, double a, double b, Function1D f)
     {
-        return root(eps, 1000, a, b, pos, f, args);
-    }
-    
-    public static double root(double eps, int maxIterations, double x1, double x2, int pos, Function f, double... args)
-    {
-        //We assume 1 dimensional function then 
-        if(args == null ||args.length == 0)
-        {
-            pos = 0;
-            args = new double[1];
-        }
-  
-        args[pos] = x1;
-        double fx1 = f.f(args);
-        args[pos] = x2;
-        double fx2 = f.f(args);
+        double x1 = a;
+        double x2 = b;
+        double fx1 = f.f(x1);
+        double fx2 = f.f(x2);
         double halfEps = eps*0.5;
         
         if(fx1* fx2 >= 0)
@@ -52,13 +69,11 @@ public class RiddersMethod implements RootFinder
         {
             double x3 = (x1+x2)*0.5;
             
-            args[pos] = x3;
-            double fx3 = f.f(args);
+            double fx3 = f.f(x3);
             
             double x4 = x3+(x3-x1)*signum(fx1-fx2)*fx3/sqrt(fx3*fx3-fx1*fx2); 
          
-            args[pos] = x4;
-            double fx4 = f.f(args);
+            double fx4 = f.f(x4);
             if(fx3 * fx4 < 0)
             {
                 x1 = x3;
@@ -89,16 +104,14 @@ public class RiddersMethod implements RootFinder
         return x2;
     }
 
-    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, double... args)
+    @Override
+    public double root(double eps, int maxIterations, double[] initialGuesses, Function1D f)
     {
-        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args);
+        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], f);
     }
 
-    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, Vec args)
-    {
-        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args.arrayCopy());
-    }
 
+    @Override
     public int guessesNeeded()
     {
         return 2;

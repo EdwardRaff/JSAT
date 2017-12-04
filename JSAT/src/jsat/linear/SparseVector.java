@@ -3,7 +3,7 @@ package jsat.linear;
 
 import static java.lang.Math.*;
 import java.util.*;
-import jsat.math.Function;
+import jsat.math.Function1D;
 import jsat.math.IndexFunction;
 import jsat.utils.DoubleList;
 import jsat.utils.IndexTable;
@@ -852,7 +852,7 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public void applyFunction(Function f)
+    public void applyFunction(Function1D f)
     {
         if(f.f(0.0) != 0.0)
             super.applyFunction(f);

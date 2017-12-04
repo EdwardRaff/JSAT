@@ -590,24 +590,6 @@ public class SpecialMath
         return exp(numer)/regIncBeta.lentz(x,a,b);
     }
     
-    private static final Function betaIncRegFunc = new Function() {
-
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 5080094630628298264L;
-
-		public double f(double... x)
-        {
-            return betaIncReg(x[0], x[1], x[2]) - x[3];
-        }
-
-        public double f(Vec x)
-        {
-            return betaIncReg(x.get(0), x.get(1), x.get(2))-x.get(3);
-        }
-    };
-    
     /**
      * Computes the inverse of the incomplete beta function,
      * I<sub>p</sub><sup>-1</sup>(a,b), such that {@link #betaIncReg(double, double, double) I<sub>x</sub>(a, b) } = <tt>p</tt>. 
@@ -623,7 +605,7 @@ public class SpecialMath
     {
         if(p < 0 || p > 1)
             throw new ArithmeticException("The value p must be in the range [0,1], not" + p);
-        return RiddersMethod.root(0, 1, betaIncRegFunc, p, a, b, p);
+        return RiddersMethod.root(0, 1, (x) -> betaIncReg(x, a, b)- p);
     }
     
     /**

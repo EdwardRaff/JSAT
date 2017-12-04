@@ -11,7 +11,8 @@ import jsat.datatransform.UnitVarianceTransform;
 import jsat.linear.MatrixStatistics;
 import jsat.linear.Vec;
 import jsat.linear.VecOps;
-import jsat.math.FunctionBase;
+import jsat.math.Function;
+import jsat.math.Function1D;
 import jsat.math.MathTricks;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.DoubleList;
@@ -49,8 +50,8 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     public <V extends Vec> void train(List<V> dataSet)
     {
         invStndDevs = MatrixStatistics.covarianceDiag(MatrixStatistics.meanVector(dataSet), dataSet);
-        invStndDevs.applyFunction(MathTricks.sqrdFunc);
-        invStndDevs.applyFunction(MathTricks.invsFunc);
+        invStndDevs.applyFunction((x)->x*x);
+        invStndDevs.applyFunction((x)->1/x);
     }
 
     @Override
@@ -63,8 +64,8 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     public void train(DataSet dataSet)
     {
         invStndDevs = dataSet.getColumnMeanVariance()[1];
-        invStndDevs.applyFunction(MathTricks.sqrdFunc);
-        invStndDevs.applyFunction(MathTricks.invsFunc);
+        invStndDevs.applyFunction((x)->x*x);
+        invStndDevs.applyFunction((x)->1/x);
     }
 
     @Override
@@ -127,16 +128,7 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     @Override
     public double dist(Vec a, Vec b)
     {
-        double r = VecOps.accumulateSum(invStndDevs, a, b, new FunctionBase() 
-        {
-            private static final long serialVersionUID = 3190953661114076430L;
-
-            @Override
-            public double f(Vec x)
-            {
-                return Math.pow(x.get(0), 2);
-            }
-        });
+        double r = VecOps.accumulateSum(invStndDevs, a, b, (double x) -> x*x);
 
         return Math.sqrt(r);
     }

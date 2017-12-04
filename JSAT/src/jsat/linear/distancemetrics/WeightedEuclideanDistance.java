@@ -66,7 +66,7 @@ public class WeightedEuclideanDistance implements DistanceMetric
     @Override
     public double dist(Vec a, Vec b)
     {
-        return Math.sqrt(VecOps.accumulateSum(w, a, b, MathTricks.sqrdFunc));
+        return Math.sqrt(VecOps.accumulateSum(w, a, b, (x)->x*x));
     }
 
     @Override

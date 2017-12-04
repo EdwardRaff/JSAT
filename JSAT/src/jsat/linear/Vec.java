@@ -6,7 +6,7 @@ import static java.lang.Math.*;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Random;
-import jsat.math.Function;
+import jsat.math.Function1D;
 import jsat.math.IndexFunction;
 import jsat.utils.random.RandomUtil;
 
@@ -26,9 +26,9 @@ import jsat.utils.random.RandomUtil;
 public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializable
 {
 
-	private static final long serialVersionUID = 9035784536820782955L;
+    private static final long serialVersionUID = 9035784536820782955L;
 
-	/**
+    /**
      * Returns the length of this vector
      * @return the length of this vector
      */
@@ -697,7 +697,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      * 
      * @param f the single variable function to apply
      */
-    public void applyFunction(Function f)
+    public void applyFunction(Function1D f)
     {
         for(int i = 0; i < length(); i++)
             set(i, f.f(get(i)));

@@ -1,10 +1,7 @@
 
 package jsat.distributions;
 
-import jsat.linear.DenseVector;
 import jsat.linear.Vec;
-import jsat.math.Function;
-import jsat.math.FunctionBase;
 import jsat.math.integration.Romberg;
 import jsat.math.optimization.oned.GoldenSearch;
 import jsat.math.rootfinding.Zeroin;
@@ -58,7 +55,7 @@ public abstract class ContinuousDistribution extends Distribution
     {
         double intMin = getIntegrationMin();
         
-        return Romberg.romb(getFunctionPDF(this), intMin, x);
+        return Romberg.romb((z)->this.pdf(z), intMin, x);
     }
     
     @Override
@@ -69,22 +66,8 @@ public abstract class ContinuousDistribution extends Distribution
         double a = getIntegrationMin();
         double b = getIntegrationMax();
 
-        Function newCDF = new Function()
-        {
-
-            @Override
-            public double f(double... x)
-            {
-                return cdf(x[0]) - p;
-            }
-
-            @Override
-            public double f(Vec x)
-            {
-                return f(x.get(0));
-            }
-        };
-        return Zeroin.root(a, b, newCDF, p);
+        //default case, lets just do a root finding on the CDF for the specific value of p
+        return Zeroin.root(a, b, (x) -> this.cdf(x) - p);
     }
 
     @Override
@@ -94,15 +77,7 @@ public abstract class ContinuousDistribution extends Distribution
         
         double intMax = getIntegrationMax();
 
-        return Romberg.romb(new FunctionBase()
-        {
-
-            @Override
-            public double f(Vec x)
-            {
-                return x.get(0)*pdf(x.get(0));
-            }
-        }, intMin, intMax);
+        return Romberg.romb((double x) -> x*pdf(x), intMin, intMax);
     }
 
     @Override
@@ -113,16 +88,7 @@ public abstract class ContinuousDistribution extends Distribution
         double intMax = getIntegrationMax();
         final double mean = mean();
 
-        return Romberg.romb(new FunctionBase()
-        {
-
-            @Override
-            public double f(Vec x)
-            {
-                
-                return Math.pow(x.get(0)-mean, 2)*pdf(x.get(0));
-            }
-        }, intMin, intMax);
+        return Romberg.romb((x)->Math.pow(x-mean, 2)*pdf(x), intMin, intMax);
     }
     
     
@@ -135,16 +101,7 @@ public abstract class ContinuousDistribution extends Distribution
         double intMax = getIntegrationMax();
         final double mean = mean();
 
-        return Romberg.romb(new FunctionBase()
-        {
-
-            @Override
-            public double f(Vec x)
-            {
-                
-                return Math.pow((x.get(0)-mean), 3)*pdf(x.get(0));
-            }
-        }, intMin, intMax)/Math.pow(variance(), 3.0/2);
+        return Romberg.romb((x)->Math.pow((x-mean), 3)*pdf(x), intMin, intMax)/Math.pow(variance(), 3.0/2);
     }
     
     @Override
@@ -154,15 +111,7 @@ public abstract class ContinuousDistribution extends Distribution
         
         double intMax = getIntegrationMax();
 
-        return GoldenSearch.findMin(intMin, intMax, new FunctionBase()
-        {
-
-            @Override
-            public double f(Vec x)
-            {
-                return -pdf(x.get(0));
-            }
-        }, 1e-6, 1000);
+        return GoldenSearch.findMin(intMin, intMax, (x)->-pdf(x), 1e-6, 1000);
     }
     
     protected double getIntegrationMin()
@@ -297,34 +246,6 @@ public abstract class ContinuousDistribution extends Distribution
     public String toString()
     {
         return getDistributionName();
-    }
-
-    /**
-     * Wraps the {@link #pdf(double) } function of the given distribution in a 
-     * function object for use. 
-     * 
-     * @param dist the distribution to wrap the pdf of
-     * @return a function for evaluating the pdf of the given distribution
-     */
-    public static Function getFunctionPDF(final ContinuousDistribution dist)
-    {
-        return new Function()
-        {
-
-            private static final long serialVersionUID = -897452735980141746L;
-
-            @Override
-            public double f(double... x)
-            {
-                return f(DenseVector.toDenseVec(x));
-            }
-
-            @Override
-            public double f(Vec x)
-            {
-                return dist.pdf(x.get(0));
-            }
-        };
     }
 
 }

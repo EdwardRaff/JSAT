@@ -3,6 +3,7 @@ package jsat.linear;
 
 import java.util.Iterator;
 import jsat.math.Function;
+import jsat.math.Function1D;
 
 /**
  * This class provides efficient implementations of use full vector 
@@ -28,7 +29,7 @@ public class VecOps
      * @param f the single variate function to apply to the difference computed 
      * @return the accumulated sum of the evaluations
      */
-    public static double accumulateSum(final Vec w, final Vec x, final Vec y, final Function f)
+    public static double accumulateSum(final Vec w, final Vec x, final Vec y, final Function1D f)
     {
         if(w.length() != x.length() || x.length() != y.length())
             throw new ArithmeticException("All 3 vector inputs must have equal lengths");

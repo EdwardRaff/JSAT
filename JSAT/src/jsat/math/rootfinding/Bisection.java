@@ -1,96 +1,82 @@
 
 package jsat.math.rootfinding;
 
-import jsat.linear.Vec;
-import jsat.math.Function;
+import jsat.math.Function1D;
 
 /**
- *
+ * Provides an implementation of the Bisection method of root finding. 
  * @author Edward Raff
  */
 public class Bisection implements RootFinder
 {
     
+    private static final long serialVersionUID = -8107160048637997385L;
 
-	private static final long serialVersionUID = -8107160048637997385L;
-
-	/**
-     * Uses the bisection method to find the argument of some function <tt>f</tt> for which 
-     * <tt>f</tt>(<tt>args</tt>) = 0. If no <tt>args</tt> are given, it will be assumed that
-     * <tt>f</tt> takes a single variable input 
-     * 
-     * @param a the lower end of the search interval. <tt>f</tt>(<tt>a</tt>) must be &le; 0
-     * @param b the uper end of the search interval. <tt>f</tt>(<tt>b</tt>) must be &ge; 0
-     * @param f the function to find a root of
-     * @param args the list of initial values for the function. The value at 0
-     * can be anything, since it will be over written by the search. 
-     * 
-     * @return a value that when given to <tt>f</tt> with additional values <tt>args</tt>, will return <tt>x</tt>
+    /**
+     * Performs root finding on the function {@code f}.
+     *
+     * @param a the left bound on the root (i.e., f(a) &lt; 0)
+     * @param b the right bound on the root (i.e., f(b) &gt; 0)
+     * @param f the function to find the root of
+     * @return the value of variable {@code pos} that produces a zero value
+     * output
      */
-    public static double root(double a, double b, Function f, double... args)
+    public static double root(double a, double b, Function1D f)
     {
-        return root(1e-15, 1000, a, b, 0, f, args);
+        return root(1e-15, a, b, f);
     }
     
-    public static double root(double eps, double a, double b, Function f, double... args)
-    {
-        return root(eps, 1000, a, b, 0, f, args);
-    }
     
-    public static double root(double eps, double a, double b, int pos, Function f, double... args)
+    /**
+     * Performs root finding on the function {@code f}.
+     *
+     * @param eps the desired accuracy of the result
+     * @param a the left bound on the root (i.e., f(a) &lt; 0)
+     * @param b the right bound on the root (i.e., f(b) &gt; 0)
+     * @param f the function to find the root of
+     * @return the value of variable {@code pos} that produces a zero value
+     * output
+     */
+    public static double root(double eps, double a, double b, Function1D f)
     {
-        return root(eps, 1000, a, b, pos, f, args);
+        return root(eps, 1000, a, b, f);
     }
     
     /**
-     * Uses the bisection method to find the argument of some function <tt>f</tt> for which 
-     * <tt>f</tt>(<tt>args</tt>) = 0. If no <tt>args</tt> are given, it will be assumed that
-     * <tt>f</tt> takes a single variable input 
-     * 
-     * @param eps the accuracy desired 
-     * @param maxIterations the maximum number of iterations 
-     * @param a the lower end of the search interval. <tt>f</tt>(<tt>a</tt>) must be &le; 0
-     * @param b the uper end of the search interval. <tt>f</tt>(<tt>b</tt>) must be &ge; 0
-     * @param f the function to find a root of
-     * @param pos which variable in the arguments is going to be the search variable
-     * @param args the list of initial values for the function. The value at <tt>pos</tt> 
-     * can be anything, since it will be over written by the search. 
-     * 
-     * @return the value of the <tt>pos</tt><sup>th</sup> variable that makes this function return 0. 
+     * Performs root finding on the function {@code f}.
+     *
+     * @param eps the desired accuracy of the result
+     * @param maxIterations the maximum number of iterations to perform
+     * @param a the left bound on the root (i.e., f(a) &lt; 0)
+     * @param b the right bound on the root (i.e., f(b) &gt; 0)
+     * @param f the function to find the root of
+     * @return the value of variable {@code pos} that produces a zero value
+     * output
      */
-    public static double root(double eps, int maxIterations, double a, double b, int pos, Function f, double... args)
+    public static double root(double eps, int maxIterations, double a, double b, Function1D f)
     {
         if(b <= a)
             throw new ArithmeticException("a musbt be < b for Bisection to work");
         
-        //We assume 1 dimensional function then 
-        if(args == null ||args.length == 0)
-        {
-            pos = 0;
-            args = new double[1];
-        }
-        
-        args[pos] = b;
-        double fb = f.f(args);
-        args[pos] = a;
-        double fa = f.f(args);
+        double fb = f.f(b);
+        double fa = f.f(a);
         
         if(fa* fb >= 0)
             throw new ArithmeticException("The given interval does not appear to bracket the root");
    
         while(b - a > 2*eps && maxIterations-- > 0)
         {
-            args[pos] = (a+b)*0.5;
-            double ftmp = f.f(args);
+            double midPoint = (a+b)*0.5;
+            double ftmp = f.f(midPoint);
             
             if(fa*ftmp < 0)
             {
-                b = args[pos];
+                b = midPoint;
                 fb = ftmp;
             }
             else if(fb * ftmp < 0)
             {
-                a = args[pos];
+                a = midPoint;
                 fa = ftmp;
             }
             else
@@ -100,16 +86,13 @@ public class Bisection implements RootFinder
         return (a+b)*0.5;
     }
 
-    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, double... args)
+    @Override
+    public double root(double eps, int maxIterations, double[] initialGuesses, Function1D f)
     {
-        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args);
+        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], f);
     }
 
-    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, Vec args)
-    {
-        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args.arrayCopy());
-    }
-
+    @Override
     public int guessesNeeded()
     {
         return 2;

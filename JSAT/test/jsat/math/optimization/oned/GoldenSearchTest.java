@@ -17,8 +17,7 @@
 package jsat.math.optimization.oned;
 
 import jsat.linear.Vec;
-import jsat.math.Function;
-import jsat.math.FunctionBase;
+import jsat.math.Function1D;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -32,15 +31,7 @@ import static org.junit.Assert.*;
  */
 public class GoldenSearchTest
 {
-    private static final FunctionBase easyMin_at_0 = new FunctionBase()
-    {
-
-        @Override
-        public double f(Vec x)
-        {
-            return 1+Math.pow(x.get(0), 2);
-        }
-    };
+    private static final Function1D easyMin_at_0 = (double x) -> 1+Math.pow(x, 2);
     
     public GoldenSearchTest()
     {

@@ -31,7 +31,6 @@ import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.vectorcollection.VPTree;
 import jsat.linear.vectorcollection.VPTreeMV;
 import jsat.math.FastMath;
-import jsat.math.FunctionBase;
 import jsat.math.optimization.stochastic.*;
 import jsat.math.rootfinding.Zeroin;
 import jsat.utils.FakeExecutor;
@@ -39,7 +38,6 @@ import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDouble;
 import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 
 /**
  * t-distributed Stochastic Neighbor Embedding is an algorithm for creating low
@@ -438,14 +436,8 @@ public class TSNE implements VisualizationTransform
                             tryAgain = false;
                             try
                             {
-                                double sigma_i = Zeroin.root(1e-2, 100, minSigma.get(), maxSigma.get(), 0, new FunctionBase()
-                                {
-                                    @Override
-                                    public double f(Vec x)
-                                    {
-                                        return perp(I, nearMe, x.get(0), neighbors, vecs, accelCache, dm) - perplexity;
-                                    }
-                                });
+                                double sigma_i = Zeroin.root(1e-2, 100, minSigma.get(), maxSigma.get(),
+                                        (double x) -> perp(I, nearMe, x, neighbors, vecs, accelCache, dm) - perplexity);
                                 
                                 sigma[i] = sigma_i;
                             }

@@ -21,7 +21,7 @@ import java.util.Random;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.Function;
-import jsat.math.FunctionBase;
+import jsat.math.Function1D;
 import jsat.math.rootfinding.Zeroin;
 
 /**
@@ -52,50 +52,13 @@ public abstract class Distribution implements Cloneable, Serializable
      */
     public double invCdf(double p)
     {
-        return invCdf(p, new FunctionBase()
-        {
-            @Override
-            public double f(Vec x)
-            {
-                return cdf(x.get(0));
-            }
-        });
-    }
-
-    /**
-     * This method is provided as a quick helper function, as any CDF has a 1 to
-     * 1 mapping with an inverse, CDF<sup>.-1</sup>. This does a search for that
-     * value, and should only be used if the quantile function will be used
-     * infrequently or no alternative is available.
-     *
-     * @param p the [0,1] probability value
-     * @param cdf a function that provides the CDF we want to emulate the
-     * inverse of
-     * @return the quantile function, CDF<sup>-1</sup>(p) = x
-     */
-    protected double invCdf(final double p, final Function cdf)
-    {
         if (p < 0 || p > 1)
             throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
         double a = Double.isInfinite(min()) ? Double.MIN_VALUE : min();
         double b = Double.isInfinite(max()) ? Double.MAX_VALUE : max();
 
-        Function newCDF = new Function()
-        {
-
-            @Override
-            public double f(double... x)
-            {
-                return cdf.f(x) - p;
-            }
-
-            @Override
-            public double f(Vec x)
-            {
-                return f(x.get(0));
-            }
-        };
-        return Zeroin.root(a, b, newCDF, p);
+        //default case, lets just do a root finding on the CDF for the specific value of p
+        return Zeroin.root(a, b, (x) -> cdf(x) - p);
     }
 
     /**
@@ -208,31 +171,4 @@ public abstract class Distribution implements Cloneable, Serializable
     
     @Override
     abstract public Distribution clone();
-
-    /**
-     * Wraps the {@link #cdf(double) } function of the given distribution in a
-     * function object for use.
-     *
-     * @param dist the distribution to wrap the cdf of
-     * @return a function for evaluating the cdf of the given distribution
-     */
-    public static Function getFunctionCDF(final Distribution dist)
-    {
-        return new Function()
-        {
-            private static final long serialVersionUID = -3794266180670489168L;
-
-            @Override
-            public double f(double... x)
-            {
-                return f(DenseVector.toDenseVec(x));
-            }
-
-            @Override
-            public double f(Vec x)
-            {
-                return dist.cdf(x.get(0));
-            }
-        };
-    }
 }

@@ -8,7 +8,7 @@ import jsat.classifiers.DataPointPair;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.Vec;
 import jsat.math.Function;
-import jsat.math.FunctionBase;
+import jsat.math.Function1D;
 import jsat.math.rootfinding.RootFinder;
 import jsat.math.rootfinding.Zeroin;
 import jsat.parameters.Parameter;
@@ -46,9 +46,9 @@ import jsat.utils.random.RandomUtil;
 public class StochasticGradientBoosting implements Regressor, Parameterized
 {
 
-	private static final long serialVersionUID = -2855154397476855293L;
+    private static final long serialVersionUID = -2855154397476855293L;
 
-	/**
+    /**
      * The default value for the 
      * {@link #setTrainingProportion(double) training proportion} is 
      * {@value #DEFAULT_TRAINING_PROPORTION}. 
@@ -318,9 +318,9 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     private double getMinimizingErrorConst(final List<DataPointPair<Double>> backingResidsList, final Regressor h)
     {
         //Find the coeficent that minimized the residual error by finding the zero of its derivative (local minima)
-        Function fhPrime = getDerivativeFunc(backingResidsList, h);
+        Function1D fhPrime = getDerivativeFunc(backingResidsList, h);
         RootFinder rf = new Zeroin();
-        double y = rf.root(1e-4, 50, new double[]{-2.5, 2.5}, fhPrime, 0, 1.0);
+        double y = rf.root(1e-4, 50, new double[]{-2.5, 2.5}, fhPrime);
         return y;
     }
     
@@ -333,57 +333,48 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
      * @param h the regressor that is having the error of its output minimized
      * @return a Function object approximating the derivative of the squared error
      */
-    private Function getDerivativeFunc(final List<DataPointPair<Double>> backingResidsList, final Regressor h)
+    private Function1D getDerivativeFunc(final List<DataPointPair<Double>> backingResidsList, final Regressor h)
     {
-        final FunctionBase fhPrime = new FunctionBase()
+        final Function1D fhPrime = (double x) ->
         {
-            /**
-			 * 
-			 */
-			private static final long serialVersionUID = -2211642040228795719L;
-
-			@Override
-            public double f(Vec x)
+            double c1 = x;//c2=c1-eps
+            double eps = 1e-5;
+            double c1Pc2 = c1 * 2 - eps;//c1+c2 = c1+c1-eps
+            double result = 0;
+            /*
+            * Computing the estimate of the derivative directly, f'(x) approx = f(x)-f(x-eps)
+            *
+            * hEst is the output of the new regressor, target is the true residual target value
+            *
+            * So we have several
+            * (hEst_i   c1 - target)^2 - (hEst_i   c2 -target)^2   //4 muls, 3 subs
+            * Where c2 = c1-eps
+            * Which simplifies to
+            * (c1 - c2) hEst ((c1 + c2) hEst - 2 target)
+            * =
+            * eps hEst (c1Pc2 hEst - 2 target)//3 muls, 1 sub, 1 shift (mul by 2)
+            *
+            * because eps is on the outside and independent of each
+            * individual summation, we can move it out and do the eps
+            * multiplicatio ont he final result.  Reducing us to
+            *
+            * 2 muls, 1 sub, 1 shift (mul by 2)
+            *
+            * per loop
+            *
+            * Which reduce computation, and allows us to get the result
+            * in one pass of the data
+            */
+            
+            for (DataPointPair<Double> dpp : backingResidsList)
             {
-                double c1 = x.get(0);//c2=c1-eps
-                double eps = 1e-5;
-                double c1Pc2 = c1 * 2 - eps;//c1+c2 = c1+c1-eps
-                double result = 0;
-                /*
-                 * Computing the estimate of the derivative directly, f'(x) approx = f(x)-f(x-eps)
-                 * 
-                 * hEst is the output of the new regressor, target is the true residual target value
-                 * 
-                 * So we have several 
-                 * (hEst_i   c1 - target)^2 - (hEst_i   c2 -target)^2   //4 muls, 3 subs
-                 * Where c2 = c1-eps
-                 * Which simplifies to
-                 * (c1 - c2) hEst ((c1 + c2) hEst - 2 target)
-                 * =
-                 * eps hEst (c1Pc2 hEst - 2 target)//3 muls, 1 sub, 1 shift (mul by 2) 
-                 * 
-                 * because eps is on the outside and independent of each 
-                 * individual summation, we can move it out and do the eps
-                 * multiplicatio ont he final result.  Reducing us to 
-                 * 
-                 * 2 muls, 1 sub, 1 shift (mul by 2)
-                 * 
-                 * per loop
-                 * 
-                 * Which reduce computation, and allows us to get the result
-                 * in one pass of the data
-                 */
-
-                for (DataPointPair<Double> dpp : backingResidsList)
-                {
-                    double hEst = h.regress(dpp.getDataPoint());
-                    double target = dpp.getPair();
-
-                    result += hEst * (c1Pc2 * hEst - 2 * target);
-                }
-
-                return result * eps;
+                double hEst = h.regress(dpp.getDataPoint());
+                double target = dpp.getPair();
+                
+                result += hEst * (c1Pc2 * hEst - 2 * target);
             }
+            
+            return result * eps;
         };
 
         return fhPrime;
@@ -411,15 +402,13 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
         
         if(F != null)
         {
-            clone.F = new ArrayList<Regressor>(F.size());
+            clone.F = new ArrayList<>(F.size());
             for(Regressor f : this.F)
                 clone.F.add(f.clone());
         }
         if(coef != null)
         {
-            clone.coef = new DoubleList(this.coef.size());
-            for(double d : this.coef)
-                clone.coef.add(d);
+            clone.coef = new DoubleList(this.coef);
         }
         
         if(strongLearner != null)
