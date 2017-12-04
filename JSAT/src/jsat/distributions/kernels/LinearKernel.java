@@ -69,50 +69,6 @@ public class LinearKernel extends BaseKernelTrick
         return "Linear Kernel (c=" + c + ")";
     }
     
-    private Parameter param = new DoubleParameter() 
-    {
-
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = -3811777805710374813L;
-
-		@Override
-        public double getValue()
-        {
-            return getC();
-        }
-
-        @Override
-        public boolean setValue(double val)
-        {
-            if(val < 0 || Double.isInfinite(val))
-                return false;
-            setC(val);
-            return true;
-        }
-
-        @Override
-        public String getASCIIName()
-        {
-            return "LinearKernel_c";
-        }
-    };
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Arrays.asList(param);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        if(paramName.equals(param.getASCIIName()))
-            return param;
-        return null;
-    }
-
     @Override
     public LinearKernel clone()
     {

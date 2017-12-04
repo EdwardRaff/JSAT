@@ -525,16 +525,4 @@ public class HDBSCAN extends ClustererBase implements Parameterized
         
         return designations;
     }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
 }

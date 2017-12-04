@@ -498,18 +498,6 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
     }
 
     @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
-
-    @Override
     public Vec getRawWeight(int index)
     {
         return ws[index];

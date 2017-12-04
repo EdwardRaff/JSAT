@@ -309,18 +309,6 @@ public class CPM implements BinaryScoreClassifier, Classifier, Parameterized
         return false;
     }
 
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
-    
     /**
      * 
      * @param dots dot product between the input and each of the k hyper planes

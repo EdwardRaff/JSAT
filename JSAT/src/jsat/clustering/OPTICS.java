@@ -90,18 +90,6 @@ public class OPTICS extends ClustererBase implements Parameterized
     private PriorityQueue<Integer> orderdSeeds;
 
     @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
-
-    @Override
     public OPTICS clone()
     {
         return new OPTICS(this);

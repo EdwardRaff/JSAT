@@ -430,18 +430,5 @@ public class GridSearchTest
             toRet.wasWarmStarted = this.wasWarmStarted;
             return toRet;
         }
-
-        @Override
-        public List<Parameter> getParameters()
-        {
-            return Parameter.getParamsFromMethods(this);
-        }
-
-        @Override
-        public Parameter getParameter(String paramName)
-        {
-            return Parameter.toParameterMap(getParameters()).get(paramName);
-        }
-        
     }
 }

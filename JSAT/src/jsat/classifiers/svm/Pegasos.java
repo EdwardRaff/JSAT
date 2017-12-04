@@ -318,18 +318,6 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
     {
         return dataSet.getDataPointCategory(i) == 1 ? 1.0 : -1.0;
     }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
     
      /**
      * Guess the distribution to use for the regularization term

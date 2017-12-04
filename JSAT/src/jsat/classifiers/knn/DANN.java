@@ -447,16 +447,4 @@ public class DANN implements Classifier, Parameterized
     {
         return new UniformDiscrete(40, Math.max(d.getSampleSize()/5, 50));
     }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
 }

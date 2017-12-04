@@ -41,10 +41,6 @@ public class OrdinaryKriging implements Regressor, Parameterized
      */
     public static final double DEFAULT_ERROR = 0.1;
     
-    List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
-
     /**
      * Creates a new Ordinary Kriging. 
      * 
@@ -291,18 +287,6 @@ public class OrdinaryKriging implements Regressor, Parameterized
     public double getNugget()
     {
         return nugget;
-    }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return params;
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return paramMap.get(paramName);
     }
     
     public static interface Variogram extends Cloneable

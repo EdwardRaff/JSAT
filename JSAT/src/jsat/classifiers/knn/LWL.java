@@ -367,16 +367,4 @@ public class LWL implements Classifier, Regressor, Parameterized
     {
         return new UniformDiscrete(25, Math.min(200, d.getSampleSize()/5));
     }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
 }

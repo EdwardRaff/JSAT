@@ -315,16 +315,4 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
     {
         return new EmphasisBoost(this);
     }
-    
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
 }

@@ -625,17 +625,11 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     @Override
     public List<Parameter> getParameters()
     {
-        List<Parameter> toRet = new ArrayList<Parameter>(Parameter.getParamsFromMethods(this));
+        List<Parameter> toRet = new ArrayList<>(Parameter.getParamsFromMethods(this));
         for (Parameter param : baseStump.getParameters())//We kno the two setGainMethods will colide
             if(!param.getName().contains("Gain Method") && !param.getName().contains("Numeric Handling"))
                 toRet.add(param);
         return Collections.unmodifiableList(toRet);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }

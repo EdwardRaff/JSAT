@@ -251,17 +251,4 @@ public class JaccardDistance implements DistanceMetric, KernelTrick
     {
         return true;
     }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Collections.EMPTY_LIST;
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return null;
-    }
-    
 }

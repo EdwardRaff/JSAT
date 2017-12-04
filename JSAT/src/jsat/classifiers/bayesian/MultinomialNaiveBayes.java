@@ -331,17 +331,5 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
     {
         return true;
     }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
     
 }

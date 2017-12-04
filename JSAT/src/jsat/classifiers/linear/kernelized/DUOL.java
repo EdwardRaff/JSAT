@@ -371,17 +371,4 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
     {
         return new LogUniform(1e-4, 1e5);
     }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
-    
 }

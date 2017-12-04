@@ -271,18 +271,6 @@ public class NaiveBayes implements Classifier, Parameterized
     {
         trainC(dataSet, new FakeExecutor());
     }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
     
     @Override
     public Classifier clone()

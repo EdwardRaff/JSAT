@@ -416,16 +416,4 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
     {
         return new LogUniform(Math.pow(2, 0), Math.pow(2, 4));
     }
-    
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
 }

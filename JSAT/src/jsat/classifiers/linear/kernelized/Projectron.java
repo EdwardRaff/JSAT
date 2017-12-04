@@ -327,16 +327,4 @@ public class Projectron extends BaseUpdateableClassifier implements BinaryScoreC
     {
         return k.evalSum(S, cacheAccel, alpha.getBackingArray(), dp.getNumericalValues(), 0, S.size());
     }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
 }

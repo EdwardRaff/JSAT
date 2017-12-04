@@ -84,18 +84,6 @@ public class RANSAC implements Regressor, Parameterized
         this.baseRegressor = baseRegressor;
     }
 
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
-    
     /**
      * class that does the loop iteration work and returns a reference to 
      * itself. The are sortable based on the lowest error

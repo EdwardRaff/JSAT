@@ -614,18 +614,6 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
             stats[i] = new OnLineStatistics();
         return stats;
     }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
     
     /**
      * Node for classification that splits on a categorical feature

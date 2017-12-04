@@ -400,18 +400,6 @@ public class LVQ implements Classifier, Parameterized
     {
         return seedSelection;
     }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
     
     /**
      * There are several LVQ versions, each one adding an additional case in 

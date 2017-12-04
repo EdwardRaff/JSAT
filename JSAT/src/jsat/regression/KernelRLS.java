@@ -290,17 +290,5 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
                 alphaExpanded[i] += InvKqt.get(i)*(y_t-alphaConst);
         }
     }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
     
 }

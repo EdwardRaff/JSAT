@@ -453,16 +453,4 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
     {
         return C;
     }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
 }

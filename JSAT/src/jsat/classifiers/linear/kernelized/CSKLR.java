@@ -89,18 +89,6 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
         return new LogUniform(1, 1e5);
     }
 
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
-    
     /**
      * Controls when updates are performed on the model. Depending on which 
      * update model is used, the acceptable values and behaviors of 

@@ -224,18 +224,6 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
     }
 
     @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
-
-    @Override
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(2);

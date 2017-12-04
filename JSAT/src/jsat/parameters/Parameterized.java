@@ -14,7 +14,10 @@ public interface Parameterized
      * Returns the list of parameters that can be altered for this learner. 
      * @return the list of parameters that can be altered for this learner. 
      */
-    public List<Parameter> getParameters();
+    default public List<Parameter> getParameters()
+    {
+        return Parameter.getParamsFromMethods(this);
+    }
     
     /**
      * Returns the parameter with the given name. Two different strings may map 
@@ -23,5 +26,8 @@ public interface Parameterized
      * @param paramName the name of the parameter to obtain
      * @return the Parameter in question, or null if no such named Parameter exists. 
      */
-    public Parameter getParameter(String paramName);
+    default public Parameter getParameter(String paramName)
+    {
+        return Parameter.toParameterMap(getParameters()).get(paramName);
+    }
 }

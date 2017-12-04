@@ -873,16 +873,5 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     {
         return new RBFNet(this);
     }
-    
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
 
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
 }

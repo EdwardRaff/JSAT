@@ -113,19 +113,6 @@ public class SigmoidKernel extends BaseKernelTrick
     {
         return new Uniform(-2.4, 2.4);//from A Study on Sigmoid Kernels for SVM and the Training of non-PSD Kernels by SMO-type Methods
     }
-    
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
-
     @Override
     public SigmoidKernel clone()
     {

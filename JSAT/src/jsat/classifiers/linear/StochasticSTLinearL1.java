@@ -467,16 +467,4 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
     {
         return 1;
     }
-    
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
 }

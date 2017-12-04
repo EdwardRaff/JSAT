@@ -262,18 +262,6 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
     
     @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
-
-    @Override
     public Vec getRawWeight()
     {
         return w;

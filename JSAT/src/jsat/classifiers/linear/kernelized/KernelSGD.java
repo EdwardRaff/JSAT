@@ -437,18 +437,6 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
         return new KernelSGD(this);
     }
 
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
-
     private double getNextEta()
     {
         return eta / (lambda * (++time + 2 / lambda));

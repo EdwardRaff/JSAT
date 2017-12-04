@@ -448,18 +448,6 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     {
         return false;
     }
-    
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
 
     /**
      * Guess the distribution to use for the regularization term

@@ -474,18 +474,6 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
         return new LSSVM(this);
     }
 
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
-
     private void mainLoop(DataSet dataSet, LSSVM warmSolution, double[] targets, ExecutorService ex)
     {
         final int P;

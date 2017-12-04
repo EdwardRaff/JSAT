@@ -280,18 +280,5 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
     public boolean supportsWeightedData()
     {
         return false;
-    }
-
-     @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
-    
+    }    
 }

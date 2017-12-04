@@ -71,10 +71,6 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     private double eps = 0.001;
     
     private boolean useBias = true;
-    
-    private final List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    private final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
-
     /**
      * Creates a new DCDL2 SVM object
      */
@@ -491,18 +487,6 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
             clone.alpha = Arrays.copyOf(this.alpha, this.alpha.length);
         
         return clone;
-    }
-    
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return params;
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return paramMap.get(paramName);
     }
 
     @Override

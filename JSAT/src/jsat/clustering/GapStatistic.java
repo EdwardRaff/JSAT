@@ -422,18 +422,6 @@ public class GapStatistic extends KClustererBase implements Parameterized
     {
         return cluster(dataSet, lowK, highK, null, designations);
     }
-    
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
 
     @Override
     public GapStatistic clone()

@@ -129,18 +129,6 @@ public class PolynomialKernel extends BaseKernelTrick
     {
         return new UniformDiscrete(2, 9);
     }
-    
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
 
     @Override
     public PolynomialKernel clone()

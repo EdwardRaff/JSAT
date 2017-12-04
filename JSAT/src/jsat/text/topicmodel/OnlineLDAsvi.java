@@ -821,16 +821,4 @@ public class OnlineLDAsvi implements Parameterized
         }
         //lambda has now been intialized, ELogBeta and ExpELogBeta will be intialized / updated lazily
     }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
 }

@@ -413,18 +413,6 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
         return new OSKL(this);
     }
 
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
-
     /**
      * Updates the average model to reflect the current time average 
      */

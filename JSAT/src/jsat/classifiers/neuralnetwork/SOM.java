@@ -338,18 +338,6 @@ public class SOM implements Classifier, Parameterized
         
         return new PairedReturn<Integer, Integer>(x, y);
     }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
     
     private void trainSOM(final DataSet dataSet, final ExecutorService execServ) throws InterruptedException
     {

@@ -244,16 +244,4 @@ public class SCD implements Classifier, Regressor, Parameterized, SingleWeightVe
     {
         return new SCD(this);
     }
-
-@Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
 }

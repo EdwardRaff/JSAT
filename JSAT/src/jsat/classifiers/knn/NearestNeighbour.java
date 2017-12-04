@@ -72,20 +72,6 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
             throw new NullPointerException("given metric was null");
         this.distanceMetric = distanceMetric;
     }
-    
-    
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
 
     private enum Mode {REGRESSION, CLASSIFICATION};
     /**

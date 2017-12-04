@@ -317,17 +317,4 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
     {
         return new Uniform(1e-3, 1.0);
     }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
-    
 }
