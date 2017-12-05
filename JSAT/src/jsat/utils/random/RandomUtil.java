@@ -17,6 +17,7 @@
 package jsat.utils.random;
 
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This class provides assorted utilities related to random number generation
@@ -40,7 +41,8 @@ public class RandomUtil
      * any point without ill effect, but the purpose is for consistent and
      * repeatable experiments.
      */
-    public static int DEFAULT_SEED = 963863937;
+    public static AtomicInteger DEFAULT_SEED = new AtomicInteger(963863937);
+    
     /**
      * This controls whether or not {@link #getRandom() } will cause a change in
      * the {@link #DEFAULT_SEED} each time it is called. This is the default to
@@ -68,11 +70,13 @@ public class RandomUtil
      *
      * @return a new random number generator to use. 
      */
-    public static synchronized Random getRandom()
+    public static Random getRandom()
     {
-        int seed = DEFAULT_SEED;
+        int seed;
         if(INCREMENT_SEEDS)
-            DEFAULT_SEED += SEED_INCREMENT;
+            seed = DEFAULT_SEED.getAndAdd(SEED_INCREMENT);
+        else
+            seed = DEFAULT_SEED.get();
         return new XORWOW(seed);
     }
     
@@ -87,7 +91,7 @@ public class RandomUtil
      * by the returned object
      * @return a new random number generator to use.
      */
-    public static synchronized Random getRandom(int seed)
+    public static Random getRandom(int seed)
     {
         return new XORWOW(seed);
     }
