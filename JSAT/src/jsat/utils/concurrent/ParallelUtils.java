@@ -79,6 +79,60 @@ public class ParallelUtils
 
     }
     
+    public static void run(boolean parallel, int N, IndexRunnable ir)
+    {
+        ExecutorService threadPool = Executors.newWorkStealingPool(SystemInfo.LogicalCores);
+        run(parallel, N, ir, threadPool);
+        threadPool.shutdownNow();
+    }
+    
+    /**
+     * This helper method provides a convenient way to break up a computation
+     * across <tt>N</tt> items into individual indices to be processed. This
+     * method is meant for when the execution time of any given index is highly
+     * variable, and so for load balancing purposes, should be treated as
+     * individual jobs. If runtime is consistent, look at {@link #run(boolean, int, jsat.utils.concurrent.LoopChunkRunner, java.util.concurrent.ExecutorService)
+     * }.
+      
+     *
+     * @param parallel a boolean indicating if the work should be done in
+     * parallel. If false, it will run single-threaded. This is for code
+     * convenience so that only one set of code is needed to handle both cases.
+     * @param N the total number of items to process. 
+     * @param ir the runnable over a contiguous range 
+     * @param threadPool the source of threads for the computation 
+     */
+    public static void run(boolean parallel, int N, IndexRunnable ir, ExecutorService threadPool)
+    {
+        if(!parallel)
+        {
+            for(int i = 0; i < N; i++)
+                ir.run(N);
+            return;
+        }
+        
+        final CountDownLatch latch = new CountDownLatch(N);
+
+        IntStream.range(0, N).forEach(threadID ->
+        {
+            threadPool.submit(() ->
+            {
+                ir.run(threadID);
+                latch.countDown();
+            });
+        });
+
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(ParallelUtils.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+    
     public static ExecutorService getNewExecutor(boolean parallel)
     {
         if(parallel)
@@ -89,6 +143,14 @@ public class ParallelUtils
     
     
     public static <T> Stream<T> streamP(Stream<T> source, boolean parallel)
+    {
+        if(parallel)
+            return source.parallel();
+        else
+            return source;
+    }
+    
+    public static IntStream streamP(IntStream source, boolean parallel)
     {
         if(parallel)
             return source.parallel();
