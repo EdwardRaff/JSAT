@@ -1,6 +1,5 @@
 package jsat.classifiers.boosting;
 
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -14,12 +13,12 @@ import jsat.classifiers.DataPoint;
 import jsat.distributions.ContinuousDistribution;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
 /**
@@ -38,8 +37,8 @@ import jsat.utils.random.RandomUtil;
 public class Wagging implements Classifier, Regressor, Parameterized
 {
 
-	private static final long serialVersionUID = 4999034730848794619L;
-	private ContinuousDistribution dist;
+    private static final long serialVersionUID = 4999034730848794619L;
+    private ContinuousDistribution dist;
     private int iterations;
     private Classifier weakL;
     private Regressor weakR;
@@ -231,7 +230,7 @@ public class Wagging implements Classifier, Regressor, Parameterized
                         ds.getDataPoint(j).setWeight(newWeight);
                     }
                     Classifier hypot = weakL.clone();
-                    hypot.trainC(cds);
+                    hypot.train(cds);
                     hypotsL[i] = hypot;
                 }
             }
@@ -254,8 +253,9 @@ public class Wagging implements Classifier, Regressor, Parameterized
         }
     }
     
-    private void performTraining(ExecutorService threadPool, DataSet dataSet)
+    private void performTraining(boolean parallel, DataSet dataSet)
     {
+        ExecutorService threadPool = ParallelUtils.getNewExecutor(parallel);
         int chunkSize = iterations/SystemInfo.LogicalCores;
         int extra = iterations%SystemInfo.LogicalCores;
         
@@ -279,6 +279,10 @@ public class Wagging implements Classifier, Regressor, Parameterized
         {
             throw new FailedToFitException(ex);
         }
+        finally
+        {
+            threadPool.shutdownNow();
+        }
     }
     
     @Override
@@ -296,7 +300,7 @@ public class Wagging implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         if(weakL == null)
             throw new FailedToFitException("No classification weak learner was provided");
@@ -304,13 +308,7 @@ public class Wagging implements Classifier, Regressor, Parameterized
         hypotsL = new Classifier[iterations];
         hypotsR = null;
         
-        performTraining(threadPool, dataSet);
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, new FakeExecutor());
+        performTraining(parallel, dataSet);
     }
 
     @Override
@@ -333,22 +331,16 @@ public class Wagging implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         if(weakR == null)
             throw new FailedToFitException("No regression weak learner was provided");
         hypotsL = null;
         hypotsR = new Regressor[iterations];
         
-        performTraining(threadPool, dataSet);
+        performTraining(parallel, dataSet);
     }
-
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, new FakeExecutor());
-    }
-
+    
     @Override
     public Wagging clone()
     {

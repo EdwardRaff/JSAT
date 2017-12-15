@@ -237,13 +237,13 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         if(dataSet.getClassSize() != 2)
             throw new FailedToFitException("CSKLR supports only binary classification");

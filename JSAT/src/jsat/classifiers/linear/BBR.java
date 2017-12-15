@@ -325,13 +325,13 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         final int D = dataSet.getNumNumericalVars();
         if (D <= 0)

@@ -66,12 +66,7 @@ public class TestTools
             ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()));
             obj = in.readObject();
         }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-            throw new RuntimeException("Object couldn't be copied", e);
-        }
-        catch (ClassNotFoundException e)
+        catch (IOException | ClassNotFoundException e)
         {
             e.printStackTrace();
             throw new RuntimeException("Object couldn't be copied", e);
@@ -133,7 +128,7 @@ public class TestTools
      */
     public static boolean regressEvalLinear(Regressor instance, ExecutorService ex)
     {
-        return regressEvalLinear(instance, ex, 500, 100);
+        return regressEvalLinear(instance, false, 500, 100);
     }
     
     /**
@@ -144,11 +139,11 @@ public class TestTools
      * @param N_test size of the testing set
      * @return <tt>true</tt> if the model passed the test, <tt>false</tt> if it failed
      */
-    public static boolean regressEvalLinear(Regressor instance, ExecutorService ex, int N_train, int N_test)
+    public static boolean regressEvalLinear(Regressor instance, boolean parallel, int N_train, int N_test)
     {
         RegressionDataSet train = FixedProblems.getLinearRegression(N_train, RandomUtil.getRandom());
         RegressionDataSet test = FixedProblems.getLinearRegression(N_test, RandomUtil.getRandom());
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, parallel);
         rme.evaluateTestSet(test);
         return rme.getMeanError() <= test.getTargetValues().mean() * 1.5;
     }

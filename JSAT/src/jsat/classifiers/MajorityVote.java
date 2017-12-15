@@ -72,17 +72,17 @@ public class MajorityVote implements Classifier
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         for(Classifier classifier : voters)
-            classifier.trainC(dataSet, threadPool);
+            classifier.train(dataSet, parallel);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         for(Classifier classifier : voters)
-            classifier.trainC(dataSet);
+            classifier.train(dataSet);
     }
 
     @Override

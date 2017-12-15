@@ -71,7 +71,7 @@ public class LinearL1SCDTest
 
 
     /**
-     * Test of trainC method, of class LinearL1SCD.
+     * Test of train method, of class LinearL1SCD.
      */
     @Test
     public void testTrainC_ClassificationDataSet()
@@ -81,7 +81,7 @@ public class LinearL1SCDTest
         
         LinearL1SCD scd = new LinearL1SCD();
         scd.setLoss(StochasticSTLinearL1.Loss.LOG);
-        scd.trainC(train);
+        scd.train(train);
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
         

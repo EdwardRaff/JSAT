@@ -11,6 +11,7 @@ import static jsat.linear.DenseVector.toDenseVec;
 import jsat.linear.*;
 import jsat.parameters.*;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * An implementation of Ordinary Kriging with support for a uniform error 
@@ -22,8 +23,8 @@ import jsat.utils.SystemInfo;
 public class OrdinaryKriging implements Regressor, Parameterized
 {
 
-	private static final long serialVersionUID = -5774553215322383751L;
-	private Variogram vari;
+    private static final long serialVersionUID = -5774553215322383751L;
+    private Variogram vari;
     /**
      * The weight values for each data point
      */
@@ -97,7 +98,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         this.dataSet = dataSet;
         /**
@@ -113,19 +114,16 @@ public class OrdinaryKriging implements Regressor, Parameterized
         
         vari.train(dataSet, nugget);
         
-        if(threadPool == null)
-            setUpVectorMatrix(N, dataSet, V, Y);
-        else
-            setUpVectorMatrix(N, dataSet, V, Y, threadPool);
+        setUpVectorMatrix(N, dataSet, V, Y, parallel);
         
         for(int i = 0; i < N; i++)
             V.increment(i, i, -errorSqrd);
         
         LUPDecomposition lup;
-        if(threadPool == null)
-            lup = new LUPDecomposition(V);
+        if(parallel)
+            lup = new LUPDecomposition(V, ParallelUtils.CACHED_THREAD_POOL);
         else
-            lup = new LUPDecomposition(V, threadPool);
+            lup = new LUPDecomposition(V);
         
         X = lup.solve(Y);
         if(Double.isNaN(lup.det()) || Math.abs(lup.det()) < 1e-5)
@@ -135,13 +133,13 @@ public class OrdinaryKriging implements Regressor, Parameterized
         }
     }
 
-    private void setUpVectorMatrix(final int N, RegressionDataSet dataSet, Matrix V, Vec Y)
+    private void setUpVectorMatrix(final int N, final RegressionDataSet dataSet, final Matrix V, final Vec Y, boolean parallel)
     {
-        for(int i = 0; i < N; i++)
+        ParallelUtils.run(parallel, N, (i)->
         {
             DataPoint dpi = dataSet.getDataPoint(i);
             Vec xi = dpi.getNumericalValues();
-            for(int j = 0; j < N; j++)
+            for (int j = 0; j < N; j++)
             {
                 Vec xj = dataSet.getDataPoint(j).getNumericalValues();
                 double val = vari.val(xi.pNormDist(2, xj));
@@ -151,65 +149,11 @@ public class OrdinaryKriging implements Regressor, Parameterized
             V.set(i, N, 1.0);
             V.set(N, i, 1.0);
             Y.set(i, dataSet.getTargetValue(i));
-        }
-        V.set(N, N, 0);
-    }
-
-    private void setUpVectorMatrix(final int N, final RegressionDataSet dataSet, final Matrix V, final Vec Y, ExecutorService threadPool)
-    {
-        int pos = 0;
-        final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-        
-        while (pos < SystemInfo.LogicalCores)
-        {
-            final int id = pos++;
-            threadPool.submit(new Runnable() 
-            {
-
-                @Override
-                public void run()
-                {
-                    for(int i = id; i < N; i+=SystemInfo.LogicalCores)
-                    {
-                        DataPoint dpi = dataSet.getDataPoint(i);
-                        Vec xi = dpi.getNumericalValues();
-                        for(int j = 0; j < N; j++)
-                        {
-                            Vec xj = dataSet.getDataPoint(j).getNumericalValues();
-                            double val = vari.val(xi.pNormDist(2, xj));
-                            V.set(i, j, val);
-                            V.set(j, i, val);
-                        }
-                        V.set(i, N, 1.0);
-                        V.set(N, i, 1.0);
-                        Y.set(i, dataSet.getTargetValue(i));
-                    }
-                    latch.countDown();
-                }
-            });
-        }
+        });
         
         V.set(N, N, 0);
-        
-        while(pos++ < SystemInfo.LogicalCores)
-            latch.countDown();
-        
-        try
-        {
-            latch.await();
-        }
-        catch (InterruptedException ex)
-        {
-            Logger.getLogger(OrdinaryKriging.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
     
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, null);
-    }
-
     @Override
     public boolean supportsWeightedData()
     {

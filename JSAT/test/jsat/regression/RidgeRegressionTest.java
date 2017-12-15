@@ -19,8 +19,6 @@ import static org.junit.Assert.*;
  */
 public class RidgeRegressionTest
 {
-    static ExecutorService ex;
-    
     public RidgeRegressionTest()
     {
     }
@@ -28,13 +26,11 @@ public class RidgeRegressionTest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -57,7 +53,7 @@ public class RidgeRegressionTest
         {
             RidgeRegression regressor = new RidgeRegression(1e-9, mode);
 
-            regressor.train(FixedProblems.getLinearRegression(400, rand), ex);
+            regressor.train(FixedProblems.getLinearRegression(400, rand), true);
 
             for(DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, new Random(3)).getAsDPPList())
             {

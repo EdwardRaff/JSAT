@@ -37,7 +37,6 @@ import static org.junit.Assert.*;
  */
 public class SMOTETest
 {
-    static ExecutorService ex;
     public SMOTETest()
     {
     }
@@ -45,13 +44,11 @@ public class SMOTETest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdownNow();
     }
     
     @Before
@@ -71,7 +68,7 @@ public class SMOTETest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(200, 20, RandomUtil.getRandom());
         
         SMOTE smote = new SMOTE(new LogisticRegressionDCD());
-        smote.trainC(train, ex);
+        smote.train(train, true);
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, 200, RandomUtil.getRandom());
         
@@ -91,7 +88,7 @@ public class SMOTETest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(200, 20, RandomUtil.getRandom());
         
         SMOTE smote = new SMOTE(new LogisticRegressionDCD());
-        smote.trainC(train);
+        smote.train(train);
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, 200, RandomUtil.getRandom());
         

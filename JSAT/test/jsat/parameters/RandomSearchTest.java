@@ -41,7 +41,6 @@ import static org.junit.Assert.*;
  */
 public class RandomSearchTest
 {
-    static ExecutorService ex;
     ClassificationDataSet classData ;
     RegressionDataSet regData;
     
@@ -52,13 +51,11 @@ public class RandomSearchTest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -95,7 +92,7 @@ public class RandomSearchTest
         instance.addParameter("Param3", new UniformDiscrete(0, 5));
         
         instance = instance.clone();
-        instance.trainC(classData);
+        instance.train(classData);
         instance = instance.clone();
         
         DumbModel model = (DumbModel) instance.getTrainedClassifier();
@@ -116,7 +113,7 @@ public class RandomSearchTest
         instance.autoAddParameters(classData);
         
         instance = instance.clone();
-        instance.trainC(classData);
+        instance.train(classData);
         instance = instance.clone();
         
         DumbModel model = (DumbModel) instance.getTrainedClassifier();
@@ -139,7 +136,7 @@ public class RandomSearchTest
         instance.addParameter("Param3", new UniformDiscrete(0, 5));
         
         instance = instance.clone();
-        instance.trainC(classData, ex);
+        instance.train(classData, true);
         instance = instance.clone();
         
         DumbModel model = (DumbModel) instance.getTrainedClassifier();
@@ -183,7 +180,7 @@ public class RandomSearchTest
         instance.addParameter("Param3", new UniformDiscrete(0, 5));
         
         instance = instance.clone();
-        instance.train(regData, ex);
+        instance.train(regData, true);
         instance = instance.clone();
         
         DumbModel model = (DumbModel) instance.getTrainedRegressor();

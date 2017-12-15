@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.linear.Vec;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * This interface represents the contract that any continuous multivariate distribution must implement
@@ -76,8 +77,24 @@ public interface MultivariateDistribution extends Cloneable, Serializable
      * @param threadpool the source of threads for computation
      * @return <tt>true</tt> if the distribution was fit to the data, or <tt>false</tt> 
      * if the distribution could not be fit to the data set. 
+     * @deprecated GOING TO DELETE
      */
     public <V extends Vec> boolean setUsingData(List<V> dataSet, ExecutorService threadpool);
+    
+    /**
+     * Sets the parameters of the distribution to attempt to fit the given list of vectors.
+     * All vectors are assumed to have the same weight. 
+     * @param <V> the vector type
+     * @param dataSet the list of data points
+     * @param parallel {@code true} if the training should be done using
+     * multiple-cores, {@code false} for single threaded.
+     * @return <tt>true</tt> if the distribution was fit to the data, or <tt>false</tt> 
+     * if the distribution could not be fit to the data set. 
+     */
+    default public <V extends Vec> boolean setUsingData(List<V> dataSet, boolean parallel)
+    {
+        return setUsingData(dataSet, ParallelUtils.CACHED_THREAD_POOL);
+    }
     
     /**
      * Sets the parameters of the distribution to attempt to fit the given list of data points. 

@@ -11,6 +11,7 @@ import jsat.exceptions.FailedToFitException;
 import jsat.regression.*;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * GridSearch is a simple method for tuning the parameters of a classification 
@@ -294,21 +295,16 @@ public class GridSearch extends ModelSearch
     }
     
     @Override
-    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final boolean parallel)
     {
-        final PriorityQueue<RegressionModelEvaluation> bestModels =
-                new PriorityQueue<RegressionModelEvaluation>(folds,
-                                                                 new Comparator<RegressionModelEvaluation>()
-        {
-            @Override
-            public int compare(RegressionModelEvaluation t, RegressionModelEvaluation t1)
-            {
-                double v0 = t.getScoreStats(regressionTargetScore).getMean();
-                double v1 = t1.getScoreStats(regressionTargetScore).getMean();
-                int order = regressionTargetScore.lowerIsBetter() ? 1 : -1;
-                return order*Double.compare(v0, v1);
-            }
-        });
+        final PriorityQueue<RegressionModelEvaluation> bestModels
+                = new PriorityQueue<>(folds, (RegressionModelEvaluation t, RegressionModelEvaluation t1) ->
+                {
+                    double v0 = t.getScoreStats(regressionTargetScore).getMean();
+                    double v1 = t1.getScoreStats(regressionTargetScore).getMean();
+                    int order = regressionTargetScore.lowerIsBetter() ? 1 : -1;
+                    return order * Double.compare(v0, v1);
+                });
 
         
         /**
@@ -333,19 +329,6 @@ public class GridSearch extends ModelSearch
             if(incrementCombination(setTo))
                 break;
         }
-        /*
-         * This is the Executor used for training the models in parallel. If we 
-         * are not supposed to do that, it will be an executor that executes 
-         * them sequentually. 
-         */
-        final ExecutorService modelService;
-        if(trainModelsInParallel)
-            modelService = threadPool;
-        else
-            modelService = new FakeExecutor();
-        
-        final CountDownLatch latch;//used for stopping in both cases
-        
         //if we are doing our CV splits ahead of time, get them done now
         final List<RegressionDataSet> preFolded;
 
@@ -358,7 +341,7 @@ public class GridSearch extends ModelSearch
         if (reuseSameCVFolds)
         {
             preFolded = dataSet.cvSet(folds);
-            trainCombinations = new ArrayList<RegressionDataSet>(preFolded.size());
+            trainCombinations = new ArrayList<>(preFolded.size());
             for (int i = 0; i < preFolded.size(); i++)
                 trainCombinations.add(RegressionDataSet.comineAllBut(preFolded, i));
         }
@@ -394,131 +377,77 @@ public class GridSearch extends ModelSearch
              * we wanted to try
              */
             
-            int stepSize = searchValues.get(0).size();
-            int totalJobs = paramsToEval.size()/stepSize;
-            latch = new CountDownLatch(totalJobs);
-            for(int startPos = 0; startPos < paramsToEval.size(); startPos += stepSize)
+            ParallelUtils.run(parallel && trainModelsInParallel, paramsToEval.size(), (start, end)->
             {
-                final List<Regressor> subSet = paramsToEval.subList(startPos, startPos+stepSize);
-                modelService.submit(new Runnable()
+                final List<Regressor> subSet = paramsToEval.subList(start, end);
+                Regressor[] prevModels = null;
+                for (Regressor r : subSet)
                 {
-
-                    @Override
-                    public void run()
+                    RegressionModelEvaluation rme = new RegressionModelEvaluation(r, dataSet, !trainModelsInParallel && parallel);
+                    rme.setKeepModels(true);//we need these to do warm starts!
+                    rme.setWarmModels(prevModels);
+                    rme.addScorer(regressionTargetScore.clone());
+                    if (reuseSameCVFolds)
+                        rme.evaluateCrossValidation(preFolded, trainCombinations);
+                    else
+                        rme.evaluateCrossValidation(folds);
+                    prevModels = rme.getKeptModels();
+                    synchronized (bestModels)
                     {
-                        Regressor[] prevModels = null;
-                        for(Regressor r : subSet)
-                        {
-                            RegressionModelEvaluation rme = trainModelsInParallel ?
-                                    new RegressionModelEvaluation(r, dataSet) 
-                                    : new RegressionModelEvaluation(r, dataSet, threadPool);
-                            rme.setKeepModels(true);//we need these to do warm starts!
-                            rme.setWarmModels(prevModels);
-                            rme.addScorer(regressionTargetScore.clone());
-                            if(reuseSameCVFolds)
-                                rme.evaluateCrossValidation(preFolded, trainCombinations);
-                            else
-                                rme.evaluateCrossValidation(folds);
-                            prevModels = rme.getKeptModels();
-                            synchronized(bestModels)
-                            {
-                                bestModels.add(rme);
-                            }
-                        }
-                        latch.countDown();
+                        bestModels.add(rme);
                     }
-                });
-            }
+                }
+            });
         }
         else//regular CV, train a new model from scratch at every step
         {
-            latch = new CountDownLatch(paramsToEval.size());
-
-            for (final Regressor toTrain : paramsToEval)
+            ParallelUtils.run(parallel && trainModelsInParallel, paramsToEval.size(), (indx)->
             {
-
-                modelService.submit(new Runnable()
-                {
-
-                    @Override
-                    public void run()
-                    {
-                        RegressionModelEvaluation rme = trainModelsInParallel ?
-                                    new RegressionModelEvaluation(toTrain, dataSet) 
-                                    : new RegressionModelEvaluation(toTrain, dataSet, threadPool);
-                        rme.addScorer(regressionTargetScore.clone());
-                        if (reuseSameCVFolds)
-                            rme.evaluateCrossValidation(preFolded, trainCombinations);
-                        else
-                            rme.evaluateCrossValidation(folds);
-                        synchronized (bestModels)
-                        {
-                            bestModels.add(rme);
-                        }
-
-                        latch.countDown();
-                    }
-                });
-            }
-        }
-        
-        
-        try
-        {
-            latch.await();
-            //Now we know the best classifier, we need to train one on the whole data set. 
-            Regressor bestRegressor = bestModels.peek().getRegressor();//Just re-train it on the whole set
-            if(trainFinalModel)
-            {
-                //try and warm start the final model if we can
-                if(useWarmStarts && bestRegressor instanceof WarmRegressor && 
-                        !((WarmRegressor)bestRegressor).warmFromSameDataOnly())//last line here needed to make sure we can do this warm train
-                {
-                    WarmRegressor wr = (WarmRegressor) bestRegressor;
-                    if(threadPool instanceof FakeExecutor)
-                        wr.train(dataSet, wr.clone());
-                    else
-                        wr.train(dataSet, wr.clone(), threadPool);
-                }
+                Regressor r = paramsToEval.get(indx);
+                RegressionModelEvaluation rme = new RegressionModelEvaluation(r, dataSet, !trainModelsInParallel && parallel);
+                rme.addScorer(regressionTargetScore.clone());
+                if (reuseSameCVFolds)
+                    rme.evaluateCrossValidation(preFolded, trainCombinations);
                 else
+                    rme.evaluateCrossValidation(folds);
+                synchronized (bestModels)
                 {
-                    if (threadPool instanceof FakeExecutor)
-                        bestRegressor.train(dataSet);
-                    else
-                        bestRegressor.train(dataSet, threadPool);
+                    bestModels.add(rme);
                 }
-            }
-            trainedRegressor = bestRegressor;
-            
+            });
         }
-        catch (InterruptedException ex)
+        
+        //Now we know the best classifier, we need to train one on the whole data set. 
+        Regressor bestRegressor = bestModels.peek().getRegressor();//Just re-train it on the whole set
+        if (trainFinalModel)
         {
-            Logger.getLogger(GridSearch.class.getName()).log(Level.SEVERE, null, ex);
+            //try and warm start the final model if we can
+            if (useWarmStarts && bestRegressor instanceof WarmRegressor
+                    && !((WarmRegressor) bestRegressor).warmFromSameDataOnly())//last line here needed to make sure we can do this warm train
+            {
+                WarmRegressor wr = (WarmRegressor) bestRegressor;
+                wr.train(dataSet, wr.clone(), parallel);
+            }
+            else
+            {
+                bestRegressor.train(dataSet, parallel);
+            }
         }
+        trainedRegressor = bestRegressor;
+
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final ClassificationDataSet dataSet, final boolean parallel)
     {
-        train(dataSet, new FakeExecutor());
-    }
-    
-    @Override
-    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
-    {
-        final PriorityQueue<ClassificationModelEvaluation> bestModels =
-                new PriorityQueue<ClassificationModelEvaluation>(folds,
-                                                                 new Comparator<ClassificationModelEvaluation>()
-        {
-            @Override
-            public int compare(ClassificationModelEvaluation t, ClassificationModelEvaluation t1)
-            {
-                double v0 = t.getScoreStats(classificationTargetScore).getMean();
-                double v1 = t1.getScoreStats(classificationTargetScore).getMean();
-                int order = classificationTargetScore.lowerIsBetter() ? 1 : -1;
-                return order*Double.compare(v0, v1);
-            }
-        });
+        final PriorityQueue<ClassificationModelEvaluation> bestModels
+                = new PriorityQueue<>(folds, (ClassificationModelEvaluation t, ClassificationModelEvaluation t1) ->
+                {
+                    double v0 = t.getScoreStats(classificationTargetScore).getMean();
+                    double v1 = t1.getScoreStats(classificationTargetScore).getMean();
+                    int order = classificationTargetScore.lowerIsBetter() ? 1 : -1;
+                    return order * Double.compare(v0, v1);
+                });
 
         
         /**
@@ -544,19 +473,6 @@ public class GridSearch extends ModelSearch
             if(incrementCombination(setTo))
                 break;
         }
-        /*
-         * This is the Executor used for training the models in parallel. If we 
-         * are not supposed to do that, it will be an executor that executes 
-         * them sequentually. 
-         */
-        final ExecutorService modelService;
-        if(trainModelsInParallel)
-            modelService = threadPool;
-        else
-            modelService = new FakeExecutor();
-        
-        final CountDownLatch latch;//used for stopping in both cases
-        
         //if we are doing our CV splits ahead of time, get them done now
         final List<ClassificationDataSet> preFolded;
 
@@ -569,7 +485,7 @@ public class GridSearch extends ModelSearch
         if (reuseSameCVFolds)
         {
             preFolded = dataSet.cvSet(folds);
-            trainCombinations = new ArrayList<ClassificationDataSet>(preFolded.size());
+            trainCombinations = new ArrayList<>(preFolded.size());
             for (int i = 0; i < preFolded.size(); i++)
                 trainCombinations.add(ClassificationDataSet.comineAllBut(preFolded, i));
         }
@@ -606,114 +522,63 @@ public class GridSearch extends ModelSearch
              * we wanted to try
              */
             
-            int stepSize = searchValues.get(0).size();
-            int totalJobs = paramsToEval.size()/stepSize;
-            latch = new CountDownLatch(totalJobs);
-            for(int startPos = 0; startPos < paramsToEval.size(); startPos += stepSize)
+            ParallelUtils.run(parallel && trainModelsInParallel, paramsToEval.size(), (start, end)->
             {
-                final List<Classifier> subSet = paramsToEval.subList(startPos, startPos+stepSize);
-                modelService.submit(new Runnable()
+                final List<Classifier> subSet = paramsToEval.subList(start, end);
+                Classifier[] prevModels = null;
+                for (Classifier r : subSet)
                 {
-
-                    @Override
-                    public void run()
+                    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(r, dataSet, !trainModelsInParallel && parallel);
+                    cme.setKeepModels(true);//we need these to do warm starts!
+                    cme.setWarmModels(prevModels);
+                    cme.addScorer(classificationTargetScore.clone());
+                    if (reuseSameCVFolds)
+                        cme.evaluateCrossValidation(preFolded, trainCombinations);
+                    else
+                        cme.evaluateCrossValidation(folds);
+                    prevModels = cme.getKeptModels();
+                    synchronized (bestModels)
                     {
-                        Classifier[] prevModels = null;
-                        
-                        for(Classifier c : subSet)
-                        {
-                            ClassificationModelEvaluation cme = trainModelsInParallel ?
-                                    new ClassificationModelEvaluation(c, dataSet) 
-                                    : new ClassificationModelEvaluation(c, dataSet, threadPool);
-                            cme.setKeepModels(true);//we need these to do warm starts!
-                            cme.setWarmModels(prevModels);
-                            cme.addScorer(classificationTargetScore.clone());
-                            if(reuseSameCVFolds)
-                                cme.evaluateCrossValidation(preFolded, trainCombinations);
-                            else
-                                cme.evaluateCrossValidation(folds);
-                            prevModels = cme.getKeptModels();
-                            synchronized(bestModels)
-                            {
-                                bestModels.add(cme);
-                            }
-                        }
-                        latch.countDown();
+                        bestModels.add(cme);
                     }
-                });
-            }
+                }
+            });
         }
         else//regular CV, train a new model from scratch at every step
         {
-            latch = new CountDownLatch(paramsToEval.size());
-            
-            for (final Classifier toTrain : paramsToEval)
+            ParallelUtils.run(parallel && trainModelsInParallel, paramsToEval.size(), (int indx)->
             {
-
-                modelService.submit(new Runnable()
-                {
-
-                    @Override
-                    public void run()
-                    {
-                        ClassificationModelEvaluation cme = trainModelsInParallel ?
-                                    new ClassificationModelEvaluation(toTrain, dataSet) 
-                                    : new ClassificationModelEvaluation(toTrain, dataSet, threadPool);
-                        cme.addScorer(classificationTargetScore.clone());
-                        if(reuseSameCVFolds)
-                            cme.evaluateCrossValidation(preFolded, trainCombinations);
-                        else
-                            cme.evaluateCrossValidation(folds);
-                        synchronized (bestModels)
-                        {
-                            bestModels.add(cme);
-                        }
-
-                        latch.countDown();
-                    }
-                });
-            }
-        }
-
-        //now wait for everyone to finish
-        try
-        {
-            latch.await();
-            //Now we know the best classifier, we need to train one on the whole data set. 
-            Classifier bestClassifier = bestModels.peek().getClassifier();//Just re-train it on the whole set
-            if(trainFinalModel)
-            {
-                //try and warm start the final model if we can
-                if(useWarmStarts && bestClassifier instanceof WarmClassifier && 
-                        !((WarmClassifier)bestClassifier).warmFromSameDataOnly())//last line here needed to make sure we can do this warm train
-                {
-                    WarmClassifier wc = (WarmClassifier) bestClassifier;
-                    if(threadPool instanceof FakeExecutor)
-                        wc.trainC(dataSet, wc.clone());
-                    else
-                        wc.trainC(dataSet, wc.clone(), threadPool);
-                }
+                Classifier toTrain = paramsToEval.get(indx);
+                ClassificationModelEvaluation cme = new ClassificationModelEvaluation(toTrain, dataSet, !trainModelsInParallel && parallel);
+                cme.addScorer(classificationTargetScore.clone());
+                if (reuseSameCVFolds)
+                    cme.evaluateCrossValidation(preFolded, trainCombinations);
                 else
+                    cme.evaluateCrossValidation(folds);
+                synchronized (bestModels)
                 {
-                    if(threadPool instanceof FakeExecutor)
-                        bestClassifier.trainC(dataSet);
-                    else
-                        bestClassifier.trainC(dataSet, threadPool);
+                    bestModels.add(cme);
                 }
-            }
-            trainedClassifier = bestClassifier;
-            
+            });
         }
-        catch (InterruptedException ex)
-        {
-            Logger.getLogger(GridSearch.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
 
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, new FakeExecutor());
+        //Now we know the best classifier, we need to train one on the whole data set. 
+        Classifier bestClassifier = bestModels.peek().getClassifier();//Just re-train it on the whole set
+        if (trainFinalModel)
+        {
+            //try and warm start the final model if we can
+            if (useWarmStarts && bestClassifier instanceof WarmClassifier
+                    && !((WarmClassifier) bestClassifier).warmFromSameDataOnly())//last line here needed to make sure we can do this warm train
+            {
+                WarmClassifier wc = (WarmClassifier) bestClassifier;
+                wc.train(dataSet, wc.clone(), parallel);
+            }
+            else
+            {
+                bestClassifier.train(dataSet, parallel);
+            }
+        }
+        trainedClassifier = bestClassifier;
     }
 
     @Override

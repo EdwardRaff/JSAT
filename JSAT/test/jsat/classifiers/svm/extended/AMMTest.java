@@ -83,7 +83,7 @@ public class AMMTest
     }
 
     /**
-     * Test of trainC method, of class AMM.
+     * Test of train method, of class AMM.
      */
     @Test
     public void testTrainC_ClassificationDataSet()
@@ -116,10 +116,10 @@ public class AMMTest
         
         instance = instance.clone();
                 
-        instance.trainC(t1);
+        instance.train(t1);
 
         AMM result = instance.clone();
-        result.trainC(t2);
+        result.train(t2);
         
         for(int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

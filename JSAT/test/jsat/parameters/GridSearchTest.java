@@ -43,7 +43,6 @@ import static org.junit.Assert.*;
  */
 public class GridSearchTest
 {
-    static ExecutorService ex;
     ClassificationDataSet classData ;
     RegressionDataSet regData;
     
@@ -54,13 +53,11 @@ public class GridSearchTest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -98,7 +95,7 @@ public class GridSearchTest
         instance.addParameter("Param3", 0, 1, 2, 3, 4, 5);
         
         instance = instance.clone();
-        instance.trainC(classData);
+        instance.train(classData);
         instance = instance.clone();
         
         DumbModel model = (DumbModel) instance.getTrainedClassifier();
@@ -120,7 +117,7 @@ public class GridSearchTest
         instance.addParameter("Param3", 0, 1, 2, 3, 4, 5);
         
         instance = instance.clone();
-        instance.trainC(classData, ex);
+        instance.train(classData, true);
         instance = instance.clone();
         
         DumbModel model = (DumbModel) instance.getTrainedClassifier();
@@ -142,7 +139,7 @@ public class GridSearchTest
         instance.addParameter("Param3", 0, 1, 2, 3, 4, 5);
         
         instance = instance.clone();
-        instance.trainC(classData);
+        instance.train(classData);
         instance = instance.clone();
         
         DumbModel model = (DumbModel) instance.getTrainedClassifier();
@@ -162,7 +159,7 @@ public class GridSearchTest
         instance.autoAddParameters(classData);
         
         instance = instance.clone();
-        instance.trainC(classData);
+        instance.train(classData);
         instance = instance.clone();
         
         DumbModel model = (DumbModel) instance.getTrainedClassifier();
@@ -184,7 +181,7 @@ public class GridSearchTest
         instance.addParameter("Param3", 0, 1, 2, 3, 4, 5);
         
         instance = instance.clone();
-        instance.trainC(classData, ex);
+        instance.train(classData, true);
         instance = instance.clone();
         
         DumbModel model = (DumbModel) instance.getTrainedClassifier();
@@ -228,7 +225,7 @@ public class GridSearchTest
         instance.addParameter("Param3", 0, 1, 2, 3, 4, 5);
         
         instance = instance.clone();
-        instance.train(regData, ex);
+        instance.train(regData, true);
         instance = instance.clone();
         
         DumbModel model = (DumbModel) instance.getTrainedRegressor();
@@ -272,7 +269,7 @@ public class GridSearchTest
         instance.addParameter("Param3", 0, 1, 2, 3, 4, 5);
         
         instance = instance.clone();
-        instance.train(regData, ex);
+        instance.train(regData, true);
         instance = instance.clone();
         
         DumbModel model = (DumbModel) instance.getTrainedRegressor();
@@ -345,13 +342,13 @@ public class GridSearchTest
         }
 
         @Override
-        public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool)
+        public void train(ClassificationDataSet dataSet, Classifier warmSolution, boolean parallel)
         {
             wasWarmStarted = ((DumbModel)warmSolution).param3 == this.param3;
         }
 
         @Override
-        public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
+        public void train(ClassificationDataSet dataSet, Classifier warmSolution)
         {
             wasWarmStarted = ((DumbModel)warmSolution).param3 == this.param3;
         }
@@ -368,13 +365,13 @@ public class GridSearchTest
         }
 
         @Override
-        public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+        public void train(ClassificationDataSet dataSet, boolean parallel)
         {
             wasWarmStarted = false;
         }
 
         @Override
-        public void trainC(ClassificationDataSet dataSet)
+        public void train(ClassificationDataSet dataSet)
         {
             wasWarmStarted = false;
         }
@@ -386,7 +383,7 @@ public class GridSearchTest
         }
 
         @Override
-        public void train(RegressionDataSet dataSet, Regressor warmSolution, ExecutorService threadPool)
+        public void train(RegressionDataSet dataSet, Regressor warmSolution, boolean parallel)
         {
             wasWarmStarted = ((DumbModel)warmSolution).param3 == this.param3;
         }
@@ -409,7 +406,7 @@ public class GridSearchTest
         }
 
         @Override
-        public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+        public void train(RegressionDataSet dataSet, boolean parallel)
         {
             wasWarmStarted = false;
         }

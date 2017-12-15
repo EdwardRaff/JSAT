@@ -49,7 +49,7 @@ public class StochasticMultinomialLogisticRegressionTest
 
 
     /**
-     * Test of trainC method, of class StochasticMultinomialLogisticRegression.
+     * Test of train method, of class StochasticMultinomialLogisticRegression.
      */
     @Test
     public void testTrainC_ClassificationDataSet()
@@ -64,7 +64,7 @@ public class StochasticMultinomialLogisticRegressionTest
         
             StochasticMultinomialLogisticRegression smlgr = new StochasticMultinomialLogisticRegression();
             smlgr.setPrior(prior);
-            smlgr.trainC(train);
+            smlgr.train(train);
 
             ClassificationDataSet test = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
 
@@ -85,7 +85,7 @@ public class StochasticMultinomialLogisticRegressionTest
         Classifier cloned = smlgr.clone();
         
         ClassificationDataSet train = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
-        cloned.trainC(train);
+        cloned.train(train);
         
         
         

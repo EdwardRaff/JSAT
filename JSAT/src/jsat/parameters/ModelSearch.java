@@ -127,7 +127,7 @@ abstract public class ModelSearch implements Classifier, Regressor
     /**
      * When set to {@code true} (the default) parallelism is obtained by
      * training as many models in parallel as possible. If {@code false},
-     * parallelsm will be obtained by training the model using the {@link Classifier#trainC(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService)
+     * parallelsm will be obtained by training the model using the {@link Classifier#train(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService)
      * } and {@link Regressor#train(jsat.regression.RegressionDataSet, java.util.concurrent.ExecutorService)
      * } methods.<br>
      * <br>

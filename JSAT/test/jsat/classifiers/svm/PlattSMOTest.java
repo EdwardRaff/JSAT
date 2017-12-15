@@ -26,8 +26,6 @@ import static org.junit.Assert.*;
  */
 public class PlattSMOTest
 {
-    static private ExecutorService ex;
-    
     public PlattSMOTest()
     {
     }
@@ -35,13 +33,11 @@ public class PlattSMOTest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -68,7 +64,7 @@ public class PlattSMOTest
                 classifier.setCacheMode(cacheMode);
                 classifier.setC(10);
                 classifier.setModificationOne(modification1);
-                classifier.trainC(trainSet, ex);
+                classifier.train(trainSet, true);
                 
                 for (int i = 0; i < testSet.getSampleSize(); i++)
                     assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
@@ -90,7 +86,7 @@ public class PlattSMOTest
                 classifier.setCacheMode(cacheMode);
                 classifier.setC(10);
                 classifier.setModificationOne(modification1);
-                classifier.trainC(trainSet);
+                classifier.train(trainSet);
                 
                 for (int i = 0; i < testSet.getSampleSize(); i++)
                     assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
@@ -115,7 +111,7 @@ public class PlattSMOTest
                 smo.setC(1);
                 smo.setEpsilon(0.1);
                 smo.setModificationOne(modification1);
-                smo.train(trainSet, ex);
+                smo.train(trainSet, true);
                 
                 double errors = 0;
                 for (int i = 0; i < testSet.getSampleSize(); i++)
@@ -161,7 +157,7 @@ public class PlattSMOTest
         
         PlattSMO warmModel = new PlattSMO(new LinearKernel(1));
         warmModel.setC(1);
-        warmModel.trainC(train);
+        warmModel.train(train);
         
         
         PlattSMO warm = new PlattSMO(new LinearKernel(1));
@@ -170,7 +166,7 @@ public class PlattSMOTest
         long start, end;
         
         start = System.currentTimeMillis();
-        warm.trainC(train, warmModel);
+        warm.train(train, warmModel);
         end = System.currentTimeMillis();
         long warmTime = (end-start);
         
@@ -179,7 +175,7 @@ public class PlattSMOTest
         notWarm.setC(1e4);//too large to train efficently like noraml
         
         start = System.currentTimeMillis();
-        notWarm.trainC(train);
+        notWarm.train(train);
         end = System.currentTimeMillis();
         long normTime = (end-start);
         
@@ -196,7 +192,7 @@ public class PlattSMOTest
         DCDs warmModel = new DCDs();
         warmModel.setUseL1(true);
         warmModel.setUseBias(true);
-        warmModel.trainC(train);
+        warmModel.train(train);
         
         
         PlattSMO warm = new PlattSMO(new LinearKernel(1));
@@ -205,7 +201,7 @@ public class PlattSMOTest
         long start, end;
         
         start = System.currentTimeMillis();
-        warm.trainC(train, warmModel);
+        warm.train(train, warmModel);
         end = System.currentTimeMillis();
         long warmTime = (end-start);
         
@@ -214,7 +210,7 @@ public class PlattSMOTest
         notWarm.setC(1e4);//too large to train efficently like noraml
         
         start = System.currentTimeMillis();
-        notWarm.trainC(train);
+        notWarm.train(train);
         end = System.currentTimeMillis();
         long normTime = (end-start);
         

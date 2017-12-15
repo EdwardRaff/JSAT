@@ -28,8 +28,9 @@ import jsat.utils.SystemInfo;
 public class DBSCAN extends ClustererBase
 {
 
-	private static final long serialVersionUID = 1627963360642560455L;
-	/**
+    private static final long serialVersionUID = 1627963360642560455L;
+    
+    /**
      * Used by {@link #cluster(DataSet, double, int, VectorCollection,int[]) } 
      * to mark that a data point as not yet been visited. <br>
      * Clusters that have been visited have a value >= 0, that indicates their cluster. Or have the value {@link #NOISE}

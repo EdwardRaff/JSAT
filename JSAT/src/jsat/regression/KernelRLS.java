@@ -152,7 +152,7 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         train(dataSet);
     }

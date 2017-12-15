@@ -92,7 +92,7 @@ public class ImportanceByUsesTest
 
             DecisionTree tree = new DecisionTree();
             tree.setPruningMethod(TreePruner.PruningMethod.NONE);
-            tree.trainC(train_noise);
+            tree.train(train_noise);
 
             double[] importances = instance.getImportanceStats(tree, train_noise);
 
@@ -120,7 +120,7 @@ public class ImportanceByUsesTest
             train_noise.applyTransform(new NumericalToHistogram(train_noise));
             tree = new DecisionTree();
             tree.setPruningMethod(TreePruner.PruningMethod.NONE);
-            tree.trainC(train_noise);
+            tree.train(train_noise);
 
             importances = instance.getImportanceStats(tree, train_noise);
 

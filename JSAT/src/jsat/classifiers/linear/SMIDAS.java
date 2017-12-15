@@ -122,13 +122,13 @@ public class SMIDAS extends StochasticSTLinearL1
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         if(dataSet.getNumNumericalVars() < 3)
             throw new FailedToFitException("SMIDAS requires at least 3 features");
@@ -166,7 +166,7 @@ public class SMIDAS extends StochasticSTLinearL1
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         train(dataSet);
     }

@@ -87,17 +87,14 @@ public class LWLTest
 
         LWL instance = new LWL((Regressor)new DCDs(), 15, new EuclideanDistance());
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
         RegressionDataSet train = FixedProblems.getLinearRegression(5000, RandomUtil.getRandom());
         RegressionDataSet test = FixedProblems.getLinearRegression(200, RandomUtil.getRandom());
 
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, true);
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.3);
 
-        ex.shutdownNow();
     }
 
     @Test
@@ -107,17 +104,13 @@ public class LWLTest
 
         LWL instance = new LWL(new NaiveBayesUpdateable(), 15, new EuclideanDistance());
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
         ClassificationDataSet train = FixedProblems.getCircles(5000, 1.0, 10.0, 100.0);
         ClassificationDataSet test = FixedProblems.getCircles(200, 1.0, 10.0, 100.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
         cme.evaluateTestSet(test);
 
         assertTrue(cme.getErrorRate() <= 0.001);
-
-        ex.shutdownNow();
     }
 
     @Test
@@ -149,12 +142,12 @@ public class LWLTest
 
         instance = instance.clone();
 
-        instance.trainC(t1);
+        instance.train(t1);
 
         LWL result = instance.clone();
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-        result.trainC(t2);
+        result.train(t2);
 
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

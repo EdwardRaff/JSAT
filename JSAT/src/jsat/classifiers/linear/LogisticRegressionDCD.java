@@ -195,13 +195,13 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         if(dataSet.getClassSize() != 2)
             throw new FailedToFitException("Logistic Regression is a binary classifier, can can not handle " + dataSet.getClassSize() + " class problems");

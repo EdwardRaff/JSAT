@@ -46,8 +46,10 @@ import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
 import jsat.utils.IntList;
+import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * This is an implementation of the Divide-and-Conquer Support Vector Machine
@@ -233,17 +235,11 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        final int threads_to_use;
-        if(threadPool instanceof FakeExecutor)
-            threads_to_use = 1;
-        else
-            threads_to_use = SystemInfo.LogicalCores;
-        
         final int N = dataSet.getSampleSize();
         vecs = dataSet.getDataVectors();
-        early_models = new ConcurrentHashMap<Integer, SVMnoBias>();
+        early_models = new ConcurrentHashMap<>();
 //        weights = dataSet.getDataWeights();
 //        label = new short[N];
 //        for(int i = 0; i < N; i++)
@@ -256,6 +252,8 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
          * Used to keep track of which sub cluster each training datapoint belongs to
          */
         final int[] group = new int[N];
+        
+        ExecutorService threads = ParallelUtils.getNewExecutor(parallel);
                 
         /**
          * Used to select subsamples of data points for clustering, and to map them back to their original indicies 
@@ -309,52 +307,31 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
                 ListUtils.addRange(indicies, 0, N, 1);
             }
             else
-                sub_results = clusters.cluster(toCluster, k_l, threadPool, (int[])null);
+                sub_results = clusters.cluster(toCluster, k_l, threads, (int[])null);
             
             //create partitioning
             //First, don't bother with distance computations for people we just clustered
             Arrays.fill(group, -1);
-            Set<Integer> found_clusters = new HashSet<Integer>(k_l);
+            Set<Integer> found_clusters = new IntSet(k_l);
             for(int i = 0; i < sub_results.length; i++)
             {
                 group[indicies.get(i)] = sub_results[i];
                 found_clusters.add(sub_results[i]);
             }
             //find who everyone else belongs to
-            final CountDownLatch latch = new CountDownLatch(threads_to_use);
-            for(int id  = 0; id < threads_to_use; id++)
+            ParallelUtils.run(parallel, N, (i)->
             {
-                final int ID = id;
-                threadPool.submit(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        for(int i = ID; i < N; i+=threads_to_use)
-                        {
-                            if(group[i] >= 0)
-                                continue;//you already got assigned above
+                if (group[i] >= 0)
+                    return;//you already got assigned above
 
-                            List<Double> qi = null;
-                            if(accelCache != null)
-                            {
-                                int multiplier = accelCache.size()/N;
-                                qi = accelCache.subList(i*multiplier, i*multiplier+multiplier);
-                            }
-                            group[i] = clusters.findClosestCluster(vecs.get(i), qi);
-                        }
-                        latch.countDown();
-                    }
-                });
-            }
-            try
-            {
-                latch.await();
-            }
-            catch (InterruptedException ex)
-            {
-                throw new FailedToFitException(ex);
-            }
+                List<Double> qi = null;
+                if (accelCache != null)
+                {
+                    int multiplier = accelCache.size() / N;
+                    qi = accelCache.subList(i * multiplier, i * multiplier + multiplier);
+                }
+                group[i] = clusters.findClosestCluster(vecs.get(i), qi);
+            });
             //everyone has now been assigned to their closest cluster
             
             //build SVM model for each cluster
@@ -382,10 +359,10 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
                 
                 //Train model
                 if(l == l_max)//first round, no warm start
-                    svm.trainC(V_c, threadPool);
+                    svm.train(V_c, parallel);
                 else//warm start
                 {
-                    svm.trainC(V_c, V_alphas.getBackingArray(), threadPool);
+                    svm.train(V_c, V_alphas.getBackingArray(), parallel);
                 }
                 early_models.put(c, svm);
                 
@@ -402,7 +379,7 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
                 svm.setCacheSize(dataSet.getSampleSize(), cache_size );
             else
                 svm.setCacheMode(CacheMode.NONE);
-            svm.trainC(dataSet, Arrays.copyOf(this.alphas, this.alphas.length), threadPool);
+            svm.train(dataSet, Arrays.copyOf(this.alphas, this.alphas.length), parallel);
             
             early_models.clear();
             early_models.put(0, svm);
@@ -411,12 +388,8 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
             for (int i = 0; i < N; i++)
                 this.alphas[i] = svm.alphas[i];
         }
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, new FakeExecutor());
+        
+        threads.shutdownNow();
     }
 
     @Override

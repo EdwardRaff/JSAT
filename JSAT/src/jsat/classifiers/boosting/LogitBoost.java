@@ -4,7 +4,6 @@ package jsat.classifiers.boosting;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
@@ -13,7 +12,6 @@ import jsat.classifiers.DataPointPair;
 import jsat.classifiers.OneVSAll;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.MultipleLinearRegression;
 import jsat.regression.RegressionDataSet;
@@ -128,6 +126,7 @@ public class LogitBoost implements Classifier, Parameterized
         return zMax;
     }
     
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         if(baseLearner == null)
@@ -142,12 +141,8 @@ public class LogitBoost implements Classifier, Parameterized
         return cr;
     }
 
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
-    {
-        trainC(dataSet);
-    }
-
-    public void trainC(ClassificationDataSet dataSet)
+    @Override
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         if(dataSet.getClassSize() != 2)
             throw new FailedToFitException("LogitBoost only supports binary decision tasks, not " + dataSet.getClassSize() + " class problems");
@@ -156,7 +151,7 @@ public class LogitBoost implements Classifier, Parameterized
          */
         List<DataPointPair<Double>> dataPoints = dataSet.getAsFloatDPPList();
         
-        baseLearners = new ArrayList<Regressor>(maxIterations);
+        baseLearners = new ArrayList<>(maxIterations);
         int N = dataSet.getSampleSize();
         
         for(int m = 0; m < maxIterations; m++)
@@ -214,6 +209,7 @@ public class LogitBoost implements Classifier, Parameterized
         return efx/(efx + enfx);
     }
 
+    @Override
     public boolean supportsWeightedData()
     {
         return false;
@@ -228,7 +224,7 @@ public class LogitBoost implements Classifier, Parameterized
             clone.baseLearner = this.baseLearner.clone();
         if(this.baseLearners != null)
         {
-            clone.baseLearners = new ArrayList<Regressor>(this.baseLearners.size());
+            clone.baseLearners = new ArrayList<>(this.baseLearners.size());
             for(Regressor r :  baseLearners)
                 clone.baseLearners.add(r.clone());
         }

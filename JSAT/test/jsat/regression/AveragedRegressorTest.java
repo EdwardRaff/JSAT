@@ -87,17 +87,13 @@ public class AveragedRegressorTest
 
         AveragedRegressor instance = new AveragedRegressor(new KernelRLS(new LinearKernel(1), 1e-1), new KernelRLS(new LinearKernel(1), 1e-2), new KernelRLS(new LinearKernel(1), 1e-4));
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
         RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
         RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
 
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, true);
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
-
-        ex.shutdownNow();
     }
     
     @Test

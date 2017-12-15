@@ -402,13 +402,13 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         BaseUpdateableClassifier.trainEpochs(dataSet, this, epochs);
     }
@@ -420,7 +420,7 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         train(dataSet);
     }

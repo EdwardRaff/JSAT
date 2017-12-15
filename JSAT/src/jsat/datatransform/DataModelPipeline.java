@@ -123,25 +123,16 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         learnedDtp = baseDtp.clone();
         dataSet = dataSet.shallowClone();//dont want to actually edit the data set they gave us
         learnedDtp.learnApplyTransforms(dataSet);
         
         learnedClassifier = baseClassifier.clone();
-        if(threadPool == null)
-            learnedClassifier.trainC(dataSet);
-        else
-            learnedClassifier.trainC(dataSet, threadPool);
+        learnedClassifier.train(dataSet, parallel);
     }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, null);
-    }
-
+    
     @Override
     public boolean supportsWeightedData()
     {
@@ -160,23 +151,14 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         learnedDtp = baseDtp.clone();
         dataSet = dataSet.shallowClone();//dont want to actually edit the data set they gave us
         learnedDtp.learnApplyTransforms(dataSet);
         
         learnedRegressor = baseRegressor.clone();
-        if(threadPool == null)
-            learnedRegressor.train(dataSet);
-        else
-            learnedRegressor.train(dataSet, threadPool);
-    }
-
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, null);
+        learnedRegressor.train(dataSet, parallel);
     }
 
     @Override

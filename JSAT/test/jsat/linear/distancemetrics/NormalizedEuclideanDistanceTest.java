@@ -166,7 +166,7 @@ public class NormalizedEuclideanDistanceTest
         
         NormalM normal = new NormalM(new ConstantVector(0.0, 5), trueCov.clone());
         NormalizedEuclideanDistance dist = new NormalizedEuclideanDistance();
-        dist.train(normal.sample(30000, RandomUtil.getRandom()), ex);
+        dist.train(normal.sample(30000, RandomUtil.getRandom()), true);
         
         List<Double> cache = dist.getAccelerationCache(vecs);
         List<Double> cache2 = dist.getAccelerationCache(vecs, ex);

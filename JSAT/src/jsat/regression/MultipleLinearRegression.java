@@ -11,6 +11,7 @@ import jsat.linear.Matrix;
 import jsat.linear.QRDecomposition;
 import jsat.linear.Vec;
 import jsat.utils.FakeExecutor;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  *
@@ -19,8 +20,8 @@ import jsat.utils.FakeExecutor;
 public class MultipleLinearRegression implements Regressor, SingleWeightVectorModel
 {
 
-	private static final long serialVersionUID = 7694194181910565061L;
-	/**
+    private static final long serialVersionUID = 7694194181910565061L;
+    /**
      * The vector B such that Y = X * B is the least squares solution. Will be stored as Y = X * B + a
      */
     private Vec B;
@@ -40,12 +41,14 @@ public class MultipleLinearRegression implements Regressor, SingleWeightVectorMo
         this.useWeights = useWeights;
     }
     
+    @Override
     public double regress(DataPoint data)
     {
         return B.dot(data.getNumericalValues())+a;
     }
 
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    @Override
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         if(dataSet.getNumCategoricalVars() > 0)
             throw new RuntimeException("Multiple Linear Regression only works with numerical values");
@@ -77,7 +80,7 @@ public class MultipleLinearRegression implements Regressor, SingleWeightVectorMo
             Y.mutablePairwiseMultiply(weights);
         }
         
-        Matrix[] QR = X.qr(threadPool);
+        Matrix[] QR = parallel ? X.qr(ParallelUtils.CACHED_THREAD_POOL) : X.qr();
         
         QRDecomposition qrDecomp = new QRDecomposition(QR[0], QR[1]);
         
@@ -89,11 +92,7 @@ public class MultipleLinearRegression implements Regressor, SingleWeightVectorMo
         
     }
 
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, new FakeExecutor());
-    }
-
+    @Override
     public boolean supportsWeightedData()
     {
         return useWeights;

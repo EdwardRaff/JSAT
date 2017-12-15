@@ -55,10 +55,10 @@ public class ROMMATest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         nonAggro.setEpochs(1);
-        nonAggro.trainC(train);
+        nonAggro.train(train);
         
         aggro.setEpochs(1);
-        aggro.trainC(train);
+        aggro.train(train);
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         

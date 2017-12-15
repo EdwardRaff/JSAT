@@ -4,13 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 
 import jsat.utils.FakeExecutor;
+import jsat.utils.SystemInfo;
 
 /**
  * A One VS One classifier extends binary decision classifiers into multi-class 
@@ -107,15 +108,16 @@ public class OneVSOne implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
+    public void train(final ClassificationDataSet dataSet, final boolean parallel)
     {
         oneVone = new Classifier[dataSet.getClassSize()][];
         
-        List<List<DataPoint>> dataByCategory = new ArrayList<List<DataPoint>>(dataSet.getClassSize());
+        List<List<DataPoint>> dataByCategory = new ArrayList<>(dataSet.getClassSize());
         for(int i = 0; i < dataSet.getClassSize(); i++)
             dataByCategory.add(dataSet.getSamples(i));
         
         final CountDownLatch latch = new CountDownLatch(oneVone.length*(oneVone.length-1)/2);
+        ExecutorService threadPool = parallel ? Executors.newFixedThreadPool(SystemInfo.LogicalCores) : new FakeExecutor();
         
         for(int i = 0; i < oneVone.length; i++)
         {
@@ -141,43 +143,31 @@ public class OneVSOne implements Classifier, Parameterized
 
                 if(!concurrentTrain)
                 {
-                    if(threadPool != null && !(threadPool instanceof FakeExecutor))
-                        curClassifier.trainC(subDataSet, threadPool);
-                    else
-                        curClassifier.trainC(subDataSet);
+                    curClassifier.train(subDataSet, parallel);
                     continue;
                 }
                 //Else, concurrent
-                threadPool.submit(new Runnable() {
-
-                    @Override
-                    public void run()
-                    {
-                        curClassifier.trainC(subDataSet);
-                        latch.countDown();
-                    }
+                threadPool.submit(() ->
+                {
+                    curClassifier.train(subDataSet);
+                    latch.countDown();
                 });
             }
         }
         
-        if(concurrentTrain)
+        if (concurrentTrain)
             try
-        {
-            latch.await();
-        }
-        catch (InterruptedException ex)
-        {
-            Logger.getLogger(OneVSOne.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        predicting = dataSet.getPredicting();
-        
-    }
+            {
+                latch.await();
+            }
+            catch (InterruptedException ex)
+            {
+                Logger.getLogger(OneVSOne.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, new FakeExecutor());
+        predicting = dataSet.getPredicting();
+        threadPool.shutdownNow();
+        
     }
 
     @Override

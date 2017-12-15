@@ -172,25 +172,25 @@ public class PlattSMO extends SupportVectorLearner implements BinaryScoreClassif
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, Classifier warmSolution, boolean parallel)
     {
-        trainC(dataSet, warmSolution);
+        train(dataSet, warmSolution);
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
+    public void train(ClassificationDataSet dataSet, Classifier warmSolution)
     {
         trainC_warm_and_normal(dataSet, warmSolution);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         trainC_warm_and_normal(dataSet, null);
     }
@@ -1194,7 +1194,7 @@ public class PlattSMO extends SupportVectorLearner implements BinaryScoreClassif
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         train(dataSet);
     }
@@ -1227,7 +1227,7 @@ public class PlattSMO extends SupportVectorLearner implements BinaryScoreClassif
     }
     
     @Override
-    public void train(RegressionDataSet dataSet, Regressor warmSolution, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, Regressor warmSolution, boolean parallel)
     {
         train(dataSet, warmSolution);
     }

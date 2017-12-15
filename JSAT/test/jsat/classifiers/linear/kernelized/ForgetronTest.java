@@ -51,10 +51,6 @@ public class ForgetronTest
     {
         System.out.println("trainC");
 
-        
-
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
         for(boolean selfTuned : new boolean[]{true, false})
         {
             ClassificationDataSet train = FixedProblems.getCircles(1000, 0.0, RandomUtil.getRandom(), 1.0, 4.0);
@@ -74,13 +70,11 @@ public class ForgetronTest
 
             ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, RandomUtil.getRandom(), 1, 4);
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
             cme.evaluateTestSet(test);
 
             assertEquals(0, cme.getErrorRate(), 0.3);//given some leway due to label noise
         }
-        ex.shutdownNow();
-
     }
 
     @Test
@@ -126,13 +120,13 @@ public class ForgetronTest
 
         instance = instance.clone();
 
-        instance.trainC(t1);
+        instance.train(t1);
 
         Forgetron result = instance.clone();
         
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-        result.trainC(t2);
+        result.train(t2);
 
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

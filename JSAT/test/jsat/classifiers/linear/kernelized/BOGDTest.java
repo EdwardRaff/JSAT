@@ -52,11 +52,7 @@ public class BOGDTest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-
-        
-
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-        
+       
         for(boolean sampling : new boolean[]{true, false})
         {
             BOGD instance = new BOGD(new RBFKernel(0.5), 50, 0.5, 1e-3, 10, new HingeLoss());
@@ -65,14 +61,11 @@ public class BOGDTest
             ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, RandomUtil.getRandom(), 1, 4);
             ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, RandomUtil.getRandom(), 1, 4);
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
             cme.evaluateTestSet(test);
 
             assertEquals(0, cme.getErrorRate(), 0.0);
         }
-
-        ex.shutdownNow();
-
     }
 
     @Test
@@ -108,7 +101,7 @@ public class BOGDTest
         instance.setUniformSampling(true);
         instance = instance.clone();
 
-        instance.trainC(t1);
+        instance.train(t1);
 
         instance.setUniformSampling(false);
         BOGD result = instance.clone();
@@ -116,7 +109,7 @@ public class BOGDTest
         
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-        result.trainC(t2);
+        result.train(t2);
 
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

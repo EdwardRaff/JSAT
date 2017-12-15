@@ -217,7 +217,7 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         train(dataSet);
     }

@@ -291,25 +291,25 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
-        trainC(dataSet, (Classifier)null);
+        train(dataSet, (Classifier)null);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, Classifier warmSolution, boolean parallel)
     {
-        trainC(dataSet, warmSolution);
+        train(dataSet, warmSolution);
     }
             
     @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
+    public void train(ClassificationDataSet dataSet, Classifier warmSolution)
     {
         if(dataSet.getClassSize() != 2)
             throw new FailedToFitException("SVM only supports binary classificaiton problems");
@@ -496,13 +496,13 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, Regressor warmSolution, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, Regressor warmSolution, boolean parallel)
     {
         train(dataSet, warmSolution);
     }
     
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         train(dataSet);
     }

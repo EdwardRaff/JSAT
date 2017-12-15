@@ -3,14 +3,12 @@ package jsat.classifiers.boosting;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.classifiers.trees.DecisionTree;
 import jsat.distributions.Distribution;
 import jsat.distributions.Uniform;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
@@ -227,7 +225,7 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         predicting = dataSet.getPredicting();
         hypWeights = new DoubleList(maxIterations);
@@ -248,11 +246,8 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
         for(int t = 0; t < maxIterations; t++)
         {
             Classifier weak = weakLearner.clone();
-            if(threadPool != null && !(threadPool instanceof FakeExecutor))
-                weak.trainC(new ClassificationDataSet(dataPoints, predicting), threadPool);
-            else
-                weak.trainC(new ClassificationDataSet(dataPoints, predicting));
-
+            weak.train(new ClassificationDataSet(dataPoints, predicting), parallel);
+            
             double error = 0.0;
             for(int i = 0; i < dataPoints.size(); i++)
             {
@@ -297,13 +292,7 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
             hypWeights.add(alpha_m);
         }
     }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, null);
-    }
-
+    
     @Override
     public boolean supportsWeightedData()
     {

@@ -2,13 +2,11 @@
 package jsat.regression;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.bayesian.BestClassDistribution;
 import jsat.distributions.multivariate.MultivariateKDE;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 
@@ -21,8 +19,8 @@ import jsat.parameters.Parameterized;
 public class NadarayaWatson implements Regressor, Parameterized
 {
 
-	private static final long serialVersionUID = 8632599345930394763L;
-	@ParameterHolder
+    private static final long serialVersionUID = 8632599345930394763L;
+    @ParameterHolder
     private MultivariateKDE kde;
 
     public NadarayaWatson(MultivariateKDE kde)
@@ -30,6 +28,7 @@ public class NadarayaWatson implements Regressor, Parameterized
         this.kde = kde;
     }
     
+    @Override
     public double regress(DataPoint data)
     {
         List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = kde.getNearby(data.getNumericalValues());
@@ -50,27 +49,19 @@ public class NadarayaWatson implements Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         List<VecPaired<Vec, Double>> vectors = collectVectors(dataSet);
         
-        kde.setUsingData(vectors, threadPool);
+        kde.setUsingData(vectors, parallel);
     }
 
     private List<VecPaired<Vec, Double>> collectVectors(RegressionDataSet dataSet)
     {
-        List<VecPaired<Vec, Double>> vectors = new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
+        List<VecPaired<Vec, Double>> vectors = new ArrayList<>(dataSet.getSampleSize());
         for(int i = 0; i < dataSet.getSampleSize(); i++)
-            vectors.add(new VecPaired<Vec, Double>(dataSet.getDataPoint(i).getNumericalValues(), dataSet.getTargetValue(i)));
+            vectors.add(new VecPaired<>(dataSet.getDataPoint(i).getNumericalValues(), dataSet.getTargetValue(i)));
         return vectors;
-    }
-
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        List<VecPaired<Vec, Double>> vectors = collectVectors(dataSet);;
-        
-        kde.setUsingData(vectors);
     }
 
     @Override

@@ -276,19 +276,19 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, Classifier warmSolution, boolean parallel)
     {
-        trainC(dataSet, warmSolution);
+        train(dataSet, warmSolution);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
+    public void train(ClassificationDataSet dataSet, Classifier warmSolution)
     {
         if(warmSolution instanceof SimpleWeightVectorModel)
         {
@@ -300,7 +300,7 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         train(dataSet, null, 0, false);
     }

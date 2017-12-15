@@ -87,17 +87,13 @@ public class BaggingTest
 
         Bagging instance = new Bagging((Regressor)new DecisionTree());
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
         RegressionDataSet train = FixedProblems.getLinearRegression(5000, RandomUtil.getRandom());
         RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
 
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, true);
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.5);
-
-        ex.shutdownNow();
     }
 
     
@@ -108,18 +104,15 @@ public class BaggingTest
 
         Bagging instance = new Bagging((Classifier)new DecisionTree());
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
         ClassificationDataSet train = FixedProblems.getCircles(5000, .1, 10.0);
         ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
         cme.evaluateTestSet(test);
 
 
         assertTrue(cme.getErrorRate() <= 0.05);
 
-        ex.shutdownNow();
     }
 
     @Test
@@ -155,7 +148,7 @@ public class BaggingTest
         
         instance = instance.clone();
 
-        instance.trainC(t1);
+        instance.train(t1);
 
         Bagging result = instance.clone();
         
@@ -163,7 +156,7 @@ public class BaggingTest
         for (int i = 0; i < t1.getSampleSize(); i++)
             errors += Math.abs(t1.getDataPointCategory(i) -  result.classify(t1.getDataPoint(i)).mostLikely());
         assertTrue(errors < 100);
-        result.trainC(t2);
+        result.train(t2);
 
         for (int i = 0; i < t1.getSampleSize(); i++)
             errors += Math.abs(t1.getDataPointCategory(i) -  instance.classify(t1.getDataPoint(i)).mostLikely());

@@ -307,13 +307,13 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         if(dataSet.getPredicting().getNumOfCategories() !=2)
             throw new RuntimeException("Current SDCA implementation only support binary classification problems");
@@ -326,13 +326,13 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, Classifier warmSolution, boolean parallel)
     {
-        trainC(dataSet, warmSolution);
+        train(dataSet, warmSolution);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
+    public void train(ClassificationDataSet dataSet, Classifier warmSolution)
     {
         if(warmSolution == null || !(warmSolution instanceof SDCA))
             throw new FailedToFitException("SDCA implementation can only be warm-started from another instance of SDCA");
@@ -348,7 +348,7 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         train(dataSet);
     }
@@ -364,7 +364,7 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, Regressor warmSolution, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, Regressor warmSolution, boolean parallel)
     {
         train(dataSet, warmSolution);
     }

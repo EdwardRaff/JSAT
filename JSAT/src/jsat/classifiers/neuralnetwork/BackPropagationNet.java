@@ -494,13 +494,13 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         inputSize = dataSet.getNumNumericalVars();
         outputSize = dataSet.getClassSize();
@@ -514,7 +514,7 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         train(dataSet);
     }

@@ -29,7 +29,7 @@ public class VectorCollectionUtils
      */
     public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allNearestNeighbors(VectorCollection<V0> collection, List<V1> search, int k)
     {
-        List<List<? extends VecPaired<V0, Double>>> results = new ArrayList<List<? extends VecPaired<V0, Double>>>(search.size());
+        List<List<? extends VecPaired<V0, Double>>> results = new ArrayList<>(search.size());
         for(Vec v : search)
             results.add(collection.search(v, k));
         return results;
@@ -61,8 +61,8 @@ public class VectorCollectionUtils
      */
     public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allNearestNeighbors(final VectorCollection<V0> collection, List<V1> search, final int k, ExecutorService threadpool)
     {
-        List<List<? extends VecPaired<V0, Double>>> results = new ArrayList<List<? extends VecPaired<V0, Double>>>(search.size());
-        List<Future<List<List<? extends VecPaired<V0, Double>>>>> subResults = new ArrayList<Future<List<List<? extends VecPaired<V0, Double>>>>>(LogicalCores);
+        List<List<? extends VecPaired<V0, Double>>> results = new ArrayList<>(search.size());
+        List<Future<List<List<? extends VecPaired<V0, Double>>>>> subResults = new ArrayList<>(LogicalCores);
         
         for(final List<V1> subSearch : ListUtils.splitList(search, LogicalCores))
         {
@@ -71,7 +71,7 @@ public class VectorCollectionUtils
                 @Override
                 public List<List<? extends VecPaired<V0, Double>>> call() throws Exception
                 {
-                    List<List<? extends VecPaired<V0, Double>>> subResult = new ArrayList<List<? extends VecPaired<V0, Double>>>(subSearch.size());
+                    List<List<? extends VecPaired<V0, Double>>> subResult = new ArrayList<>(subSearch.size());
                     
                     for(Vec v : subSearch )
                         subResult.add(collection.search(v, k));
@@ -110,8 +110,8 @@ public class VectorCollectionUtils
      */
     public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allEpsNeighbors(final VectorCollection<V0> collection, List<V1> search, final double radius, ExecutorService threadpool)
     {
-        List<List<? extends VecPaired<V0, Double>>> results = new ArrayList<List<? extends VecPaired<V0, Double>>>(search.size());
-        List<Future<List<List<? extends VecPaired<V0, Double>>>>> subResults = new ArrayList<Future<List<List<? extends VecPaired<V0, Double>>>>>(LogicalCores);
+        List<List<? extends VecPaired<V0, Double>>> results = new ArrayList<>(search.size());
+        List<Future<List<List<? extends VecPaired<V0, Double>>>>> subResults = new ArrayList<>(LogicalCores);
         
         for(final List<V1> subSearch : ListUtils.splitList(search, LogicalCores))
         {
@@ -120,7 +120,7 @@ public class VectorCollectionUtils
                 @Override
                 public List<List<? extends VecPaired<V0, Double>>> call() throws Exception
                 {
-                    List<List<? extends VecPaired<V0, Double>>> subResult = new ArrayList<List<? extends VecPaired<V0, Double>>>(subSearch.size());
+                    List<List<? extends VecPaired<V0, Double>>> subResult = new ArrayList<>(subSearch.size());
                     
                     for(Vec v : subSearch )
                         subResult.add(collection.search(v, radius));

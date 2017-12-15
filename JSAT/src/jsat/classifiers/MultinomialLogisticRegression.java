@@ -18,8 +18,10 @@ import jsat.utils.FakeExecutor;
 public class MultinomialLogisticRegression implements Classifier
 {
 
-	private static final long serialVersionUID = -9168502043850569017L;
-	private Vec[] classCoefficents;
+    private static final long serialVersionUID = -9168502043850569017L;
+    private Vec[] classCoefficents;
+
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         if(classCoefficents == null)
@@ -71,7 +73,8 @@ public class MultinomialLogisticRegression implements Classifier
         return results;
     }
 
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    @Override
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         LogisticRegression logit = new LogisticRegression();
         
@@ -84,16 +87,13 @@ public class MultinomialLogisticRegression implements Classifier
             for(int i = 0; i < dataSet.getSampleSize(); i++)
                 rds.addDataPoint(dataSet.getDataPoint(i), (dataSet.getDataPointCategory(i) == k ? 1.0 : 0.0 ) );
 
-            logit.train(rds, threadPool);
+            logit.train(rds, parallel);
             classCoefficents[k-1] = logit.getCoefficents();
         }
     }
 
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, new FakeExecutor());
-    }
 
+    @Override
     public boolean supportsWeightedData()
     {
         return false;

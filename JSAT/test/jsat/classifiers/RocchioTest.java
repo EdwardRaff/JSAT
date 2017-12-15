@@ -67,9 +67,7 @@ public class RocchioTest
         ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3);
         ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3);
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-        
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
         cme.evaluateTestSet(test);
         
         assertTrue(cme.getErrorRate() <= 0.001);
@@ -102,12 +100,12 @@ public class RocchioTest
         
         instance = instance.clone();
                 
-        instance.trainC(t1);
+        instance.train(t1);
 
         Rocchio result = instance.clone();
         for(int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-        result.trainC(t2);
+        result.train(t2);
         
         for(int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

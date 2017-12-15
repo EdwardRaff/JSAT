@@ -1,9 +1,8 @@
 package jsat.classifiers.bayesian;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
 import jsat.exceptions.FailedToFitException;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * Averaged One-Dependence Estimators (AODE) is an extension of Naive Bayes that
@@ -24,8 +23,8 @@ import jsat.exceptions.FailedToFitException;
 public class AODE extends BaseUpdateableClassifier
 {
 
-	private static final long serialVersionUID = 8386506277969540732L;
-	protected CategoricalData predicting;
+    private static final long serialVersionUID = 8386506277969540732L;
+    protected CategoricalData predicting;
     protected ODE[] odes;
 
     /**
@@ -78,35 +77,17 @@ public class AODE extends BaseUpdateableClassifier
     }
     
     @Override
-    public void trainC(final ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(final ClassificationDataSet dataSet, boolean parallel)
     {
         setUp(dataSet.getCategories(), dataSet.getNumNumericalVars(), 
                 dataSet.getPredicting());
-        
-        final CountDownLatch latch = new CountDownLatch(odes.length);
 
-        for (int i = 0; i < odes.length; i++)
+        ParallelUtils.range(odes.length, parallel).forEach(z->
         {
-            final ODE ode = odes[i];
-            threadPool.submit(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    for (int i = 0; i < dataSet.getSampleSize(); i++)
-                        ode.update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i));
-                    latch.countDown();
-                }
-            });
-        }
-        try
-        {
-            latch.await();
-        }
-        catch (InterruptedException ex)
-        {
-            trainC(dataSet);
-        }
+            ODE ode = odes[z];
+            for (int i = 0; i < dataSet.getSampleSize(); i++)
+                ode.update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i));
+        });
     }
 
     @Override

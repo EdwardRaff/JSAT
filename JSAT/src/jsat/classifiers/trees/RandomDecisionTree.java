@@ -83,7 +83,7 @@ public class RandomDecisionTree extends DecisionTree
     }
     
     @Override
-    protected Node makeNodeC(List<DataPointPair<Integer>> dataPoints, Set<Integer> options, int depth, ExecutorService threadPool, ModifiableCountDownLatch mcdl)
+    protected Node makeNodeC(List<DataPointPair<Integer>> dataPoints, Set<Integer> options, int depth, boolean parallel, ModifiableCountDownLatch mcdl)
     {
         if(dataPoints.isEmpty())
         {
@@ -92,11 +92,11 @@ public class RandomDecisionTree extends DecisionTree
         }
         final int featureCount = dataPoints.get(0).getDataPoint().numCategoricalValues()+dataPoints.get(0).getDataPoint().numNumericalValues();
         fillWithRandomFeatures(options, featureCount);
-        return super.makeNodeC(dataPoints, options, depth, threadPool, mcdl); //To change body of generated methods, choose Tools | Templates.
+        return super.makeNodeC(dataPoints, options, depth, parallel, mcdl); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected Node makeNodeR(List<DataPointPair<Double>> dataPoints, Set<Integer> options, int depth, ExecutorService threadPool, ModifiableCountDownLatch mcdl)
+    protected Node makeNodeR(List<DataPointPair<Double>> dataPoints, Set<Integer> options, int depth, boolean parallel, ModifiableCountDownLatch mcdl)
     {
         if(dataPoints.isEmpty())
         {
@@ -105,7 +105,7 @@ public class RandomDecisionTree extends DecisionTree
         }
         final int featureCount = dataPoints.get(0).getDataPoint().numCategoricalValues()+dataPoints.get(0).getDataPoint().numNumericalValues();
         fillWithRandomFeatures(options, featureCount);
-        return super.makeNodeR(dataPoints, options, depth, threadPool, mcdl); //To change body of generated methods, choose Tools | Templates.
+        return super.makeNodeR(dataPoints, options, depth, parallel, mcdl); //To change body of generated methods, choose Tools | Templates.
     }
 
     private void fillWithRandomFeatures(Set<Integer> options, final int featureCount)

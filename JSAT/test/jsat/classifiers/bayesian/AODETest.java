@@ -88,18 +88,16 @@ public class AODETest
     {
         System.out.println("trainC");
         AODE instance = new AODE();
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         
         ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3, RandomUtil.getRandom());
         ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, RandomUtil.getRandom());
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
         cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
         cme.evaluateTestSet(test);
         
         assertTrue(cme.getErrorRate() <= 0.001);
         
-        ex.shutdownNow();
     }
 
     @Test
@@ -133,10 +131,10 @@ public class AODETest
         
         instance = instance.clone();
                 
-        instance.trainC(t1);
+        instance.train(t1);
 
         AODE result = instance.clone();
-        result.trainC(t2);
+        result.train(t2);
         
         for(int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

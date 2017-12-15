@@ -182,23 +182,23 @@ public class LWL implements Classifier, Regressor, Parameterized
         ClassificationDataSet localSet = new ClassificationDataSet(localPoints, predicting);
         
         Classifier localClassifier = classifier.clone();
-        localClassifier.trainC(localSet);
+        localClassifier.train(localSet);
         
         return localClassifier.classify(data);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         List<VecPaired<Vec, Double>> trainList = getVecList(dataSet);
         
-        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadPool);
-        vc = vcf.getVectorCollection(trainList, dm, threadPool);
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
+        vc = vcf.getVectorCollection(trainList, dm, parallel);
         predicting = dataSet.getPredicting();
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         List<VecPaired<Vec, Double>> trainList = getVecList(dataSet);
         
@@ -241,12 +241,12 @@ public class LWL implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         List<VecPaired<Vec, Double>> trainList = getVecList(dataSet);
         
-        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadPool);
-        vc = vcf.getVectorCollection(trainList, dm, threadPool);
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
+        vc = vcf.getVectorCollection(trainList, dm, parallel);
     }
 
     @Override

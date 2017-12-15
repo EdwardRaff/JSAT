@@ -42,7 +42,7 @@ public class NHERDTest
         for (NHERD.CovMode mode : NHERD.CovMode.values())
         {
             NHERD nherd0 = new NHERD(1, mode);
-            nherd0.trainC(train);
+            nherd0.train(train);
             
             for (DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), nherd0.classify(dpp.getDataPoint()).mostLikely());

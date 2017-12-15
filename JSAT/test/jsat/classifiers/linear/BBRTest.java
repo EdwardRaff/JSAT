@@ -29,8 +29,7 @@ import static org.junit.Assert.*;
  */
 public class BBRTest
 {
-    private static ExecutorService ex;
-    
+   
     public BBRTest()
     {
     }
@@ -38,13 +37,11 @@ public class BBRTest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -58,7 +55,7 @@ public class BBRTest
     }
 
     /**
-     * Test of trainC method, of class BBR.
+     * Test of train method, of class BBR.
      */
     @Test
     public void testTrainC_ClassificationDataSet_ExecutorService()
@@ -69,7 +66,7 @@ public class BBRTest
         for (BBR.Prior prior : BBR.Prior.values())
         {
             BBR lr = new BBR(0.01, 1000, prior);
-            lr.trainC(train, ex);
+            lr.train(train, true);
 
             ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
@@ -79,7 +76,7 @@ public class BBRTest
     }
 
     /**
-     * Test of trainC method, of class BBR.
+     * Test of train method, of class BBR.
      */
     @Test
     public void testTrainC_ClassificationDataSet()
@@ -90,7 +87,7 @@ public class BBRTest
         for (BBR.Prior prior : BBR.Prior.values())
         {
             BBR lr = new BBR(0.01, 1000, prior);
-            lr.trainC(train);
+            lr.train(train);
 
             ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 

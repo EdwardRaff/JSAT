@@ -25,20 +25,8 @@ import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.distributions.kernels.NormalizedKernel;
-import jsat.exceptions.FailedToFitException;
-import jsat.parameters.Parameter;
-import jsat.utils.FakeExecutor;
-import jsat.utils.ListUtils;
-import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDouble;
 import jsat.utils.concurrent.ParallelUtils;
 
@@ -139,20 +127,13 @@ public class SVMnoBias extends SupportVectorLearner implements BinaryScoreClassi
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, new FakeExecutor());
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         bookKeepingInit(dataSet);
         
-        
         double[] nabla_W = procedure3_init();
         
-        solver_1d(nabla_W, threadPool);
+        solver_1d(nabla_W, parallel);
         
         
         setCacheMode(null);
@@ -165,35 +146,30 @@ public class SVMnoBias extends SupportVectorLearner implements BinaryScoreClassi
      * vectors. The absolute value of the inputs will be used. may be longer
      * than the number of data points.
      */
-    protected void trainC(ClassificationDataSet dataSet, double[] warm_start)
+    protected void train(ClassificationDataSet dataSet, double[] warm_start)
     {
-        trainC(dataSet, warm_start, new FakeExecutor());
+        train(dataSet, warm_start, false);
     }
     
-    protected void trainC(ClassificationDataSet dataSet, double[] warm_start, ExecutorService ex)
+    protected void train(ClassificationDataSet dataSet, double[] warm_start, boolean parallel)
     {
         bookKeepingInit(dataSet);
         
         for(int i = 0; i < alphas.length; i++)
             alphas[i] = Math.abs(warm_start[i]);
         
-        double[] nabla_W = procedure4m_init(ex);
+        double[] nabla_W = procedure4m_init(parallel);
         
-        solver_1d(nabla_W, ex);
+        solver_1d(nabla_W, parallel);
         
         setCacheMode(null);
     }
 
-    private void solver_1d(final double[] nabla_W, ExecutorService ex)
+    private void solver_1d(final double[] nabla_W, boolean parallel)
     {
-        final int threads_to_use;
-        if(ex instanceof FakeExecutor)
-            threads_to_use = 1;
-        else
-            threads_to_use = SystemInfo.LogicalCores;
-        
         final int N = alphas.length;
         final double lambda = 1/(2*C*N);
+        ExecutorService ex = ParallelUtils.getNewExecutor(parallel);
         //Algorithm 1 1D-SVM solver
         while(S_a > tolerance/(2*lambda))
         {
@@ -230,45 +206,20 @@ public class SVMnoBias extends SupportVectorLearner implements BinaryScoreClassi
             //use Procedure 2 to update ∇W(α) in direction i∗ by δ and calculate S(α)
             //T(α)←T(α)−δ(2∇Wi(α)−1−δ)
             T_a -= best_delta*(2*nabla_W[i_max]-1-best_delta);
-            double E_a = 0;
-            List<Future<Double>> future_Ea_changes = new ArrayList<Future<Double>>(threads_to_use);
+            final AtomicDouble E_a = new AtomicDouble(0.0);
             accessingRow(i);//hint to caching scheme
-            for(int id = 0; id < threads_to_use; id++)
+            ParallelUtils.run(parallel, N, (start, end) ->
             {
-                final int ID = id;
-                future_Ea_changes.add(ex.submit(new Callable<Double>()
+                double Ea_delta = 0;
+                for (int j = start; j < end; j++)
                 {
-                    @Override
-                    public Double call() throws Exception
-                    {
-                        double Ea_delta = 0;
-                        int start = ParallelUtils.getStartBlock(N, ID, threads_to_use);
-                        int end = ParallelUtils.getEndBlock(N, ID, threads_to_use);
-                        for(int j = start; j < end; j++)
-                        {
-                            nabla_W[j] -= delta * label[i] * label[j] *  kEval(i, j);
-                            Ea_delta += weights.get(j)*C*min(max(0, nabla_W[j]), 2);
-                        }
-                        
-                        return Ea_delta;
-                    }
-                }));
-            }
-            for(Future<Double> f : future_Ea_changes)
-                try
-                {
-                    E_a += f.get();
+                    nabla_W[j] -= delta * label[i] * label[j] * kEval(i, j);
+                    Ea_delta += weights.get(j) * C * min(max(0, nabla_W[j]), 2);
                 }
-                catch (InterruptedException ex1)
-                {
-                    throw new FailedToFitException(ex1);
-                }
-                catch (ExecutionException ex1)
-                {
-                    throw new FailedToFitException(ex1);
-                }
+                E_a.addAndGet(Ea_delta);
+            }, ex);
             
-            S_a = T_a + E_a;
+            S_a = T_a + E_a.get();
         }
         accessingRow(-1);//no more row accesses
 
@@ -292,81 +243,52 @@ public class SVMnoBias extends SupportVectorLearner implements BinaryScoreClassi
         return nabla_W;
     }
     
-    private double[] procedure4m_init(ExecutorService ex)
+    private double[] procedure4m_init(boolean parallel)
     {
-        final int threads_to_use;
-        if(ex instanceof FakeExecutor)
-            threads_to_use = 1;
-        else
-            threads_to_use = SystemInfo.LogicalCores;
         final int N = alphas.length;
         //Procedure 3 Initialize by αi←0 and compute ∇W(α), S(α), and T(α).
         T_a = 0;
         final AtomicDouble E_a = new AtomicDouble(0.0);
+        final AtomicDouble T_a_accum = new AtomicDouble(0.0);
         final double[] nabla_W = new double[N];
         
-        
-        List<Future<Double>> future_Ea_changes = new ArrayList<Future<Double>>(threads_to_use);
-        for (int id = 0; id < threads_to_use; id++)
+        ParallelUtils.run(parallel, N, (start, end)->
         {
-            final int ID = id;
-            future_Ea_changes.add(ex.submit(new Callable<Double>()
+            double Ta_delta = 0;
+            double Ea_delta = 0;
+            for(int i = start; i < end; i++)
             {
-                @Override
-                public Double call() throws Exception
+                nabla_W[i] = 1;
+                double nabla_Wi_delta = 0;
+                for(int j = 0; j < N; j++)
                 {
-                    double Ta_delta = 0;
-                    double Ea_delta = 0;
-                    int start = ParallelUtils.getStartBlock(N, ID, threads_to_use);
-                    int end = ParallelUtils.getEndBlock(N, ID, threads_to_use);
-                    for(int i = start; i < end; i++)
-                    {
-                        nabla_W[i] = 1;
-                        double nabla_Wi_delta = 0;
-                        for(int j = 0; j < N; j++)
-                        {
-                            if(alphas[j] == 0)
-                                continue;
-                            //We call k instead of kEval b/c we are accing most 
-                            //of the n^2 values, so nothing will get to stay in 
-                            //cache. Unless we are using FULL cacheing, in which
-                            //case we will get re-use. 
-                            //Using k avoids LRU overhead which can be significant
-                            //for fast to evaluate datasets
-                            double k_ij;
-                            if(getCacheMode() == CacheMode.FULL)
-                                k_ij = kEval(i, j);
-                            else
-                                k_ij = k(i, j);
-                            
-                            nabla_Wi_delta -= alphas[j] * label[i] * label[j] * k_ij;
-                        }
-                        nabla_W[i] += nabla_Wi_delta;
+                    if(alphas[j] == 0)
+                        continue;
+                    //We call k instead of kEval b/c we are accing most 
+                    //of the n^2 values, so nothing will get to stay in 
+                    //cache. Unless we are using FULL cacheing, in which
+                    //case we will get re-use. 
+                    //Using k avoids LRU overhead which can be significant
+                    //for fast to evaluate datasets
+                    double k_ij;
+                    if(getCacheMode() == CacheMode.FULL)
+                        k_ij = kEval(i, j);
+                    else
+                        k_ij = k(i, j);
 
-                        Ta_delta -= alphas[i]*nabla_W[i];
-                        Ea_delta += weights.get(i)*C*min(max(nabla_W[i], 0), 2);
-                    }
-                    
-                    E_a.addAndGet(Ea_delta);
-
-                    return Ta_delta;
+                    nabla_Wi_delta -= alphas[j] * label[i] * label[j] * k_ij;
                 }
-            }));
-        }
-        for (Future<Double> f : future_Ea_changes)
-            try
-            {
-                T_a += f.get();
+                nabla_W[i] += nabla_Wi_delta;
+
+                Ta_delta -= alphas[i]*nabla_W[i];
+                Ea_delta += weights.get(i)*C*min(max(nabla_W[i], 0), 2);
             }
-            catch (InterruptedException ex1)
-            {
-                throw new FailedToFitException(ex1);
-            }
-            catch (ExecutionException ex1)
-            {
-                throw new FailedToFitException(ex1);
-            }
+
+            E_a.addAndGet(Ea_delta);
+            T_a_accum.addAndGet(Ta_delta);
+        });
         
+        T_a = T_a_accum.get();
         S_a = T_a + E_a.get(); 
         return nabla_W;
     }

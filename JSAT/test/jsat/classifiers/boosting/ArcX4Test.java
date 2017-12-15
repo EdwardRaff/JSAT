@@ -71,17 +71,13 @@ public class ArcX4Test
 
         ArcX4 instance = new ArcX4(new DecisionStump(), 50);
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
         ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
         ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
         cme.evaluateTestSet(test);
 
         assertTrue(cme.getErrorRate() <= 0.05);
-
-        ex.shutdownNow();
     }
 
     @Test
@@ -117,7 +113,7 @@ public class ArcX4Test
         
         instance = instance.clone();
 
-        instance.trainC(t1);
+        instance.train(t1);
 
         ArcX4 result = instance.clone();
         
@@ -125,7 +121,7 @@ public class ArcX4Test
         for (int i = 0; i < t1.getSampleSize(); i++)
             errors += Math.abs(t1.getDataPointCategory(i) -  result.classify(t1.getDataPoint(i)).mostLikely());
         assertTrue(errors < 100);
-        result.trainC(t2);
+        result.train(t2);
 
         for (int i = 0; i < t1.getSampleSize(); i++)
             errors += Math.abs(t1.getDataPointCategory(i) -  instance.classify(t1.getDataPoint(i)).mostLikely());

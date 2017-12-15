@@ -56,17 +56,13 @@ public class DUOLTest
 
         DUOL instance = new DUOL(new RBFKernel(0.5));
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
         ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, RandomUtil.getRandom());
         ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, RandomUtil.getRandom());
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
         cme.evaluateTestSet(test);
 
         assertEquals(0, cme.getErrorRate(), 0.0);
-
-        ex.shutdownNow();
 
     }
 
@@ -99,12 +95,12 @@ public class DUOLTest
 
         instance = instance.clone();
 
-        instance.trainC(t1);
+        instance.train(t1);
 
         DUOL result = instance.clone();
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-        result.trainC(t2);
+        result.train(t2);
 
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

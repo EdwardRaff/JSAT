@@ -55,7 +55,7 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public <V extends Vec> void train(List<V> dataSet, ExecutorService threadpool)
+    public <V extends Vec> void train(List<V> dataSet, boolean parallel)
     {
         train(dataSet);
     }
@@ -69,7 +69,7 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public void train(DataSet dataSet, ExecutorService threadpool)
+    public void train(DataSet dataSet, boolean parallel)
     {
         train(dataSet);
     }
@@ -81,7 +81,7 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public void train(ClassificationDataSet dataSet, ExecutorService threadpool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         train(dataSet);
     }
@@ -99,7 +99,7 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadpool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         train(dataSet);
     }

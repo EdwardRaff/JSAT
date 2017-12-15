@@ -13,6 +13,7 @@ import jsat.exceptions.UntrainedModelException;
 import jsat.math.OnLineStatistics;
 import jsat.regression.evaluation.RegressionScore;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
 /**
@@ -30,7 +31,7 @@ public class RegressionModelEvaluation
     /**
      * The source of threads
      */
-    private ExecutorService threadpool;
+    private boolean parallel;
     
     private OnLineStatistics sqrdErrorStats;
     
@@ -55,16 +56,17 @@ public class RegressionModelEvaluation
      * Creates a new RegressionModelEvaluation that will perform parallel training. 
      * @param regressor the regressor model to evaluate
      * @param dataSet the data set to train or perform cross validation from
-     * @param threadpool the source of threads for training of models
+     * @param parallel {@code true} if the training should be done using
+     * multiple-cores, {@code false} for single threaded.
      */
-    public RegressionModelEvaluation(Regressor regressor, RegressionDataSet dataSet, ExecutorService threadpool)
+    public RegressionModelEvaluation(Regressor regressor, RegressionDataSet dataSet, boolean parallel)
     {
         this.regressor = regressor;
         this.dataSet = dataSet;
-        this.threadpool = threadpool;
+        this.parallel = parallel;
         this.dtp =new DataTransformProcess();
         
-        scoreMap = new LinkedHashMap<RegressionScore, OnLineStatistics>();
+        scoreMap = new LinkedHashMap<>();
     }
     
     /**
@@ -74,7 +76,7 @@ public class RegressionModelEvaluation
      */
     public RegressionModelEvaluation(Regressor regressor, RegressionDataSet dataSet)
     {
-        this(regressor, dataSet, null);
+        this(regressor, dataSet, false);
     }
     
     /**
@@ -248,24 +250,18 @@ public class RegressionModelEvaluation
         if(warmModels != null && regressorTouse instanceof WarmRegressor)//train from the warm model
         {
             WarmRegressor wr = (WarmRegressor) regressorTouse;
-            if(threadpool != null)
-                wr.train(trainSet, warmModels[index], threadpool);
-            else
-                wr.train(trainSet, warmModels[index]);
+            wr.train(trainSet, warmModels[index], parallel);
         }
         else//do the normal thing
         {
-            if(threadpool != null)
-                regressorTouse.train(trainSet, threadpool);
-            else
-                regressorTouse.train(trainSet);
+            regressorTouse.train(trainSet, parallel);
         }
         totalTrainingTime += (System.currentTimeMillis() - startTrain);
         if(keptModels != null)
             keptModels[index] = regressorTouse;
         
         //place to store the scores that may get updated by several threads
-        final Map<RegressionScore, RegressionScore> scoresToUpdate = new HashMap<RegressionScore, RegressionScore>();
+        final Map<RegressionScore, RegressionScore> scoresToUpdate = new HashMap<>();
         for(Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet())
         {
             RegressionScore score = entry.getKey().clone();
@@ -273,43 +269,70 @@ public class RegressionModelEvaluation
             scoresToUpdate.put(score, score);
         }
         
-        CountDownLatch latch;
-        if(testSet.getSampleSize() < SystemInfo.LogicalCores || threadpool == null)
+//        CountDownLatch latch;
+//        if(testSet.getSampleSize() < SystemInfo.LogicalCores || !parallel)
+//        {
+//            latch = new CountDownLatch(1);
+//            new Evaluator(testSet, curProccess, 0, testSet.getSampleSize(), scoresToUpdate, regressorTouse, latch).run();
+//        }
+//        else//go parallel!
+//        {
+//            latch = new CountDownLatch(SystemInfo.LogicalCores);
+//            final int blockSize = testSet.getSampleSize()/SystemInfo.LogicalCores;
+//            int extra = testSet.getSampleSize()%SystemInfo.LogicalCores;
+//            
+//            int start = 0;
+//            while(start < testSet.getSampleSize())
+//            {
+//                int end = start+blockSize;
+//                if(extra-- > 0)
+//                    end++;
+//                parallel.submit(new Evaluator(testSet, curProccess, start, end, scoresToUpdate, regressorTouse, latch));
+//                start = end;
+//            }
+//        }
+        
+        ParallelUtils.run(parallel, testSet.getSampleSize(), (start, end)->
         {
-            latch = new CountDownLatch(1);
-            new Evaluator(testSet, curProccess, 0, testSet.getSampleSize(), scoresToUpdate, regressorTouse, latch).run();
-        }
-        else//go parallel!
-        {
-            latch = new CountDownLatch(SystemInfo.LogicalCores);
-            final int blockSize = testSet.getSampleSize()/SystemInfo.LogicalCores;
-            int extra = testSet.getSampleSize()%SystemInfo.LogicalCores;
-            
-            int start = 0;
-            while(start < testSet.getSampleSize())
+            //create a local set of scores to update
+            long localPredictionTime = 0;
+            OnLineStatistics localSqrdErrors = new OnLineStatistics();
+            Set<RegressionScore> localScores = new HashSet<>();
+            for (Entry<RegressionScore, RegressionScore> entry : scoresToUpdate.entrySet())
+                localScores.add(entry.getKey().clone());
+            for (int i = start; i < end; i++)
             {
-                int end = start+blockSize;
-                if(extra-- > 0)
-                    end++;
-                threadpool.submit(new Evaluator(testSet, curProccess, start, end, scoresToUpdate, regressorTouse, latch));
-                start = end;
+                DataPoint di = testSet.getDataPoint(i);
+                double trueVal = testSet.getTargetValue(i);
+                DataPoint tranDP = curProccess.transform(di);
+                long startTime = System.currentTimeMillis();
+                double predVal = regressorTouse.regress(tranDP);
+                localPredictionTime += (System.currentTimeMillis() - startTime);
+
+                double sqrdError = pow(trueVal - predVal, 2);
+
+                for (RegressionScore score : localScores)
+                    score.addResult(predVal, trueVal, di.getWeight());
+
+                localSqrdErrors.add(sqrdError, di.getWeight());
             }
-        }
-        try
-        {
-            latch.await();
-            //accumulate score info
-            for(Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet())
+
+            synchronized (sqrdErrorStats)
             {
-                RegressionScore score = entry.getKey().clone();
-                score.prepare();
-                score.addResults(scoresToUpdate.get(score));
-                entry.getValue().add(score.getScore());
+                sqrdErrorStats.add(localSqrdErrors);
+                totalClassificationTime += localPredictionTime;
+                for (RegressionScore score : localScores)
+                    scoresToUpdate.get(score).addResults(score);
             }
-        }
-        catch (InterruptedException ex)
+        });
+
+        //accumulate score info
+        for (Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet())
         {
-            Logger.getLogger(ClassificationModelEvaluation.class.getName()).log(Level.SEVERE, null, ex);
+            RegressionScore score = entry.getKey().clone();
+            score.prepare();
+            score.addResults(scoresToUpdate.get(score));
+            entry.getValue().add(score.getScore());
         }
     }
     
@@ -347,72 +370,6 @@ public class RegressionModelEvaluation
         return scoreMap.get(score);
     }
     
-    private class Evaluator implements Runnable
-    {
-        RegressionDataSet testSet;
-        DataTransformProcess curProccess;
-        int start, end;
-        CountDownLatch latch;
-        long localPredictionTime;
-        Regressor toUse;
-        final Map<RegressionScore, RegressionScore> scoresToUpdate;
-
-        public Evaluator(RegressionDataSet testSet, DataTransformProcess curProccess, int start, int end, Map<RegressionScore, RegressionScore> scoresToUpdate, Regressor toUse, CountDownLatch latch)
-        {
-            this.testSet = testSet;
-            this.curProccess = curProccess;
-            this.start = start;
-            this.end = end;
-            this.latch = latch;
-            localPredictionTime = 0;
-            this.toUse = toUse;
-            this.scoresToUpdate = scoresToUpdate;
-        }
-
-        @Override
-        public void run()
-        {
-            try
-            {
-                //create a local set of scores to update
-                Set<RegressionScore> localScores = new HashSet<RegressionScore>();
-                for (Entry<RegressionScore, RegressionScore> entry : scoresToUpdate.entrySet())
-                    localScores.add(entry.getKey().clone());
-                for (int i = start; i < end; i++)
-                {
-                    DataPoint di = testSet.getDataPoint(i);
-                    double trueVal = testSet.getTargetValue(i);
-                    DataPoint tranDP = curProccess.transform(di);
-                    long startTime = System.currentTimeMillis();
-                    double predVal = toUse.regress(tranDP);
-                    localPredictionTime += (System.currentTimeMillis() - startTime);
-
-                    double sqrdError = pow(trueVal - predVal, 2);
-                    
-                    for (RegressionScore score : localScores)
-                        score.addResult(predVal, trueVal, di.getWeight());
-
-                    synchronized (sqrdErrorStats)
-                    {
-                        sqrdErrorStats.add(sqrdError, di.getWeight());
-                    }
-                }
-                
-                synchronized (sqrdErrorStats)
-                {
-                    totalClassificationTime += localPredictionTime;
-                    for (RegressionScore score : localScores)
-                        scoresToUpdate.get(score).addResults(score);
-                }
-                latch.countDown();
-            }
-            catch (Exception ex)
-            {
-                ex.printStackTrace();
-            }
-        }
-        
-    }
     
     /**
      * Prints out the classification information in a convenient format. If no

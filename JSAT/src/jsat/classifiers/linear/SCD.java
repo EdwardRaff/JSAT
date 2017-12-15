@@ -165,13 +165,13 @@ public class SCD implements Classifier, Regressor, Parameterized, SingleWeightVe
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         double[] targets = new double[dataSet.getSampleSize()];
         for (int i = 0; i < targets.length; i++)
@@ -195,7 +195,7 @@ public class SCD implements Classifier, Regressor, Parameterized, SingleWeightVe
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         train(dataSet);
     }

@@ -123,7 +123,7 @@ public class MDATest
         
         DecisionTree tree = new DecisionTree();
         tree.setPruningMethod(TreePruner.PruningMethod.NONE);
-        tree.trainC(train);
+        tree.train(train);
         
         double[] importances = instance.getImportanceStats(tree, train);
         
@@ -142,7 +142,7 @@ public class MDATest
         train.applyTransform(new NumericalToHistogram(train, 7));
         tree = new DecisionTree();
         tree.setPruningMethod(TreePruner.PruningMethod.NONE);
-        tree.trainC(train);
+        tree.train(train);
         
         importances = instance.getImportanceStats(tree, train);
         

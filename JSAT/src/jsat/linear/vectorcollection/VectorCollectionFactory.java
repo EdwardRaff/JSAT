@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * A factory interface for the creation of {@link VectorCollection} objects. 
@@ -32,6 +33,25 @@ public interface VectorCollectionFactory<V extends Vec> extends Cloneable, Seria
      * @return  a new vector collection
      */
     public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool);
+    
+    default public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, boolean parallel)
+    {
+        //TODO this will be changed, but using this for now to make refactoring easier
+        if(parallel)
+        {
+            ExecutorService threadpool = ParallelUtils.getNewExecutor(parallel);
+            try
+            {
+                return getVectorCollection(source, distanceMetric, threadpool);
+            }
+            finally
+            {
+                threadpool.shutdownNow();
+            }
+        }
+        else
+            return getVectorCollection(source, distanceMetric);
+    }
     
     public VectorCollectionFactory<V> clone();
 }

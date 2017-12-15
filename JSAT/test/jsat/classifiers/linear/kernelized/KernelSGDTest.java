@@ -25,7 +25,6 @@ import static org.junit.Assert.*;
  */
 public class KernelSGDTest
 {
-    static private ExecutorService ex;
     
     public KernelSGDTest()
     {
@@ -34,13 +33,11 @@ public class KernelSGDTest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -62,7 +59,7 @@ public class KernelSGDTest
 
         KernelSGD classifier = new KernelSGD(new HingeLoss(), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.STOP, 100);
 
-        classifier.trainC(trainSet, ex);
+        classifier.train(trainSet, true);
 
         for (int i = 0; i < testSet.getSampleSize(); i++)
             assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
@@ -77,7 +74,7 @@ public class KernelSGDTest
 
         KernelSGD classifier = new KernelSGD(new HingeLoss(), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.STOP, 100);
 
-        classifier.trainC(trainSet);
+        classifier.train(trainSet);
 
         for (int i = 0; i < testSet.getSampleSize(); i++)
             assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
@@ -93,7 +90,7 @@ public class KernelSGDTest
 
         KernelSGD classifier = new KernelSGD(new HingeLoss(), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.STOP, 100);
 
-        classifier.trainC(trainSet, ex);
+        classifier.train(trainSet, true);
 
         for (int i = 0; i < testSet.getSampleSize(); i++)
             assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
@@ -109,7 +106,7 @@ public class KernelSGDTest
 
         KernelSGD classifier = new KernelSGD(new HingeLoss(), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.STOP, 100);
 
-        classifier.trainC(trainSet);
+        classifier.train(trainSet);
 
         for (int i = 0; i < testSet.getSampleSize(); i++)
             assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
@@ -128,7 +125,7 @@ public class KernelSGDTest
 
         KernelSGD classifier = new KernelSGD(new EpsilonInsensitiveLoss(0.1), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.MERGE_RBF, 50);
         classifier.setEpochs(10);
-        classifier.train(trainSet, ex);
+        classifier.train(trainSet, true);
 
         double errors = 0;
         for (int i = 0; i < testSet.getSampleSize(); i++)
@@ -168,14 +165,14 @@ public class KernelSGDTest
 
         instance = instance.clone();
 
-        instance.trainC(t1);
+        instance.train(t1);
 
 
         KernelSGD result = instance.clone();
         
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-        result.trainC(t2);
+        result.train(t2);
 
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

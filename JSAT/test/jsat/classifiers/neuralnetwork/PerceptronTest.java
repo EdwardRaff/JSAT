@@ -51,29 +51,27 @@ public class PerceptronTest
     }
 
     /**
-     * Test of trainC method, of class Perceptron.
+     * Test of train method, of class Perceptron.
      */
     @Test
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        ExecutorService threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         Perceptron instance = new Perceptron();
         instance = instance.clone();
-        instance.trainC(train, threadPool);
+        instance.train(train, true);
         instance = instance.clone();
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
-        threadPool.shutdown();
     }
 
     /**
-     * Test of trainC method, of class Perceptron.
+     * Test of train method, of class Perceptron.
      */
     @Test
     public void testTrainC_ClassificationDataSet()
@@ -83,7 +81,7 @@ public class PerceptronTest
 
         Perceptron instance = new Perceptron();
         instance = instance.clone();
-        instance.trainC(train);
+        instance.train(train);
         instance = instance.clone();
 
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());

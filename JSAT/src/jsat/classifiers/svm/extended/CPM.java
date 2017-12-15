@@ -410,7 +410,7 @@ public class CPM implements BinaryScoreClassifier, Classifier, Parameterized
      * @param sign_mul Either positive or negative 1. Controls whether or not
      * the positive or negative class is to be enveloped by the polytype
      */
-    private void sgdTrain(ClassificationDataSet D, MatrixOfVecs W, Vec b, int sign_mul, ExecutorService ex)
+    private void sgdTrain(ClassificationDataSet D, MatrixOfVecs W, Vec b, int sign_mul, boolean parallel)
     {
         IntList order = new IntList(D.getSampleSize());
         ListUtils.addRange(order, 0, D.getSampleSize(), 1);
@@ -482,7 +482,7 @@ public class CPM implements BinaryScoreClassifier, Classifier, Parameterized
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         if(dataSet.getPredicting().getNumOfCategories() > 2)
             throw new FailedToFitException("CPM is a binary classifier, it can not be trained on a dataset with " + dataSet.getPredicting().getNumOfCategories() + " classes");
@@ -499,17 +499,11 @@ public class CPM implements BinaryScoreClassifier, Classifier, Parameterized
         MatrixOfVecs W_p = new MatrixOfVecs(Wv_p);
         MatrixOfVecs W_n = new MatrixOfVecs(Wv_n);
         
-        sgdTrain(dataSet, W_p, bp, +1, threadPool);
-        sgdTrain(dataSet, W_n, bn, -1, threadPool);
+        sgdTrain(dataSet, W_p, bp, +1, parallel);
+        sgdTrain(dataSet, W_n, bn, -1, parallel);
         
         this.Wp = new DenseMatrix(W_p);
         this.Wn = new DenseMatrix(W_n);
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, new FakeExecutor());
     }
 
     @Override

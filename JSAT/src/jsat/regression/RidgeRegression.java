@@ -8,6 +8,7 @@ import jsat.linear.*;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.FakeExecutor;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * An implementation of Ridge Regression that finds the exact solution. Ridge 
@@ -25,8 +26,8 @@ import jsat.utils.FakeExecutor;
 public class RidgeRegression implements Regressor, Parameterized
 {
 
-	private static final long serialVersionUID = -4605757038780391895L;
-	private double lambda;
+    private static final long serialVersionUID = -4605757038780391895L;
+    private double lambda;
     private Vec w;
     private double bias;
     private SolverMode mode;
@@ -109,7 +110,7 @@ public class RidgeRegression implements Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         final int dim = dataSet.getNumNumericalVars()+1;
         DenseMatrix X = new DenseMatrix(dataSet.getSampleSize(), dim);
@@ -124,7 +125,7 @@ public class RidgeRegression implements Regressor, Parameterized
         }
 
         final Vec Y = dataSet.getTargetValues();
-        final boolean serial = threadPool instanceof FakeExecutor;
+        final boolean serial = !parallel;
 
         if(mode == SolverMode.EXACT_SVD)
         {
@@ -145,11 +146,11 @@ public class RidgeRegression implements Regressor, Parameterized
         else//cholesky
         {
             
-            Matrix H = serial ? X.transposeMultiply(X) : X.transposeMultiply(X, threadPool);
+            Matrix H = serial ? X.transposeMultiply(X) : X.transposeMultiply(X, ParallelUtils.CACHED_THREAD_POOL);
             //H + I * reg     equiv to H.mutableAdd(Matrix.eye(H.rows()).multiply(regularization));
             for(int i = 0; i < H.rows(); i++)
                 H.increment(i, i, lambda);
-            CholeskyDecomposition cd = serial ? new CholeskyDecomposition(H) : new CholeskyDecomposition(H, threadPool);
+            CholeskyDecomposition cd = serial ? new CholeskyDecomposition(H) : new CholeskyDecomposition(H, ParallelUtils.CACHED_THREAD_POOL);
             w = cd.solve(Matrix.eye(H.rows())).multiply(X.transpose()).multiply(Y);
         }
         
@@ -159,12 +160,6 @@ public class RidgeRegression implements Regressor, Parameterized
         for(int i = 0; i < newW.length(); i++)
             newW.set(i, w.get(i+1));
         w = newW;
-    }
-
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, new FakeExecutor());
     }
 
     @Override

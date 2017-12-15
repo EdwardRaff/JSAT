@@ -23,7 +23,6 @@ import static org.junit.Assert.*;
  */
 public class LSSVMTest
 {
-    static private ExecutorService ex;
     public LSSVMTest()
     {
     }
@@ -31,7 +30,6 @@ public class LSSVMTest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
@@ -50,7 +48,7 @@ public class LSSVMTest
     }
 
     /**
-     * Test of trainC method, of class LSSVM.
+     * Test of train method, of class LSSVM.
      */
     @Test
     public void testTrainC_ClassificationDataSet_ExecutorService()
@@ -64,7 +62,7 @@ public class LSSVMTest
             LSSVM classifier = new LSSVM(new RBFKernel(0.5), cacheMode);
             classifier.setCacheMode(cacheMode);
             classifier.setC(1);
-            classifier.trainC(trainSet, ex);
+            classifier.train(trainSet, true);
 
             for (int i = 0; i < testSet.getSampleSize(); i++)
                 assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
@@ -72,7 +70,7 @@ public class LSSVMTest
     }
 
     /**
-     * Test of trainC method, of class LSSVM.
+     * Test of train method, of class LSSVM.
      */
     @Test
     public void testTrainC_ClassificationDataSet()
@@ -86,7 +84,7 @@ public class LSSVMTest
             LSSVM classifier = new LSSVM(new RBFKernel(0.5), cacheMode);
             classifier.setCacheMode(cacheMode);
             classifier.setC(1);
-            classifier.trainC(trainSet);
+            classifier.train(trainSet);
 
             for (int i = 0; i < testSet.getSampleSize(); i++)
                 assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
@@ -109,7 +107,7 @@ public class LSSVMTest
             LSSVM lssvm = new LSSVM(new RBFKernel(0.5), cacheMode);
             lssvm.setCacheMode(cacheMode);
             lssvm.setC(1);
-            lssvm.train(trainSet, ex);
+            lssvm.train(trainSet, true);
 
             double errors = 0;
             for (int i = 0; i < testSet.getSampleSize(); i++)
@@ -152,7 +150,7 @@ public class LSSVMTest
         LSSVM warmModel = new LSSVM();
         warmModel.setC(1);
         warmModel.setCacheMode(SupportVectorLearner.CacheMode.FULL);
-        warmModel.trainC(train);
+        warmModel.train(train);
         
         
         LSSVM warm = new LSSVM();
@@ -162,7 +160,7 @@ public class LSSVMTest
         long start, end;
         
         start = System.currentTimeMillis();
-        warm.trainC(train, warmModel);
+        warm.train(train, warmModel);
         end = System.currentTimeMillis();
         long warmTime = (end-start);
         
@@ -172,7 +170,7 @@ public class LSSVMTest
         notWarm.setCacheMode(SupportVectorLearner.CacheMode.FULL);
         
         start = System.currentTimeMillis();
-        notWarm.trainC(train);
+        notWarm.train(train);
         end = System.currentTimeMillis();
         long normTime = (end-start);
         

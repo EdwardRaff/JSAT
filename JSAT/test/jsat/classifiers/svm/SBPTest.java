@@ -21,8 +21,6 @@ import static org.junit.Assert.*;
  */
 public class SBPTest
 {
-    static private ExecutorService ex;
-    
     public SBPTest()
     {
     }
@@ -30,13 +28,11 @@ public class SBPTest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -60,7 +56,7 @@ public class SBPTest
         for(SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
         {
             SBP classifier = new SBP(new RBFKernel(0.5), cacheMode, trainSet.getSampleSize(), 0.01);
-            classifier.trainC(trainSet, ex);
+            classifier.train(trainSet, true);
 
             for (int i = 0; i < testSet.getSampleSize(); i++)
                 assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
@@ -78,7 +74,7 @@ public class SBPTest
         for(SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
         {
             SBP classifier = new SBP(new RBFKernel(0.5), cacheMode, trainSet.getSampleSize(), 0.01);
-            classifier.trainC(trainSet);
+            classifier.train(trainSet);
 
             for (int i = 0; i < testSet.getSampleSize(); i++)
                 assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());

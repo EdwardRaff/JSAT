@@ -93,17 +93,13 @@ public class WaggingNormalTest
 
         WaggingNormal instance = new WaggingNormal((Regressor)new DecisionTree(), 50);
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
         RegressionDataSet train = FixedProblems.getLinearRegression(1000, RandomUtil.getRandom());
         RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
 
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, true);
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 1.0);
-
-        ex.shutdownNow();
     }
 
     
@@ -114,18 +110,14 @@ public class WaggingNormalTest
 
         WaggingNormal instance = new WaggingNormal((Classifier)new DecisionTree(), 50);
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
         ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
         ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
 
 
         assertTrue(cme.getErrorRate() <= 0.05);
-
-        ex.shutdownNow();
     }
 
     @Test
@@ -161,7 +153,7 @@ public class WaggingNormalTest
         
         instance = instance.clone();
 
-        instance.trainC(t1);
+        instance.train(t1);
 
         WaggingNormal result = instance.clone();
         
@@ -169,7 +161,7 @@ public class WaggingNormalTest
         for (int i = 0; i < t1.getSampleSize(); i++)
             errors += Math.abs(t1.getDataPointCategory(i) -  result.classify(t1.getDataPoint(i)).mostLikely());
         assertTrue(errors < 100);
-        result.trainC(t2);
+        result.train(t2);
 
         for (int i = 0; i < t1.getSampleSize(); i++)
             errors += Math.abs(t1.getDataPointCategory(i) -  instance.classify(t1.getDataPoint(i)).mostLikely());

@@ -21,8 +21,7 @@ import static org.junit.Assert.*;
  */
 public class PegasosKTest
 {
-    static private ExecutorService ex;
-    
+   
     public PegasosKTest()
     {
     }
@@ -30,13 +29,11 @@ public class PegasosKTest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -60,7 +57,7 @@ public class PegasosKTest
         for(SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
         {
             PegasosK classifier = new PegasosK(1e-6, trainSet.getSampleSize(), new RBFKernel(0.5), cacheMode);
-            classifier.trainC(trainSet, ex);
+            classifier.train(trainSet, true);
 
             for (int i = 0; i < testSet.getSampleSize(); i++)
                 assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
@@ -78,7 +75,7 @@ public class PegasosKTest
         for(SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
         {
             PegasosK classifier = new PegasosK(1e-6, trainSet.getSampleSize(), new RBFKernel(0.5), cacheMode);
-            classifier.trainC(trainSet);
+            classifier.train(trainSet);
 
             for (int i = 0; i < testSet.getSampleSize(); i++)
                 assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());

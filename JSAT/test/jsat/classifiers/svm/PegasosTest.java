@@ -51,27 +51,25 @@ public class PegasosTest
     }
 
     /**
-     * Test of trainC method, of class Pegasos.
+     * Test of train method, of class Pegasos.
      */
     @Test
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        ExecutorService threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         Pegasos instance = new Pegasos();
-        instance.trainC(train, threadPool);
+        instance.train(train, true);
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
-        threadPool.shutdown();
     }
 
     /**
-     * Test of trainC method, of class Pegasos.
+     * Test of train method, of class Pegasos.
      */
     @Test
     public void testTrainC_ClassificationDataSet()
@@ -81,7 +79,7 @@ public class PegasosTest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         Pegasos instance = new Pegasos();
-        instance.trainC(train);
+        instance.train(train);
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         

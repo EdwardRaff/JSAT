@@ -59,7 +59,7 @@ public class ALMA2Test
         ALMA2 alma = new ALMA2();
         alma.setEpochs(1);
         
-        alma.trainC(train);
+        alma.train(train);
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         

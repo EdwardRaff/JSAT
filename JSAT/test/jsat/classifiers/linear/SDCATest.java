@@ -33,8 +33,7 @@ public class SDCATest
      * 67(2), 301–320. doi:10.1111/j.1467-9868.2005.00503.x
      */
     
-    static ExecutorService ex;
-    
+   
     public SDCATest()
     {
     }
@@ -42,13 +41,11 @@ public class SDCATest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -62,7 +59,7 @@ public class SDCATest
     }
     
     /**
-     * Test of trainC method, of class LogisticRegressionDCD.
+     * Test of train method, of class LogisticRegressionDCD.
      */
     @Test
     public void testTrain_RegressionDataSet()
@@ -99,7 +96,7 @@ public class SDCATest
     }
     
     /**
-     * Test of trainC method, of class LogisticRegressionDCD.
+     * Test of train method, of class LogisticRegressionDCD.
      */
     @Test
     public void testTrainC_ClassificationDataSet_ExecutorService()
@@ -114,7 +111,7 @@ public class SDCATest
                 sdca.setLoss(loss);
                 sdca.setLambda(1.0/train.getSampleSize());
                 sdca.setAlpha(alpha);
-                sdca.trainC(train, ex);
+                sdca.train(train, true);
 
                 ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
@@ -124,7 +121,7 @@ public class SDCATest
     }
 
     /**
-     * Test of trainC method, of class LogisticRegressionDCD.
+     * Test of train method, of class LogisticRegressionDCD.
      */
     @Test
     public void testTrainC_ClassificationDataSet()
@@ -139,7 +136,7 @@ public class SDCATest
                 sdca.setLoss(loss);
                 sdca.setLambda(1.0/train.getSampleSize());
                 sdca.setAlpha(alpha);
-                sdca.trainC(train);
+                sdca.train(train);
 
                 ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
@@ -167,7 +164,7 @@ public class SDCATest
             ClassificationDataSet t = train.shallowClone();
             t.applyTransform(new LinearTransform(t, 0, max));
             
-            sdca.trainC(t);
+            sdca.train(t);
             if(base == null)
                 base = sdca.getRawWeight(0).clone();
             else
@@ -233,7 +230,7 @@ public class SDCATest
                         do
                         {
                             sdca.setLambda(sdca.getLambda() * (1+search_const));
-                            sdca.trainC(dataN);
+                            sdca.train(dataN);
                             w = sdca.getRawWeight(0);
                         }
                         while (w.nnz() > 1);
@@ -242,7 +239,7 @@ public class SDCATest
                         while (w.nnz() == 0)
                         {
                             sdca.setLambda(sdca.getLambda()/ (1+search_const/3));
-                            sdca.trainC(dataN);
+                            sdca.train(dataN);
                             w = sdca.getRawWeight(0);
                         }
                         search_const *= 0.95;
@@ -259,7 +256,7 @@ public class SDCATest
                     do
                     {
                         sdca.setLambda(sdca.getLambda() * 1.05);
-                        sdca.trainC(data, sdca);
+                        sdca.train(data, sdca);
                         w = sdca.getRawWeight(0);
                     }
                     while (w.nnz() > 3);//we should be able to find this pretty easily
@@ -274,7 +271,7 @@ public class SDCATest
                     sdca.setLambda(sdca.getLambda() * 3);
                     sdca.setAlpha(0.0);//now everyone should turn on
 
-                    sdca.trainC(data);
+                    sdca.train(data);
                     w = sdca.getRawWeight(0);
                     if ((int) Math.signum(w.get(3)) != 1 && attempts > 0)//model probablly still right, but got a bad epsilon solution... try again please!
                     {
@@ -331,7 +328,7 @@ public class SDCATest
         truth.setLoss(new LogisticLoss());
         truth.setTolerance(1e-10);
         truth.setLambda(1.0/train.getSampleSize());
-        truth.trainC(train);
+        truth.train(train);
         
         SDCA warm = new SDCA();
         warm.setMaxIters(100);
@@ -339,7 +336,7 @@ public class SDCATest
         warm.setAlpha(0.5);
         warm.setTolerance(1e-7);
         warm.setLambda(1.0/train.getSampleSize());
-        warm.trainC(train, truth);
+        warm.train(train, truth);
         
         assertEquals(0, warm.getRawWeight(0).subtract(truth.getRawWeight(0)).pNorm(2), 1e-4);
         assertTrue(warm.epochs_taken + " ?< " + truth.epochs_taken, warm.epochs_taken < truth.epochs_taken);

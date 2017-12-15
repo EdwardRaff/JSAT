@@ -20,8 +20,6 @@ import static org.junit.Assert.*;
  */
 public class DCSVMTest
 {
-    static private ExecutorService ex;
-    
     public DCSVMTest()
     {
     }
@@ -29,13 +27,11 @@ public class DCSVMTest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -61,7 +57,7 @@ public class DCSVMTest
             classifier.setCacheMode(cacheMode);
             classifier.setC(10);
             classifier.setClusterSampleSize(200);//make smaller to test sub-sampling
-            classifier.trainC(trainSet, ex);
+            classifier.train(trainSet, true);
 
             for (int i = 0; i < testSet.getSampleSize(); i++)
                 assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
@@ -76,7 +72,7 @@ public class DCSVMTest
             classifier.setCacheMode(cacheMode);
             classifier.setC(10);
             classifier.setEndLevel(0);
-            classifier.trainC(trainSet, ex);
+            classifier.train(trainSet, true);
             
 
             for (int i = 0; i < testSet.getSampleSize(); i++)
@@ -97,7 +93,7 @@ public class DCSVMTest
             classifier.setCacheMode(cacheMode);
             classifier.setC(10);
             classifier.setClusterSampleSize(200);//make smaller to test sub-sampling
-            classifier.trainC(trainSet);
+            classifier.train(trainSet);
 
             for (int i = 0; i < testSet.getSampleSize(); i++)
                 assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
@@ -112,7 +108,7 @@ public class DCSVMTest
             classifier.setCacheMode(cacheMode);
             classifier.setC(10);
             classifier.setEndLevel(0);
-            classifier.trainC(trainSet);
+            classifier.train(trainSet);
             
 
             for (int i = 0; i < testSet.getSampleSize(); i++)

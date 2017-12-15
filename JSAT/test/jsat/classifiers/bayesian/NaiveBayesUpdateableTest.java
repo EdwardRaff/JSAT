@@ -26,7 +26,6 @@ public class NaiveBayesUpdateableTest
 {
     static private ClassificationDataSet easyTrain;
     static private ClassificationDataSet easyTest;
-    static private ExecutorService ex;
     static private NaiveBayesUpdateable nb;
     
     public NaiveBayesUpdateableTest()
@@ -39,7 +38,6 @@ public class NaiveBayesUpdateableTest
         GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2);
         easyTrain = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
         easyTest = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
@@ -62,7 +60,7 @@ public class NaiveBayesUpdateableTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        nb.trainC(easyTrain);
+        nb.train(easyTrain);
         for(int i = 0; i < easyTest.getSampleSize(); i++)
             assertEquals(easyTest.getDataPointCategory(i), nb.classify(easyTest.getDataPoint(i)).mostLikely());
     }
@@ -83,7 +81,7 @@ public class NaiveBayesUpdateableTest
     public void testClone()
     {
         System.out.println("clone");
-        nb.trainC(easyTrain);
+        nb.train(easyTrain);
         Classifier clone = nb.clone();
         for(int i = 0; i < easyTest.getSampleSize(); i++)
             assertEquals(easyTest.getDataPointCategory(i), clone.classify(easyTest.getDataPoint(i)).mostLikely());
@@ -93,7 +91,7 @@ public class NaiveBayesUpdateableTest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        nb.trainC(easyTrain, ex);
+        nb.train(easyTrain, true);
         for(int i = 0; i < easyTest.getSampleSize(); i++)
             assertEquals(easyTest.getDataPointCategory(i), nb.classify(easyTest.getDataPoint(i)).mostLikely());
     }

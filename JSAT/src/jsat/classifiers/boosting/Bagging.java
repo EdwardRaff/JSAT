@@ -13,6 +13,7 @@ import jsat.parameters.*;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * An implementation of Bootstrap Aggregating, as described by LEO BREIMAN in "Bagging Predictors". <br>
@@ -31,8 +32,8 @@ import jsat.utils.SystemInfo;
 public class Bagging implements Classifier, Regressor, Parameterized
 {
 
-	private static final long serialVersionUID = -6566453570170428838L;
-	private Classifier baseClassifier;
+    private static final long serialVersionUID = -6566453570170428838L;
+    private Classifier baseClassifier;
     private Regressor baseRegressor;
     private CategoricalData predicting;
     private int extraSamples;
@@ -206,7 +207,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
+    public void train(final ClassificationDataSet dataSet, final boolean parallel)
     {
         predicting = dataSet.getPredicting();
         learners = new ArrayList(rounds);
@@ -218,28 +219,25 @@ public class Bagging implements Classifier, Regressor, Parameterized
         //Creat a synchrnozied view so we can add safely 
         final List synchronizedLearners = Collections.synchronizedList(learners);
         final int[] sampleCounts = new int[dataSet.getSampleSize()];
+        ExecutorService threadPool = ParallelUtils.getNewExecutor(parallel);
         for(int i = 0; i < rounds; i++)
         {
             sampleWithReplacement(sampleCounts, sampleCounts.length+extraSamples, random);
             final ClassificationDataSet sampleSet = getSampledDataSet(dataSet, sampleCounts);
             
             final Classifier learner = baseClassifier.clone();
-            if(simultaniousTraining && threadPool != null)
+            if(simultaniousTraining && parallel)
             {
                 try
                 {
                     //Wait for an available thread
                     waitForThread.acquire();
-                    threadPool.submit(new Runnable() {
-
-                        @Override
-                        public void run()
-                        {
-                            learner.trainC(sampleSet);
-                            synchronizedLearners.add(learner);
-                            waitForThread.release();//Finish, allow another one to pass through
-                            waitForFinish.countDown();
-                        }
+                    threadPool.submit(() ->
+                    {
+                        learner.train(sampleSet);
+                        synchronizedLearners.add(learner);
+                        waitForThread.release();//Finish, allow another one to pass through
+                        waitForFinish.countDown();
                     });
                 }
                 catch (InterruptedException ex)
@@ -251,15 +249,12 @@ public class Bagging implements Classifier, Regressor, Parameterized
             }
             else
             {
-                if(threadPool != null)
-                    learner.trainC(sampleSet, threadPool);
-                else
-                    learner.trainC(sampleSet);
+                learner.train(sampleSet, parallel);
                 learners.add(learner);
             }
         }
 
-        if (simultaniousTraining && threadPool != null)
+        if (simultaniousTraining && parallel)
             try
             {
                 waitForFinish.await();
@@ -269,12 +264,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
                 Logger.getLogger(Bagging.class.getName()).log(Level.SEVERE, null, ex);
                 System.err.println(ex.getMessage());
             }
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, null);
+        threadPool.shutdownNow();
     }
 
     /**
@@ -408,7 +398,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, final ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, final boolean parallel)
     {
         learners = new ArrayList(rounds);
         //Used to make the main thread wait for the working threads to finish before submiting a new job so we dont waist too much memory then we can use at once
@@ -419,27 +409,24 @@ public class Bagging implements Classifier, Regressor, Parameterized
         //Creat a synchrnozied view so we can add safely 
         final List synchronizedLearners = Collections.synchronizedList(learners);
         final int[] sampleCount = new int[dataSet.getSampleSize()];
+        ExecutorService threadPool = ParallelUtils.getNewExecutor(parallel);
         for(int i = 0; i < rounds; i++)
         {
             sampleWithReplacement(sampleCount, sampleCount.length+extraSamples, random);
             final RegressionDataSet sampleSet = getSampledDataSet(dataSet, sampleCount);
             final Regressor learner = baseRegressor.clone();
-            if(simultaniousTraining && threadPool != null)
+            if(simultaniousTraining && parallel)
             {
                 try
                 {
                     //Wait for an available thread
                     waitForThread.acquire();
-                    threadPool.submit(new Runnable() {
-
-                        @Override
-                        public void run()
-                        {
-                            learner.train(sampleSet);
-                            synchronizedLearners.add(learner);
-                            waitForThread.release();//Finish, allow another one to pass through
-                            waitForFinish.countDown();
-                        }
+                    threadPool.submit(() ->
+                    {
+                        learner.train(sampleSet);
+                        synchronizedLearners.add(learner);
+                        waitForThread.release();//Finish, allow another one to pass through
+                        waitForFinish.countDown();
                     });
                 }
                 catch (InterruptedException ex)
@@ -451,15 +438,12 @@ public class Bagging implements Classifier, Regressor, Parameterized
             }
             else
             {
-                if(threadPool != null)
-                    learner.train(sampleSet, threadPool);
-                else
-                    learner.train(sampleSet);
+                learner.train(sampleSet, parallel);
                 learners.add(learner);
             }
         }
 
-        if (simultaniousTraining && threadPool != null)
+        if (simultaniousTraining && parallel)
             try
             {
                 waitForFinish.await();
@@ -469,12 +453,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
                 Logger.getLogger(Bagging.class.getName()).log(Level.SEVERE, null, ex);
                 System.err.println(ex.getMessage());
             }
-    }
-
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, null);
+        threadPool.shutdownNow();
     }
 
     @Override

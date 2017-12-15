@@ -76,19 +76,15 @@ public class ERTreesTest
             ERTrees instance = new ERTrees();
             instance.setBinaryCategoricalSplitting(i == 1);
 
-            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
             ClassificationDataSet train = FixedProblems.getCircles(10000, RandomUtil.getRandom(), 1.0, 10.0, 100.0);
             ClassificationDataSet test = FixedProblems.getCircles(1000, RandomUtil.getRandom(), 1.0, 10.0, 100.0);
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
             if(useCatFeatures)
                 cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
             cme.evaluateTestSet(test);
 
             assertTrue(cme.getErrorRate() <= 0.001);
-
-            ex.shutdownNow();
         }
     }
 
@@ -127,19 +123,15 @@ public class ERTreesTest
             ERTrees instance = new ERTrees();
             instance.setBinaryCategoricalSplitting(i == 1);
 
-            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
             RegressionDataSet train =  FixedProblems.getLinearRegression(1000, RandomUtil.getRandom());
             RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
 
-            RegressionModelEvaluation cme = new RegressionModelEvaluation(instance, train, ex);
+            RegressionModelEvaluation cme = new RegressionModelEvaluation(instance, train, true);
             if(useCatFeatures)
                 cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
             cme.evaluateTestSet(test);
 
             assertTrue(cme.getMeanError() <= test.getTargetValues().mean()*2.5);
-
-            ex.shutdownNow();
         }
     }
 
@@ -187,12 +179,12 @@ public class ERTreesTest
 
             instance = instance.clone();
 
-            instance.trainC(t1);
+            instance.train(t1);
 
             ERTrees result = instance.clone();
             for(int i = 0; i < t1.getSampleSize(); i++)
                 assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-            result.trainC(t2);
+            result.train(t2);
 
             for(int i = 0; i < t1.getSampleSize(); i++)
                 assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

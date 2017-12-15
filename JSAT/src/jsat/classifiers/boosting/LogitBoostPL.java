@@ -3,14 +3,10 @@ package jsat.classifiers.boosting;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import jsat.classifiers.ClassificationDataSet;
-import jsat.exceptions.FailedToFitException;
 import jsat.regression.Regressor;
 import static jsat.utils.SystemInfo.*;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * An extension to the original LogitBoost algorithm for parallel training. 
@@ -27,9 +23,9 @@ import static jsat.utils.SystemInfo.*;
 public class LogitBoostPL extends LogitBoost
 {
 
-	private static final long serialVersionUID = -7932049860430324903L;
+    private static final long serialVersionUID = -7932049860430324903L;
 
-	public LogitBoostPL(Regressor baseLearner, int M)
+    public LogitBoostPL(Regressor baseLearner, int M)
     {
         super(baseLearner, M);
     }
@@ -40,7 +36,7 @@ public class LogitBoostPL extends LogitBoost
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         /*
          * Implementation Note:
@@ -56,45 +52,24 @@ public class LogitBoostPL extends LogitBoost
          *
          */
         
-        List<ClassificationDataSet> subSets = dataSet.cvSet(LogicalCores);
-        List<Future<LogitBoost>> futuerBoosts = new ArrayList<Future<LogitBoost>>(LogicalCores);
-
-        for (int i = 0; i < LogicalCores; i++)
-        {
-            final ClassificationDataSet subSet = subSets.get(i);
-            
-            futuerBoosts.add(threadPool.submit(new Callable<LogitBoost>()
-            {
-
-                public LogitBoost call() throws Exception
-                {
-                    LogitBoost boost = new LogitBoost(baseLearner.clone(), getMaxIterations());
-
-                    boost.trainC(subSet);
-
-                    return boost;
-                }
-            }));
-        }
         
-        try
+        
+        List<ClassificationDataSet> subSets = dataSet.cvSet(LogicalCores);
+        
+        this.baseLearners = new ArrayList<>(LogicalCores * getMaxIterations());
+        
+        ParallelUtils.streamP(subSets.stream(), parallel).forEach((subSet)->
         {
-            this.baseLearners = new ArrayList<Regressor>(LogicalCores * getMaxIterations());
-            this.fScaleConstant = 1.0 / LogicalCores;
-            //We now collect all our regressors
-            for(Future<LogitBoost> boost :  futuerBoosts)
-                this.baseLearners.addAll(boost.get().baseLearners);
-            
-        }
-        catch (InterruptedException interruptedException)
-        {
-            throw new FailedToFitException(interruptedException);
-        }
-        catch (ExecutionException executionException)
-        {
-            throw new FailedToFitException(executionException);
-        }
+            LogitBoost boost = new LogitBoost(baseLearner.clone(), getMaxIterations());
 
+            boost.train(subSet);
+            for(Regressor r : boost.baseLearners)
+                baseLearners.add(r);
+        });
+        
+        this.fScaleConstant = 1.0;
+        if(parallel)
+            this.fScaleConstant /= LogicalCores;
     }
 
     @Override
@@ -106,7 +81,7 @@ public class LogitBoostPL extends LogitBoost
             clone.baseLearner = this.baseLearner.clone();
         if(this.baseLearners != null)
         {
-            clone.baseLearners = new ArrayList<Regressor>(this.baseLearners.size());
+            clone.baseLearners = new ArrayList<>(this.baseLearners.size());
             for(Regressor r :  baseLearners)
                 clone.baseLearners.add(r.clone());
         }

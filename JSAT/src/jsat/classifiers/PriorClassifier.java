@@ -42,13 +42,13 @@ public class PriorClassifier implements Classifier
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         cr = new CategoricalResults(dataSet.getPredicting().getNumOfCategories());
         for(int i = 0; i < dataSet.getSampleSize(); i++)

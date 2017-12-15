@@ -41,7 +41,7 @@ import static org.junit.Assert.*;
  */
 public class BorderlineSMOTETest
 {
-    static ExecutorService ex;
+    static boolean parallelTrain = true;
     public BorderlineSMOTETest()
     {
     }
@@ -49,13 +49,11 @@ public class BorderlineSMOTETest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdownNow();
     }
     
     @Before
@@ -76,7 +74,7 @@ public class BorderlineSMOTETest
         ClassificationDataSet train = FixedProblems.get2ClassLinear2D(200, 20, 0.5, RandomUtil.getRandom());
         
         BorderlineSMOTE smote = new BorderlineSMOTE(new LogisticRegressionDCD(), false);
-        smote.trainC(train, ex);
+        smote.train(train, parallelTrain);
         
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear2D(200, 200, 4.0, RandomUtil.getRandom());
@@ -90,7 +88,7 @@ public class BorderlineSMOTETest
             assertEquals(dpp.getPair().longValue(), smote.classify(dpp.getDataPoint()).mostLikely());
         
         smote = new BorderlineSMOTE(new LogisticRegressionDCD(), true);
-        smote.trainC(train, ex);
+        smote.train(train, parallelTrain);
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), smote.classify(dpp.getDataPoint()).mostLikely());
@@ -108,7 +106,7 @@ public class BorderlineSMOTETest
         ClassificationDataSet train = FixedProblems.get2ClassLinear2D(200, 20, 0.5, RandomUtil.getRandom());
         
         BorderlineSMOTE smote = new BorderlineSMOTE(new LogisticRegressionDCD(), true);
-        smote.trainC(train);
+        smote.train(train);
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear2D(200, 200, 4.0, RandomUtil.getRandom());
         
@@ -121,7 +119,7 @@ public class BorderlineSMOTETest
             assertEquals(dpp.getPair().longValue(), smote.classify(dpp.getDataPoint()).mostLikely());
         
         smote = new BorderlineSMOTE(new LogisticRegressionDCD(), false);
-        smote.trainC(train);
+        smote.train(train);
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), smote.classify(dpp.getDataPoint()).mostLikely());

@@ -19,6 +19,7 @@ import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.utils.PairedReturn;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
 /**
@@ -34,9 +35,8 @@ import jsat.utils.random.RandomUtil;
 public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorModel
 {
 
-
-	private static final long serialVersionUID = -3605237847981632021L;
-	private double learningRate;
+    private static final long serialVersionUID = -3605237847981632021L;
+    private double learningRate;
     private double bias;
     private Vec weights;
     private int iteratinLimit;
@@ -129,7 +129,7 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         if(dataSet.getClassSize() != 2)
             throw new FailedToFitException("Preceptron only supports binary calssification");
@@ -154,6 +154,7 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
         int iterations = 0;
         bias = 0;
         double globalError;
+        ExecutorService threadPool = ParallelUtils.getNewExecutor(parallel);
         do
         {
             globalError = 0;
@@ -211,10 +212,12 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
         while(globalError > 0 && iterations < iteratinLimit);
         
         weights = bestWeightsSoFar;
+        
+        threadPool.shutdownNow();
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         trainCOnline(dataSet);
     }

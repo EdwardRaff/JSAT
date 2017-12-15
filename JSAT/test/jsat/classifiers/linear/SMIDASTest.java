@@ -44,7 +44,7 @@ public class SMIDASTest
     }
 
     /**
-     * Test of trainC method, of class SMIDAS.
+     * Test of train method, of class SMIDAS.
      */
     @Test
     public void testTrainC_ClassificationDataSet()
@@ -55,7 +55,7 @@ public class SMIDASTest
         
         SMIDAS smidas = new SMIDAS(0.1);
         smidas.setLoss(StochasticSTLinearL1.Loss.LOG);
-        smidas.trainC(train);
+        smidas.train(train);
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
         

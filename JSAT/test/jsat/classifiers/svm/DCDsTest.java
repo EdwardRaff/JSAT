@@ -23,7 +23,6 @@ import static org.junit.Assert.*;
  */
 public class DCDsTest
 {
-    static private ExecutorService threadPool;
     
     public DCDsTest()
     {
@@ -32,13 +31,11 @@ public class DCDsTest
     @BeforeClass
     public static void setUpClass()
     {
-        threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        threadPool.shutdown();
     }
     
     @Before
@@ -52,7 +49,7 @@ public class DCDsTest
     }
 
     /**
-     * Test of trainC method, of class DCDs.
+     * Test of train method, of class DCDs.
      */
     @Test
     public void testTrainC_ClassificationDataSet_ExecutorService()
@@ -62,7 +59,7 @@ public class DCDsTest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         DCDs instance = new DCDs();
-        instance.trainC(train, threadPool);
+        instance.train(train, true);
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
@@ -71,7 +68,7 @@ public class DCDsTest
     }
 
     /**
-     * Test of trainC method, of class DCDs.
+     * Test of train method, of class DCDs.
      */
     @Test
     public void testTrainC_ClassificationDataSet()
@@ -80,7 +77,7 @@ public class DCDsTest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
         DCDs instance = new DCDs();
-        instance.trainC(train);
+        instance.train(train);
 
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
@@ -95,7 +92,7 @@ public class DCDsTest
         Random rand = RandomUtil.getRandom();
 
         DCDs dcds = new DCDs();
-        dcds.train(FixedProblems.getLinearRegression(400, rand), threadPool);
+        dcds.train(FixedProblems.getLinearRegression(400, rand), true);
 
         for (DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, rand).getAsDPPList())
         {
@@ -132,7 +129,7 @@ public class DCDsTest
         ClassificationDataSet train = FixedProblems.getHalfCircles(10000, RandomUtil.getRandom(), 0.1, 0.5);
         
         DCDs warmModel = new DCDs();
-        warmModel.trainC(train);
+        warmModel.train(train);
         warmModel.setC(1);
         
         
@@ -145,7 +142,7 @@ public class DCDsTest
         notWarm.setC(1e1);
         
         start = System.currentTimeMillis();
-        notWarm.trainC(train);
+        notWarm.train(train);
         end = System.currentTimeMillis();
         long normTime = (end-start);
         
@@ -153,7 +150,7 @@ public class DCDsTest
         warm.setC(1e1);
         
         start = System.currentTimeMillis();
-        warm.trainC(train, warmModel);
+        warm.train(train, warmModel);
         end = System.currentTimeMillis();
         long warmTime = (end-start);
         

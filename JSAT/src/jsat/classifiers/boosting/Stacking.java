@@ -4,7 +4,6 @@ package jsat.classifiers.boosting;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
 import jsat.classifiers.linear.LinearBatch;
 import jsat.linear.DenseVector;
@@ -235,7 +234,7 @@ public class Stacking implements Classifier, Regressor
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         final int models = baseClassifiers.size();
         final int C = dataSet.getClassSize();
@@ -257,10 +256,8 @@ public class Stacking implements Classifier, Regressor
             {
                 ClassificationDataSet train = ClassificationDataSet.comineAllBut(dataFolds, f);
                 ClassificationDataSet test = dataFolds.get(f);
-                if(threadPool == null)
-                    cl.trainC(train);
-                else
-                    cl.trainC(train, threadPool);
+                cl.train(train, parallel);
+                
                 for(int i = 0; i < test.getSampleSize(); i++)//evaluate and mark each point in the held out fold.
                 {
                     CategoricalResults pred  = cl.classify(test.getDataPoint(i));
@@ -279,26 +276,14 @@ public class Stacking implements Classifier, Regressor
         }
         
         //train the meta model
-        if(threadPool == null)
-            aggregatingClassifier.trainC(metaSet);
-        else
-            aggregatingClassifier.trainC(metaSet, threadPool);
+        aggregatingClassifier.train(metaSet, parallel);
         
         //train the final classifiers, unless folds=1. In that case they are already trained
         if(folds != 1)
         {
             for(Classifier cl : baseClassifiers)
-                if(threadPool == null)
-                    cl.trainC(dataSet);
-                else
-                    cl.trainC(dataSet, threadPool);
+                cl.train(dataSet, parallel);
         }
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, null);
     }
 
     @Override
@@ -321,7 +306,7 @@ public class Stacking implements Classifier, Regressor
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         final int models = baseRegressors.size();
         weightsPerModel = 1;
@@ -342,10 +327,7 @@ public class Stacking implements Classifier, Regressor
             {
                 RegressionDataSet train = RegressionDataSet.comineAllBut(dataFolds, f);
                 RegressionDataSet test = dataFolds.get(f);
-                if(threadPool == null)
-                    reg.train(train);
-                else
-                    reg.train(train, threadPool);
+                reg.train(train, parallel);
                 for(int i = 0; i < test.getSampleSize(); i++)//evaluate and mark each point in the held out fold.
                 {
                     double pred  = reg.regress(test.getDataPoint(i));
@@ -356,28 +338,16 @@ public class Stacking implements Classifier, Regressor
         }
         
         //train the meta model
-        if(threadPool == null)
-            aggregatingRegressor.train(metaSet);
-        else
-            aggregatingRegressor.train(metaSet, threadPool);
+        aggregatingRegressor.train(metaSet, parallel);
         
         //train the final classifiers, unless folds=1. In that case they are already trained
         if(folds != 1)
         {
             for(Regressor reg : baseRegressors)
-                if(threadPool == null)
-                    reg.train(dataSet);
-                else
-                    reg.train(dataSet, threadPool);
+                reg.train(dataSet, parallel);
         }
     }
-
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, null);
-    }
-
+    
     @Override
     public Stacking clone()
     {

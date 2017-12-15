@@ -22,6 +22,7 @@ import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.*;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * Creates a decision tree from {@link DecisionStump DecisionStumps}. How this
@@ -61,23 +62,23 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     }
     
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         Set<Integer> options = new IntSet(dataSet.getNumFeatures());
         for(int i = 0; i < dataSet.getNumFeatures(); i++)
             options.add(i);
-        train(dataSet, options, threadPool);
+        train(dataSet, options, parallel);
     }
     
     public void train(RegressionDataSet dataSet, Set<Integer> options)
     {
-        train(dataSet, options, new FakeExecutor());
+        train(dataSet, options, false);
     }
 
-    public void train(RegressionDataSet dataSet, Set<Integer> options, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, Set<Integer> options, boolean parallel)
     {
         ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
-        root = makeNodeR(dataSet.getDPPList(), options, 0, threadPool, mcdl);
+        root = makeNodeR(dataSet.getDPPList(), options, 0, parallel, mcdl);
         try
         {
             mcdl.await();
@@ -89,18 +90,12 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         if(root == null)//fitting issure, most likely too few datums. try just a stump 
         {
             DecisionStump stump = new DecisionStump();
-            stump.train(dataSet, threadPool);
+            stump.train(dataSet, parallel);
             root = new Node(stump);
         }
         //TODO add pruning for regression 
     }
-
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, new FakeExecutor());
-    }
-
+    
     /**
      * Creates a Decision Tree that uses {@link PruningMethod#REDUCED_ERROR}
      * pruning on a held out 10% of the data.
@@ -304,23 +299,23 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         Set<Integer> options = new IntSet(dataSet.getNumFeatures());
         for(int i = 0; i < dataSet.getNumFeatures(); i++)
             options.add(i);
-        trainC(dataSet, options, threadPool);
+        trainC(dataSet, options, parallel);
     }
     /**
      * Performs exactly the same as 
-     * {@link #trainC(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService) }, 
+     * {@link #train(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService) }, 
      * but the user can specify a subset of the features to be considered.
      * 
      * @param dataSet the data set to train from
      * @param options the subset of features to split on
-     * @param threadPool the source of threads for training. 
+     * @param parallel whether or not to use multiple cores in training
      */
-    protected void trainC(ClassificationDataSet dataSet, Set<Integer> options, ExecutorService threadPool)
+    protected void trainC(ClassificationDataSet dataSet, Set<Integer> options, boolean parallel)
     {
         if(dataSet.getSampleSize() < minSamples)
             throw new FailedToFitException("There are only " + 
@@ -332,7 +327,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
         
         List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
-        List<DataPointPair<Integer>> testPoints = new ArrayList<DataPointPair<Integer>>();
+        List<DataPointPair<Integer>> testPoints = new ArrayList<>();
         
         if(pruningMethod != PruningMethod.NONE && testProportion != 0.0)//Then we need to set aside a testing set
         {
@@ -347,7 +342,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
                 testPoints.addAll(dataPoints);
         }
         
-        this.root = makeNodeC(dataPoints, options, 0, threadPool, mcdl);
+        this.root = makeNodeC(dataPoints, options, 0, parallel, mcdl);
         
         try
         {
@@ -362,7 +357,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         if(root == null)//fitting issure, most likely too few datums. try just a stump 
         {
             DecisionStump stump = new DecisionStump();
-            stump.trainC(dataSet, threadPool);
+            stump.train(dataSet, parallel);
             root = new Node(stump);
         }
         else
@@ -374,12 +369,12 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * @param dataPoints the list of data points paired with their class
      * @param options the attributes that this tree may select from
      * @param depth the current depth of the tree
-     * @param threadPool the source of threads
+     * @param parallel whether or not to use multiple threads when training
      * @param mcdl count down latch 
      * @return the node created, or null if no node was created
      */
     protected Node makeNodeC(List<DataPointPair<Integer>> dataPoints, final Set<Integer> options, final int depth,
-            final ExecutorService threadPool, final ModifiableCountDownLatch mcdl)
+            final boolean parallel, final ModifiableCountDownLatch mcdl)
     {
         //figure out what level of parallelism we are going to use, feature wise or depth wise
         boolean mePara = (1L<<depth) < SystemInfo.LogicalCores*2;//should THIS node use the Stump parallelism
@@ -394,7 +389,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         stump.setPredicting(this.predicting);
         final List<List<DataPointPair<Integer>>> splits;
         if(mePara)
-            splits = stump.trainC(dataPoints, options, threadPool);
+            splits = stump.trainC(dataPoints, options, parallel);
         else 
             splits = stump.trainC(dataPoints, options);
         
@@ -407,16 +402,13 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
                 mcdl.countUp();
                 if(depthPara)
                 {
-                    threadPool.submit(new Runnable() {
-
-                        public void run()
-                        {
-                            node.paths[ii] = makeNodeC(splitI, new IntSet(options), depth+1, threadPool, mcdl);
-                        }
+                    (parallel ? ParallelUtils.CACHED_THREAD_POOL : new FakeExecutor()).submit(() ->
+                    {
+                        node.paths[ii] = makeNodeC(splitI, new IntSet(options), depth+1, parallel, mcdl);
                     });
                 }
                 else
-                    node.paths[ii] = makeNodeC(splitI, new IntSet(options), depth+1, threadPool, mcdl);
+                    node.paths[ii] = makeNodeC(splitI, new IntSet(options), depth+1, parallel, mcdl);
             }
         
         mcdl.countDown();
@@ -428,12 +420,12 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * @param dataPoints the list of data points paired with their associated real value
      * @param options the attributes that this tree may select from 
      * @param depth the current depth of the tree
-     * @param threadPool the source of threads
+     * @param parallel whether or not to perform parallel computation 
      * @param mcdl count down latch 
      * @return the node created, or null if no node was created
      */
     protected Node makeNodeR(List<DataPointPair<Double>> dataPoints, final Set<Integer> options, final int depth,
-            final ExecutorService threadPool, final ModifiableCountDownLatch mcdl)
+            final boolean parallel, final ModifiableCountDownLatch mcdl)
     {
         //figure out what level of parallelism we are going to use, feature wise or depth wise
         boolean mePara = (1L<<depth) < SystemInfo.LogicalCores*2;//should THIS node use the Stump parallelism
@@ -447,7 +439,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         DecisionStump stump = baseStump.clone();
         final List<List<DataPointPair<Double>>> splits;
         if(mePara)
-            splits = stump.trainR(dataPoints, options, threadPool);
+            splits = stump.trainR(dataPoints, options, parallel);
         else 
             splits = stump.trainR(dataPoints, options);
         if(splits == null)//an error occured, probably not enough data for many categorical values
@@ -465,32 +457,23 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
                 mcdl.countUp();
                 if(depthPara)
                 {
-                    threadPool.submit(new Runnable() {
-
-                        @Override
-                        public void run()
-                        {
-                            node.paths[ii] = makeNodeR(splitI, new IntSet(options), depth+1, threadPool, mcdl);
-                        }
+                    (parallel ? ParallelUtils.CACHED_THREAD_POOL : new FakeExecutor())
+                    .submit(() ->
+                    {
+                        node.paths[ii] = makeNodeR(splitI, new IntSet(options), depth+1, parallel, mcdl);
                     });
                 }
                 else
-                    node.paths[ii] = makeNodeR(splitI, new IntSet(options), depth+1, threadPool, mcdl);
+                    node.paths[ii] = makeNodeR(splitI, new IntSet(options), depth+1, parallel, mcdl);
             }
         
         mcdl.countDown();
         return node;
     }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, new FakeExecutor());
-    }
     
     public void trainC(ClassificationDataSet dataSet, Set<Integer> options)
     {
-        trainC(dataSet, options, new FakeExecutor());
+        trainC(dataSet, options, false);
     }
 
     @Override

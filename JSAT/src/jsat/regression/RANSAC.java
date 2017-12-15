@@ -13,6 +13,7 @@ import jsat.parameters.Parameter.ParameterHolder;
 import jsat.utils.FakeExecutor;
 import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
 /**
@@ -32,8 +33,8 @@ import jsat.utils.random.RandomUtil;
 public class RANSAC implements Regressor, Parameterized
 {
 
-	private static final long serialVersionUID = -5015748604828907703L;
-	/**
+    private static final long serialVersionUID = -5015748604828907703L;
+    /**
      * the minimum number of data required to fit the model
      */
     private int initialTrainSize;
@@ -297,7 +298,7 @@ public class RANSAC implements Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         try
         {
@@ -305,13 +306,14 @@ public class RANSAC implements Regressor, Parameterized
             int workSize = iterations/SystemInfo.LogicalCores;
             int leftOver = iterations%SystemInfo.LogicalCores;
             
-            List<Future<RANSACWorker>> futures = new ArrayList<Future<RANSACWorker>>(SystemInfo.LogicalCores+1);
+            List<Future<RANSACWorker>> futures = new ArrayList<>(SystemInfo.LogicalCores+1);
+            ExecutorService threadPool = parallel ? ParallelUtils.CACHED_THREAD_POOL : new FakeExecutor();
             if(leftOver != 0)
                 futures.add(threadPool.submit(new RANSACWorker(baseRegressor, leftOver, dataSet)));
             for(int i = 0; i < SystemInfo.LogicalCores; i++)
                 futures.add(threadPool.submit(new RANSACWorker(baseRegressor, workSize, dataSet)));
             
-            PriorityQueue<RANSACWorker> results = new PriorityQueue<RANSACWorker>(SystemInfo.LogicalCores+1);
+            PriorityQueue<RANSACWorker> results = new PriorityQueue<>(SystemInfo.LogicalCores+1);
             
             for( Future<RANSACWorker> futureWorker : futures )
                 results.add(futureWorker.get());
@@ -326,23 +328,12 @@ public class RANSAC implements Regressor, Parameterized
             
             
         }
-        catch (InterruptedException ex)
-        {
-            Logger.getLogger(RANSAC.class.getName()).log(Level.SEVERE, null, ex);
-            throw new FailedToFitException(ex);
-        }
-        catch (ExecutionException ex)
+        catch (InterruptedException | ExecutionException ex)
         {
             Logger.getLogger(RANSAC.class.getName()).log(Level.SEVERE, null, ex);
             throw new FailedToFitException(ex);
         }
                 
-    }
-
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, new FakeExecutor());
     }
 
     @Override

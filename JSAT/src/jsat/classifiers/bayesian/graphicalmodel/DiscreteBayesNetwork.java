@@ -102,12 +102,12 @@ public class DiscreteBayesNetwork implements Classifier
         dag.addEdge(parent, child);
     }
 
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         int classID = dataSet.getNumCategoricalVars();
         if(classID == 0 )

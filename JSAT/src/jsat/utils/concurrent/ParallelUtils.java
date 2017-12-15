@@ -3,6 +3,7 @@ import static java.lang.Math.min;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -17,6 +18,21 @@ import jsat.utils.SystemInfo;
  */
 public class ParallelUtils
 {
+    /**
+     * This object provides a re-usable source of threads for use without having
+     * to create a new thread pool. The cached executor service is used because
+     * no threads are created until needed. If the pool is unused for a long
+     * enough time, the threads will be destroyed. This avoids the user needing
+     * to do anything. This pool is filled with daemon threads, and so will not
+     * prevent program termination.
+     */
+    public static final ExecutorService CACHED_THREAD_POOL = Executors.newCachedThreadPool((Runnable r) ->
+    {
+        Thread t = Executors.defaultThreadFactory().newThread(r);
+        t.setDaemon(true);
+        return t;
+    });
+    
     /**
      * This helper method provides a convenient way to break up a computation
      * across <tt>N</tt> items into contiguous ranges that can be processed
@@ -107,7 +123,7 @@ public class ParallelUtils
         if(!parallel)
         {
             for(int i = 0; i < N; i++)
-                ir.run(N);
+                ir.run(i);
             return;
         }
         

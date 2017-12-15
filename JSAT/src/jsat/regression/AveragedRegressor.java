@@ -53,10 +53,10 @@ public class AveragedRegressor implements Regressor
         return r / voters.length;
     }
 
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         for(Regressor voter : voters)
-            voter.train(dataSet, threadPool);
+            voter.train(dataSet, parallel);
     }
 
     public void train(RegressionDataSet dataSet)

@@ -23,6 +23,7 @@ import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * This class provides a neural network based on Geoffrey Hinton's 
@@ -135,7 +136,7 @@ public class DReDNetSimple implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         setup(dataSet);
         
@@ -149,8 +150,10 @@ public class DReDNetSimple implements Classifier, Parameterized
         }
         IntList randOrder = new IntList(X.size());
         ListUtils.addRange(randOrder, 0, X.size(), 1);
-        List<Vec> Xmini = new ArrayList<Vec>(batchSize);
-        List<Vec> Ymini = new ArrayList<Vec>(batchSize);
+        List<Vec> Xmini = new ArrayList<>(batchSize);
+        List<Vec> Ymini = new ArrayList<>(batchSize);
+        
+        ExecutorService threadPool = ParallelUtils.getNewExecutor(parallel);
         
         for(int epoch = 0; epoch < epochs; epoch++)
         {
@@ -169,7 +172,7 @@ public class DReDNetSimple implements Classifier, Parameterized
                 }
                 
                 double localErr;
-                if(threadPool != null)
+                if(parallel)
                     localErr = network.updateMiniBatch(Xmini, Ymini, threadPool);
                 else
                     localErr = network.updateMiniBatch(Xmini, Ymini);
@@ -192,7 +195,7 @@ public class DReDNetSimple implements Classifier, Parameterized
         sizes[sizes.length-1] = dataSet.getClassSize();
         network.setLayerSizes(sizes);
         
-        List<ActivationLayer> activations = new ArrayList<ActivationLayer>(hiddenSizes.length+2);
+        List<ActivationLayer> activations = new ArrayList<>(hiddenSizes.length+2);
         for(int size : hiddenSizes)
             activations.add(new ReLU());
         activations.add(new SoftmaxLayer());
@@ -206,12 +209,6 @@ public class DReDNetSimple implements Classifier, Parameterized
         
         
         network.setup();
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, null);
     }
 
     @Override

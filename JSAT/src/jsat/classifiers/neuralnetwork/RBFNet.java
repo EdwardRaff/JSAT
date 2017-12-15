@@ -11,6 +11,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicIntegerArray;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.IntStream;
 
 import jsat.DataSet;
 import jsat.classifiers.CategoricalResults;
@@ -43,6 +46,7 @@ import jsat.utils.IntList;
 import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
@@ -351,47 +355,31 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                 for(int i = 0; i < averages.length; i++)
                     averages[i] = new OnLineStatistics();
                 
-                final List<Future<OnLineStatistics[]>> futures = new ArrayList<Future<OnLineStatistics[]>>(SystemInfo.LogicalCores);
-                
-                /**
-                 * Compute the stats for each subset and then merge them
-                 */
-                for (final List<Vec> subList : ListUtils.splitList((List< Vec>) data.getDataVectors(), SystemInfo.LogicalCores))
+                List<Vec> X = data.getDataVectors();
+                ParallelUtils.run(true, data.getSampleSize(), (start, end) -> 
                 {
-                    Future<OnLineStatistics[]> future = threadpool.submit(new Callable<OnLineStatistics[]>() 
-                    {
+                    final OnLineStatistics[] localAverages = new OnLineStatistics[bandwidths.length];
+                    for (int i = 0; i < localAverages.length; i++)
+                        localAverages[i] = new OnLineStatistics();
 
-                        @Override
-                        public OnLineStatistics[] call()
+                    for (int z = start; z < end; z++)
+                    {
+                        Vec x = X.get(z);
+                        double minDist = Double.POSITIVE_INFINITY;
+                        int minI = 0;
+                        for (int i = 0; i < centroids.size(); i++)
                         {
-                            final OnLineStatistics[] localAverages = new OnLineStatistics[bandwidths.length];
-                            for (int i = 0; i < localAverages.length; i++)
-                                localAverages[i] = new OnLineStatistics();
-                            
-                            for(Vec x : subList)
+                            double dist = dm.dist(i, x, centroids, centroidDistCache);
+                            if (dist < minDist)
                             {
-                                double minDist = Double.POSITIVE_INFINITY;
-                                int minI = 0;
-                                for(int i = 0; i < centroids.size(); i++)
-                                {
-                                    double dist = dm.dist(i, x, centroids, centroidDistCache);
-                                    if(dist < minDist)
-                                    {
-                                        minDist = dist;
-                                        minI = i;
-                                    }
-                                }
-                                localAverages[minI].add(minDist);
+                                minDist = dist;
+                                minI = i;
                             }
-                            return localAverages;
                         }
-                    });
-                    futures.add(future);
-                }
-                try
-                {
-                    ///Wait for all the work to finish
-                    for (OnLineStatistics[] localAverages : ListUtils.collectFutures(futures))
+                        localAverages[minI].add(minDist);
+                    }
+                    
+                    synchronized(averages)
                     {
                         for (int i = 0; i < localAverages.length; i++)
                         {
@@ -400,18 +388,11 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                             averages[i] = OnLineStatistics.add(averages[i], localAverages[i]);
                         }
                     }
-
-                    for(int i = 0; i < bandwidths.length; i++)
-                        bandwidths[i] = averages[i].getMean()+averages[i].getStandardDeviation()*alpha;
-                }
-                catch (InterruptedException ex)
-                {
-                    throw new FailedToFitException(ex);
-                }
-                catch (ExecutionException ex)
-                {
-                    throw new FailedToFitException(ex);
-                }
+                    
+                }, threadpool);
+                
+                for (int i = 0; i < bandwidths.length; i++)
+                    bandwidths[i] = averages[i].getMean() + averages[i].getStandardDeviation() * alpha;
                 
                 return bandwidths;
             }
@@ -438,7 +419,6 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                     throw new FailedToFitException("CLOSEST_OPPOSITE_CENTROID only works for classification data sets");
                 
                 final double[] bandwidths = new double[centroids.size()];
-                final CountDownLatch latch0 = new CountDownLatch(SystemInfo.LogicalCores);
                 
                 /**
                  * An array of arrays. Each centroid gets its own atomic array, 
@@ -447,46 +427,28 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                 final AtomicIntegerArray[] classLabels = new AtomicIntegerArray[centroids.size()];
                 for(int i =0; i < classLabels.length; i++)
                     classLabels[i] = new AtomicIntegerArray(cds.getClassSize());
-                IntList indices = new IntList(data.getSampleSize());
-                ListUtils.addRange(indices, 0, data.getSampleSize(), 1);
-                for(final List<Integer> subList : ListUtils.splitList(indices, SystemInfo.LogicalCores))
+
+                ParallelUtils.run(true, data.getSampleSize(), (start, end)->
                 {
-                    threadpool.submit(new Runnable() 
+                    for(int id = start; id < end; id++)
                     {
-                        @Override
-                        public void run()
+                        final Vec x = cds.getDataPoint(id).getNumericalValues();
+                        double minDist = Double.POSITIVE_INFINITY;
+                        int minI = 0;
+                        for (int i = 0; i < centroids.size(); i++)
                         {
-                            for(int id : subList)
+                            double dist = dm.dist(i, x, centroids, centroidDistCache);
+                            if (dist < minDist)
                             {
-                                final Vec x = cds.getDataPoint(id).getNumericalValues();
-                                double minDist = Double.POSITIVE_INFINITY;
-                                int minI = 0;
-                                for(int i = 0; i < centroids.size(); i++)
-                                {
-                                    double dist = dm.dist(i, x, centroids, centroidDistCache);
-                                    if(dist < minDist)
-                                    {
-                                        minDist = dist;
-                                        minI = i;
-                                    }
-                                }
-                                
-                                classLabels[minI].incrementAndGet(cds.getDataPointCategory(id));
+                                minDist = dist;
+                                minI = i;
                             }
-                            
-                            latch0.countDown();
                         }
-                    });
-                }
-                try
-                {
-                    ///Wait for all the work to finish
-                    latch0.await();
-                }
-                catch (InterruptedException ex)
-                {
-                    throw new FailedToFitException(ex);
-                }
+
+                        classLabels[minI].incrementAndGet(cds.getDataPointCategory(id));
+                    }
+                }, threadpool);
+                
                 
                 //Figure out the class label for each neuron
                 final int[] neuronClass = new int[centroids.size()];
@@ -504,41 +466,22 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                     }
                     neuronClass[i] = maxClass;
                 }
-                //Now set the bandwidth based on the distance to the nearest centroid with a different class label
-     
-                final CountDownLatch latch1 = new CountDownLatch(centroids.size());
-                for (int i = 0; i < centroids.size(); i++)
-                {
-                    final int center = i;
-                    threadpool.submit(new Runnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            double minDist = Double.POSITIVE_INFINITY;
-                            for (int i = 0; i < centroids.size(); i++)
-                                if (neuronClass[center] != neuronClass[i])//dont check for ourselves b/c we have the same class as ourselves, so no need
-                                    minDist = Math.min(minDist, dm.dist(i, center, centroids, centroidDistCache));
-
-                            if (Double.isInfinite(minDist))//possible if there is high class imbalance, run again but lie
-                                for (int i = 0; i < centroids.size(); i++)
-                                    if (center != i)
-                                        minDist = Math.min(minDist, dm.dist(i, center, centroids, centroidDistCache));
-
-                            bandwidths[center] = alpha * minDist;
-                            latch1.countDown();
-                        }
-                    });
-                }
                 
-                try
+                //Now set the bandwidth based on the distance to the nearest centroid with a different class label
+                ParallelUtils.run(true, centroids.size(), (center) ->
                 {
-                    latch1.await();
-                }
-                catch (InterruptedException ex)
-                {
-                    throw new FailedToFitException(ex);
-                }
+                    double minDist = Double.POSITIVE_INFINITY;
+                    for (int i = 0; i < centroids.size(); i++)
+                        if (neuronClass[center] != neuronClass[i])//dont check for ourselves b/c we have the same class as ourselves, so no need
+                            minDist = Math.min(minDist, dm.dist(i, center, centroids, centroidDistCache));
+
+                    if (Double.isInfinite(minDist))//possible if there is high class imbalance, run again but lie
+                        for (int i = 0; i < centroids.size(); i++)
+                            if (center != i)
+                                minDist = Math.min(minDist, dm.dist(i, center, centroids, centroidDistCache));
+
+                    bandwidths[center] = alpha * minDist;
+                }, threadpool);
                 
                 return bandwidths;
             }
@@ -556,26 +499,18 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
             {
                 final double[] bandwidths = new double[centroids.size()];
                 final CountDownLatch latch = new CountDownLatch(centroids.size());
-                for(int i = 0; i < centroids.size(); i++)
+                ParallelUtils.run(true, centroids.size(), (center)->
                 {
-                    final int center = i;
-                    threadpool.submit(new Runnable() 
-                    {
-                        @Override
-                        public void run()
-                        {
-                            BoundedSortedList<Double> closestDistances = new BoundedSortedList<Double>(p);
-                            for(int i = 0; i < centroids.size(); i++)
-                                if(i != center)
-                                    closestDistances.add(dm.dist(i, center, centroids, centroidDistCache));
-                            OnLineStatistics stats = new OnLineStatistics();
-                            for(double dist : closestDistances)
-                                stats.add(dist);
-                            bandwidths[center] = stats.getMean()+alpha*stats.getStandardDeviation();
-                            latch.countDown();
-                        }
-                    });
-                }
+                    BoundedSortedList<Double> closestDistances = new BoundedSortedList<>(p);
+                    for (int i = 0; i < centroids.size(); i++)
+                        if (i != center)
+                            closestDistances.add(dm.dist(i, center, centroids, centroidDistCache));
+                    OnLineStatistics stats = new OnLineStatistics();
+                    for (double dist : closestDistances)
+                        stats.add(dist);
+                    bandwidths[center] = stats.getMean() + alpha * stats.getStandardDeviation();
+                }, threadpool);
+                
                 return bandwidths;
             }
         };
@@ -786,12 +721,12 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         if(baseClassifier == null)
             throw new FailedToFitException("RBFNet was not given a base classifier");
-        if(threadPool == null)
-            threadPool = new FakeExecutor();
+
+        ExecutorService threadPool = ParallelUtils.getNewExecutor(parallel);
         //Learn Centroids
         centroids = p1l.getCentroids(dataSet, numCentroids, dm, threadPool);
         centroidDistCache = dm.getAccelerationCache(centroids, threadPool);
@@ -801,17 +736,11 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         
         //apply transform
         ClassificationDataSet transformedData = dataSet.shallowClone();
-        transformedData.applyTransform(this, threadPool);
+        transformedData.applyTransform(this, parallel);
         
         //learn final model on transformed inputs
-        baseClassifier.trainC(transformedData, threadPool);
+        baseClassifier.train(transformedData, parallel);
         
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, null);
     }
 
     @Override
@@ -833,7 +762,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     public void fit(DataSet data)
     {
         if (data instanceof ClassificationDataSet)
-            trainC((ClassificationDataSet) data);
+            train((ClassificationDataSet) data);
         else if(data instanceof RegressionDataSet)
             train((RegressionDataSet) data);
         else
@@ -841,12 +770,12 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         if(baseRegressor == null)
             throw new FailedToFitException("RBFNet was not given a base classifier");
-        if(threadPool == null)
-            threadPool = new FakeExecutor();
+        
+        ExecutorService threadPool = ParallelUtils.getNewExecutor(parallel);
         //Learn Centroids
         centroids = p1l.getCentroids(dataSet, numCentroids, dm, threadPool);
         centroidDistCache = dm.getAccelerationCache(centroids, threadPool);
@@ -856,16 +785,10 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         
         //apply transform
         RegressionDataSet transformedData = dataSet.shallowClone();
-        transformedData.applyTransform(this, threadPool);
+        transformedData.applyTransform(this, parallel);
         
         //learn final model on transformed inputs
-        baseRegressor.train(transformedData, threadPool);
-    }
-
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, null);
+        baseRegressor.train(transformedData, parallel);
     }
 
     @Override

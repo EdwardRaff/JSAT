@@ -68,10 +68,6 @@ public class KernelPCATest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-
-        
-
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         
         for(Nystrom.SamplingMethod sampMethod : Nystrom.SamplingMethod.values())
         {
@@ -80,12 +76,11 @@ public class KernelPCATest
             ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, RandomUtil.getRandom());
             ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, RandomUtil.getRandom());
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
             cme.evaluateTestSet(test);
 
             assertEquals(0, cme.getErrorRate(), 0.0);
         }
-        ex.shutdownNow();
 
     }
 
@@ -121,14 +116,14 @@ public class KernelPCATest
 
         instance = instance.clone();
 
-        instance.trainC(t1);
+        instance.train(t1);
 
         
         DataModelPipeline result = instance.clone();
         
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-        result.trainC(t2);
+        result.train(t2);
 
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

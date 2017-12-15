@@ -31,8 +31,6 @@ import static org.junit.Assert.*;
  */
 public class StackingTest
 {
-    static ExecutorService ex;
-    
     public StackingTest()
     {
     }
@@ -40,13 +38,11 @@ public class StackingTest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -69,7 +65,7 @@ public class StackingTest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(500, RandomUtil.getRandom());
         
         stacking = stacking.clone();
-        stacking.trainC(train);
+        stacking.train(train);
         stacking = stacking.clone();
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
@@ -88,7 +84,7 @@ public class StackingTest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(500, RandomUtil.getRandom());
         
         stacking = stacking.clone();
-        stacking.trainC(train, ex);
+        stacking.train(train, true);
         stacking = stacking.clone();
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
@@ -105,7 +101,7 @@ public class StackingTest
         ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, RandomUtil.getRandom());
         
         stacking = stacking.clone();
-        stacking.trainC(train);
+        stacking.train(train);
         stacking = stacking.clone();
         
         ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, RandomUtil.getRandom());
@@ -124,7 +120,7 @@ public class StackingTest
         ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, RandomUtil.getRandom());
         
         stacking = stacking.clone();
-        stacking.trainC(train, ex);
+        stacking.train(train, true);
         stacking = stacking.clone();
         
         ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, RandomUtil.getRandom());
@@ -165,7 +161,7 @@ public class StackingTest
         RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
         
         stacking = stacking.clone();
-        stacking.train(train, ex);
+        stacking.train(train, true);
         stacking = stacking.clone();
         
         RegressionDataSet test = FixedProblems.getLinearRegression(200, RandomUtil.getRandom());

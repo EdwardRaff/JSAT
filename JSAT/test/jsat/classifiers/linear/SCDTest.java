@@ -45,7 +45,7 @@ public class SCDTest
     }
 
     /**
-     * Test of trainC method, of class SCD.
+     * Test of train method, of class SCD.
      */
     @Test
     public void testTrainC_ClassificationDataSet()
@@ -55,7 +55,7 @@ public class SCDTest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
         
         SCD scd = new SCD(new LogisticLoss(), 1e-6, 100);
-        scd.trainC(train);
+        scd.train(train);
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
         

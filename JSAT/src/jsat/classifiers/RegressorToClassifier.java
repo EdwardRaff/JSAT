@@ -61,14 +61,14 @@ public class RegressorToClassifier implements BinaryScoreClassifier, Parameteriz
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         RegressionDataSet rds = getRegressionDataSet(dataSet);
-        regressor.train(rds, threadPool);
+        regressor.train(rds, parallel);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         RegressionDataSet rds = getRegressionDataSet(dataSet);
         regressor.train(rds);

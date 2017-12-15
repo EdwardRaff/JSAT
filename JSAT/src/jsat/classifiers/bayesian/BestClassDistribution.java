@@ -2,14 +2,12 @@
 package jsat.classifiers.bayesian;
 
 import java.util.*;
-import java.util.concurrent.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import jsat.classifiers.*;
 import jsat.distributions.multivariate.MultivariateDistribution;
-import jsat.exceptions.FailedToFitException;
 import jsat.parameters.*;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * BestClassDistribution is a generic class for performing classification by fitting a {@link MultivariateDistribution} to each class. The distribution 
@@ -21,8 +19,8 @@ import jsat.parameters.*;
 public class BestClassDistribution implements Classifier, Parameterized
 {
 
-	private static final long serialVersionUID = -1746145372146154228L;
-	private MultivariateDistribution baseDist;
+    private static final long serialVersionUID = -1746145372146154228L;
+    private MultivariateDistribution baseDist;
     private List<MultivariateDistribution> dists;
     /**
      * The prior probabilities of each class
@@ -61,7 +59,7 @@ public class BestClassDistribution implements Classifier, Parameterized
         this.baseDist = toCopy.baseDist.clone();
         if(toCopy.dists  != null)
         {
-            this.dists = new ArrayList<MultivariateDistribution>(toCopy.dists.size());
+            this.dists = new ArrayList<>(toCopy.dists.size());
             for(MultivariateDistribution md : toCopy.dists)
                 this.dists.add(md == null? null : md.clone());
         }
@@ -116,60 +114,20 @@ public class BestClassDistribution implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
-    {
-        try
-        {
-            this.dists = new ArrayList<MultivariateDistribution>();
-            this.priors = dataSet.getPriors();
-            List<Future<MultivariateDistribution>> newDists = new ArrayList<Future<MultivariateDistribution>>();
-            final MultivariateDistribution sourceDist = baseDist;
-            for (int i = 0; i < dataSet.getPredicting().getNumOfCategories(); i++)//Calculate the Multivariate normal for each category
-            {
-                final List<DataPoint> class_i = dataSet.getSamples(i);
-                Future<MultivariateDistribution> tmp = threadPool.submit(new Callable<MultivariateDistribution>()
-                {
-
-                    public MultivariateDistribution call() throws Exception
-                    {
-                        if (class_i.isEmpty())//Nowthing we can do 
-                            return null;
-                        MultivariateDistribution dist = sourceDist.clone();
-                        dist.setUsingDataList(class_i);
-                        return dist;
-                    }
-                });
-
-                newDists.add(tmp);
-            }
-            for (Future<MultivariateDistribution> future : newDists)
-                this.dists.add(future.get());
-        }
-        catch (Exception ex)
-        {
-            Logger.getLogger(MultivariateNormals.class.getName()).log(Level.SEVERE, null, ex);
-            throw new FailedToFitException(ex);
-        }
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         priors = dataSet.getPriors();
-        dists = new ArrayList<MultivariateDistribution>(dataSet.getClassSize());
-        
-        for(int i = 0; i < dataSet.getClassSize(); i++)
+        dists = ParallelUtils.range(dataSet.getClassSize(), parallel).mapToObj((int i) -> 
         {
             MultivariateDistribution dist = baseDist.clone();
             List<DataPoint> samp = dataSet.getSamples(i);
             if(samp.isEmpty())
             {
-                dists.add(null);
-                continue;
+                return (MultivariateDistribution) null;
             }
             dist.setUsingDataList(samp);
-            dists.add(dist);
-        }
+            return dist;
+        }).collect(Collectors.toList());
     }
 
     @Override
@@ -179,7 +137,7 @@ public class BestClassDistribution implements Classifier, Parameterized
     }
 
     @Override
-    public Classifier clone()
+    public BestClassDistribution clone()
     {
         return new BestClassDistribution(this);
     }

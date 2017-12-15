@@ -544,13 +544,13 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         final int n = dataSet.getSampleSize();
         final double N = n;

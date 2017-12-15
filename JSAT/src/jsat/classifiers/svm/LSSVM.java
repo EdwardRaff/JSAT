@@ -13,18 +13,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.stream.IntStream;
 import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.distributions.Distribution;
 import jsat.distributions.kernels.LinearKernel;
 import jsat.exceptions.FailedToFitException;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.parameters.Parameter.WarmParameter;
 import jsat.regression.*;
 import jsat.utils.FakeExecutor;
 import jsat.utils.PairedReturn;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 import static jsat.utils.concurrent.ParallelUtils.*;
 
 
@@ -152,7 +153,7 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
     }
 
 
-    private boolean takeStep(int i1, int i2, ExecutorService ex, int P) throws InterruptedException, ExecutionException
+    private boolean takeStep(int i1, int i2, ExecutorService ex, boolean parallel) throws InterruptedException, ExecutionException
     {
         //these 2 will hold the old values
         final double alph1 = alphas[i1];
@@ -183,63 +184,10 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
         
         //Update Fcache[i] for all i in I using (4.10)
         //Compute (i_low, b_low) and (i_up, b_up) using (3.4)
-        
-        List<Future<PairedReturn<Integer, Integer>>> futures = new ArrayList<Future<PairedReturn<Integer, Integer>>>(P);
-        for(int id = 0; id < P; id++)
+        ParallelUtils.run(parallel, fcache.length, (from, to) -> 
         {
-            int from = getStartBlock(fcache.length, id, P);
-            int to = getEndBlock(fcache.length, id, P);
-            futures.add(ex.submit(new TakeStepLoop(from, to, i1, i2, alph1, alph2)));
-        }
-        for(Future<PairedReturn<Integer, Integer>> fpr : futures)
-        {
-            PairedReturn<Integer, Integer> pr = fpr.get();
-            int i_up_cand = pr.getFirstItem();
-            int i_low_cand = pr.getSecondItem();
-            if(fcache[i_up_cand] > b_up)
-            {
-                b_up = fcache[i_up_cand];
-                i_up = i_up_cand;
-            }
-            
-            if(fcache[i_low_cand] < b_low)
-            {
-                b_low = fcache[i_low_cand];
-                i_low = i_low_cand;
-            }
-        }
-        
-        return true;
-    }
-
-    @Override
-    public boolean warmFromSameDataOnly()
-    {
-        return true;
-    }
-    
-    private class TakeStepLoop implements Callable<PairedReturn<Integer, Integer>>
-    {
-        int from, to;
-        int i1, i2;
-        double alph1, alph2;
-        int i_low_p;
-        int i_up_p;
-
-        public TakeStepLoop(int from, int to, int i1, int i2, double alph1, double alph2)
-        {
-            this.from = from;
-            this.to = to;
-            this.i1 = i1;
-            this.i2 = i2;
-            this.alph1 = alph1;
-            this.alph2 = alph2;
-        }
-
-        @Override
-        public PairedReturn<Integer, Integer> call() throws Exception
-        {
-            final double a1 = alphas[i1], a2 = alphas[i2];
+            int i_low_cand = from;
+            int i_up_cand = from;
             double b_up_p = Double.NEGATIVE_INFINITY, b_low_p = Double.POSITIVE_INFINITY;
             for (int i = from; i < to; i++)
             {
@@ -249,85 +197,62 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
                 if(Fi > b_up_p)
                 {
                     b_up_p = Fi;
-                    i_up_p = i;
+                    i_up_cand = i;
                 }
 
                 if(Fi < b_low_p)
                 {
                     b_low_p = Fi;
-                    i_low_p = i;
+                    i_low_cand = i;
                 }
             }
-            
-            return new PairedReturn<Integer, Integer>(i_up_p, i_low_p);
-        }
-    }
-    
-    private class BiasGapCallable implements Callable<Double>
-    {
-        int from, to;
-
-        public BiasGapCallable(int from, int to)
-        {
-            this.from = from;
-            this.to = to;
-        }
-        
-        @Override
-        public Double call() throws Exception
-        {
-            double B = 0;
-            for(int i = from; i < to; i++)
-                B += fcache[i]-alphas[i]/C;
-            return B;
-        }
-    }
-    
-    private class DualityGapCallable implements Callable<Double>
-    {
-        int from, to;
-
-        public DualityGapCallable(int from, int to)
-        {
-            this.from = from;
-            this.to = to;
-        }
-
-        @Override
-        public Double call() throws Exception
-        {
-            double gap = 0;
-            for(int i = from; i < to; i++)
+       
+            synchronized (fcache)
             {
-                final double x_i = b + alphas[i]/C - fcache[i];
-                gap += alphas[i]*(fcache[i]-(0.5*alphas[i]/C)) + C*x_i*x_i/2;
+                if (fcache[i_up_cand] > b_up)
+                {
+                    b_up = fcache[i_up_cand];
+                    i_up = i_up_cand;
+                }
+
+                if (fcache[i_low_cand] < b_low)
+                {
+                    b_low = fcache[i_low_cand];
+                    i_low = i_low_cand;
+                }
             }
-            return gap;
-        }
+        }, ex);
+        
+        return true;
     }
 
-    private double computeDualityGap(boolean fast, ExecutorService ex, int P) throws InterruptedException, ExecutionException
+    @Override
+    public boolean warmFromSameDataOnly()
     {
+        return true;
+    }
+
+    private double computeDualityGap(boolean fast, boolean parallel) throws InterruptedException, ExecutionException
+    {
+        //Below we use the IntStream rather than parallelUtil's range b/c the sequence should be long enough to actually get parallelism, and it will use less memory
         double gap = 0;
         //set b using (3.16) or (3.17)
         if(fast)
             b = (b_up+b_low)/2;
         else
         {
-            b = 0;
-            List<Future<Double>> bParts = new ArrayList<Future<Double>>(P);
-            for(int id = 0; id < P; id++)
-                bParts.add(ex.submit(new BiasGapCallable(getStartBlock(alphas.length, id, P), getEndBlock(alphas.length, id, P))));
-            for(Future<Double> bPart : bParts)
-                b += bPart.get();
+            b = ParallelUtils.streamP(IntStream.range(0, alphas.length), parallel).mapToDouble( i ->
+            {
+                return fcache[i]-alphas[i]/C;
+            }).sum();
             b /= alphas.length;
         }
-        
-        List<Future<Double>> gapParts = new ArrayList<Future<Double>>(P);
-        for (int id = 0; id < P; id++)
-            gapParts.add(ex.submit(new DualityGapCallable(getStartBlock(alphas.length, id, P), getEndBlock(alphas.length, id, P))));
-        for(Future<Double> gapPart : gapParts)
-            gap += gapPart.get();
+
+        gap = ParallelUtils.streamP(IntStream.range(0, alphas.length), parallel).mapToDouble( i ->
+        {
+            final double x_i = b + alphas[i]/C - fcache[i];
+            return alphas[i]*(fcache[i]-(0.5*alphas[i]/C)) + C*x_i*x_i/2;
+        }).sum();
 
         return gap;
     }
@@ -399,34 +324,28 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet, null, threadPool);
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, (ExecutorService)null);
+        train(dataSet, null, parallel);
     }
     
     @Override
-    public void train(RegressionDataSet dataSet, Regressor warmSolution, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, Regressor warmSolution, boolean parallel)
     {
         if(warmSolution != null && !(warmSolution instanceof LSSVM))
             throw new FailedToFitException("Warm solution must be an implementation of LS-SVM, not " + warmSolution.getClass());
         double[] targets = dataSet.getTargetValues().arrayCopy();
-        mainLoop(dataSet, (LSSVM)warmSolution, targets, threadPool);
+        mainLoop(dataSet, (LSSVM)warmSolution, targets, parallel);
     }
 
     @Override
     public void train(RegressionDataSet dataSet, Regressor warmSolution)
     {
-        train(dataSet, warmSolution, null);
+        train(dataSet, warmSolution, false);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, Classifier warmSolution, boolean parallel)
     {
         if(dataSet.getClassSize() != 2)
             throw new FailedToFitException("LS-SVM only supports binary classification problems");
@@ -435,13 +354,13 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
         double[] targets = new double[dataSet.getSampleSize()];
         for(int i = 0; i < dataSet.getSampleSize(); i++)
             targets[i] = dataSet.getDataPointCategory(i)*2-1;
-        mainLoop(dataSet, (LSSVM) warmSolution , targets, threadPool);
+        mainLoop(dataSet, (LSSVM) warmSolution , targets, parallel);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
+    public void train(ClassificationDataSet dataSet, Classifier warmSolution)
     {
-        trainC(dataSet, warmSolution, null);
+        train(dataSet, warmSolution, false);
     }
 
     @Override
@@ -457,15 +376,9 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
-        train(dataSet, null, threadPool);
-    }
-
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, (ExecutorService)null);
+        train(dataSet, null, parallel);
     }
 
     @Override
@@ -474,29 +387,21 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
         return new LSSVM(this);
     }
 
-    private void mainLoop(DataSet dataSet, LSSVM warmSolution, double[] targets, ExecutorService ex)
+    private void mainLoop(DataSet dataSet, LSSVM warmSolution, double[] targets, boolean parallel)
     {
-        final int P;
-        if(ex == null || ex instanceof FakeExecutor)
-        {
-            ex = new FakeExecutor();
-            P = 1;
-        }
-        else
-            P = SystemInfo.LogicalCores;
-        
         try
         {
+            ExecutorService ex = ParallelUtils.getNewExecutor(parallel);
             vecs = dataSet.getDataVectors();
             initializeVariables(targets, warmSolution, dataSet);
             
             boolean change = true;
-            double dualityGap = computeDualityGap(true, ex, P);
+            double dualityGap = computeDualityGap(true, parallel);
             int iter = 0;
             while (dualityGap > tol * dualObjective && change)
             {
-                change = takeStep(i_up, i_low, ex, P);
-                dualityGap = computeDualityGap(true, ex, P);
+                change = takeStep(i_up, i_low, ex, parallel);
+                dualityGap = computeDualityGap(true, parallel);
                 iter++;
             }
             

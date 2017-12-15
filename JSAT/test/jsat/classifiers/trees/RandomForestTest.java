@@ -121,20 +121,16 @@ public class RandomForestTest
         for(boolean useCatFeatures : new boolean[]{true, false})
         {
             RandomForest instance = new RandomForest();
-            
-            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
             RegressionDataSet train =  FixedProblems.getLinearRegression(1000, RandomUtil.getRandom(), coefs);
             RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom(), coefs);
 
-            RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+            RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, true);
             if(useCatFeatures)
                 rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
             rme.evaluateTestSet(test);
 
             assertTrue(rme.getMeanError() <= test.getTargetValues().mean()*2.5);
 
-            ex.shutdownNow();
         }
     }
     
@@ -146,16 +142,13 @@ public class RandomForestTest
         for(boolean useCatFeatures : new boolean[]{true, false})
         {
             RandomForest instance = new RandomForest();
-
-            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
             for(int trials = 0; trials < max_trials; trials++)
             {
                 ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
                 //RF may not get boundry perfect, so use noiseless for testing
                 ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, RandomUtil.getRandom(), 1.0, 10.0, 100.0);
 
-                ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+                ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
                 if(useCatFeatures)
                     cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
                 cme.evaluateTestSet(test);
@@ -165,8 +158,6 @@ public class RandomForestTest
                 else
                     break;//did good
             }
-
-            ex.shutdownNow();
         }
     }
 
@@ -250,7 +241,7 @@ public class RandomForestTest
             instance = instance.clone();
             instance = TestTools.deepCopy(instance);
 
-            instance.trainC(t1);
+            instance.train(t1);
 
             double errors = 0;
             RandomForest result = instance.clone();
@@ -265,7 +256,7 @@ public class RandomForestTest
                 if(t1.getDataPointCategory(i) != result.classify(t1.getDataPoint(i)).mostLikely())
                     errors++;
             assertEquals(0.0, errors/t1.getSampleSize(), 0.02);
-            result.trainC(t2);
+            result.train(t2);
 
             errors = 0;
             for(int i = 0; i < t1.getSampleSize(); i++)

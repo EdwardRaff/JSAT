@@ -73,7 +73,7 @@ public class LinearSGDTest
 
                 ClassificationDataSet train = FixedProblems.get2ClassLinear(500, RandomUtil.getRandom());
 
-                linearsgd.trainC(train);
+                linearsgd.train(train);
 
                 ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
@@ -97,7 +97,7 @@ public class LinearSGDTest
 
                 ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, RandomUtil.getRandom());
 
-                linearsgd.trainC(train);
+                linearsgd.train(train);
 
                 ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, RandomUtil.getRandom());
 

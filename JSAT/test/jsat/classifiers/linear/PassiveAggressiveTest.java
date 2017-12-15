@@ -44,7 +44,7 @@ public class PassiveAggressiveTest
     }
 
     /**
-     * Test of trainC method, of class PassiveAggressive.
+     * Test of train method, of class PassiveAggressive.
      */
     @Test
     public void testTrainC_ClassificationDataSet()
@@ -56,7 +56,7 @@ public class PassiveAggressiveTest
         {
             PassiveAggressive pa = new PassiveAggressive();
             pa.setMode(mode);
-            pa.trainC(train);
+            pa.train(train);
 
             ClassificationDataSet test = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
 

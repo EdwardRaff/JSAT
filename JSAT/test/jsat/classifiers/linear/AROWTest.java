@@ -56,8 +56,8 @@ public class AROWTest
         AROW arow0 = new AROW(1, true);
         AROW arow1 = new AROW(1, false);
         
-        arow0.trainC(train);
-        arow1.trainC(train);
+        arow0.train(train);
+        arow1.train(train);
         
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());

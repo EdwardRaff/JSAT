@@ -28,7 +28,7 @@ import jsat.parameters.Parameterized;
  * {@link #finalizeModel() finalizing} the model. This prevents the model from 
  * being updated further, but reduces classification time. By default, this will
  * be done after a call to 
- * {@link #trainC(jsat.classifiers.ClassificationDataSet) } but not after 
+ * {@link #train(jsat.classifiers.ClassificationDataSet) } but not after 
  * {@link #update(jsat.classifiers.DataPoint, int) }
  * 
  * @author Edward Raff
@@ -132,7 +132,7 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
 
     /**
      * If set {@code true}, the model will be finalized after a call to 
-     * {@link #trainC(jsat.classifiers.ClassificationDataSet) }. This prevents 
+     * {@link #train(jsat.classifiers.ClassificationDataSet) }. This prevents 
      * the model from being updated in an online fashion for an reduction in 
      * classification time. 
      * 
@@ -161,17 +161,17 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        super.trainC(dataSet, threadPool);
+        super.train(dataSet, parallel);
         if(finalizeAfterTraining)
             finalizeModel();
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
-        super.trainC(dataSet);
+        super.train(dataSet);
         if(finalizeAfterTraining)
             finalizeModel();
     }

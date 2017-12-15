@@ -53,7 +53,7 @@ public class UpdatableStackingTest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(500, RandomUtil.getRandom());
         
         stacking = stacking.clone();
-        stacking.trainC(train);
+        stacking.train(train);
         stacking = stacking.clone();
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
@@ -71,7 +71,7 @@ public class UpdatableStackingTest
         ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, RandomUtil.getRandom());
         
         stacking = stacking.clone();
-        stacking.trainC(train);
+        stacking.train(train);
         stacking = stacking.clone();
         
         ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, RandomUtil.getRandom());

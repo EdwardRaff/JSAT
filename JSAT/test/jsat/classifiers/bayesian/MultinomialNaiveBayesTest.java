@@ -73,19 +73,16 @@ public class MultinomialNaiveBayesTest
         {
             MultinomialNaiveBayes instance = new MultinomialNaiveBayes();
 
-            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
             ClassificationDataSet train =  FixedProblems.getSimpleKClassLinear(10000, 3, RandomUtil.getRandom());
             ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, RandomUtil.getRandom());
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
             if(useCatFeatures)
                 cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram()));
             cme.evaluateTestSet(test);
 
             assertTrue(cme.getErrorRate() <= 0.001);
 
-            ex.shutdownNow();
         }
     }
 
@@ -129,12 +126,12 @@ public class MultinomialNaiveBayesTest
 
             instance = instance.clone();
 
-            instance.trainC(t1);
+            instance.train(t1);
 
             MultinomialNaiveBayes result = instance.clone();
             for(int i = 0; i < t1.getSampleSize(); i++)
                 assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-            result.trainC(t2);
+            result.train(t2);
 
             for(int i = 0; i < t1.getSampleSize(); i++)
                 assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

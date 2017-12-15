@@ -1,13 +1,10 @@
 package jsat.classifiers.boosting;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
-import jsat.utils.FakeExecutor;
 
 /**
  * Modest Ada Boost is a generalization of Discrete Ada Boost that attempts to 
@@ -154,7 +151,7 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         predicting = dataSet.getPredicting();
         hypWeights = new DoubleList(maxIterations);
@@ -175,10 +172,7 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
         for(int t = 0; t < maxIterations; t++)
         {
             Classifier weak = weakLearner.clone();
-            if(threadPool == null || threadPool instanceof FakeExecutor)
-                weak.trainC(new ClassificationDataSet(dataPoints, predicting));
-            else
-                weak.trainC(new ClassificationDataSet(dataPoints, predicting), threadPool);
+            weak.train(new ClassificationDataSet(dataPoints, predicting), parallel);
             
             double invSum = 0;
             for(int i = 0; i < N; i++)
@@ -238,12 +232,6 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
             hypWeights.add(alpha_m);
             hypoths.add(weak);
         }
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, null);
     }
 
     @Override

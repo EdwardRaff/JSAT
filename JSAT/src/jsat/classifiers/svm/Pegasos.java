@@ -238,13 +238,13 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         if(dataSet.getClassSize() != 2)
             throw new FailedToFitException("SVM only supports binary classificaiton problems");

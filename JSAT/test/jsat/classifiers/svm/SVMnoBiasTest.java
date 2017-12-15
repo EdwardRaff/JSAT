@@ -24,8 +24,6 @@ import jsat.utils.random.RandomUtil;
  */
 public class SVMnoBiasTest
 {
-    static private ExecutorService ex;
-    
     public SVMnoBiasTest()
     {
     }
@@ -33,13 +31,11 @@ public class SVMnoBiasTest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -64,7 +60,7 @@ public class SVMnoBiasTest
                 SVMnoBias classifier = new SVMnoBias(new RBFKernel(0.5));
                 classifier.setCacheMode(cacheMode);
                 classifier.setC(10);
-                classifier.trainC(trainSet, ex);
+                classifier.train(trainSet, true);
                 
                 for (int i = 0; i < testSet.getSampleSize(); i++)
                     assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
@@ -84,7 +80,7 @@ public class SVMnoBiasTest
                 SVMnoBias classifier = new SVMnoBias(new RBFKernel(0.5));
                 classifier.setCacheMode(cacheMode);
                 classifier.setC(10);
-                classifier.trainC(trainSet);
+                classifier.train(trainSet);
                 
                 for (int i = 0; i < testSet.getSampleSize(); i++)
                     assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
@@ -98,7 +94,7 @@ public class SVMnoBiasTest
                 SVMnoBias classifier2 = new SVMnoBias(new RBFKernel(0.5));
                 classifier2.setCacheMode(cacheMode);
                 classifier2.setC(10);
-                classifier2.trainC(trainSet, a);
+                classifier2.train(trainSet, a);
                 
                 for (int i = 0; i < testSet.getSampleSize(); i++)
                     assertEquals(testSet.getDataPointCategory(i), classifier2.classify(testSet.getDataPoint(i)).mostLikely());

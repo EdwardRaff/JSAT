@@ -110,13 +110,13 @@ public class AMM extends OnlineAMM
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {   
         IntList randOrder = new IntList(dataSet.getSampleSize());
         ListUtils.addRange(randOrder, 0, dataSet.getSampleSize(), 1);

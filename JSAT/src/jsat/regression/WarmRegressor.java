@@ -53,9 +53,10 @@ public interface WarmRegressor extends Regressor
      *
      * @param dataSet the data set to train on
      * @param warmSolution the solution to use to warm start this model
-     * @param threadPool the source of threads to use.
+     * @param parallel {@code true} if the training should be done using
+     * multiple-cores, {@code false} for single threaded.
      */
-    public void train(RegressionDataSet dataSet, Regressor warmSolution, ExecutorService threadPool);
+    public void train(RegressionDataSet dataSet, Regressor warmSolution, boolean parallel);
 
     /**
      * Trains the regressor and constructs a model for regression using the

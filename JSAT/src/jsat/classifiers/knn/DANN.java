@@ -5,7 +5,6 @@ import static java.lang.Math.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.distributions.Distribution;
@@ -16,7 +15,6 @@ import jsat.linear.distancemetrics.MahalanobisDistance;
 import jsat.linear.vectorcollection.DefaultVectorCollectionFactory;
 import jsat.linear.vectorcollection.VectorCollection;
 import jsat.linear.vectorcollection.VectorCollectionFactory;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.FakeExecutor;
@@ -360,22 +358,13 @@ public class DANN implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         predicting = dataSet.getPredicting();
         vecList = new ArrayList<VecPaired<Vec, Integer>>(dataSet.getSampleSize());
         for(int i = 0; i < dataSet.getSampleSize(); i++)
             vecList.add(new VecPaired<Vec, Integer>(dataSet.getDataPoint(i).getNumericalValues(), dataSet.getDataPointCategory(i)));
-        if(threadPool == null || threadPool instanceof FakeExecutor)
-            vc = vcf.getVectorCollection(vecList, new EuclideanDistance());
-        else
-            vc = vcf.getVectorCollection(vecList, new EuclideanDistance(), threadPool);
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, null);
+        vc = vcf.getVectorCollection(vecList, new EuclideanDistance(), parallel);
     }
 
     @Override

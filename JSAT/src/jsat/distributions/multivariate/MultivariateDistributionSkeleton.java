@@ -20,9 +20,9 @@ import jsat.linear.Vec;
 public abstract class MultivariateDistributionSkeleton implements MultivariateDistribution
 {
 
-	private static final long serialVersionUID = 4080753806798149915L;
+    private static final long serialVersionUID = 4080753806798149915L;
 
-	@Override
+    @Override
     public double logPdf(double... x)
     {
         return logPdf(DenseVector.toDenseVec(x));

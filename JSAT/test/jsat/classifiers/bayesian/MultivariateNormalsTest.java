@@ -107,10 +107,10 @@ public class MultivariateNormalsTest
         
         instance = instance.clone();
                 
-        instance.trainC(t1);
+        instance.train(t1);
 
         MultivariateNormals result = instance.clone();
-        result.trainC(t2);
+        result.train(t2);
         
         for(int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

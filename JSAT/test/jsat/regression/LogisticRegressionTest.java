@@ -72,17 +72,14 @@ public class LogisticRegressionTest
 
         LogisticRegression instance = new LogisticRegression();
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
         ClassificationDataSet train = FixedProblems.get2ClassLinear(100, RandomUtil.getRandom());
         ClassificationDataSet test = FixedProblems.get2ClassLinear(100, RandomUtil.getRandom());
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
         cme.evaluateTestSet(test);
 
         assertTrue(cme.getErrorRate() <= 0.001);
 
-        ex.shutdownNow();
     }
 
     @Test
@@ -115,12 +112,12 @@ public class LogisticRegressionTest
 
         instance = instance.clone();
 
-        instance.trainC(t1);
+        instance.train(t1);
 
         LogisticRegression result = instance.clone();
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-        result.trainC(t2);
+        result.train(t2);
 
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

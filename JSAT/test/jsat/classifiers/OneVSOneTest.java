@@ -70,9 +70,7 @@ public class OneVSOneTest
             ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(1000, 7);
             ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(100, 7);
 
-            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
             cme.evaluateTestSet(test);
 
             assertTrue(cme.getErrorRate() <= 0.001);
@@ -109,12 +107,12 @@ public class OneVSOneTest
         
         instance = instance.clone();
                 
-        instance.trainC(t1);
+        instance.train(t1);
 
         OneVSOne result = instance.clone();
         for(int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-        result.trainC(t2);
+        result.train(t2);
         
         for(int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

@@ -7,6 +7,7 @@ import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.linear.*;
 import jsat.regression.RegressionDataSet;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * The Mahalanobis Distance is a metric that takes into account the variance of the data. This requires 
@@ -63,18 +64,18 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     @Override
     public <V extends Vec> void train(List<V> dataSet)
     {
-        train(dataSet, null);
+        train(dataSet, false);
     }
     
     @Override
-    public <V extends Vec> void train(List<V> dataSet, ExecutorService threadpool)
+    public <V extends Vec> void train(List<V> dataSet, boolean parallel)
     {
         Vec mean = MatrixStatistics.meanVector(dataSet);
         Matrix covariance = MatrixStatistics.covarianceMatrix(mean, dataSet);
         LUPDecomposition lup;
         SingularValueDecomposition svd;
-        if(threadpool != null)
-            lup = new LUPDecomposition(covariance.clone(), threadpool);
+        if(parallel)
+            lup = new LUPDecomposition(covariance.clone(), ParallelUtils.CACHED_THREAD_POOL);
         else
             lup = new LUPDecomposition(covariance.clone());
         double det = lup.det();
@@ -84,8 +85,8 @@ public class MahalanobisDistance extends TrainableDistanceMetric
             svd = new SingularValueDecomposition(covariance);
             S = svd.getPseudoInverse();
         }
-        else if(threadpool != null)
-            S = lup.solve(Matrix.eye(covariance.cols()), threadpool);
+        else if(parallel)
+            S = lup.solve(Matrix.eye(covariance.cols()), ParallelUtils.CACHED_THREAD_POOL);
         else
             S = lup.solve(Matrix.eye(covariance.cols()));
     }
@@ -93,13 +94,13 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     @Override
     public void train(DataSet dataSet)
     {
-        train(dataSet, null);
+        train(dataSet, false);
     }
     
     @Override
-    public void train(DataSet dataSet, ExecutorService threadpool)
+    public void train(DataSet dataSet, boolean parallel)
     {
-        train(dataSet.getDataVectors(), threadpool);
+        train(dataSet.getDataVectors(), parallel);
     }
 
     @Override
@@ -109,9 +110,9 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public void train(ClassificationDataSet dataSet, ExecutorService threadpool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        train( (DataSet) dataSet, threadpool);
+        train((DataSet) dataSet, parallel);
     }
 
     @Override
@@ -127,9 +128,9 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadpool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
-        train( (DataSet) dataSet, threadpool);
+        train((DataSet) dataSet, parallel);
     }
 
     @Override

@@ -111,12 +111,10 @@ public class DecisionTreeTest
                     instance.setTestProportion(0.3);
                     instance.setPruningMethod(pruneMethod);
 
-                    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
                     RegressionDataSet train = FixedProblems.getLinearRegression(3000, RandomUtil.getRandom());
                     RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
 
-                    RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+                    RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, true);
                     if (useCatFeatures)
                         rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram(10)));
                     if(useCatFeatures)
@@ -126,7 +124,6 @@ public class DecisionTreeTest
 
                     assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 3);
 
-                    ex.shutdownNow();
                 }
     }
     
@@ -144,15 +141,13 @@ public class DecisionTreeTest
                     instance.setTestProportion(0.3);
                     instance.setPruningMethod(pruneMethod);
 
-                    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
                     int attempts = 3;
                     do
                     {
                         ClassificationDataSet train = FixedProblems.getCircles(5000, 1.0, 10.0, 100.0);
                         ClassificationDataSet test = FixedProblems.getCircles(200, 1.0, 10.0, 100.0);
 
-                        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+                        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
                         if(useCatFeatures)
                             cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram(50)));
                         cme.evaluateTestSet(test);
@@ -164,7 +159,6 @@ public class DecisionTreeTest
                     while(attempts-- > 0);
                     assertTrue(attempts > 0);
 
-                    ex.shutdownNow();
                 }
     }
 
@@ -232,7 +226,7 @@ public class DecisionTreeTest
                         if(cme.getErrorRate() < 0.25)
                             break;
                         
-                        instance.trainC(train);
+                        instance.train(train);
                         test.applyTransform(new InsertMissingValuesTransform(0.5));
                         for(int i = 0; i < test.getSampleSize(); i++)
                             instance.classify(test.getDataPoint(i));
@@ -300,14 +294,14 @@ public class DecisionTreeTest
             instance = instance.clone();
             instance = TestTools.deepCopy(instance);
 
-            instance.trainC(t1);
+            instance.train(t1);
 
             DecisionTree result = instance.clone();
             int errors = 0;
             for(int i = 0; i < t1.getSampleSize(); i++)
                 errors += Math.abs(t1.getDataPointCategory(i) - result.classify(t1.getDataPoint(i)).mostLikely());
             assertTrue(errors < 100);
-            result.trainC(t2);
+            result.train(t2);
 
             errors = 0;
             for(int i = 0; i < t1.getSampleSize(); i++)

@@ -186,14 +186,12 @@ public class BorderlineSMOTE extends SMOTE
     }
 
     @Override
-    public void trainC(final ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(final ClassificationDataSet dataSet, boolean parallel)
     {
         if(dataSet.getNumCategoricalVars() != 0)
             throw new FailedToFitException("SMOTE only works with numeric-only feature values");
         
-        if(threadPool == null)
-            threadPool = new FakeExecutor();
-        
+        ExecutorService threadPool = ParallelUtils.getNewExecutor(parallel);
         List<Vec> vAll = dataSet.getDataVectors();
         IntList[] classIndex = new IntList[dataSet.getClassSize()];
         for(int i = 0; i < classIndex.length; i++)
@@ -209,12 +207,12 @@ public class BorderlineSMOTE extends SMOTE
         final int majorityNum = (int) (dataSet.getSampleSize()*ratios.max());
         ratios.mutableDivide(ratios.max());
         
-        final List<DataPointPair<Integer>> synthetics = new ArrayList<DataPointPair<Integer>>();
+        final List<DataPointPair<Integer>> synthetics = new ArrayList<>();
         
         //Put ALL the vectors intoa single VC paired with their class label
-        List<VecPaired<Vec, Integer>> allVecsWithClass = new ArrayList<VecPaired<Vec, Integer>>(vAll.size());
+        List<VecPaired<Vec, Integer>> allVecsWithClass = new ArrayList<>(vAll.size());
         for(int i = 0; i < vAll.size(); i++)
-            allVecsWithClass.add(new VecPaired<Vec, Integer>(vAll.get(i), dataSet.getDataPointCategory(i)));
+            allVecsWithClass.add(new VecPaired<>(vAll.get(i), dataSet.getDataPointCategory(i)));
         VectorCollection<VecPaired<Vec, Integer>> VC_all = new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>().getVectorCollection(allVecsWithClass, dm, threadPool);
         
         //Go through and perform oversampling of each class
@@ -224,10 +222,12 @@ public class BorderlineSMOTE extends SMOTE
             if(samplesNeeded <= 0)
                 continue;
             //collect the vectors we need to interpolate with
-            final List<Vec> V_id = new ArrayList<Vec>();
+            final List<Vec> V_id = new ArrayList<>();
             for(int i : classIndex[classID])
                 V_id.add(vAll.get(i));
-            VectorCollection<Vec> VC_id = new DefaultVectorCollectionFactory<Vec>().getVectorCollection(V_id, dm, threadPool);
+            
+            
+            VectorCollection<Vec> VC_id = new DefaultVectorCollectionFactory<>().getVectorCollection(V_id, dm, threadPool);
             //Step 1. For every p ii =( 1,2,..., pnum) in the minority class P, 
             //we calculate its m nearest neighbors from the whole training set T
             List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> all_nns_ID = VectorCollectionUtils.allNearestNeighbors(VC_all, V_id, smoteNeighbors+1, threadPool);
@@ -235,10 +235,10 @@ public class BorderlineSMOTE extends SMOTE
              * A list of the vectors for only the neighbors who were not members
              * of the same class. Used when majorityInterpolation is true
              */
-            final List<List<Vec>> otherClassSamples = new ArrayList<List<Vec>>();
+            final List<List<Vec>> otherClassSamples = new ArrayList<>();
             if(majorityInterpolation)
                 for(List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> tmp : all_nns_ID)
-                    otherClassSamples.add(new ArrayList<Vec>(smoteNeighbors));
+                    otherClassSamples.add(new ArrayList<>(smoteNeighbors));
 
 
             //Step 2. 
@@ -273,78 +273,60 @@ public class BorderlineSMOTE extends SMOTE
             //find all the nearest neighbors for each point so we know who to interpolate with
             final List<List<? extends VecPaired<Vec, Double>>> nns_id = VectorCollectionUtils.allNearestNeighbors(VC_id, V_id, smoteNeighbors+1, threadPool);
             
-            final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-            for (final int threadID : ListUtils.range(0, SystemInfo.LogicalCores))
-                threadPool.submit(new Runnable()
+            ParallelUtils.run(parallel, samplesNeeded, (start, end)->
+            {
+                Random rand = RandomUtil.getRandom();
+                List<DataPoint> local_new = new ArrayList<>();
+                for (int i = start; i < end; i++)
                 {
-                    @Override
-                    public void run()
+                    int sampleIndex;
+                    if (danger_id.isEmpty())//danger zeon was empty? Fall back to SMOTE style
+                        sampleIndex = i % V_id.size();
+                    else
+                        sampleIndex = danger_id.getI(i % danger_id.size());
+                    Vec vec_nn;
+
+                    //which of the neighbors should we use?
+                    //Shoulwe we interpolate withing class or outside of or class?
+                    boolean useOtherClass = rand.nextBoolean() && majorityInterpolation && !danger_id.isEmpty();
+
+                    if (useOtherClass)
                     {
-                        Random rand = RandomUtil.getRandom();
-                        List<DataPoint> local_new = new ArrayList<DataPoint>();
-                        for(int i = ParallelUtils.getStartBlock(samplesNeeded, threadID); i < ParallelUtils.getEndBlock(samplesNeeded, threadID); i++)
-                        {
-                            int sampleIndex;
-                            if(danger_id.isEmpty())//danger zeon was empty? Fall back to SMOTE style
-                                sampleIndex = i % V_id.size();
-                            else
-                                sampleIndex = danger_id.getI(i % danger_id.size());
-                            Vec vec_nn;
-                            
-                            //which of the neighbors should we use?
-                            
-                            //Shoulwe we interpolate withing class or outside of or class?
-                            boolean useOtherClass = rand.nextBoolean() && majorityInterpolation && !danger_id.isEmpty();
-                            
-                            if(useOtherClass)
-                            {
-                                List<Vec> candidates = otherClassSamples.get(sampleIndex);
-                                vec_nn = candidates.get(rand.nextInt(candidates.size()));
-                            }
-                            else
-                            {
-                                int nn = rand.nextInt(smoteNeighbors)+1;//index 0 is ourself
-                                vec_nn = nns_id.get(sampleIndex).get(nn);
-                            }
-                            double gap = rand.nextDouble();
-                            if(useOtherClass)
-                                gap /= 2;//now in the range of [0, 0.5), so that the synthetic point is mostly of the minority class of interest
-                            
-                            // x ~ U(0, 1)
-                            //new = sample + x * diff
-                            //where diff = (sample - other)
-                            //equivalent to
-                            //new = sample * (x+1) + other * x
-                            Vec newVal = V_id.get(sampleIndex).clone();
-                            newVal.mutableMultiply(gap+1);
-                            newVal.mutableAdd(gap, vec_nn);
-                            local_new.add(new DataPoint(newVal));
-                        }
-                        
-                        synchronized(synthetics)
-                        {
-                            for(DataPoint v : local_new)
-                                synthetics.add(new DataPointPair<Integer>(v, classID));
-                        }
-                        
-                        latch.countDown();
+                        List<Vec> candidates = otherClassSamples.get(sampleIndex);
+                        vec_nn = candidates.get(rand.nextInt(candidates.size()));
                     }
-                });
-            
-            try
-            {
-                latch.await();
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(BorderlineSMOTE.class.getName()).log(Level.SEVERE, null, ex);
-            }
+                    else
+                    {
+                        int nn = rand.nextInt(smoteNeighbors) + 1;//index 0 is ourself
+                        vec_nn = nns_id.get(sampleIndex).get(nn);
+                    }
+                    double gap = rand.nextDouble();
+                    if (useOtherClass)
+                        gap /= 2;//now in the range of [0, 0.5), so that the synthetic point is mostly of the minority class of interest
+
+                    // x ~ U(0, 1)
+                    //new = sample + x * diff
+                    //where diff = (sample - other)
+                    //equivalent to
+                    //new = sample * (x+1) + other * x
+                    Vec newVal = V_id.get(sampleIndex).clone();
+                    newVal.mutableMultiply(gap + 1);
+                    newVal.mutableAdd(gap, vec_nn);
+                    local_new.add(new DataPoint(newVal));
+                }
+
+                synchronized (synthetics)
+                {
+                    for (DataPoint v : local_new)
+                        synthetics.add(new DataPointPair<>(v, classID));
+                }
+            }, threadPool);
             
         }
         
         ClassificationDataSet newDataSet = new ClassificationDataSet(ListUtils.mergedView(synthetics, dataSet.getAsDPPList()), dataSet.getPredicting());
         
-        baseClassifier.trainC(newDataSet, threadPool);
+        baseClassifier.train(newDataSet, parallel);
     }
 
     @Override

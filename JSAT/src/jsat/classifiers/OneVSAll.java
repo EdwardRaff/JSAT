@@ -3,15 +3,10 @@ package jsat.classifiers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
-import jsat.utils.FakeExecutor;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * This classifier turns any classifier, specifically binary classifiers, into 
@@ -54,7 +49,7 @@ public class OneVSAll implements Classifier, Parameterized
      * @param baseClassifier the base classifier to replicate
      * @param concurrentTraining controls whether or not classifiers are trained 
      * simultaneously or using sequentially using their 
-     * {@link Classifier#trainC(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService) } method.  
+     * {@link Classifier#train(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService) } method.  
      * @see #setConcurrentTraining(boolean) 
      */
     public OneVSAll(Classifier baseClassifier, boolean concurrentTraining)
@@ -65,10 +60,10 @@ public class OneVSAll implements Classifier, Parameterized
 
     /**
      * Controls what method of parallel training to use when 
-     * {@link #trainC(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService) } 
+     * {@link #train(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService) } 
      * is called. If set to true, each of the <i>k</i> classifiers will be trained in parallel, using
      * their serial algorithms. If set to false, the <i>k</i> classifiers will be trained sequentially, 
-     * calling the {@link Classifier#trainC(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService) }
+     * calling the {@link Classifier#train(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService) }
      * for each classifier. <br>
      * <br>
      * This should be set to true for classifiers that do not support parallel training.<br>
@@ -120,7 +115,7 @@ public class OneVSAll implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         oneVsAlls = new Classifier[dataSet.getClassSize()];
         
@@ -137,9 +132,7 @@ public class OneVSAll implements Classifier, Parameterized
         
         int numer = dataSet.getNumNumericalVars();
         CategoricalData[] categories = dataSet.getCategories();
-        //Latch only used when all the classifiers are trained in parallel 
-        final CountDownLatch latch = new CountDownLatch(oneVsAlls.length);
-        for(int i = 0; i < oneVsAlls.length; i++)
+        ParallelUtils.range(0, oneVsAlls.length, parallel && concurrentTraining).forEach( i ->
         {
             final ClassificationDataSet cds = 
                     new ClassificationDataSet(numer, categories, new CategoricalData(2));
@@ -151,49 +144,13 @@ public class OneVSAll implements Classifier, Parameterized
                     for(DataPoint dp: categorized.get(j))
                         cds.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), 1);
 
-            if(!concurrentTraining)
-            {
-                oneVsAlls[i] = baseClassifier.clone();
-                if(threadPool == null || threadPool instanceof FakeExecutor)
-                    oneVsAlls[i].trainC(cds);
-                else
-                    oneVsAlls[i].trainC(cds, threadPool);
-            }
+            oneVsAlls[i] = baseClassifier.clone();
+            if(concurrentTraining)//we are training all models in parallel, so tell each model to do single-thread
+                oneVsAlls[i].train(cds, false);
             else
-            {
-                final Classifier aClassifier = baseClassifier.clone();
-                final int ii = i;
-                threadPool.submit(new Runnable() {
-
-                    @Override
-                    public void run()
-                    {
-                        aClassifier.trainC(cds);
-                        oneVsAlls[ii] = aClassifier;
-                        latch.countDown();
-                    }
-                });
-            }
+                oneVsAlls[i].train(cds, parallel);
             
-        }
-
-        if (concurrentTraining)
-            try
-            {
-                latch.await();
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(OneVSAll.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-        
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, new FakeExecutor());
+        });
     }
 
     @Override

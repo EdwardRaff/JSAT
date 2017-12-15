@@ -4,17 +4,14 @@ package jsat.classifiers.boosting;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
-import jsat.utils.FakeExecutor;
 
 /**
  * This is an implementation of the Multi-Class AdaBoost method SAMME (Stagewise Additive Modeling using
@@ -84,7 +81,7 @@ public class SAMME implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         predicting = dataSet.getPredicting();
         hypWeights = new DoubleList(maxIterations);
@@ -107,10 +104,7 @@ public class SAMME implements Classifier, Parameterized
         
         for(int t = 0; t < maxIterations; t++)
         {
-            if(threadPool == null || threadPool instanceof FakeExecutor)
-                weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting));
-            else
-                weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting), threadPool);
+            weakLearner.train(new ClassificationDataSet(dataPoints, predicting), parallel);
 
             //Error is the same as in AdaBoost.M1
             double error = 0.0;
@@ -139,12 +133,6 @@ public class SAMME implements Classifier, Parameterized
             hypoths.add(weakLearner.clone());
             hypWeights.add(am);
         }
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, null);
     }
 
     @Override

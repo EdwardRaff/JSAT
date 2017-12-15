@@ -16,7 +16,7 @@ import jsat.linear.*;
 import jsat.math.MathTricks;
 import jsat.parameters.*;
 import jsat.utils.DoubleList;
-import jsat.utils.FakeExecutor;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  *
@@ -38,9 +38,9 @@ import jsat.utils.FakeExecutor;
 public class NaiveBayes implements Classifier, Parameterized
 {
 
-	private static final long serialVersionUID = -2437775653277531182L;
-	/**
-     * 
+    private static final long serialVersionUID = -2437775653277531182L;
+    /**
+     *
      */
     private double[][][] apriori;
     private ContinuousDistribution[][] distributions; 
@@ -70,6 +70,7 @@ public class NaiveBayes implements Classifier, Parameterized
          */
         NORMAL
         {
+            @Override
             protected ContinuousDistribution fit(Vec v)
             {
                 return getBestDistribution(v, new Normal(0, 1));
@@ -82,6 +83,7 @@ public class NaiveBayes implements Classifier, Parameterized
         BEST_FIT
         {
 
+            @Override
             protected ContinuousDistribution fit(Vec v)
             {
                 return getBestDistribution(v);
@@ -115,6 +117,7 @@ public class NaiveBayes implements Classifier, Parameterized
 //                return cutOff;
 //            }
            
+            @Override
             protected ContinuousDistribution fit(Vec v)
             {
                 return getBestDistribution(v, cutOff);
@@ -264,16 +267,9 @@ public class NaiveBayes implements Classifier, Parameterized
         results.normalize();
         return results;
     }
-
-        
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, new FakeExecutor());
-    }
     
     @Override
-    public Classifier clone()
+    public NaiveBayes clone()
     {
         NaiveBayes newBayes = new NaiveBayes(numericalHandling);
         
@@ -397,7 +393,7 @@ public class NaiveBayes implements Classifier, Parameterized
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         int nCat = dataSet.getPredicting().getNumOfCategories();
         apriori = new double[nCat][dataSet.getNumCategoricalVars()][];
@@ -407,7 +403,7 @@ public class NaiveBayes implements Classifier, Parameterized
         int totalWorkers = nCat*(dataSet.getNumNumericalVars() + dataSet.getNumCategoricalVars());
         CountDownLatch latch = new CountDownLatch(totalWorkers);
         
-        
+        ExecutorService threadPool = ParallelUtils.getNewExecutor(parallel);
         //Go through each classification
         for(int i = 0; i < nCat; i++)
         {
@@ -443,6 +439,10 @@ public class NaiveBayes implements Classifier, Parameterized
         catch (InterruptedException ex)
         {
             ex.printStackTrace();
+        }
+        finally
+        {
+            threadPool.shutdownNow();
         }
     }
     

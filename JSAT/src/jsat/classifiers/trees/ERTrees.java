@@ -14,6 +14,7 @@ import jsat.math.OnLineStatistics;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * Extra Randomized Trees (ERTrees) is an ensemble method built on top of 
@@ -40,7 +41,6 @@ public class ERTrees extends ExtraTree
     private boolean useDefaultSelectionCount = true;
     private boolean useDefaultStopSize = true;
     
-    private CategoricalData predicting;
     private ExtraTree[] forrest;
     
     private int forrestSize;
@@ -60,6 +60,25 @@ public class ERTrees extends ExtraTree
     public ERTrees(int forrestSize)
     {
         this.forrestSize = forrestSize;
+    }
+    
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public  ERTrees(ERTrees toCopy)
+    {
+        super(toCopy);
+        this.forrestSize = toCopy.forrestSize;
+        this.useDefaultSelectionCount = toCopy.useDefaultSelectionCount;
+        this.useDefaultStopSize = toCopy.useDefaultStopSize;
+        this.baseTree = toCopy.baseTree.clone();
+        if(toCopy.forrest != null)
+        {
+            this.forrest = new ExtraTree[toCopy.forrest.length];
+            for(int i = 0; i < toCopy.forrest.length; i++)
+                this.forrest[i] = toCopy.forrest[i].clone();
+        }
     }
     
     /**
@@ -178,67 +197,25 @@ public class ERTrees extends ExtraTree
                 
     }
 
-    private void doTraining(ExecutorService threadPool, DataSet dataSet) throws FailedToFitException
+    private void doTraining(boolean parallel, DataSet dataSet) throws FailedToFitException
     {
         forrest = new ExtraTree[forrestSize];
-        int chunkSize = forrestSize/SystemInfo.LogicalCores;
-        int extra = forrestSize%SystemInfo.LogicalCores;
         
-        int planted = 0;
-        
-        CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-        while(planted < forrestSize)
+        ParallelUtils.run(parallel, forrestSize, (start, end) ->
         {
-            int start = planted;
-            int end = start+chunkSize;
-            if(extra-- > 0)
-                end++;
-            planted = end;
-            threadPool.submit(new ForrestPlanter(start, end, dataSet, latch));
-        }
-        
-        try
-        {
-            latch.await();
-        }
-        catch (InterruptedException ex)
-        {
-            throw new FailedToFitException(ex);
-        }
-    }
-    
-    private class ForrestPlanter implements Runnable
-    {
-        int start;
-        int end;
-        
-        DataSet dataSet;
-        CountDownLatch latch;
-
-        public ForrestPlanter(int start, int end, DataSet dataSet, CountDownLatch latch)
-        {
-            this.start = start;
-            this.end = end;
-            this.dataSet = dataSet;
-            this.latch = latch;
-        }
-
-        @Override
-        public void run()
-        {
-            if(dataSet instanceof ClassificationDataSet)
+            if (dataSet instanceof ClassificationDataSet)
             {
                 ClassificationDataSet cds = (ClassificationDataSet) dataSet;
-                for(int i = start; i < end; i++)
+                for (int i = start; i < end; i++)
                 {
                     forrest[i] = baseTree.clone();
-                    forrest[i].trainC(cds);
+                    forrest[i].train(cds);
                 }
             }
-            else if(dataSet instanceof RegressionDataSet)
+            else if (dataSet instanceof RegressionDataSet)
             {
-                RegressionDataSet rds = (RegressionDataSet)dataSet;
-                for(int i = start; i < end; i++)
+                RegressionDataSet rds = (RegressionDataSet) dataSet;
+                for (int i = start; i < end; i++)
                 {
                     forrest[i] = baseTree.clone();
                     forrest[i].train(rds);
@@ -246,13 +223,11 @@ public class ERTrees extends ExtraTree
             }
             else
                 throw new RuntimeException("BUG: Please report");
-            
-            latch.countDown();
-        }
+        });
     }
-
+    
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         if(useDefaultSelectionCount)
             baseTree.setSelectionCount((int)max(round(sqrt(dataSet.getNumFeatures())), 1));
@@ -261,13 +236,7 @@ public class ERTrees extends ExtraTree
         
         predicting = dataSet.getPredicting();
         
-        doTraining(threadPool, dataSet);
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, new FakeExecutor());
+        doTraining(parallel, dataSet);
     }
 
     @Override
@@ -286,40 +255,20 @@ public class ERTrees extends ExtraTree
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         if(useDefaultSelectionCount)
             baseTree.setSelectionCount(dataSet.getNumFeatures());
         if(useDefaultStopSize)
             baseTree.setStopSize(5);
         
-        doTraining(threadPool, dataSet);
+        doTraining(parallel, dataSet);
     }
-
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, new FakeExecutor());
-    }
-
+    
     @Override
     public ERTrees clone()
     {
-        ERTrees clone = new ERTrees();
-        clone.forrestSize = this.forrestSize;
-        clone.useDefaultSelectionCount = this.useDefaultSelectionCount;
-        clone.useDefaultStopSize = this.useDefaultStopSize;
-        clone.baseTree = this.baseTree.clone();
-        if(this.predicting != null)
-            clone.predicting = this.predicting.clone();
-        if (this.forrest != null)
-        {
-            clone.forrest = new ExtraTree[this.forrest.length];
-            for (int i = 0; i < this.forrest.length; i++)
-                clone.forrest[i] = this.forrest[i].clone();
-        }
-        
-        return clone;
+        return new ERTrees(this);
     }
 
     @Override

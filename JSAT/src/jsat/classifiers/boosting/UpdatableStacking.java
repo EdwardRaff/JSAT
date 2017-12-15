@@ -237,13 +237,13 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         BaseUpdateableClassifier.trainEpochs(dataSet, this, 1);
     }
@@ -264,7 +264,7 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         train(dataSet);
     }

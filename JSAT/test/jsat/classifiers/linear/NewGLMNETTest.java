@@ -79,7 +79,7 @@ public class NewGLMNETTest
         do
         {
             glmnet.setC(glmnet.getC()-0.0001);
-            glmnet.trainC(data);
+            glmnet.train(data);
             w = glmnet.getRawWeight();
         }
         while (w.nnz() > 1);//we should be able to find this pretty easily
@@ -97,7 +97,7 @@ public class NewGLMNETTest
         do
         {
             glmnet.setC(glmnet.getC()*0.9);
-            glmnet.trainC(data);
+            glmnet.train(data);
             w = glmnet.getRawWeight();
         }
         while (w.nnz() > 3);//we should be able to find this pretty easily
@@ -110,7 +110,7 @@ public class NewGLMNETTest
         
         glmnet.setC(1e-3);
         glmnet.setAlpha(0);//now everyone should turn on
-        glmnet.trainC(data);
+        glmnet.train(data);
         w = glmnet.getRawWeight();
         assertEquals(6, w.nnz());
         assertEquals( 1, (int)Math.signum(w.get(0)));
@@ -135,13 +135,13 @@ public class NewGLMNETTest
         }
 
         @Override
-        public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+        public void train(ClassificationDataSet dataSet, boolean parallel)
         {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
         @Override
-        public void trainC(ClassificationDataSet dataSet)
+        public void train(ClassificationDataSet dataSet)
         {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
@@ -210,7 +210,7 @@ public class NewGLMNETTest
         
         NewGLMNET truth = new NewGLMNET(0.001);
         truth.setTolerance(1e-11);
-        truth.trainC(train);
+        truth.train(train);
         
         
         DumbWeightHolder dumb = new DumbWeightHolder();
@@ -221,7 +221,7 @@ public class NewGLMNETTest
         
         NewGLMNET warm = new NewGLMNET(0.001);
         warm.setTolerance(1e-7);
-        warm.trainC(train, dumb);
+        warm.train(train, dumb);
         
         assertEquals(0, warm.getRawWeight().subtract(truth.getRawWeight()).pNorm(2), 1e-4);
         assertEquals(0, warm.getBias()-truth.getBias(), 1e-4);

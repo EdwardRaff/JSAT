@@ -232,7 +232,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     }
     
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         //use getAsDPPList to get coppies of the data points, so we can safely alter this set
         final List<DataPointPair<Double>> backingResidsList = dataSet.getAsDPPList();
@@ -242,10 +242,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
         
         //Add the first learner. Either an instance of the weak learner, or a strong initial estimate
         Regressor lastF = strongLearner == null ? weakLearner.clone() : strongLearner.clone();
-        if(threadPool == null || threadPool instanceof FakeExecutor)
-            lastF.train(dataSet);
-        else
-            lastF.train(dataSet, threadPool);
+        lastF.train(dataSet, parallel);
         F.add(lastF);
         coef.add(learningRate*getMinimizingErrorConst(backingResidsList, lastF));
         
@@ -294,12 +291,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
             final Regressor h = weakLearner.clone();
             final RegressionDataSet tmpDataSet = RegressionDataSet.usingDPPList(randSampleList);
             
-            if(threadPool == null || threadPool instanceof FakeExecutor)
-                h.train(tmpDataSet);
-            else
-                h.train(tmpDataSet, threadPool);
-            
-            
+            h.train(tmpDataSet, parallel);
             double y = getMinimizingErrorConst( backingResidsList, h);
             
             F.add(h);
@@ -378,12 +370,6 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
         };
 
         return fhPrime;
-    }
-
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, null);
     }
 
     @Override

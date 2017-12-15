@@ -4,11 +4,13 @@ package jsat.classifiers;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.*;
 import jsat.utils.FakeExecutor;
+import jsat.utils.SystemInfo;
 
 /**
  *
@@ -17,8 +19,8 @@ import jsat.utils.FakeExecutor;
 public class Rocchio implements Classifier
 {
 
-	private static final long serialVersionUID = 889524967453326517L;
-	private List<Vec> rocVecs;
+    private static final long serialVersionUID = 889524967453326517L;
+    private List<Vec> rocVecs;
     private final DistanceMetric dm;
     private final DenseSparseMetric dsdm;
     private double[] summaryConsts;
@@ -105,14 +107,14 @@ public class Rocchio implements Classifier
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         if(dataSet.getNumCategoricalVars() != 0)
             throw new FailedToFitException("Classifier requires all variables be numerical");
         int N = dataSet.getClassSize();
-        rocVecs = new ArrayList<Vec>(N);
+        rocVecs = new ArrayList<>(N);
         
-        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadPool);
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
         
         //dimensions
         int d = dataSet.getNumNumericalVars();
@@ -121,6 +123,7 @@ public class Rocchio implements Classifier
         
         //Set up a bunch of threads to add vectors together in the background
         CountDownLatch cdl = new CountDownLatch(N);
+        ExecutorService threadPool = parallel ? Executors.newFixedThreadPool(SystemInfo.LogicalCores) : new FakeExecutor();
         for(int i = 0; i < N; i++)
         {
             final Vec rochVec = new DenseVector(d);
@@ -137,14 +140,9 @@ public class Rocchio implements Classifier
         {
         }
         
+        threadPool.shutdownNow();
     }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, new FakeExecutor());
-    }
-
+    
     @Override
     public boolean supportsWeightedData()
     {
@@ -157,7 +155,7 @@ public class Rocchio implements Classifier
         Rocchio copy = new Rocchio(this.dm);
         if(this.rocVecs != null)
         {
-            copy.rocVecs = new ArrayList<Vec>(this.rocVecs.size());
+            copy.rocVecs = new ArrayList<>(this.rocVecs.size());
             for(Vec v : this.rocVecs)
                 copy.rocVecs.add(v.clone());
         }

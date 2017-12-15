@@ -19,7 +19,6 @@ import jsat.classifiers.DataPoint;
 import jsat.classifiers.boosting.Bagging;
 import jsat.classifiers.trees.ImpurityScore.ImpurityMeasure;
 import jsat.math.OnLineStatistics;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
@@ -28,6 +27,7 @@ import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDoubleArray;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
 /**
@@ -245,19 +245,13 @@ public class RandomForest implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         this.predicting = dataSet.getPredicting();
         this.forest = new ArrayList<DecisionTree>(maxForestSize);
-        trainStep(dataSet, threadPool);
+        trainStep(dataSet, parallel);
     }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, new FakeExecutor());
-    }
-
+    
     @Override
     public boolean supportsWeightedData()
     {
@@ -278,19 +272,13 @@ public class RandomForest implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         this.predicting = null;
         this.forest = new ArrayList<DecisionTree>(maxForestSize);
-        trainStep(dataSet, threadPool);
+        trainStep(dataSet, parallel);
     }
 
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, new FakeExecutor());
-    }
-    
     /**
      * Does the actual set up and training. {@link #predicting } and {@link #forest} should be
      * set up appropriately first. Everything else is handled by this and {@link LearningWorker}
@@ -298,7 +286,7 @@ public class RandomForest implements Classifier, Regressor, Parameterized
      * @param dataSet the data set, classification or regression
      * @param threadPool the source of threads
      */
-    private void trainStep(DataSet dataSet, ExecutorService threadPool)
+    private void trainStep(DataSet dataSet, boolean parallel)
     {
         boolean autoLearners = isAutoFeatureSample();//We will need to set it back after, so remember if we need to
         if(autoLearners)
@@ -310,12 +298,13 @@ public class RandomForest implements Classifier, Regressor, Parameterized
         int roundShare = roundsToDistribut / SystemInfo.LogicalCores;//The number of rounds each thread gets
         int extraRounds = roundsToDistribut % SystemInfo.LogicalCores;//The number of extra rounds that need to get distributed
                 
-        if(threadPool == null || threadPool instanceof FakeExecutor)//No point in duplicatin recources
+        if(!parallel)//No point in duplicatin recources
             roundShare = roundsToDistribut;//All the rounds get shoved onto one thread
+        ExecutorService threadPool = parallel ? ParallelUtils.CACHED_THREAD_POOL : new FakeExecutor();
         
         //Random used for creating more random objects, faster to duplicate such a small recourse then share and lock
         Random rand = RandomUtil.getRandom();
-        List<Future<LearningWorker>> futures = new ArrayList<Future<LearningWorker>>(SystemInfo.LogicalCores);
+        List<Future<LearningWorker>> futures = new ArrayList<>(SystemInfo.LogicalCores);
         
         int[][] counts = null;
         AtomicDoubleArray pred = null;

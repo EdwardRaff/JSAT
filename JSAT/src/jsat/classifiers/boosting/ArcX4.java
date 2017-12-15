@@ -1,8 +1,6 @@
 package jsat.classifiers.boosting;
 
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.classifiers.CategoricalData;
@@ -10,10 +8,10 @@ import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * Arc-x4 is a ensemble-classifier that performs re-weighting of the data points 
@@ -27,10 +25,10 @@ import jsat.utils.SystemInfo;
 public class ArcX4 implements Classifier, Parameterized
 {
 
-	private static final long serialVersionUID = 3831448932874147550L;
-	private Classifier weakLearner;
+    private static final long serialVersionUID = 3831448932874147550L;
+    private Classifier weakLearner;
     private int iterations;
-    
+
     private double coef = 1;
     private double expo = 4;
     
@@ -142,39 +140,9 @@ public class ArcX4 implements Classifier, Parameterized
         
         return cr;
     }
-    
-    private class Tester implements Runnable
-    {
-        final ClassificationDataSet cds;
-        final int[] errors;
-        final int start;
-        final int end;
-        final Classifier hypoth;
-        final CountDownLatch latch;
-
-        public Tester(ClassificationDataSet cds, int[] errors, int start, int end, Classifier hypoth, CountDownLatch latch)
-        {
-            this.cds = cds;
-            this.errors = errors;
-            this.start = start;
-            this.end = end;
-            this.hypoth = hypoth;
-            this.latch = latch;
-        }
-        
-
-        @Override
-        public void run()
-        {
-            for(int i = start; i < end; i++)
-                if(hypoth.classify(cds.getDataPoint(i)).mostLikely() != cds.getDataPointCategory(i))
-                    errors[i]++;
-            latch.countDown();
-        }
-    }
-
+   
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         //Create a low memory clone that only has different dataPoint Objects to save space
         ClassificationDataSet cds = dataSet.shallowClone();
@@ -187,8 +155,6 @@ public class ArcX4 implements Classifier, Parameterized
         //Everyone starts with no errors
         int[] errors = new int[cds.getSampleSize()];
         
-        final int blockSize = errors.length / SystemInfo.LogicalCores;
-        
         hypoths = new Classifier[iterations];
         for(int t = 0; t < hypoths.length; t++)
         {
@@ -197,48 +163,18 @@ public class ArcX4 implements Classifier, Parameterized
             
             Classifier hypoth = weakLearner.clone();
             
-            if(threadPool == null || threadPool instanceof FakeExecutor)
-                hypoth.trainC(cds);
-            else
-                hypoth.trainC(cds, threadPool);
+            hypoth.train(cds, parallel);
             
             hypoths[t] = hypoth;
-            if(blockSize > 0)
+            ParallelUtils.run(parallel, errors.length, (start, end) ->
             {
-                int extra = errors.length % SystemInfo.LogicalCores;
-                CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-                int start = 0;
-                while(start < errors.length)
-                {
-                    int end = start + blockSize;
-                    if(extra-- > 0)
-                        end++;
-                    threadPool.submit(new Tester(cds, errors, start, end, hypoth, latch));
-                    start = end;
-                }
-                try
-                {
-                    latch.await();
-                }
-                catch (InterruptedException ex)
-                {
-                    Logger.getLogger(ArcX4.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-            else//not enough to do in parallel
-            {
-                new Tester(cds, errors, 0, errors.length, hypoth, new CountDownLatch(1)).run();
-            }
-            
+                for(int i = start; i < end; i++)
+                    if(hypoth.classify(cds.getDataPoint(i)).mostLikely() != cds.getDataPointCategory(i))
+                        errors[i]++;
+            });
         }
         
         this.predicing = cds.getPredicting();
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, new FakeExecutor());
     }
 
     @Override

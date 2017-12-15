@@ -129,12 +129,12 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         if(dag.getNodes().isEmpty() || dag.getParents(dataSet.getNumCategoricalVars()).isEmpty())
             learnNetwork(dataSet);
             
-        super.trainC(dataSet);
+        super.train(dataSet);
     }
     
     

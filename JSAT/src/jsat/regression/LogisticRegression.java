@@ -4,6 +4,7 @@ package jsat.regression;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
@@ -19,6 +20,7 @@ import jsat.math.Function;
 import jsat.math.optimization.IterativelyReweightedLeastSquares;
 import jsat.math.optimization.Optimizer;
 import jsat.utils.FakeExecutor;
+import jsat.utils.SystemInfo;
 
 /**
  * Logistic regression is a common method used to fit a probability between binary outputs. 
@@ -32,8 +34,9 @@ import jsat.utils.FakeExecutor;
 public class LogisticRegression implements Classifier, Regressor, SingleWeightVectorModel
 {
 
-	private static final long serialVersionUID = -5115807516729861730L;
-	private Vec coefficents;
+    private static final long serialVersionUID = -5115807516729861730L;
+    private Vec coefficents;
+    
     /**
      * Logistic regression needs values on the range [0, 1]. The shift makes sure that values are on the range [0, x], for some x
      */
@@ -58,12 +61,7 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
     
     final private Function logitFun = new Function() {
 
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = -653111120605227341L;
-
-		public double f(double... x)
+        public double f(double... x)
         {
             return logitReg(DenseVector.toDenseVec(x));
         }
@@ -76,12 +74,7 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
     
     final private Function logitFunD = new Function() {
 
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 4844651397674391691L;
-
-		public double f(double... x)
+        public double f(double... x)
         {
             return logitReg(DenseVector.toDenseVec(x));
         }
@@ -102,6 +95,7 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         return coefficents;
     }
 
+    @Override
     public double regress(DataPoint data)
     {
         if(coefficents == null)
@@ -109,9 +103,10 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         return logitReg(data.getNumericalValues())*scale+shift;
     }
 
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    @Override
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
-        List<Vec> inputs = new ArrayList<Vec>(dataSet.getSampleSize());
+        List<Vec> inputs = new ArrayList<>(dataSet.getSampleSize());
         for(int i = 0; i < dataSet.getSampleSize(); i++)
             inputs.add(dataSet.getDataPoint(i).getNumericalValues());
         
@@ -128,14 +123,12 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         
         Optimizer optimizer = new IterativelyReweightedLeastSquares();
         
+        ExecutorService threadPool = parallel ? Executors.newFixedThreadPool(SystemInfo.LogicalCores) : new FakeExecutor();
         coefficents = optimizer.optimize(1e-5, 100, logitFun, logitFunD, coefficents, inputs, targetValues, threadPool);
+        threadPool.shutdownNow();
     }
 
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, new FakeExecutor());
-    }
-
+    @Override
     public boolean supportsWeightedData()
     {
         return false;
@@ -188,6 +181,7 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         return clone;
     }
 
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         if(coefficents == null)
@@ -202,7 +196,8 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         return results;
     }
 
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    @Override
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         if(dataSet.getClassSize() != 2)
             throw new FailedToFitException("Logistic Regression works only in the case of two classes, and can not handle " +
@@ -215,13 +210,14 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         }
         
         
-        train(rds, threadPool);
+        train(rds, parallel);
         
     }
 
-    public void trainC(ClassificationDataSet dataSet)
+    @Override
+    public void train(ClassificationDataSet dataSet)
     {
-        trainC(dataSet, new FakeExecutor());
+        train(dataSet,false);
     }
     
 }

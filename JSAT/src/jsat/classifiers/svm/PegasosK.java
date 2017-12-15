@@ -22,6 +22,8 @@ import jsat.parameters.Parameterized;
 import jsat.utils.FakeExecutor;
 import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.AtomicDouble;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
 /**
@@ -197,83 +199,64 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         if (dataSet.getClassSize() != 2)
             throw new FailedToFitException("Pegasos only supports binary classification problems");
-        try
-        {
-            Random rand = RandomUtil.getRandom();
-            final int m = dataSet.getSampleSize();
 
-            alphas = new double[m];
-            int[] sign = new int[m];
-            vecs = new ArrayList<Vec>(m);
-            for (int i = 0; i < dataSet.getSampleSize(); i++)
+        Random rand = RandomUtil.getRandom();
+        final int m = dataSet.getSampleSize();
+
+        alphas = new double[m];
+        int[] sign = new int[m];
+        vecs = new ArrayList<>(m);
+        for (int i = 0; i < dataSet.getSampleSize(); i++)
+        {
+            vecs.add(dataSet.getDataPoint(i).getNumericalValues());
+            sign[i] = dataSet.getDataPointCategory(i) == 1 ? 1 : -1;
+        }
+
+        setCacheMode(getCacheMode());//Initiates the cahce
+        for (int t = 1; t <= iterations; t++)
+        {
+
+            final int i = rand.nextInt(m);
+            final double sign_i = sign[i];
+            final AtomicDouble val = new AtomicDouble(0.0);
+
+            ParallelUtils.run(true, m, (start, end) -> 
             {
-                vecs.add(dataSet.getDataPoint(i).getNumericalValues());
-                sign[i] = dataSet.getDataPointCategory(i) == 1 ? 1 : -1;
+                double val_local = 0;
+                for(int j = start; j < end; j++)
+                {
+                    if(j == i || alphas[j] == 0)
+                        continue;
+                    val_local += alphas[j]*sign_i* kEval(i, j);
+                }
+
+                val.addAndGet(val_local);
+            });
+            val.set(val.get() * sign_i / (regularization * t));
+
+            if(val.get() < 1)
+                alphas[i]++;
+
+        }
+
+        //Collect the non zero alphas
+        int pos = 0;
+        for (int i = 0; i < alphas.length; i++)
+            if (alphas[i] != 0)
+            {
+                alphas[pos] = alphas[i] * sign[i];
+                ListUtils.swap(vecs, pos, i);
+                pos++;
             }
 
-            List<Future<Double>> futures = new ArrayList<Future<Double>>(SystemInfo.LogicalCores);
-            final int blockSize = m / SystemInfo.LogicalCores + (m % SystemInfo.LogicalCores == 0 ? 0 : 1);//1 extra if we want
-
-            setCacheMode(getCacheMode());//Initiates the cahce
-            for (int t = 1; t <= iterations; t++)
-            {
-
-                final int i = rand.nextInt(m);
-                final double sign_i = sign[i];
-                double val = 0;
-                
-                //distribute work 
-                futures.clear();
-                int start = 0;
-                while (start < m)
-                {
-                    futures.add(threadPool.submit(new PredictPart(i, start, Math.min(start + blockSize, m), sign)));
-                    start += blockSize;
-                }
-                //collect
-                for(Future<Double> partialVal : futures)
-                    val += partialVal.get();
-                val *= sign_i / (regularization * t);
-
-                if (val < 1)
-                    alphas[i]++;
-
-            }
-
-            //Collect the non zero alphas
-            int pos = 0;
-            for (int i = 0; i < alphas.length; i++)
-                if (alphas[i] != 0)
-                {
-                    alphas[pos] = alphas[i] * sign[i];
-                    ListUtils.swap(vecs, pos, i);
-                    pos++;
-                }
-            
-            alphas = Arrays.copyOf(alphas, pos);
-            vecs = new ArrayList<Vec>(vecs.subList(0, pos));
-            setCacheMode(null);
-            setAlphas(alphas);
-
-        }
-        catch (ExecutionException ex)
-        {
-            throw new FailedToFitException(ex);
-        }
-        catch (InterruptedException ex)
-        {
-            throw new FailedToFitException(ex);
-        }
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, new FakeExecutor());
+        alphas = Arrays.copyOf(alphas, pos);
+        vecs = new ArrayList<>(vecs.subList(0, pos));
+        setCacheMode(null);
+        setAlphas(alphas);
     }
 
     @Override

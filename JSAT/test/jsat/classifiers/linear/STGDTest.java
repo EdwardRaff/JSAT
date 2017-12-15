@@ -66,7 +66,7 @@ public class STGDTest
 
 
     /**
-     * Test of trainC method, of class STGD.
+     * Test of train method, of class STGD.
      */
     @Test
     public void testTrainC_ClassificationDataSet()
@@ -75,7 +75,7 @@ public class STGDTest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
         
         STGD scd = new STGD(5, 0.5, Double.POSITIVE_INFINITY, 0.1);
-        scd.trainC(train);
+        scd.train(train);
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(400, RandomUtil.getRandom());
         

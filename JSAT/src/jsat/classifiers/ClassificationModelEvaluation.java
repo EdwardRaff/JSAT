@@ -13,6 +13,7 @@ import jsat.datatransform.DataTransformProcess;
 import jsat.exceptions.UntrainedModelException;
 import jsat.math.OnLineStatistics;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
 /**
@@ -34,7 +35,7 @@ public class ClassificationModelEvaluation
     /**
      * The source of threads
      */
-    private ExecutorService threadpool;
+    private boolean parallel;
     private double[][] confusionMatrix;
     /**
      * The sum of all the weights for each data point that was used in testing. 
@@ -69,7 +70,7 @@ public class ClassificationModelEvaluation
      */
     public ClassificationModelEvaluation(Classifier classifier, ClassificationDataSet dataSet)
     {
-        this(classifier, dataSet, null);
+        this(classifier, dataSet, false);
     }
     
     /**
@@ -78,19 +79,18 @@ public class ClassificationModelEvaluation
      * 
      * @param classifier the model to train and evaluate
      * @param dataSet the training data set. 
-     * @param threadpool the source of threads for parallel training. 
-     * If set to null, training will be done using the 
-     * {@link Classifier#trainC(jsat.classifiers.ClassificationDataSet) } method. 
+     * @param parallel {@code true} if the training should be done using
+     * multiple-cores, {@code false} for single threaded.
      */
-    public ClassificationModelEvaluation(Classifier classifier, ClassificationDataSet dataSet, ExecutorService threadpool)
+    public ClassificationModelEvaluation(Classifier classifier, ClassificationDataSet dataSet, boolean parallel)
     {
         this.classifier = classifier;
         this.dataSet = dataSet;
-        this.threadpool = threadpool;
+        this.parallel = parallel;
         this.dtp = new DataTransformProcess();
         keepPredictions = false;
         errorStats = new OnLineStatistics();
-        scoreMap = new LinkedHashMap<ClassificationScore, OnLineStatistics>();
+        scoreMap = new LinkedHashMap<>();
     }
 
     /**
@@ -284,17 +284,12 @@ public class ClassificationModelEvaluation
         if(warmModels != null && classifierToUse instanceof WarmClassifier)//train from the warm model
         {
             WarmClassifier wc = (WarmClassifier) classifierToUse;
-            if(threadpool != null)
-                wc.trainC(trainSet, warmModels[index], threadpool);
-            else
-                wc.trainC(trainSet, warmModels[index]);
+            wc.train(trainSet, warmModels[index], parallel);
         }
         else//do the normal thing
         {
-            if(threadpool != null)
-                classifierToUse.trainC(trainSet, threadpool);
-            else
-                classifierToUse.trainC(trainSet);
+            classifierToUse.train(trainSet, parallel);
+            
         }
         totalTrainingTime += (System.currentTimeMillis() - startTrain);
         
@@ -304,51 +299,70 @@ public class ClassificationModelEvaluation
         CountDownLatch latch;
         final double[] evalErrorStats = new double[2];//first index is correct, 2nd is total
         //place to store the scores that may get updated by several threads
-        final Map<ClassificationScore, ClassificationScore> scoresToUpdate = new HashMap<ClassificationScore, ClassificationScore>();
+        final Map<ClassificationScore, ClassificationScore> scoresToUpdate = new HashMap<>();
         for(Entry<ClassificationScore, OnLineStatistics> entry : scoreMap.entrySet())
         {
             ClassificationScore score = entry.getKey().clone();
             score.prepare(dataSet.getPredicting());
             scoresToUpdate.put(score, score);
         }
-        
-        if(testSet.getSampleSize() < SystemInfo.LogicalCores || threadpool == null)
+
+        ParallelUtils.run(parallel, testSet.getSampleSize(), (start, end) ->
         {
-            latch = new CountDownLatch(1);
-            new Evaluator(testSet, curProcess, 0, testSet.getSampleSize(), evalErrorStats, scoresToUpdate, classifierToUse ,latch).run();
-        }
-        else//go parallel!
-        {
-            latch = new CountDownLatch(SystemInfo.LogicalCores);
-            final int blockSize = testSet.getSampleSize()/SystemInfo.LogicalCores;
-            int extra = testSet.getSampleSize()%SystemInfo.LogicalCores;
-            
-            int start = 0;
-            while(start < testSet.getSampleSize())
+            //create a local set of scores to update
+            double localCorrect = 0;
+            double localSumOfWeights = 0;
+            long localClassificationTime = 0;
+            Set<ClassificationScore> localScores = new HashSet<>();
+            for (Entry<ClassificationScore, ClassificationScore> entry : scoresToUpdate.entrySet())
+                localScores.add(entry.getKey().clone());
+            for (int i = start; i < end; i++)
             {
-                int end = start+blockSize;
-                if(extra-- > 0)
-                    end++;
-                threadpool.submit(new Evaluator(testSet, curProcess, start, end, evalErrorStats, scoresToUpdate, classifierToUse , latch));
-                start = end;
+                DataPoint dp = testSet.getDataPoint(i);
+                dp = curProcess.transform(dp);
+                long stratClass = System.currentTimeMillis();
+                CategoricalResults result = classifierToUse.classify(dp);
+                localClassificationTime += (System.currentTimeMillis() - stratClass);
+
+                for (ClassificationScore score : localScores)
+                    score.addResult(result, testSet.getDataPointCategory(i), dp.getWeight());
+
+                if (predictions != null)
+                {
+                    predictions[i] = result;
+                    truths[i] = testSet.getDataPointCategory(i);
+                    pointWeights[i] = dp.getWeight();
+                }
+                final int trueCat = testSet.getDataPointCategory(i);
+                synchronized (confusionMatrix[trueCat])
+                {
+                    confusionMatrix[trueCat][result.mostLikely()] += dp.getWeight();
+                }
+                if (trueCat == result.mostLikely())
+                    localCorrect += dp.getWeight();
+                localSumOfWeights += dp.getWeight();
             }
-        }
-        try
-        {
-            latch.await();
-            errorStats.add(evalErrorStats[0]/evalErrorStats[1]);
-            //accumulate score info
-            for(Entry<ClassificationScore, OnLineStatistics> entry : scoreMap.entrySet())
+
+            synchronized (confusionMatrix)
             {
-                ClassificationScore score = entry.getKey().clone();
-                score.prepare(dataSet.getPredicting());
-                score.addResults(scoresToUpdate.get(score));
-                entry.getValue().add(score.getScore());
+                totalClassificationTime += localClassificationTime;
+                sumOfWeights += localSumOfWeights;
+                evalErrorStats[0] += localSumOfWeights - localCorrect;
+                evalErrorStats[1] += localSumOfWeights;
+
+                for (ClassificationScore score : localScores)
+                    scoresToUpdate.get(score).addResults(score);
             }
-        }
-        catch (InterruptedException ex)
+        });
+
+        errorStats.add(evalErrorStats[0] / evalErrorStats[1]);
+        //accumulate score info
+        for (Entry<ClassificationScore, OnLineStatistics> entry : scoreMap.entrySet())
         {
-            Logger.getLogger(ClassificationModelEvaluation.class.getName()).log(Level.SEVERE, null, ex);
+            ClassificationScore score = entry.getKey().clone();
+            score.prepare(dataSet.getPredicting());
+            score.addResults(scoresToUpdate.get(score));
+            entry.getValue().add(score.getScore());
         }
     }
     
@@ -386,91 +400,6 @@ public class ClassificationModelEvaluation
         return scoreMap.get(score);
     }
     
-    private class Evaluator implements Runnable
-    {
-        ClassificationDataSet testSet;
-        Classifier toUse;
-        DataTransformProcess curProcess;
-        int start, end;
-        CountDownLatch latch;
-        long localClassificationTime;
-        double localCorrect;
-        double localSumOfWeights;
-        double[] errorStats;
-        final Map<ClassificationScore, ClassificationScore> scoresToUpdate;
-
-        public Evaluator(ClassificationDataSet testSet, DataTransformProcess curProcess, int start, int end, double[] errorStats, Map<ClassificationScore, ClassificationScore> scoresToUpdate, Classifier toUse, CountDownLatch latch)
-        {
-            this.testSet = testSet;
-            this.curProcess = curProcess;
-            this.start = start;
-            this.end = end;
-            this.latch = latch;
-            this.localClassificationTime = 0;
-            this.localSumOfWeights = 0;
-            this.localCorrect = 0;
-            this.errorStats = errorStats;
-            this.toUse = toUse;
-            this.scoresToUpdate = scoresToUpdate;
-        }
-
-        @Override
-        public void run()
-        {
-            try
-            {
-                //create a local set of scores to update
-                Set<ClassificationScore> localScores = new HashSet<ClassificationScore>();
-                for (Entry<ClassificationScore, ClassificationScore> entry : scoresToUpdate.entrySet())
-                    localScores.add(entry.getKey().clone());
-                for (int i = start; i < end; i++)
-                {
-                    DataPoint dp = testSet.getDataPoint(i);
-                    dp = curProcess.transform(dp);
-                    long stratClass = System.currentTimeMillis();
-                    CategoricalResults result = toUse.classify(dp);
-                    localClassificationTime += (System.currentTimeMillis() - stratClass);
-
-                    for (ClassificationScore score : localScores)
-                        score.addResult(result, testSet.getDataPointCategory(i), dp.getWeight());
-
-                    if (predictions != null)
-                    {
-                        predictions[i] = result;
-                        truths[i] = testSet.getDataPointCategory(i);
-                        pointWeights[i] = dp.getWeight();
-                    }
-                    final int trueCat = testSet.getDataPointCategory(i);
-                    synchronized(confusionMatrix[trueCat])
-                    {
-                        confusionMatrix[trueCat][result.mostLikely()] += dp.getWeight();
-                    }
-                    if(trueCat == result.mostLikely())
-                        localCorrect += dp.getWeight();
-                    localSumOfWeights += dp.getWeight();
-                }
-
-                synchronized(confusionMatrix)
-                {
-                    totalClassificationTime += localClassificationTime;
-                    sumOfWeights += localSumOfWeights;
-                    errorStats[0] += localSumOfWeights-localCorrect;
-                    errorStats[1] += localSumOfWeights;
-
-                    for (ClassificationScore score : localScores)
-                        scoresToUpdate.get(score).addResults(score);
-                }
-
-                latch.countDown();
-            }
-            catch (Exception ex)
-            {
-                ex.printStackTrace();
-            }
-        }
-
-    }
-
     /**
      * Indicates whether or not the predictions made during evaluation should be
      * stored with the expected value for retrieval later. 

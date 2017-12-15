@@ -7,7 +7,6 @@ import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
-import jsat.utils.FakeExecutor;
 
 /**
  * Some Distance Metrics require information that can be learned from the data set. 
@@ -22,52 +21,69 @@ import jsat.utils.FakeExecutor;
 abstract public class TrainableDistanceMetric implements DistanceMetric
 {
     
+    private static final long serialVersionUID = 6356276953152869105L;
 
-	private static final long serialVersionUID = 6356276953152869105L;
-
-	/**
-     * Trains this metric on the given data set
-     * @param <V> the type of vectors in the list
-     * @param dataSet the data set to train on
-     * @throws UnsupportedOperationException if the metric can not be trained from unlabeled data
-     */
-    abstract public <V extends Vec> void train(List<V> dataSet);
     /**
      * Trains this metric on the given data set
      * @param <V> the type of vectors in the list
      * @param dataSet the data set to train on
-     * @param threadpool the source of threads for parallel training
      * @throws UnsupportedOperationException if the metric can not be trained from unlabeled data
      */
-    abstract public <V extends Vec> void train(List<V> dataSet, ExecutorService threadpool);
+    public <V extends Vec> void train(List<V> dataSet)
+    {
+        train(dataSet, false);
+    }
+    
+    /**
+     * Trains this metric on the given data set
+     * @param <V> the type of vectors in the list
+     * @param dataSet the data set to train on
+     * @param parallel {@code true} if multiple threads should be used for
+     * training. {@code false} if it should be done in a single-threaded manner.
+     * @throws UnsupportedOperationException if the metric can not be trained from unlabeled data
+     */
+    abstract public <V extends Vec> void train(List<V> dataSet, boolean parallel);
     
     /**
      * Trains this metric on the given data set
      * @param dataSet the data set to train on
      * @throws UnsupportedOperationException if the metric can not be trained from unlabeled data
      */
-    abstract public void train(DataSet dataSet);
+    public void train(DataSet dataSet)
+    {
+        train(dataSet, false);
+    }
+    
     /**
      * Trains this metric on the given data set
      * @param dataSet the data set to train on
-     * @param threadpool the source of threads for parallel training
+     * @param parallel {@code true} if multiple threads should be used for
+     * training. {@code false} if it should be done in a single-threaded manner.
      * @throws UnsupportedOperationException if the metric can not be trained from unlabeled data
      */
-    abstract public void train(DataSet dataSet, ExecutorService threadpool);
+    abstract public void train(DataSet dataSet, boolean parallel);
     
     /**
      * Trains this metric on the given classification problem data set
      * @param dataSet the data set to train on 
      * @throws UnsupportedOperationException if the metric can not be trained from classification problems
      */
-    abstract public void train(ClassificationDataSet dataSet);
+    public void train(ClassificationDataSet dataSet)
+    {
+        train(dataSet, false);
+    }
+    
     /**
      * Trains this metric on the given classification problem data set
-     * @param dataSet the data set to train on 
-     * @param threadpool the source of threads for parallel training
-     * @throws UnsupportedOperationException if the metric can not be trained from classification problems
+     *
+     * @param dataSet the data set to train on
+     * @param parallel {@code true} if multiple threads should be used for
+     * training. {@code false} if it should be done in a single-threaded manner.
+     * @throws UnsupportedOperationException if the metric can not be trained
+     * from classification problems
      */
-    abstract public void train(ClassificationDataSet dataSet, ExecutorService threadpool);
+    abstract public void train(ClassificationDataSet dataSet, boolean parallel);
+    
     /**
      * Some metrics might be special purpose, and not trainable for all types of data sets or tasks. 
      * This method returns <tt>true</tt> if this metric supports training for classification 
@@ -90,10 +106,12 @@ abstract public class TrainableDistanceMetric implements DistanceMetric
     /**
      * Trains this metric on the given regression problem data set
      * @param dataSet the data set to train on 
-     * @param threadpool the source of threads for parallel training
+     * @param parallel {@code true} if multiple threads should be used for
+     * training. {@code false} if it should be done in a single-threaded manner.
      * @throws UnsupportedOperationException if the metric can not be trained from regression problems
      */
-    abstract public void train(RegressionDataSet dataSet, ExecutorService threadpool);
+    abstract public void train(RegressionDataSet dataSet, boolean parallel);
+    
     /**
      * Some metrics might be special purpose, and not trainable for all types of data sets tasks. 
      * This method returns <tt>true</tt> if this metric supports training for regression 
@@ -127,17 +145,31 @@ abstract public class TrainableDistanceMetric implements DistanceMetric
      */
     public static void trainIfNeeded(DistanceMetric dm, DataSet dataset)
     {
+        trainIfNeeded(dm, dataset, false);
+    }
+    
+    /**
+     * Static helper method for training a distance metric only if it is needed. 
+     * This method can be safely called for any Distance Metric.
+     * 
+     * @param dm the distance metric to train
+     * @param dataset the data set to train from
+     * @param parallel {@code true} if multiple threads should be used for
+     * training. {@code false} if it should be done in a single-threaded manner.
+     */
+    public static void trainIfNeeded(DistanceMetric dm, DataSet dataset, boolean parallel)
+    {
         if(!(dm instanceof TrainableDistanceMetric))
             return;
         TrainableDistanceMetric tdm = (TrainableDistanceMetric) dm;
         if(!tdm.needsTraining())
             return;
         if(dataset instanceof RegressionDataSet)
-            tdm.train((RegressionDataSet) dataset);
+            tdm.train((RegressionDataSet) dataset, parallel);
         else if(dataset instanceof ClassificationDataSet)
-            tdm.train((ClassificationDataSet) dataset);
+            tdm.train((ClassificationDataSet) dataset, parallel);
         else
-            tdm.train(dataset);
+            tdm.train(dataset, parallel);
     }
     
     /**
@@ -149,26 +181,28 @@ abstract public class TrainableDistanceMetric implements DistanceMetric
      * @param threadpool the source of threads for parallel training. May be 
      * <tt>null</tt>, in which case {@link #trainIfNeeded(jsat.linear.distancemetrics.DistanceMetric, jsat.DataSet) } 
      * is used instead.
+     * @deprecated I WILL DELETE THIS METHOD SOON
      */
     public static void trainIfNeeded(DistanceMetric dm, DataSet dataset, ExecutorService threadpool)
     {
-        if(threadpool == null || threadpool instanceof FakeExecutor)
-        {
-            trainIfNeeded(dm, dataset);
-            return;
-        }
-        if(!(dm instanceof TrainableDistanceMetric))
-            return;
-        TrainableDistanceMetric tdm = (TrainableDistanceMetric) dm;
-        if(!tdm.needsTraining())
-            return;
-        if(dataset instanceof RegressionDataSet)
-            tdm.train((RegressionDataSet) dataset, threadpool);
-        else if(dataset instanceof ClassificationDataSet)
-            tdm.train((ClassificationDataSet) dataset, threadpool);
-        else
-            tdm.train(dataset, threadpool);
+        //TODO I WILL DELETE, JUST STUBBING FOR NOW TO MAKE LIFE EASY AS I DO ONE CODE SECTION AT A TIME
+        trainIfNeeded(dm, dataset);
     }
+    
+    /**
+     * 
+     * @param <V>
+     * @param dm
+     * @param dataset
+     * @param threadpool 
+     * @deprecated I WILL DELETE THIS METHOD SOON
+     */
+    public static <V extends Vec> void trainIfNeeded(DistanceMetric dm, List<V> dataset, ExecutorService threadpool)
+    {
+         //TODO I WILL DELETE, JUST STUBBING FOR NOW TO MAKE LIFE EASY AS I DO ONE CODE SECTION AT A TIME
+        trainIfNeeded(dm, dataset, false);
+    }
+    
     
     /**
      * Static helper method for training a distance metric only if it is needed. 
@@ -180,17 +214,7 @@ abstract public class TrainableDistanceMetric implements DistanceMetric
      */
     public static <V extends Vec> void trainIfNeeded(DistanceMetric dm, List<V> dataset)
     {
-        if(!(dm instanceof TrainableDistanceMetric))
-            return;
-        TrainableDistanceMetric tdm = (TrainableDistanceMetric) dm;
-        if(!tdm.needsTraining())
-            return;
-        if(dataset instanceof RegressionDataSet)
-            tdm.train((RegressionDataSet) dataset);
-        else if(dataset instanceof ClassificationDataSet)
-            tdm.train((ClassificationDataSet) dataset);
-        else
-            tdm.train(dataset);
+        trainIfNeeded(dm, dataset, false);
     }
     
     /**
@@ -198,27 +222,21 @@ abstract public class TrainableDistanceMetric implements DistanceMetric
      * @param <V> the type of vectors in the list
      * @param dm the distance metric to train
      * @param dataset the data set to train from
-     * @param threadpool the source of threads for parallel training. May be 
-     * <tt>null</tt>, in which case {@link #trainIfNeeded(jsat.linear.distancemetrics.DistanceMetric, java.util.List) }
-     * is used instead.
+     * @param parallel {@code true} if multiple threads should be used for
+     * training. {@code false} if it should be done in a single-threaded manner.
      */
-    public static <V extends Vec> void trainIfNeeded(DistanceMetric dm, List<V> dataset, ExecutorService threadpool)
+    public static <V extends Vec> void trainIfNeeded(DistanceMetric dm, List<V> dataset, boolean parallel)
     {
-        if(threadpool == null || threadpool instanceof FakeExecutor)
-        {
-            trainIfNeeded(dm, dataset);
-            return;
-        }
         if(!(dm instanceof TrainableDistanceMetric))
             return;
         TrainableDistanceMetric tdm = (TrainableDistanceMetric) dm;
         if(!tdm.needsTraining())
             return;
         if(dataset instanceof RegressionDataSet)
-            tdm.train((RegressionDataSet) dataset, threadpool);
+            tdm.train((RegressionDataSet) dataset, parallel);
         else if(dataset instanceof ClassificationDataSet)
-            tdm.train((ClassificationDataSet) dataset, threadpool);
+            tdm.train((ClassificationDataSet) dataset, parallel);
         else
-            tdm.train(dataset, threadpool);
+            tdm.train(dataset, parallel);
     }
 }

@@ -55,7 +55,7 @@ public class SCWTest
         for (SCW.Mode mode : SCW.Mode.values())
         {   
             SCW scwFull = new SCW(0.9, mode, false);
-            scwFull.trainC(train);
+            scwFull.train(train);
             
             for (DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), scwFull.classify(dpp.getDataPoint()).mostLikely());
@@ -73,7 +73,7 @@ public class SCWTest
         for (SCW.Mode mode : SCW.Mode.values())
         {   
             SCW scwDiag = new SCW(0.9, mode, true);
-            scwDiag.trainC(train);
+            scwDiag.train(train);
             
             for (DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), scwDiag.classify(dpp.getDataPoint()).mostLikely());

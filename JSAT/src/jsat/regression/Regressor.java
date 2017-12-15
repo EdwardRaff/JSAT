@@ -13,8 +13,12 @@ public interface Regressor extends Cloneable, Serializable
 {
     public double regress(DataPoint data);
     
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool);
-    public void train(RegressionDataSet dataSet);
+    public void train(RegressionDataSet dataSet, boolean parallel);
+    
+    default public void train(RegressionDataSet dataSet)
+    {
+        train(dataSet, false);
+    }
     
     public boolean supportsWeightedData();
     

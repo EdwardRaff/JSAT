@@ -3,15 +3,12 @@ package jsat.classifiers.calibration;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
-import jsat.utils.FakeExecutor;
 
 /**
  * This abstract class provides the frame work for an algorithm to perform 
@@ -30,8 +27,8 @@ import jsat.utils.FakeExecutor;
 public abstract class BinaryCalibration implements Classifier, Parameterized
 {
 
-	private static final long serialVersionUID = 2356311701854978890L;
-	/**
+    private static final long serialVersionUID = 2356311701854978890L;
+    /**
      * The base classifier to train and calibrate the outputs of
      */
     @ParameterHolder
@@ -89,21 +86,8 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
         HOLD_OUT,
     }
     
-    /**
-     * Trains the model on the given data set
-     * @param train the data set to train on
-     * @param threadPool the source of threads, may be null
-     */
-    private void train(ClassificationDataSet train, ExecutorService threadPool)
-    {
-        if(threadPool == null || threadPool instanceof FakeExecutor)
-            base.trainC(train);
-        else
-            base.trainC(train, threadPool);
-    }
-    
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         double[] deci = new double[dataSet.getSampleSize()];//array of SVM decision values
         boolean[] label = new boolean[deci.length];//array of booleans: is the example labeled +1?
@@ -117,7 +101,7 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
             {
                 ClassificationDataSet test = foldList.get(i);
                 ClassificationDataSet train = ClassificationDataSet.comineAllBut(foldList, i);
-                train(train, threadPool);
+                base.train(train, parallel);
                 
                 for(int j = 0; j < test.getSampleSize(); j++)
                 {
@@ -127,7 +111,7 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
                 }
             }
             
-            train(dataSet, threadPool);
+            base.train(dataSet, parallel);
         }
         else if (mode == CalibrationMode.HOLD_OUT)
         {
@@ -138,7 +122,7 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
             ClassificationDataSet train = new ClassificationDataSet(wholeSet.subList(0, splitMark), dataSet.getPredicting());
             ClassificationDataSet test = new ClassificationDataSet(wholeSet.subList(splitMark, wholeSet.size()), dataSet.getPredicting());
             
-            train(train, threadPool);
+            base.train(train, parallel);
             for(int i = 0; i < test.getSampleSize(); i++)
             {
                 deci[i] = base.getScore(test.getDataPoint(i));
@@ -147,11 +131,11 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
             
             len = test.getSampleSize();
             
-            train(dataSet, threadPool);
+            base.train(dataSet, parallel);
         }
         else
         {
-            train(dataSet, threadPool);
+            base.train(dataSet, parallel);
 
             for (int i = 0; i < len; i++)
             {
@@ -162,12 +146,6 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
         }
         
         calibrate(label, deci, len);
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, null);
     }
     
     /**

@@ -486,7 +486,7 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         train(dataSet);
     }

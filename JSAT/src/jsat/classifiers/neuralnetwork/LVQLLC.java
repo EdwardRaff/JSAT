@@ -169,13 +169,13 @@ public class LVQLLC extends LVQ
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        super.trainC(dataSet, threadPool);
+        super.train(dataSet, parallel);
         
-        List<List<DataPointPair<Integer>>> listOfLocalPoints = new ArrayList<List<DataPointPair<Integer>>>(weights.length);
+        List<List<DataPointPair<Integer>>> listOfLocalPoints = new ArrayList<>(weights.length);
         for (int i = 0; i < weights.length; i++)
-            listOfLocalPoints.add(new ArrayList<DataPointPair<Integer>>(wins[i] * 3 / 2));
+            listOfLocalPoints.add(new ArrayList<>(wins[i] * 3 / 2));
         for (DataPointPair<Integer> dpp : dataSet.getAsDPPList())
         {
             Vec x = dpp.getVector();
@@ -218,15 +218,9 @@ public class LVQLLC extends LVQ
             else
             {
                 localClassifeirs[i] = localClassifier.clone();
-                localClassifeirs[i].trainC(localSet);
+                localClassifeirs[i].train(localSet);
             }
         }
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, null);
     }
 
     @Override

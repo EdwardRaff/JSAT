@@ -76,16 +76,12 @@ public class LVQTest
             
             for(int trials = 0; trials < max_trials; trials++)
             {
-                ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
                 ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
                 ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
 
-                ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+                ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
                 cme.evaluateTestSet(test);
                 
-                ex.shutdownNow();
-
                 if(cme.getErrorRate() > 0.001 && trials == max_trials)//wrong too many times, something is broken
                     assertEquals(cme.getErrorRate(), 0.0, 0.001);
                 else
@@ -135,12 +131,12 @@ public class LVQTest
 
         instance = instance.clone();
 
-        instance.trainC(t1);
+        instance.train(t1);
 
         LVQ result = instance.clone();
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-        result.trainC(t2);
+        result.train(t2);
 
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

@@ -184,15 +184,9 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
             return results;
         }
     }
-    
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, null); 
-    }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         if(dataSet.getNumCategoricalVars() != 0)
             throw new FailedToFitException("KNN requires vector data only");
@@ -211,12 +205,9 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
             }
         }
         
-        TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, threadPool);
+        TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, parallel);
         
-        if(threadPool == null)
-            vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric);
-        else
-            vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric, threadPool);
+        vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric, parallel);
     }
     
     @Override
@@ -256,13 +247,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, null);
-    }
-
-    @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {
         if(dataSet.getNumCategoricalVars() != 0)
             throw new FailedToFitException("KNN requires vector data only");
@@ -279,12 +264,9 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
             dataPoints.add(new VecPaired(dpp.getVector(), dpp.getPair()));
         }
         
-        TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, threadPool);
+        TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, parallel);
 
-        if(threadPool == null)
-            vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric);
-        else
-            vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric, threadPool);
+        vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric, parallel);
     }
     
     @Override

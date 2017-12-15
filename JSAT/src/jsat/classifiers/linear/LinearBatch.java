@@ -249,21 +249,16 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         return ((LossR)loss).getRegression(ws[0].dot(x)+bs[0]);
     }
     
+   
     @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
+    public void train(final ClassificationDataSet D, final boolean threadPool)
     {
-        trainC(dataSet, warmSolution, null);
-    }
-    
-    @Override
-    public void trainC(final ClassificationDataSet D, final ExecutorService threadPool)
-    {
-        trainC(D, null, threadPool);
+        train(D, null, threadPool);
     }
 
     
     @Override
-    public void trainC(ClassificationDataSet D, Classifier warmSolution, ExecutorService threadPool)
+    public void train(ClassificationDataSet D, Classifier warmSolution, boolean parallel)
     {
         if(D.getNumNumericalVars() <= 0)
             throw new FailedToFitException("LinearBath requires numeric features to work");
@@ -293,6 +288,8 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         
         doWarmStartIfNotNull(warmSolution);
         
+        ExecutorService threadPool = ParallelUtils.getNewExecutor(parallel);
+        
         if(ws.length == 1)
         {
             if(useBiasTerm)
@@ -319,6 +316,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             optimizerToUse.optimize(tolerance, wAll, new DenseVector(wAll), new LossMCFunction(D, lossMC), new GradMCFunction(D, lossMC), null, threadPool);
         }
         
+        threadPool.shutdownNow();
     }
 
     /**
@@ -350,25 +348,19 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(RegressionDataSet D, boolean parallel)
     {
-        trainC(dataSet, (ExecutorService) null);
-    }
-    
-    @Override
-    public void train(RegressionDataSet D, ExecutorService threadPool)
-    {
-        train(D, null, threadPool);
+        train(D, this, parallel);
     }
 
     @Override
     public void train(RegressionDataSet dataSet, Regressor warmSolution)
     {
-        train(dataSet, warmSolution, null);
+        train(dataSet, warmSolution, false);
     }
     
     @Override
-    public void train(RegressionDataSet D, Regressor warmSolution, ExecutorService threadPool)
+    public void train(RegressionDataSet D, Regressor warmSolution, boolean parallel)
     {
         if(D.getNumNumericalVars() <= 0)
             throw new FailedToFitException("LinearBath requires numeric features to work");
@@ -385,6 +377,8 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         
         doWarmStartIfNotNull(warmSolution);
         
+        ExecutorService threadPool = ParallelUtils.getNewExecutor(parallel);
+        
         if(useBiasTerm)
         {
             Vec w_tmp = new VecWithBias(ws[0], bs);
@@ -392,12 +386,8 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         }
         else
             optimizerToUse.optimize(tolerance, ws[0], ws[0], new LossFunction(D, loss), new GradFunction(D, loss), null, threadPool);
-    }
-
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, (ExecutorService)null);
+        
+        threadPool.shutdownNow();
     }
 
     private static double getTargetY(DataSet D, int i)
@@ -550,28 +540,24 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             final int N = D.getSampleSize();
             final int P = SystemInfo.LogicalCores;
             final double[] weightSums = new double[P];
-            List<Future<Double>> partialSums = new ArrayList<Future<Double>>(P);
+            List<Future<Double>> partialSums = new ArrayList<>(P);
             for (int p = 0; p < SystemInfo.LogicalCores; p++)
             {
                 final int ID = p;
-                partialSums.add(ex.submit(new Callable<Double>()
+                partialSums.add(ex.submit(() ->
                 {
-                    @Override
-                    public Double call() throws Exception
+                    double sum = 0;
+                    double weightSum = 0;
+                    for (int i = ParallelUtils.getStartBlock(N, ID, P); i < ParallelUtils.getEndBlock(N, ID, P); i++)
                     {
-                        double sum = 0;
-                        double weightSum = 0;
-                        for (int i = ParallelUtils.getStartBlock(N, ID, P); i < ParallelUtils.getEndBlock(N, ID, P); i++)
-                        {
-                            DataPoint dp = D.getDataPoint(i);
-                            Vec x = dp.getNumericalValues();
-                            double y = getTargetY(D, i);
-                            sum += loss.getLoss(w.dot(x), y)*dp.getWeight();
-                            weightSum += dp.getWeight();
-                        }
-                        weightSums[ID] = weightSum;
-                        return sum;
+                        DataPoint dp = D.getDataPoint(i);
+                        Vec x = dp.getNumericalValues();
+                        double y = getTargetY(D, i);
+                        sum += loss.getLoss(w.dot(x), y)*dp.getWeight();
+                        weightSum += dp.getWeight();
                     }
+                    weightSums[ID] = weightSum;
+                    return sum;
                 }));
             }
             double sum = 0;

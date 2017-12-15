@@ -1,7 +1,5 @@
 package jsat.classifiers;
 
-import java.util.concurrent.ExecutorService;
-
 /**
  * This interface is meant for models that support efficient warm starting from 
  * the solution of a previous model. Training with a warm start means that 
@@ -52,9 +50,10 @@ public interface WarmClassifier extends Classifier
      * 
      * @param dataSet the data set to train on
      * @param warmSolution the solution to use to warm start this model
-     * @param threadPool the source of threads to use.
+     * @param parallel {@code true} if the training should be done using
+     * multiple-cores, {@code false} for single threaded.
      */
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool);
+    public void train(ClassificationDataSet dataSet, Classifier warmSolution, boolean parallel);
     
      /**
      * Trains the classifier and constructs a model for classification using the 
@@ -63,5 +62,8 @@ public interface WarmClassifier extends Classifier
      * @param dataSet the data set to train on
      * @param warmSolution the solution to use to warm start this model
      */
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution);
+    default public void train(ClassificationDataSet dataSet, Classifier warmSolution)
+    {
+        train(dataSet, warmSolution, false);
+    }
 }

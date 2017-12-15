@@ -19,6 +19,7 @@ import jsat.math.decayrates.DecayRate;
 import jsat.math.decayrates.ExponetialDecay;
 import jsat.parameters.*;
 import jsat.utils.*;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
 /**
@@ -34,9 +35,8 @@ public class SOM implements Classifier, Parameterized
 {
     //TODO add code for visualizing the SOM
     
-
-	private static final long serialVersionUID = -6444988770441043797L;
-	public static final int DEFAULT_MAX_ITERS = 500;
+    private static final long serialVersionUID = -6444988770441043797L;
+    public static final int DEFAULT_MAX_ITERS = 500;
     public static final KernelFunction DEFAULT_KF = EpanechnikovKF.getInstance();
     public static final double DEFAULT_LEARNING_RATE = 0.1;
     public static final DecayRate DEFAULT_LEARNING_DECAY = new ExponetialDecay();
@@ -292,16 +292,13 @@ public class SOM implements Classifier, Parameterized
         }
     }
 
-    private List<VecPaired<Vec, Integer>> setUpVectorCollection(ExecutorService threadPool)
+    private List<VecPaired<Vec, Integer>> setUpVectorCollection(boolean parallel)
     {
         List<VecPaired<Vec, Integer>> vecList = new ArrayList<VecPaired<Vec, Integer>>(somWidth*somHeight);
         for(int i = 0; i < weights.length; i++)
             for(int j = 0; j < weights[i].length; j++)
                 vecList.add(new VecPaired<Vec, Integer>(weights[i][j], vecList.size()));
-        if(threadPool == null)
-            vcCollection = vcFactory.getVectorCollection(vecList, dm);
-        else
-            vcCollection = vcFactory.getVectorCollection(vecList, dm, threadPool);
+        vcCollection = vcFactory.getVectorCollection(vecList, dm, parallel);
         return vecList;
     }
 
@@ -336,11 +333,12 @@ public class SOM implements Classifier, Parameterized
             }
         }
         
-        return new PairedReturn<Integer, Integer>(x, y);
+        return new PairedReturn<>(x, y);
     }
     
-    private void trainSOM(final DataSet dataSet, final ExecutorService execServ) throws InterruptedException
+    private void trainSOM(final DataSet dataSet, boolean parallel) throws InterruptedException
     {
+        ExecutorService execServ = ParallelUtils.getNewExecutor(parallel);
         final int D = dataSet.getNumNumericalVars();
         weights = new Vec[somHeight][somWidth];
         
@@ -481,6 +479,8 @@ public class SOM implements Classifier, Parameterized
                 cdl.await();
             }
         }
+        
+        execServ.shutdownNow();
     }
     
     @Override
@@ -492,12 +492,12 @@ public class SOM implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         try
         {
-            trainSOM(dataSet, threadPool);
-            List<VecPaired<Vec, Integer>> vecList = setUpVectorCollection(threadPool);
+            trainSOM(dataSet, parallel);
+            List<VecPaired<Vec, Integer>> vecList = setUpVectorCollection(parallel);
             crWeightPairs = new CategoricalResults[vecList.size()];
 
             for(int i = 0; i < crWeightPairs.length; i++)
@@ -522,13 +522,6 @@ public class SOM implements Classifier, Parameterized
         {
             Logger.getLogger(SOM.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, null);
         
     }
 

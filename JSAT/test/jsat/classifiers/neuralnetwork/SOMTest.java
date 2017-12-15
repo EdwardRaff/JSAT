@@ -68,17 +68,13 @@ public class SOMTest
         SOM instance = new SOM(5, 5);
         instance.setMaxIterations(200);
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
         ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
         ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, true);
         cme.evaluateTestSet(test);
 
         assertEquals(0, cme.getErrorRate(), 0.1);
-
-        ex.shutdownNow();
 
     }
 
@@ -114,12 +110,12 @@ public class SOMTest
 
         instance = instance.clone();
 
-        instance.trainC(t1);
+        instance.train(t1);
 
         SOM result = instance.clone();
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-        result.trainC(t2);
+        result.train(t2);
 
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

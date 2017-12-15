@@ -23,8 +23,6 @@ import static org.junit.Assert.*;
  */
 public class StochasticRidgeRegressionTest
 {
-    static ExecutorService ex;
-    
     public StochasticRidgeRegressionTest()
     {
     }
@@ -32,13 +30,11 @@ public class StochasticRidgeRegressionTest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -90,8 +86,6 @@ public class StochasticRidgeRegressionTest
             StochasticRidgeRegression instance = new StochasticRidgeRegression(1e-9, 40, batchSize, 0.01);
             instance.setEpochs(100);
 
-            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
             RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
             LinearTransform lt = new LinearTransform(train);
             train.applyTransform(lt);
@@ -103,12 +97,10 @@ public class StochasticRidgeRegressionTest
             RegressionDataSet test = FixedProblems.getLinearRegression(100, RandomUtil.getRandom());
             test.applyTransform(lt);
 
-            RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+            RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, true);
             rme.evaluateTestSet(test);
 
             assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.35);
-
-            ex.shutdownNow();
         }
     }
     

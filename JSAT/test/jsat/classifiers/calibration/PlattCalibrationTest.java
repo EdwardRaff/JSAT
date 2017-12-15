@@ -80,7 +80,7 @@ public class PlattCalibrationTest
         for(BinaryCalibration.CalibrationMode mode : BinaryCalibration.CalibrationMode.values())
         {
             PlattCalibration pc = new PlattCalibration(new DCDs(), mode);
-            pc.trainC(cds);
+            pc.train(cds);
             
             for(int i = 0; i < cds.getSampleSize(); i++)
             {
@@ -112,14 +112,14 @@ public class PlattCalibrationTest
         
         instance = instance.clone();
                 
-        instance.trainC(t1);
+        instance.train(t1);
 
         PlattCalibration result = instance.clone();
         
         for(int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
         
-        result.trainC(t2);
+        result.train(t2);
         
         for(int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());

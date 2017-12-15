@@ -21,7 +21,6 @@ import static org.junit.Assert.*;
  */
 public class LogisticRegressionDCDTest
 {
-    static ExecutorService ex;
     public LogisticRegressionDCDTest()
     {
     }
@@ -29,13 +28,11 @@ public class LogisticRegressionDCDTest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -49,7 +46,7 @@ public class LogisticRegressionDCDTest
     }
 
     /**
-     * Test of trainC method, of class LogisticRegressionDCD.
+     * Test of train method, of class LogisticRegressionDCD.
      */
     @Test
     public void testTrainC_ClassificationDataSet_ExecutorService()
@@ -58,7 +55,7 @@ public class LogisticRegressionDCDTest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         LogisticRegressionDCD lr = new LogisticRegressionDCD();
-        lr.trainC(train, ex);
+        lr.train(train, true);
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
@@ -67,7 +64,7 @@ public class LogisticRegressionDCDTest
     }
 
     /**
-     * Test of trainC method, of class LogisticRegressionDCD.
+     * Test of train method, of class LogisticRegressionDCD.
      */
     @Test
     public void testTrainC_ClassificationDataSet()
@@ -76,7 +73,7 @@ public class LogisticRegressionDCDTest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         LogisticRegressionDCD lr = new LogisticRegressionDCD();
-        lr.trainC(train);
+        lr.train(train);
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         

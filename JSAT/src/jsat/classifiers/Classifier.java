@@ -2,7 +2,6 @@
 package jsat.classifiers;
 
 import java.io.Serializable;
-import java.util.concurrent.ExecutorService;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.ModelMismatchException;
 import jsat.exceptions.UntrainedModelException;
@@ -22,6 +21,7 @@ public interface Classifier extends Cloneable, Serializable
      * @throws ModelMismatchException if the given data point is incompatible with the model
      */
     public CategoricalResults classify(DataPoint data);
+    
     /**
      * Trains the classifier and constructs a model for classification using the 
      * given data set. If the training method knows how, it will used the 
@@ -29,10 +29,10 @@ public interface Classifier extends Cloneable, Serializable
      * block until the training has completed.
      * 
      * @param dataSet the data set to train on
-     * @param threadPool the source of threads to use. 
+     * @param parallel the source of threads to use. 
      * @throws FailedToFitException if the model is unable to be constructed for some reason
      */
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool);
+    public void train(ClassificationDataSet dataSet, boolean parallel);
     /**
      * Trains the classifier and constructs a model for classification using the 
      * given data set.
@@ -40,7 +40,10 @@ public interface Classifier extends Cloneable, Serializable
      * @param dataSet the data set to train on
      * @throws FailedToFitException if the model is unable to be constructed for some reason
      */
-    public void trainC(ClassificationDataSet dataSet);
+    default public void train(ClassificationDataSet dataSet)
+    {
+        Classifier.this.train(dataSet, false);
+    }
     
     /**
      * Indicates whether the model knows how to train using weighted data points. If it 

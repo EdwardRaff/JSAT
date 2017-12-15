@@ -464,12 +464,9 @@ public class LVQ implements Classifier, Parameterized
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        if(threadPool == null || threadPool instanceof FakeExecutor)
-            TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
-        else
-            TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadPool);
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
         Random rand = RandomUtil.getRandom();
         int classCount = dataSet.getPredicting().getNumOfCategories();
         weights = new Vec[classCount*representativesPerClass];
@@ -485,9 +482,9 @@ public class LVQ implements Classifier, Parameterized
         {
             List<DataPoint> origSubList = dataSet.getSamples(curClass);
             List<DataPointPair<Integer>> subList =
-                    new ArrayList<DataPointPair<Integer>>(origSubList.size());
+                    new ArrayList<>(origSubList.size());
             for(DataPoint dp : origSubList)
-                subList.add(new DataPointPair<Integer>(dp, curClass));
+                subList.add(new DataPointPair<>(dp, curClass));
             ClassificationDataSet subSet = 
                     new ClassificationDataSet(subList, dataSet.getPredicting());
             List<Vec> classSeeds = 
@@ -608,18 +605,9 @@ public class LVQ implements Classifier, Parameterized
                 continue;
             else
                 finalLVs.add(new VecPaired<Vec, Integer>(weights[i], i));
-        if(threadPool == null || threadPool instanceof FakeExecutor)
-            vc = vcf.getVectorCollection(finalLVs, dm);
-        else
-            vc = vcf.getVectorCollection(finalLVs, dm, threadPool);
+        vc = vcf.getVectorCollection(finalLVs, dm, parallel);
     }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, null);
-    }
-
+    
     @Override
     public boolean supportsWeightedData()
     {

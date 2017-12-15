@@ -33,6 +33,7 @@ import jsat.regression.RegressionDataSet;
 import jsat.regression.RegressionModelEvaluation;
 import jsat.regression.Regressor;
 import jsat.utils.FakeExecutor;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
@@ -227,22 +228,17 @@ public class RandomSearch extends ModelSearch
     }
 
     @Override
-    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
+    public void train(final ClassificationDataSet dataSet, final boolean parallel)
     {
-        final PriorityQueue<ClassificationModelEvaluation> bestModels =
-                new PriorityQueue<ClassificationModelEvaluation>(folds,
-                                                                 new Comparator<ClassificationModelEvaluation>()
-        {
-            @Override
-            public int compare(ClassificationModelEvaluation t, ClassificationModelEvaluation t1)
-            {
-                double v0 = t.getScoreStats(classificationTargetScore).getMean();
-                double v1 = t1.getScoreStats(classificationTargetScore).getMean();
-                int order = classificationTargetScore.lowerIsBetter() ? 1 : -1;
-                return order*Double.compare(v0, v1);
-            }
-        });
-        
+        final PriorityQueue<ClassificationModelEvaluation> bestModels
+                = new PriorityQueue<>(folds, (ClassificationModelEvaluation t, ClassificationModelEvaluation t1) ->
+                {
+                    double v0 = t.getScoreStats(classificationTargetScore).getMean();
+                    double v1 = t1.getScoreStats(classificationTargetScore).getMean();
+                    int order = classificationTargetScore.lowerIsBetter() ? 1 : -1;
+                    return order * Double.compare(v0, v1);
+                });
+
         /**
          * Each model is set to have different combination of parameters. We 
          * then train each model to determine the best one. 
@@ -266,17 +262,6 @@ public class RandomSearch extends ModelSearch
             paramsToEval.add(baseClassifier.clone());
         }
         
-        /*
-         * This is the Executor used for training the models in parallel. If we 
-         * are not supposed to do that, it will be an executor that executes 
-         * them sequentually. 
-         */
-        final ExecutorService modelService;
-        if(trainModelsInParallel && threadPool != null)
-            modelService = threadPool;
-        else
-            modelService = new FakeExecutor();
-        
         //if we are doing our CV splits ahead of time, get them done now
         final List<ClassificationDataSet> preFolded;
 
@@ -289,7 +274,7 @@ public class RandomSearch extends ModelSearch
         if (reuseSameCVFolds)
         {
             preFolded = dataSet.cvSet(folds);
-            trainCombinations = new ArrayList<ClassificationDataSet>(preFolded.size());
+            trainCombinations = new ArrayList<>(preFolded.size());
             for (int i = 0; i < preFolded.size(); i++)
                 trainCombinations.add(ClassificationDataSet.comineAllBut(preFolded, i));
         }
@@ -298,83 +283,46 @@ public class RandomSearch extends ModelSearch
             preFolded = null;
             trainCombinations = null;
         }
-        final CountDownLatch latch = new CountDownLatch(paramsToEval.size());
-        for (final Classifier c : paramsToEval)
-            modelService.submit(new Runnable()
-            {
-
-                @Override
-                public void run()
-                {
-                    ClassificationModelEvaluation cme = trainModelsInParallel
-                            ? new ClassificationModelEvaluation(c, dataSet)
-                            : new ClassificationModelEvaluation(c, dataSet, threadPool);
-                    cme.addScorer(classificationTargetScore.clone());
-                    
-                    if (reuseSameCVFolds)
-                        cme.evaluateCrossValidation(preFolded, trainCombinations);
-                    else
-                        cme.evaluateCrossValidation(folds);
-
-                    synchronized (bestModels)
-                    {
-                        bestModels.add(cme);
-                    }
-                    
-                    latch.countDown();
-                }
-            });
-        
-        try
+        ParallelUtils.run(parallel && trainModelsInParallel, paramsToEval.size(), (indx)->
         {
-            latch.await();
-            
-            Classifier bestClassifier = bestModels.peek().getClassifier();//Just re-train it on the whole set
-            if (trainFinalModel)
+            Classifier c = paramsToEval.get(indx);
+            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(c, dataSet, !trainModelsInParallel && parallel);
+            cme.addScorer(classificationTargetScore.clone());
+
+            if (reuseSameCVFolds)
+                cme.evaluateCrossValidation(preFolded, trainCombinations);
+            else
+                cme.evaluateCrossValidation(folds);
+
+            synchronized (bestModels)
             {
-
-                if (threadPool instanceof FakeExecutor)
-                    bestClassifier.trainC(dataSet);
-                else
-                    bestClassifier.trainC(dataSet, threadPool);
-
-            }
-            trainedClassifier = bestClassifier;
-        }
-        catch (InterruptedException ex)
-        {
-            throw new FailedToFitException(ex);
-        }
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, null);
-    }
-
-    @Override
-    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
-    {
-        final PriorityQueue<RegressionModelEvaluation> bestModels =
-                new PriorityQueue<RegressionModelEvaluation>(folds,
-                                                                 new Comparator<RegressionModelEvaluation>()
-        {
-            @Override
-            public int compare(RegressionModelEvaluation t, RegressionModelEvaluation t1)
-            {
-                double v0 = t.getScoreStats(regressionTargetScore).getMean();
-                double v1 = t1.getScoreStats(regressionTargetScore).getMean();
-                int order = regressionTargetScore.lowerIsBetter() ? 1 : -1;
-                return order*Double.compare(v0, v1);
+                bestModels.add(cme);
             }
         });
+        
+        Classifier bestClassifier = bestModels.peek().getClassifier();//Just re-train it on the whole set
+        if (trainFinalModel)
+            bestClassifier.train(dataSet, parallel);
+        trainedClassifier = bestClassifier;
+    }
+
+    @Override
+    public void train(final RegressionDataSet dataSet, final boolean parallel)
+    {
+        final PriorityQueue<RegressionModelEvaluation> bestModels
+                = new PriorityQueue<>(folds, (RegressionModelEvaluation t, RegressionModelEvaluation t1) ->
+                {
+                    double v0 = t.getScoreStats(regressionTargetScore).getMean();
+                    double v1 = t1.getScoreStats(regressionTargetScore).getMean();
+                    int order = regressionTargetScore.lowerIsBetter() ? 1 : -1;
+                    return order * Double.compare(v0, v1);
+                });
         
         /**
          * Each model is set to have different combination of parameters. We 
          * then train each model to determine the best one. 
          */
-        final List<Regressor> paramsToEval = new ArrayList<Regressor>();
+        final List<Regressor> paramsToEval = new ArrayList<>();
         
         Random rand = RandomUtil.getRandom();
         for(int trial = 0; trial < trials; trial++)
@@ -393,17 +341,6 @@ public class RandomSearch extends ModelSearch
             paramsToEval.add(baseRegressor.clone());
         }
         
-        /*
-         * This is the Executor used for training the models in parallel. If we 
-         * are not supposed to do that, it will be an executor that executes 
-         * them sequentually. 
-         */
-        final ExecutorService modelService;
-        if(trainModelsInParallel && threadPool != null)
-            modelService = threadPool;
-        else
-            modelService = new FakeExecutor();
-        
         //if we are doing our CV splits ahead of time, get them done now
         final List<RegressionDataSet> preFolded;
 
@@ -416,7 +353,7 @@ public class RandomSearch extends ModelSearch
         if (reuseSameCVFolds)
         {
             preFolded = dataSet.cvSet(folds);
-            trainCombinations = new ArrayList<RegressionDataSet>(preFolded.size());
+            trainCombinations = new ArrayList<>(preFolded.size());
             for (int i = 0; i < preFolded.size(); i++)
                 trainCombinations.add(RegressionDataSet.comineAllBut(preFolded, i));
         }
@@ -425,59 +362,27 @@ public class RandomSearch extends ModelSearch
             preFolded = null;
             trainCombinations = null;
         }
-        final CountDownLatch latch = new CountDownLatch(paramsToEval.size());
-        for (final Regressor r : paramsToEval)
-            modelService.submit(new Runnable()
-            {
-
-                @Override
-                public void run()
-                {
-                    RegressionModelEvaluation cme = trainModelsInParallel
-                            ? new RegressionModelEvaluation(r, dataSet)
-                            : new RegressionModelEvaluation(r, dataSet, threadPool);
-                    cme.addScorer(regressionTargetScore.clone());
-                    
-                    if (reuseSameCVFolds)
-                        cme.evaluateCrossValidation(preFolded, trainCombinations);
-                    else
-                        cme.evaluateCrossValidation(folds);
-
-                    synchronized (bestModels)
-                    {
-                        bestModels.add(cme);
-                    }
-                    
-                    latch.countDown();
-                }
-            });
-        
-        try
+        ParallelUtils.run(parallel && trainModelsInParallel, paramsToEval.size(), (indx)->
         {
-            latch.await();
-            
-            Regressor bestRegressor = bestModels.peek().getRegressor();//Just re-train it on the whole set
-            if (trainFinalModel)
+            Regressor r = paramsToEval.get(indx);
+            RegressionModelEvaluation cme = new RegressionModelEvaluation(r, dataSet, !trainModelsInParallel && parallel);
+            cme.addScorer(regressionTargetScore.clone());
+
+            if (reuseSameCVFolds)
+                cme.evaluateCrossValidation(preFolded, trainCombinations);
+            else
+                cme.evaluateCrossValidation(folds);
+
+            synchronized (bestModels)
             {
-
-                if (threadPool instanceof FakeExecutor)
-                    bestRegressor.train(dataSet);
-                else
-                    bestRegressor.train(dataSet, threadPool);
-
+                bestModels.add(cme);
             }
-            trainedRegressor = bestRegressor;
-        }
-        catch (InterruptedException ex)
-        {
-            throw new FailedToFitException(ex);
-        }
-    }
+        });
 
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, null);
+        Regressor bestRegressor = bestModels.peek().getRegressor();//Just re-train it on the whole set
+        if (trainFinalModel)
+            bestRegressor.train(dataSet, parallel);
+        trainedRegressor = bestRegressor;
     }
 
     @Override

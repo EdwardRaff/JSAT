@@ -19,8 +19,6 @@ import static org.junit.Assert.*;
  */
 public class DCDTest
 {
-    static private ExecutorService threadPool;
-    
     public DCDTest()
     {
     }
@@ -28,17 +26,15 @@ public class DCDTest
     @BeforeClass
     public static void setUpClass()
     {
-        threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        threadPool.shutdown();
     }
     
     /**
-     * Test of trainC method, of class DCD.
+     * Test of train method, of class DCD.
      */
     @Test
     public void testTrainC_ClassificationDataSet_ExecutorService()
@@ -47,7 +43,7 @@ public class DCDTest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
         DCD instance = new DCD();
-        instance.trainC(train, threadPool);
+        instance.train(train, true);
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
         
@@ -56,7 +52,7 @@ public class DCDTest
     }
 
     /**
-     * Test of trainC method, of class DCD.
+     * Test of train method, of class DCD.
      */
     @Test
     public void testTrainC_ClassificationDataSet()
@@ -65,7 +61,7 @@ public class DCDTest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
         DCD instance = new DCD();
-        instance.trainC(train);
+        instance.train(train);
 
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
 
@@ -80,7 +76,7 @@ public class DCDTest
         Random rand = RandomUtil.getRandom();
 
         DCD dcd = new DCD();
-        dcd.train(FixedProblems.getLinearRegression(400, rand), threadPool);
+        dcd.train(FixedProblems.getLinearRegression(400, rand), true);
 
         for (DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, rand).getAsDPPList())
         {

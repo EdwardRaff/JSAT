@@ -123,12 +123,12 @@ public class ConditionalProbabilityTable implements Classifier
         return skipVal;
     }
 
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(ClassificationDataSet dataSet)
     {
         Set<Integer> all = new IntSet();
         for(int i = 0; i < dataSet.getNumCategoricalVars()+1; i++)

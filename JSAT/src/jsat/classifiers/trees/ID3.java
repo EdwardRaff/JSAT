@@ -17,6 +17,7 @@ import jsat.classifiers.DataPointPair;
 import jsat.utils.FakeExecutor;
 import jsat.utils.IntSet;
 import jsat.utils.ModifiableCountDownLatch;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  *
@@ -24,10 +25,9 @@ import jsat.utils.ModifiableCountDownLatch;
  */
 public class ID3 implements Classifier
 {
-    
 
-	private static final long serialVersionUID = -8473683139353205898L;
-	private CategoricalData predicting;
+    private static final long serialVersionUID = -8473683139353205898L;
+    private CategoricalData predicting;
     private CategoricalData[] attributes;
     private ID3Node root;
     private ModifiableCountDownLatch latch;
@@ -45,7 +45,8 @@ public class ID3 implements Classifier
         return walkTree(node.getNode(data.getCategoricalValue(node.getAttributeId())), data);
     }
 
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    @Override
+    public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         if(dataSet.getNumNumericalVars() != 0)
             throw new RuntimeException("ID3 only supports categorical data");
@@ -58,6 +59,7 @@ public class ID3 implements Classifier
         for(int i = 0; i < dataSet.getNumCategoricalVars(); i++)
             availableAttributes.add(i);
         latch = new ModifiableCountDownLatch(1);
+        ExecutorService threadPool = parallel ? ParallelUtils.CACHED_THREAD_POOL : new FakeExecutor();
         root = buildTree(dataPoints, availableAttributes, threadPool);    
         try
         {
@@ -67,11 +69,6 @@ public class ID3 implements Classifier
         {
             Logger.getLogger(ID3.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, new FakeExecutor());      
     }
     
     private ID3Node buildTree( List<DataPointPair<Integer>> dataPoints, Set<Integer> remainingAtribues, final ExecutorService threadPool)
@@ -96,9 +93,9 @@ public class ID3 implements Classifier
         
         for(int attribute : remainingAtribues)
         {
-            List<List<DataPointPair<Integer>>> newSplit = new ArrayList<List<DataPointPair<Integer>>>(attributes[attribute].getNumOfCategories());
+            List<List<DataPointPair<Integer>>> newSplit = new ArrayList<>(attributes[attribute].getNumOfCategories());
             for( int i = 0; i < attributes[attribute].getNumOfCategories(); i++)
-                newSplit.add( new ArrayList<DataPointPair<Integer>>());
+                newSplit.add( new ArrayList<>());
             
             //Putting the datapoints in their respective bins by attribute value
             for(DataPointPair<Integer> dpp : dataPoints)
@@ -126,12 +123,9 @@ public class ID3 implements Classifier
             final int ii = i;
             final List<DataPointPair<Integer>> bestSplitII = bestSplit.get(ii);
             latch.countUp();
-            threadPool.submit(new Runnable() {
-
-                public void run()
-                {
-                    node.setNode(ii, buildTree(bestSplitII, newRemaining, threadPool));
-                }
+            threadPool.submit(() ->
+            {
+                node.setNode(ii, buildTree(bestSplitII, newRemaining, threadPool));
             });
             
         }
@@ -234,11 +228,13 @@ public class ID3 implements Classifier
     }
     
 
+    @Override
     public boolean supportsWeightedData()
     {
         return false;
     }
 
+    @Override
     public Classifier clone()
     {
         ID3 copy = new ID3();

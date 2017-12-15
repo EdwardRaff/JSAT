@@ -3,10 +3,6 @@ package jsat.regression;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.Distribution;
@@ -17,11 +13,9 @@ import jsat.linear.CholeskyDecomposition;
 import jsat.linear.DenseMatrix;
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
-import jsat.utils.FakeExecutor;
-import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * A kernelized implementation of Ridge Regression. Ridge 
@@ -72,7 +66,7 @@ public class KernelRidgeRegression implements Regressor, Parameterized
         if(toCopy.alphas != null)
             this.alphas = Arrays.copyOf(toCopy.alphas, toCopy.alphas.length);
         if(toCopy.vecs != null)
-            this.vecs = new ArrayList<Vec>(toCopy.vecs);
+            this.vecs = new ArrayList<>(toCopy.vecs);
     }
     
     /**
@@ -136,63 +130,34 @@ public class KernelRidgeRegression implements Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, boolean parallel)
     {   
         final int N = dataSet.getSampleSize();
-        vecs = new ArrayList<Vec>(N);
+        vecs = new ArrayList<>(N);
         //alphas initalized later
         Vec Y = dataSet.getTargetValues();
         for(int i = 0; i < N; i++)
             vecs.add(dataSet.getDataPoint(i).getNumericalValues());
         
         final Matrix K = new DenseMatrix(N, N);
-        final CountDownLatch cdl = new CountDownLatch(SystemInfo.LogicalCores);
-        
-        for(int id = 0; id < SystemInfo.LogicalCores; id++)
+        ParallelUtils.run(parallel, N, (i)->
         {
-            final int ID = id;
-            threadPool.submit(new Runnable()
+            K.set(i, i, k.eval(vecs.get(i), vecs.get(i)) + lambda);//diagonal values
+            for (int j = i + 1; j < N; j++)
             {
-                @Override
-                public void run()
-                {
-                    for(int i = ID; i < N; i+=SystemInfo.LogicalCores)
-                    {
-                        K.set(i, i, k.eval(vecs.get(i), vecs.get(i))+lambda);//diagonal values
-                        for(int j = i+1; j < N; j++)
-                        {
-                            double K_ij = k.eval(vecs.get(i), vecs.get(j));
-                            K.set(i, j, K_ij);
-                            K.set(j, i, K_ij);
-                        }
-                    }
-                    
-                    cdl.countDown();
-                }
-            });
-        }
-        try
-        {
-            cdl.await();
-        }
-        catch (InterruptedException ex)
-        {
-            Logger.getLogger(KernelRidgeRegression.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
+                double K_ij = k.eval(vecs.get(i), vecs.get(j));
+                K.set(i, j, K_ij);
+                K.set(j, i, K_ij);
+            }
+        });
+
         CholeskyDecomposition cd;
-        if(threadPool instanceof FakeExecutor)
-            cd = new CholeskyDecomposition(K);
+        if(parallel)
+            cd = new CholeskyDecomposition(K, ParallelUtils.CACHED_THREAD_POOL);
         else
-            cd = new CholeskyDecomposition(K, threadPool);
+            cd = new CholeskyDecomposition(K);
         Vec alphaTmp = cd.solve(Y);
         alphas = alphaTmp.arrayCopy();
-    }
-
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        train(dataSet, new FakeExecutor());
     }
 
     @Override
