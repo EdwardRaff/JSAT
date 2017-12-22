@@ -42,7 +42,7 @@ public abstract class BaseL2Kernel implements KernelTrick
      * @param cache the cache of values for each vector in the collection
      * @return the squared norm ||x<sub>i</sub>-x<sub>j</sub>||<sup>2</sup>
      */
-    protected double getSqrdNorm(int i, int j, List<? extends Vec> vecs, List<Double> cache)
+    protected static double getSqrdNorm(int i, int j, List<? extends Vec> vecs, List<Double> cache)
     {
         if(cache == null)
             return Math.pow(vecs.get(i).pNormDist(2.0, vecs.get(j)), 2);
@@ -56,7 +56,7 @@ public abstract class BaseL2Kernel implements KernelTrick
      * @param cache the cache of values for each vector in the collection
      * @return the squared norm ||x<sub>i</sub>||<sup>2</sup>
      */
-    protected double getSqrdNorm(int i, List<? extends Vec> vecs, List<Double> cache)
+    protected static double getSqrdNorm(int i, List<? extends Vec> vecs, List<Double> cache)
     {
         return cache.get(i);
     }
@@ -70,7 +70,7 @@ public abstract class BaseL2Kernel implements KernelTrick
      * @param cache the cache of values for each vector in the collection
      * @return the squared norm ||x<sub>i</sub>-y||<sup>2</sup>
      */
-    protected double getSqrdNorm(int i, Vec y, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    protected static double getSqrdNorm(int i, Vec y, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
     {
         if(cache == null)
             return Math.pow(vecs.get(i).pNormDist(2.0, y), 2);

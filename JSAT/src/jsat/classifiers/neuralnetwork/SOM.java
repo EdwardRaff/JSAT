@@ -302,7 +302,7 @@ public class SOM implements Classifier, Parameterized
         return vecList;
     }
 
-    private void updateWeight(Vec input_i, Vec scratch, Vec weightVec, double scale)
+    private static void updateWeight(Vec input_i, Vec scratch, Vec weightVec, double scale)
     {
         input_i.copyTo(scratch);
         scratch.mutableSubtract(weightVec);
@@ -371,22 +371,8 @@ public class SOM implements Classifier, Parameterized
                 }
             }
             
-            localScratch1 = new ThreadLocal<Vec>()
-            {
-                @Override
-                protected Vec initialValue()
-                {
-                    return new DenseVector(D);
-                }
-            };
-            localScratch2 = new ThreadLocal<Vec>()
-            {
-                @Override
-                protected Vec initialValue()
-                {
-                    return new DenseVector(D);
-                }
-            };
+            localScratch1 = ThreadLocal.withInitial(() -> new DenseVector(D));
+            localScratch2 = ThreadLocal.withInitial(() -> new DenseVector(D));
         }
         else
             localScratch2 = localScratch1 = null;
@@ -428,15 +414,10 @@ public class SOM implements Classifier, Parameterized
                     final int to = (extra-- > 0 ? 1 : 0) + pos + size;
                     final int start = pos;
                     pos = to;
-                    execServ.submit(new Runnable() {
-
-                        @Override
-                        public void run()
-                        {
-                            for(int i = start; i < to; i++)
-                                iterationStep(execServ, i, dataSet, nbrRange, nbrRangeSqrd, localScratch1.get(), learnRate);
-                            cdl.countDown();
-                        }
+                    execServ.submit(() -> {
+                        for(int i = start; i < to; i++)
+                            iterationStep(execServ, i, dataSet, nbrRange, nbrRangeSqrd, localScratch1.get(), learnRate);
+                        cdl.countDown();
                     });
                 }
                 
@@ -453,27 +434,22 @@ public class SOM implements Classifier, Parameterized
                         final List<DataPoint> dataList = weightUpdates.get(i).get(j);
                         final int x = i, y = j;
 
-                        execServ.submit(new Runnable() {
+                        execServ.submit(() -> {
+                            Vec mean = localScratch1.get();
+                            mean.zeroOut();
 
-                            @Override
-                            public void run()
+                            double denom = 0.0;
+                            for(DataPoint dp : dataList)
                             {
-                                Vec mean = localScratch1.get();
-                                mean.zeroOut();
-
-                                double denom = 0.0;
-                                for(DataPoint dp : dataList)
-                                {
-                                    denom += dp.getWeight();
-                                    mean.mutableAdd(dp.getWeight(), dp.getNumericalValues());
-                                }
-                                if(denom > 0)
-                                    mean.mutableDivide(denom);
-
-                                updateWeight(mean, localScratch2.get(), weights[x][y], learnRate);
-                                
-                                cdl.countDown();
+                                denom += dp.getWeight();
+                                mean.mutableAdd(dp.getWeight(), dp.getNumericalValues());
                             }
+                            if(denom > 0)
+                                mean.mutableDivide(denom);
+
+                            updateWeight(mean, localScratch2.get(), weights[x][y], learnRate);
+
+                            cdl.countDown();
                         });
                     }
                 cdl.await();

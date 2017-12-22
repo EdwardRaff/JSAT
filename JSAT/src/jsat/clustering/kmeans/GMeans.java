@@ -164,7 +164,7 @@ public class GMeans extends KMeans
                 designations = new int[N];
             else
                 Arrays.fill(designations, 0);
-            means = new ArrayList<Vec>(Arrays.asList(MatrixStatistics.meanVector(dataSet)));
+            means = new ArrayList<Vec>(Collections.singletonList(MatrixStatistics.meanVector(dataSet)));
         }
         
         

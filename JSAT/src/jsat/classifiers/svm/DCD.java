@@ -418,17 +418,14 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
             Collections.shuffle(activeSet);
 
             //6.2 For i in T
-            Iterator<Integer> iter = activeSet.iterator();
-            while(iter.hasNext())
-            {
-                final int i = iter.next();
+            for (Integer i : activeSet) {
                 final double y_i = y[i];
                 final Vec x_i = vecs[i];
-                final double wDotX = w.dot(x_i)+bias;
+                final double wDotX = w.dot(x_i) + bias;
                 final double g = -y_i + wDotX + lambda * alpha[i];
                 final double gP = g + eps;
                 final double gN = g - eps;
-                
+
                 final double v_i = eq24(alpha[i], gN, gP, U);
                 maxVk = Math.max(maxVk, v_i);
                 vKSum += Math.abs(v_i);
@@ -445,13 +442,13 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
 
                 if (Math.abs(d) < 1e-14)
                     continue;
-                
+
                 //s = max(−U, min(U,beta_i +d))     eq (21) 
-                final double s = Math.max(-U, Math.min(U, alpha[i]+d));
-                
-                w.mutableAdd(s-alpha[i], x_i);
-                if(useBias)
-                    bias += (s-alpha[i]);
+                final double s = Math.max(-U, Math.min(U, alpha[i] + d));
+
+                w.mutableAdd(s - alpha[i], x_i);
+                if (useBias)
+                    bias += (s - alpha[i]);
                 alpha[i] = s;
             }
             

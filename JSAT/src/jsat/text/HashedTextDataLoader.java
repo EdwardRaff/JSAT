@@ -138,11 +138,7 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
         
         for(String word : localStorageSpace)
         {
-            Integer count = localWordCounts.get(word);
-            if(count == null)
-                localWordCounts.put(word, 1);
-            else
-                localWordCounts.put(word, count+1);
+            localWordCounts.merge(word, 1, (a, b) -> a + b);
         }
         
         SparseVector vec = new SparseVector(dimensionSize, localWordCounts.size());

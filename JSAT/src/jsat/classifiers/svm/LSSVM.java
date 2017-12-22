@@ -408,13 +408,9 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
             setCacheMode(null);
             setAlphas(alphas);
         }
-        catch (InterruptedException interruptedException)
+        catch (InterruptedException | ExecutionException interruptedException)
         {
             throw new FailedToFitException(interruptedException);
-        }
-        catch (ExecutionException executionException)
-        {
-            throw new FailedToFitException(executionException);
         }
     }
     

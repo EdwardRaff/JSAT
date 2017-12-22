@@ -102,13 +102,15 @@ public class ZTest implements OneSampleTest
         double se = sampleDev/Math.sqrt(sampleSize);
         
         double zScore = (sampleMean-hypoMean)/se;
-        
-        if(h1 == H1.NOT_EQUAL)
-            return norm.cdf(-Math.abs(zScore))*2;
-        else if(h1 == H1.LESS_THAN)
-            return norm.cdf(zScore);
-        else
-            return 1-norm.cdf(zScore);
+
+        switch (h1) {
+            case NOT_EQUAL:
+                return norm.cdf(-Math.abs(zScore)) * 2;
+            case LESS_THAN:
+                return norm.cdf(zScore);
+            default:
+                return 1 - norm.cdf(zScore);
+        }
     }
 
     public void setAltHypothesis(H1 h1)

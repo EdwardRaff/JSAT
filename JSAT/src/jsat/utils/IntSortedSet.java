@@ -33,8 +33,7 @@ public class IntSortedSet extends AbstractSet<Integer> implements Serializable, 
     public IntSortedSet(Set<Integer> set)
     {
         this(set.size());
-        for(Integer integer : set)
-            this.add(integer);
+        this.addAll(set);
     }
     
     /**
@@ -44,8 +43,7 @@ public class IntSortedSet extends AbstractSet<Integer> implements Serializable, 
     public IntSortedSet(Collection<Integer> collection)
     {
         this();
-        for(Integer integer : collection)
-            this.add(integer);
+        this.addAll(collection);
     }
     
     /**
@@ -77,9 +75,8 @@ public class IntSortedSet extends AbstractSet<Integer> implements Serializable, 
         //Increase store size if needed
         if(size >= store.length)
             store = Arrays.copyOf(store, Math.max(1, store.length)*2);
-        
-        for(int i = size; i > insertionPoint; i--)
-            store[i] = store[i-1];
+
+        System.arraycopy(store, insertionPoint, store, insertionPoint + 1, size - insertionPoint);
         store[insertionPoint] = e;
         size++;
         
@@ -133,9 +130,8 @@ public class IntSortedSet extends AbstractSet<Integer> implements Serializable, 
             {
                 if(!canRemove)
                     throw new IllegalStateException("Can not remove, remove can only occur after a successful call to next");
-                
-                for(int i = index; i < size; i++ )
-                    store[i-1] = store[i];
+
+                System.arraycopy(store, index, store, index - 1, size - index);
                 
                 index--;
                 size--;
@@ -154,14 +150,7 @@ public class IntSortedSet extends AbstractSet<Integer> implements Serializable, 
     @Override
     public Comparator<? super Integer> comparator()
     {
-        return new Comparator<Integer>()
-        {
-            @Override
-            public int compare(Integer o1, Integer o2)
-            {
-                return o1.compareTo(o2);
-            }
-        };
+        return (Comparator<Integer>) (o1, o2) -> o1.compareTo(o2);
     }
 
     @Override
@@ -268,8 +257,7 @@ public class IntSortedSet extends AbstractSet<Integer> implements Serializable, 
                     if(!canRemove)
                         throw new IllegalStateException("Can not remove, remove can only occur after a successful call to next");
 
-                    for(int i = index; i < size; i++ )
-                        store[i-1] = store[i];
+                    System.arraycopy(store, index, store, index - 1, size - index);
 
                     index--;
                     size--;

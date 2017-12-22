@@ -300,7 +300,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
             {
                 alphas.getVecView().mutableMultiply(1-eta*reg);
                 alphas.add(-eta*lossD);
-                selfK.add(Math.sqrt(k.eval(0, 0, Arrays.asList(x_t), qi)));
+                selfK.add(Math.sqrt(k.eval(0, 0, Collections.singletonList(x_t), qi)));
                 if(k.supportsAcceleration())
                     accelCache.addAll(qi);
                 vecs.add(x_t);
@@ -358,7 +358,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
                 
                 //Add new point
                 alphas.add(-eta*lossD);
-                selfK.add(Math.sqrt(k.eval(0, 0, Arrays.asList(x_t), qi)));
+                selfK.add(Math.sqrt(k.eval(0, 0, Collections.singletonList(x_t), qi)));
                 accelCache.addAll(qi);
                 vecs.add(x_t);
             }

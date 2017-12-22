@@ -1,16 +1,13 @@
 package jsat.parameters;
 
 import java.util.*;
-import java.util.concurrent.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.distributions.Distribution;
 import jsat.exceptions.FailedToFitException;
 import jsat.regression.*;
 import jsat.utils.DoubleList;
-import jsat.utils.FakeExecutor;
 import jsat.utils.concurrent.ParallelUtils;
 
 /**
@@ -148,13 +145,13 @@ public class GridSearch extends ModelSearch
             Distribution dist;
             if (param instanceof DoubleParameter)
             {
-                dist = ((DoubleParameter) param).getGuess(data);
+                dist = ((DoubleParameter)param).getGuess(data);
                 if (dist != null)
                     totalParms++;
             }
             else if (param instanceof IntParameter)
             {
-                dist = ((IntParameter) param).getGuess(data);
+                dist = ((IntParameter)param).getGuess(data);
                 if (dist != null)
                     totalParms++;
             }
@@ -170,7 +167,7 @@ public class GridSearch extends ModelSearch
             Distribution dist;
             if (param instanceof DoubleParameter)
             {
-                dist = ((DoubleParameter) param).getGuess(data);
+                dist = ((DoubleParameter)param).getGuess(data);
                 if (dist == null)
                     continue;
                 double[] vals = new double[paramsEach];
@@ -182,7 +179,7 @@ public class GridSearch extends ModelSearch
             }
             else if (param instanceof IntParameter)
             {
-                dist = ((IntParameter) param).getGuess(data);
+                dist = ((IntParameter)param).getGuess(data);
                 if (dist == null)
                     continue;
                 int[] vals = new int[paramsEach];

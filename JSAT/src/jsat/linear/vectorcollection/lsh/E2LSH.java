@@ -191,8 +191,7 @@ public class E2LSH<V extends Vec>
         {
             int hash = hash(l, q);
             List<Integer> list = tables.get(l).get(hash);
-            for(int id : list)
-                candidates.add(id);
+            candidates.addAll(list);
         }
         
         final List<Double> q_qi = dm.getQueryInfo(q);
@@ -305,12 +304,7 @@ public class E2LSH<V extends Vec>
             for(int id = 0; id < vecs.size(); id++)
             {
                 int hash = hash(l, vecs.get(id));
-                List<Integer> ints = tables.get(l).get(hash);
-                if(ints == null)
-                {
-                    ints = new IntList(3);
-                    tables.get(l).put(hash, ints);
-                }
+                List<Integer> ints = tables.get(l).computeIfAbsent(hash, k1 -> new IntList(3));
                 ints.add(id);
             }
         }

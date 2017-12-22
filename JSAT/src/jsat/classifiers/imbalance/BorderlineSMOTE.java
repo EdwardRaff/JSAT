@@ -155,7 +155,7 @@ public class BorderlineSMOTE extends SMOTE
      */
     public BorderlineSMOTE(BorderlineSMOTE toCopy)
     {
-        super((SMOTE)toCopy);
+        super(toCopy);
         this.majorityInterpolation = toCopy.majorityInterpolation;
     }
 

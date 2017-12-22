@@ -56,7 +56,7 @@ public class NadarayaWatson implements Regressor, Parameterized
         kde.setUsingData(vectors, parallel);
     }
 
-    private List<VecPaired<Vec, Double>> collectVectors(RegressionDataSet dataSet)
+    private static List<VecPaired<Vec, Double>> collectVectors(RegressionDataSet dataSet)
     {
         List<VecPaired<Vec, Double>> vectors = new ArrayList<>(dataSet.getSampleSize());
         for(int i = 0; i < dataSet.getSampleSize(); i++)
@@ -73,6 +73,6 @@ public class NadarayaWatson implements Regressor, Parameterized
     @Override
     public NadarayaWatson clone()
     {
-        return new NadarayaWatson((MultivariateKDE)kde.clone());
+        return new NadarayaWatson(kde.clone());
     }
 }

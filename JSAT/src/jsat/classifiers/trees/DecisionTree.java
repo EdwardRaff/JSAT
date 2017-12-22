@@ -550,7 +550,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         @Override
         public Node clone()
         {
-            Node copy = new Node( (DecisionStump)this.stump.clone());
+            Node copy = new Node(this.stump.clone());
             for(int i = 0; i < this.paths.length; i++)
                 copy.paths[i] = this.paths[i] == null ? null : this.paths[i].clone();
             

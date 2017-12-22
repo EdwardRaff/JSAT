@@ -68,8 +68,7 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
     public IntSet(Set<Integer> set)
     {
         this(set.size());
-        for(Integer integer : set)
-            this.add(integer);
+        this.addAll(set);
     }
     
     /**
@@ -79,8 +78,7 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
     public IntSet(Collection<Integer> collection)
     {
         this();
-        for(Integer integer : collection)
-            this.add(integer);
+        this.addAll(collection);
     }
     
     /**

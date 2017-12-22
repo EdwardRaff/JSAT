@@ -157,9 +157,8 @@ public class LongList extends AbstractList<Long> implements Serializable
         if(index < 0 || index > size())
             throw new IndexOutOfBoundsException("Can not remove invalid index " + index);
         long removed = array[index];
-        
-        for(int i = index; i < end-1; i++)
-            array[i] = array[i+1];
+
+        System.arraycopy(array, index + 1, array, index, end - 1 - index);
         end--;
         return removed;
     }

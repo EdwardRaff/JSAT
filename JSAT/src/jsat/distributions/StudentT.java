@@ -121,18 +121,23 @@ public class StudentT extends ContinuousDistribution
     @Override
     public void setVariable(String var, double value)
     {
-        if (var.equals("df"))
-            if (value > 0)
-                df = value;
-            else
-                throw new ArithmeticException("Degrees of Fredom must be greater than 0");
-        else if (var.equals(GreekLetters.mu))
-            mu = value;
-        else if (var.equals(GreekLetters.sigma))
-            if (value > 0)
-                sig = value;
-            else
-                throw new ArithmeticException("Standard deviation must be greater than zero");
+        switch (var) {
+            case "df":
+                if (value > 0)
+                    df = value;
+                else
+                    throw new ArithmeticException("Degrees of Fredom must be greater than 0");
+                break;
+            case GreekLetters.mu:
+                mu = value;
+                break;
+            case GreekLetters.sigma:
+                if (value > 0)
+                    sig = value;
+                else
+                    throw new ArithmeticException("Standard deviation must be greater than zero");
+                break;
+        }
                         
     }
 

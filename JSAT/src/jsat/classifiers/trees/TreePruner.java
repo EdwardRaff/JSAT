@@ -76,14 +76,18 @@ public class TreePruner
     public static void prune(TreeNodeVisitor root, PruningMethod method, List<DataPointPair<Integer>> testSet)
     {
         //TODO add vargs for extra arguments that may be used by pruning methods
-        if(method == PruningMethod.NONE )
-            return;
-        else if(method == PruningMethod.REDUCED_ERROR)
-            pruneReduceError(null, -1, root, testSet);
-        else if(method == PruningMethod.ERROR_BASED)
-            pruneErrorBased(null, -1, root, testSet, 0.25);
-        else
-            throw new RuntimeException("BUG: please report");
+        switch (method) {
+            case NONE:
+                return;
+            case REDUCED_ERROR:
+                pruneReduceError(null, -1, root, testSet);
+                break;
+            case ERROR_BASED:
+                pruneErrorBased(null, -1, root, testSet, 0.25);
+                break;
+            default:
+                throw new RuntimeException("BUG: please report");
+        }
     }
     
     /**

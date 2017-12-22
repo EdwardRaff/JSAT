@@ -59,14 +59,9 @@ public abstract class RandomVector extends Vec
         this(toCopy.length, toCopy.seedMult);
     }
     
-    private ThreadLocal<Random> localRand = new ThreadLocal<Random>()
-    {
-        @Override
-        protected Random initialValue()
-        {
-            return new Random(1);//seed will get set by user
-        }
-    };
+    private static final ThreadLocal<Random> localRand = ThreadLocal.withInitial(() -> {
+        return new Random(1);//seed will get set by user
+    });
     
     /**
      * Computes the value of an index given the already initialized 

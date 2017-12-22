@@ -44,7 +44,7 @@ public class RosenbrockFunction implements Function
      * Returns the gradient of the Rosenbrock function
      * @return the gradient of the Rosenbrock function
      */
-    public FunctionVec getDerivative()
+    public static FunctionVec getDerivative()
     {
         return GRADIENT;
     }

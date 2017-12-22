@@ -87,14 +87,9 @@ public class CholeskyDecomposition implements Serializable
             for (int i = 1; i < SystemInfo.LogicalCores; i++)
             {
                 final int ID = i;
-                threadpool.submit(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        updateRows(J, J + 1+ID, ROWS, SystemInfo.LogicalCores, A, L_jj);
-                        latch.countDown();
-                    }
+                threadpool.submit(() -> {
+                    updateRows(J, J + 1+ID, ROWS, SystemInfo.LogicalCores, A, L_jj);
+                    latch.countDown();
                 });
             }
             try

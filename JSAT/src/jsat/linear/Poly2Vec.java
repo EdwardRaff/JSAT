@@ -262,54 +262,51 @@ public class Poly2Vec extends Vec
             @Override
             public IndexValue next()
             {
-                if(stage == 0)
-                {
-                    stage++;
-                    outerIter = base.getNonZeroIterator();//we know its non empty b/c of first case 
-                    return new IndexValue(0, 1.0);
-                }
-                else if (stage == 1)//outerIter must always have a next item if stage = 1
-                {
-                    IndexValue iv = outerIter.next();
-                    if (!outerIter.hasNext())
-                    {
+                switch (stage) {
+                    case 0:
                         stage++;
-                        outerIter = base.getNonZeroIterator();
-                        curOuterVal = outerIter.next();
-                        inerIter = base.getNonZeroIterator();
-                    }
-                    toReturn.setIndex(1+iv.getIndex());
-                    toReturn.setValue(iv.getValue());
-                    return toReturn;
-                }
-                else if(stage == 2)
-                {
-                    IndexValue innerVal = inerIter.next();
-                    int x = curOuterVal.getIndex();
-                    int y = innerVal.getIndex();
-                    int N = base.length();
-                    toReturn.setIndex(1+N+x*N+y-x*(x+1)/2);
-                    toReturn.setValue(curOuterVal.getValue()*innerVal.getValue());
-                    
-                    if(!inerIter.hasNext())
-                    {
-                        if(!outerIter.hasNext())//we are out!
-                        {
+                        outerIter = base.getNonZeroIterator();//we know its non empty b/c of first case
+
+                        return new IndexValue(0, 1.0);
+                    case 1:
+//outerIter must always have a next item if stage = 1
+
+                        IndexValue iv = outerIter.next();
+                        if (!outerIter.hasNext()) {
                             stage++;
-                            outerIter = inerIter = null;
-                        }
-                        else//Still at least one more round!
-                        {
+                            outerIter = base.getNonZeroIterator();
                             curOuterVal = outerIter.next();
-                            //new inner itter starts at idx^2
-                            inerIter = base.getNonZeroIterator(curOuterVal.getIndex());
+                            inerIter = base.getNonZeroIterator();
                         }
-                    }
-                    
-                    return toReturn;
+                        toReturn.setIndex(1 + iv.getIndex());
+                        toReturn.setValue(iv.getValue());
+                        return toReturn;
+                    case 2:
+                        IndexValue innerVal = inerIter.next();
+                        int x = curOuterVal.getIndex();
+                        int y = innerVal.getIndex();
+                        int N = base.length();
+                        toReturn.setIndex(1 + N + x * N + y - x * (x + 1) / 2);
+                        toReturn.setValue(curOuterVal.getValue() * innerVal.getValue());
+
+                        if (!inerIter.hasNext()) {
+                            if (!outerIter.hasNext())//we are out!
+                            {
+                                stage++;
+                                outerIter = inerIter = null;
+                            } else//Still at least one more round!
+                            {
+                                curOuterVal = outerIter.next();
+                                //new inner itter starts at idx^2
+                                inerIter = base.getNonZeroIterator(curOuterVal.getIndex());
+                            }
+                        }
+
+                        return toReturn;
+                    default:
+//stage >= 3
+                        throw new NoSuchElementException("Iterator is empty");
                 }
-                else //stage >= 3
-                    throw new NoSuchElementException("Iterator is empty");
             }
 
             @Override

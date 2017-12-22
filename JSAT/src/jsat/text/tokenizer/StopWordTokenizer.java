@@ -64,14 +64,5 @@ public class StopWordTokenizer implements Tokenizer
      * to your individual needs. 
      * 
      */
-    public static final Set<String> ENGLISH_STOP_SMALL_BASE = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
-            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
-            "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
-            "the", "of", "to", "and", "in", "is", "it", "you", "that", 
-            "was", "for", "are", "on", "as", "have", "with", "they", "be", "at",
-            "this", "from", "or", "had", "by", "but", "some", "what", "there", 
-            "we", "can", "out", "other", "were", "all", "your", "when", "use", 
-            "word", "said", "an", "each", "which", "do", "their", "if", "will", 
-            "way", "about", "many", "them", "would", "thing", "than", "down",
-            "too")));
+    public static final Set<String> ENGLISH_STOP_SMALL_BASE = Set.of("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "the", "of", "to", "and", "in", "is", "it", "you", "that", "was", "for", "are", "on", "as", "have", "with", "they", "be", "at", "this", "from", "or", "had", "by", "but", "some", "what", "there", "we", "can", "out", "other", "were", "all", "your", "when", "use", "word", "said", "an", "each", "which", "do", "their", "if", "will", "way", "about", "many", "them", "would", "thing", "than", "down", "too");
 }

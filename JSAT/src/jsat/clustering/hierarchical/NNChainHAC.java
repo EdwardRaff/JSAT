@@ -308,41 +308,36 @@ public class NNChainHAC extends KClustererBase
                     {
                         final int ID = id, A = a, B = b;
 
-                        threadpool.submit(new Runnable()
-                        {
-                            @Override
-                            public void run()
+                        threadpool.submit(() -> {
+                            double localMinDist = Double.POSITIVE_INFINITY;
+                            int localC = -1;
+                            for(int indx = ID; indx < S.size(); indx+=SystemInfo.LogicalCores)
                             {
-                                double localMinDist = Double.POSITIVE_INFINITY;
-                                int localC = -1;
-                                for(int indx = ID; indx < S.size(); indx+=SystemInfo.LogicalCores)
-                                {
-                                    int j = S.getI(indx);
-                                    if (j == A || j == B)
-                                        continue;//we already have these guys! just not removed from S yet
+                                int j = S.getI(indx);
+                                if (j == A || j == B)
+                                    continue;//we already have these guys! just not removed from S yet
 
-                                    double dist = getDist(A, j, size, vecs, cache, dist_map);
-                                    if (dist < localMinDist)
-                                    {
-                                        localMinDist = dist;
-                                        localC = j;
-                                    }
-                                }
-                                
-                                if (localMinDist < minDist_.get())
+                                double dist = getDist(A, j, size, vecs, cache, dist_map);
+                                if (dist < localMinDist)
                                 {
-                                    synchronized(S)
-                                    {
-                                        if (localMinDist < minDist_.get())
-                                        {
-                                            minDist_.set(localMinDist);
-                                            c_.set(localC);
-                                        }
-                                    }
+                                    localMinDist = dist;
+                                    localC = j;
                                 }
-
-                                latch.countDown();
                             }
+
+                            if (localMinDist < minDist_.get())
+                            {
+                                synchronized(S)
+                                {
+                                    if (localMinDist < minDist_.get())
+                                    {
+                                        minDist_.set(localMinDist);
+                                        c_.set(localC);
+                                    }
+                                }
+                            }
+
+                            latch.countDown();
                         });
                     }
                     
@@ -438,31 +433,26 @@ public class NNChainHAC extends KClustererBase
                 {
                     final int ID = id;
                     
-                    threadpool.submit(new Runnable()
-                    {
-                        @Override
-                        public void run()
+                    threadpool.submit(() -> {
+                        for(int indx = ID; indx < S.size(); indx += SystemInfo.LogicalCores)
                         {
-                            for(int indx = ID; indx < S.size(); indx += SystemInfo.LogicalCores)
+                            int x = S.getI(indx);
+                            double d_ax = getDist(A, x, size, vecs, cache, dist_map);
+                            double d_bx = getDist(B, x, size, vecs, cache, dist_map);
+                            double d_xn = distMeasure.dissimilarity(size_a, size_b, size[x], dist_AB, d_ax, d_bx);
+
+                            Map<Integer, Double> dist_map_x = dist_map.get(x);
+                            if(dist_map_x != null)
                             {
-                                int x = S.getI(indx);
-                                double d_ax = getDist(A, x, size, vecs, cache, dist_map);
-                                double d_bx = getDist(B, x, size, vecs, cache, dist_map);
-                                double d_xn = distMeasure.dissimilarity(size_a, size_b, size[x], dist_AB, d_ax, d_bx);
-
-                                Map<Integer, Double> dist_map_x = dist_map.get(x);
-                                if(dist_map_x != null)
-                                {
-                                    dist_map_x.remove(B);
-                                    dist_map_x.put(n, d_xn);
-                                    if(dist_map_x.size()*50 < N && !(dist_map_x instanceof IntDoubleMap))//we are using such a small percentage, put it into a sparser map
-                                        dist_map.set(x, new IntDoubleMap(dist_map_x));
-                                }
-
-                                map_n.put(x, d_xn);
+                                dist_map_x.remove(B);
+                                dist_map_x.put(n, d_xn);
+                                if(dist_map_x.size()*50 < N && !(dist_map_x instanceof IntDoubleMap))//we are using such a small percentage, put it into a sparser map
+                                    dist_map.set(x, new IntDoubleMap(dist_map_x));
                             }
-                            latch.countDown();
+
+                            map_n.put(x, d_xn);
                         }
+                        latch.countDown();
                     });
 
                 }

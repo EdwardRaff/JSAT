@@ -2,19 +2,15 @@
 package jsat.regression;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
+
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.exceptions.UntrainedModelException;
-import jsat.linear.Vec;
-import jsat.math.Function;
 import jsat.math.Function1D;
 import jsat.math.rootfinding.RootFinder;
 import jsat.math.rootfinding.Zeroin;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
-import jsat.utils.FakeExecutor;
 import jsat.utils.ListUtils;
 import jsat.utils.random.RandomUtil;
 
@@ -307,7 +303,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
      * @param h the regressor that is having the error of its output minimized
      * @return the constant <tt>y</tt> that minimizes the squared error of the regressor on the training set. 
      */
-    private double getMinimizingErrorConst(final List<DataPointPair<Double>> backingResidsList, final Regressor h)
+    private static double getMinimizingErrorConst(final List<DataPointPair<Double>> backingResidsList, final Regressor h)
     {
         //Find the coeficent that minimized the residual error by finding the zero of its derivative (local minima)
         Function1D fhPrime = getDerivativeFunc(backingResidsList, h);
@@ -325,7 +321,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
      * @param h the regressor that is having the error of its output minimized
      * @return a Function object approximating the derivative of the squared error
      */
-    private Function1D getDerivativeFunc(final List<DataPointPair<Double>> backingResidsList, final Regressor h)
+    private static Function1D getDerivativeFunc(final List<DataPointPair<Double>> backingResidsList, final Regressor h)
     {
         final Function1D fhPrime = (double x) ->
         {

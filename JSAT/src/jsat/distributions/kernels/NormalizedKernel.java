@@ -17,6 +17,7 @@
 package jsat.distributions.kernels;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter;
@@ -94,7 +95,7 @@ public class NormalizedKernel implements KernelTrick
     public double eval(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
     {
         double aa = k.eval(a, a, vecs, cache);
-        double bb = k.eval(0, 0, Arrays.asList(b), qi);
+        double bb = k.eval(0, 0, Collections.singletonList(b), qi);
         if(aa == 0 || bb == 0)
             return 0;
         else

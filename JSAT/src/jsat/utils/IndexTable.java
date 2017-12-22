@@ -22,16 +22,10 @@ public class IndexTable implements Serializable
 {
 
 	private static final long serialVersionUID = -1917765351445664286L;
-	static private final Comparator defaultComp = new Comparator()        
-    {
-
-        @Override
-        public int compare(Object o1, Object o2)
-        {
-            Comparable co1 = (Comparable) o1;
-            Comparable co2 = (Comparable) o2;
-            return co1.compareTo(co2);
-        }
+	static private final Comparator defaultComp = (o1, o2) -> {
+        Comparable co1 = (Comparable) o1;
+        Comparable co2 = (Comparable) o2;
+        return co1.compareTo(co2);
     };
     
     /**
@@ -42,14 +36,7 @@ public class IndexTable implements Serializable
      */
     public static <T> Comparator<T> getReverse(final Comparator<T> cmp)
     {
-        return new Comparator<T>() 
-        {
-            @Override
-            public int compare(T o1, T o2)
-            {
-                return -cmp.compare(o1, o2);
-            }
-        };
+        return (o1, o2) -> -cmp.compare(o1, o2);
     }
     
     /**
@@ -89,7 +76,7 @@ public class IndexTable implements Serializable
     {
         index = new IntList(array.length);
         ListUtils.addRange(index, 0, array.length, 1);
-        Collections.sort(index, new IndexViewCompG(array));
+        index.sort(new IndexViewCompG(array));
     }
     
     /**
@@ -191,16 +178,16 @@ public class IndexTable implements Serializable
             for(int i = index.size(); i < list.size(); i++ )
                 index.add(i);
         if(list.size() == index.size())
-            Collections.sort(index, new IndexViewCompList(list, cmp));
+            index.sort(new IndexViewCompList(list, cmp));
         else
         {
             Collections.sort(index);//so [0, list.size) is at the front
-            Collections.sort(index.subList(0, list.size()), new IndexViewCompList(list, cmp));
+            index.subList(0, list.size()).sort(new IndexViewCompList(list, cmp));
         }
         prevSize = list.size();
     }
     
-    private class IndexViewCompG<T extends Comparable<T>> implements Comparator<Integer> 
+    private static class IndexViewCompG<T extends Comparable<T>> implements Comparator<Integer>
     {
         T[] base;
 
@@ -216,7 +203,7 @@ public class IndexTable implements Serializable
         }        
     }
     
-    private class IndexViewCompList<T> implements Comparator<Integer> 
+    private static class IndexViewCompList<T> implements Comparator<Integer>
     {
         final List<T> base;
         final Comparator<T> comparator;

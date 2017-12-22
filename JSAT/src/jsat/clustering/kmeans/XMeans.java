@@ -204,7 +204,7 @@ public class XMeans extends KMeans
                 designations = new int[N];
             else
                 Arrays.fill(designations, 0);
-            means = new ArrayList<Vec>(Arrays.asList(MatrixStatistics.meanVector(dataSet)));
+            means = new ArrayList<Vec>(Collections.singletonList(MatrixStatistics.meanVector(dataSet)));
             localOwned[0] = N;
             List<Double> qi = dm.getQueryInfo(means.get(0));
             for(int i = 0; i < data.size(); i++)

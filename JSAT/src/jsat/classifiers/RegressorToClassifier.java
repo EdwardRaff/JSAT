@@ -2,7 +2,7 @@ package jsat.classifiers;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
@@ -80,7 +80,7 @@ public class RegressorToClassifier implements BinaryScoreClassifier, Parameteriz
         return regressor.supportsWeightedData();
     }
 
-    private RegressionDataSet getRegressionDataSet(ClassificationDataSet dataSet)
+    private static RegressionDataSet getRegressionDataSet(ClassificationDataSet dataSet)
     {
         RegressionDataSet rds = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
         for(int i = 0; i < dataSet.getSampleSize(); i++)
@@ -94,7 +94,7 @@ public class RegressorToClassifier implements BinaryScoreClassifier, Parameteriz
         if(regressor instanceof Parameterized)
             return ((Parameterized)regressor).getParameters();
         else
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
     }
 
     @Override

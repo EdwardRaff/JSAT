@@ -65,7 +65,7 @@ public class ModifiedOWLQNTest
             x0.set(i, rand.nextDouble()+0.5);
 
         RosenbrockFunction f = new RosenbrockFunction();
-        FunctionVec fp = f.getDerivative();
+        FunctionVec fp = RosenbrockFunction.getDerivative();
         ModifiedOWLQN instance = new ModifiedOWLQN();
         instance.setLambda(0.0); 
         instance.setMaximumIterations(500);
@@ -88,7 +88,7 @@ public class ModifiedOWLQNTest
             x0.set(i, rand.nextDouble()+0.5);
 
         RosenbrockFunction f = new RosenbrockFunction();
-        FunctionVec fp = f.getDerivative();
+        FunctionVec fp = RosenbrockFunction.getDerivative();
         ModifiedOWLQN instance = new ModifiedOWLQN();
         instance.setLambda(0.0); 
         instance.setEps(Double.MAX_VALUE);

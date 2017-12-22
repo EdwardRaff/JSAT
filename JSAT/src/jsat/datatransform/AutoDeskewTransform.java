@@ -309,7 +309,7 @@ public class AutoDeskewTransform implements InPlaceTransform
      * @param mins the minimum value array
      * @param weight the weight to the given update
      */
-    private void updateStats(final List<Double> lambdas, OnLineStatistics[][] stats, int indx, double val, double[] mins, double weight)
+    private static void updateStats(final List<Double> lambdas, OnLineStatistics[][] stats, int indx, double val, double[] mins, double weight)
     {
         for (int k = 0; k < lambdas.size(); k++)
             stats[k][indx].add(transform(val, lambdas.get(k), mins[indx]), weight);

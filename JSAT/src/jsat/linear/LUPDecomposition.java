@@ -206,29 +206,25 @@ public class LUPDecomposition implements Cloneable, Serializable
         for(int threadNum = 0; threadNum < threads; threadNum++)
         {
             final int threadID = threadNum;
-            threadpool.submit(new Runnable() {
-
-                public void run()
+            threadpool.submit(() -> {
+                //Store the colum seperatly so that we can access this array in row major order, instead of the matrix in column major (yay cache!)
+                double[] y_col_k = new double[b.rows()];
+                for (int k = threadID; k < b.cols(); k+=threads)
                 {
-                    //Store the colum seperatly so that we can access this array in row major order, instead of the matrix in column major (yay cache!)
-                    double[] y_col_k = new double[b.rows()];
-                    for (int k = threadID; k < b.cols(); k+=threads)
+                    for (int i = 0; i < b.rows(); i++)//We operate the same as forwardSub(Matrix, Vec), but we aplly each column of B as its own Vec. We sawp the order for better cache use
                     {
-                        for (int i = 0; i < b.rows(); i++)//We operate the same as forwardSub(Matrix, Vec), but we aplly each column of B as its own Vec. We sawp the order for better cache use
-                        {
-                            y_col_k[i] = b.get(i, k);
-                            for (int j = 0; j < i; j++)
-                                y_col_k[i] -= L.get(i, j) * y_col_k[j];
-                            y_col_k[i] /= L.get(i, i);
+                        y_col_k[i] = b.get(i, k);
+                        for (int j = 0; j < i; j++)
+                            y_col_k[i] -= L.get(i, j) * y_col_k[j];
+                        y_col_k[i] /= L.get(i, i);
 
-                            //y.set(i, k, y_i);
-                        }
-
-                        for(int z = 0; z < y_col_k.length; z++)
-                            y.set(z, k, y_col_k[z]);
+                        //y.set(i, k, y_i);
                     }
-                    latch.countDown();
+
+                    for(int z = 0; z < y_col_k.length; z++)
+                        y.set(z, k, y_col_k[z]);
                 }
+                latch.countDown();
             });
         }
         try
@@ -334,30 +330,25 @@ public class LUPDecomposition implements Cloneable, Serializable
         for (int threadNum = 0; threadNum < threads; threadNum++)
         {
             final int threadID = threadNum;
-            threadpool.submit(new Runnable()
-            {
-
-                public void run()
+            threadpool.submit(() -> {
+                double[] x_col_k = new double[y.rows()];
+                for (int k = threadID; k < y.cols(); k += threads)
                 {
-                    double[] x_col_k = new double[y.rows()];
-                    for (int k = threadID; k < y.cols(); k += threads)
+                    for (int i = start; i >= 0; i--)//We operate the same as forwardSub(Matrix, Vec), but we aplly each column of B as its own Vec.
                     {
-                        for (int i = start; i >= 0; i--)//We operate the same as forwardSub(Matrix, Vec), but we aplly each column of B as its own Vec.
-                        {
-                            x_col_k[i] = y.get(i, k);
-                            for (int j = i + 1; j <= start; j++)
-                                x_col_k[i] -= U.get(i, j) * x_col_k[j];
-                            x_col_k[i] /= U.get(i, i);
-                        }
-
-                        for (int i = 0; i < x_col_k.length; i++)
-                            if(Double.isInfinite(x_col_k[i]))//Occurs when U_(i,i) = 0
-                                x.set(i, k, 0);
-                            else
-                                x.set(i, k, x_col_k[i]);
+                        x_col_k[i] = y.get(i, k);
+                        for (int j = i + 1; j <= start; j++)
+                            x_col_k[i] -= U.get(i, j) * x_col_k[j];
+                        x_col_k[i] /= U.get(i, i);
                     }
-                    latch.countDown();
+
+                    for (int i = 0; i < x_col_k.length; i++)
+                        if(Double.isInfinite(x_col_k[i]))//Occurs when U_(i,i) = 0
+                            x.set(i, k, 0);
+                        else
+                            x.set(i, k, x_col_k[i]);
                 }
+                latch.countDown();
             });
         }
         try

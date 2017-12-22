@@ -2,8 +2,6 @@ package jsat.clustering;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import jsat.DataSet;
 import jsat.linear.Vec;
@@ -223,19 +221,13 @@ public class LSDBC extends ClustererBase implements Parameterized
         }
 
         //Sort
-        IndexTable indexTable = new IndexTable(knnVecList, new Comparator()
-        {
+        IndexTable indexTable = new IndexTable(knnVecList, (Comparator) (o1, o2) -> {
+            List<VecPaired<VecPaired<Vec, Integer>, Double>> l1 =
+                    (List<VecPaired<VecPaired<Vec, Integer>, Double>>) o1;
+            List<VecPaired<VecPaired<Vec, Integer>, Double>> l2 =
+                    (List<VecPaired<VecPaired<Vec, Integer>, Double>>) o2;
 
-            @Override
-            public int compare(Object o1, Object o2)
-            {
-                List<VecPaired<VecPaired<Vec, Integer>, Double>> l1 = 
-                        (List<VecPaired<VecPaired<Vec, Integer>, Double>>) o1;
-                List<VecPaired<VecPaired<Vec, Integer>, Double>> l2 = 
-                        (List<VecPaired<VecPaired<Vec, Integer>, Double>>) o2;
-                
-                return Double.compare(getEps(l1), getEps(l2));
-            }
+            return Double.compare(getEps(l1), getEps(l2));
         });
         
         //Assign clusters, does very little computation. No need to parallelize expandCluster
@@ -259,7 +251,7 @@ public class LSDBC extends ClustererBase implements Parameterized
      * @param clusterID the current clusterID to assign
      * @param seeds the stack to hold all seeds in
      */
-    private void addSeed(List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors, int i, int[] designations, int clusterID, Stack<Integer> seeds)
+    private static void addSeed(List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors, int i, int[] designations, int clusterID, Stack<Integer> seeds)
     {
         int index = neighbors.get(i).getVector().getPair();
         if (designations[index] != UNCLASSIFIED)

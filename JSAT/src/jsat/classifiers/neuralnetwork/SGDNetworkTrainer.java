@@ -562,20 +562,14 @@ public class SGDNetworkTrainer implements Serializable
                 for (int id = 0; id < SystemInfo.LogicalCores; id++)
                 {
                     final int ID = id;
-                    ex.submit(new Runnable()
-                    {
-
-                        @Override
-                        public void run()
+                    ex.submit(() -> {
+                        for (int i = ID; i < z_l.rows(); i += SystemInfo.LogicalCores)
                         {
-                            for (int i = ID; i < z_l.rows(); i += SystemInfo.LogicalCores)
-                            {
-                                final double B_li = B_l.get(i);
-                                for (int j = 0; j < z_l.cols(); j++)
-                                    z_l.increment(i, j, B_li);
-                            }
-                            latch.countDown();
+                            final double B_li = B_l.get(i);
+                            for (int j = 0; j < z_l.cols(); j++)
+                                z_l.increment(i, j, B_li);
                         }
+                        latch.countDown();
                     });
 
                 }
@@ -682,20 +676,15 @@ public class SGDNetworkTrainer implements Serializable
                 for(int id = 0; id < SystemInfo.LogicalCores; id++)
                 {
                     final int ID = id;
-                    ex.submit(new Runnable()
-                    {
-                        @Override
-                        public void run()
+                    ex.submit(() -> {
+                        for(int i = ID; i < delta_l.rows(); i+=SystemInfo.LogicalCores)
                         {
-                            for(int i = ID; i < delta_l.rows(); i+=SystemInfo.LogicalCores)
-                            {
-                                double change = 0;
-                                for(int j = 0; j < delta_l.cols(); j++)
-                                    change += delta_l.get(i, j);
-                                B_delta_l.increment(i, change*invXsize);
-                            }
-                            latch.countDown();
+                            double change = 0;
+                            for(int j = 0; j < delta_l.cols(); j++)
+                                change += delta_l.get(i, j);
+                            B_delta_l.increment(i, change*invXsize);
                         }
+                        latch.countDown();
                     });
                 }
                 
@@ -741,16 +730,10 @@ public class SGDNetworkTrainer implements Serializable
             for(int indx = 0; indx < W_l.rows(); indx++)
             {
                 final int i = indx;
-                futures.add(ex.submit(new Runnable()
-                {
-
-                    @Override
-                    public void run()
-                    {
-                        Vec W_li = W_l.getRowView(i);
-                        W_updaters.get(L).get(i).update(W_li, W_dl.getRowView(i), eta_cur);
-                        B.get(L).set(i, regularizer.applyRegularizationToRow(W_li, B.get(L).get(i)));
-                    }
+                futures.add(ex.submit(() -> {
+                    Vec W_li = W_l.getRowView(i);
+                    W_updaters.get(L).get(i).update(W_li, W_dl.getRowView(i), eta_cur);
+                    B.get(L).set(i, regularizer.applyRegularizationToRow(W_li, B.get(L).get(i)));
                 }));
             }
         }
@@ -760,10 +743,7 @@ public class SGDNetworkTrainer implements Serializable
             for(Future<?> future : futures)
                 future.get();
         }
-        catch (InterruptedException e)
-        {
-        }
-        catch (ExecutionException e)
+        catch (InterruptedException | ExecutionException e)
         {
         }
     }
@@ -790,18 +770,12 @@ public class SGDNetworkTrainer implements Serializable
             for(int id = 0; id < SystemInfo.LogicalCores; id++)
             {
                 final int ID = id;
-                ex.submit(new Runnable()
-                {
-
-                    @Override
-                    public void run()
-                    {
-                        for (int i = ID; i < X.rows(); i+=SystemInfo.LogicalCores)
-                            for (int j = 0; j < X.cols(); j++)
-                                if (rand.nextInt() < randThresh)
-                                    X.set(i, j, 0.0);
-                        latch.countDown();
-                    }
+                ex.submit(() -> {
+                    for (int i = ID; i < X.rows(); i+=SystemInfo.LogicalCores)
+                        for (int j = 0; j < X.cols(); j++)
+                            if (rand.nextInt() < randThresh)
+                                X.set(i, j, 0.0);
+                    latch.countDown();
                 });
             }
 

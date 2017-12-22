@@ -108,7 +108,7 @@ public class AUC implements ClassificationScore
             else//posLeft instances of the positive class were correctly above the negative class
                 sum += posLeft;
 
-        return sum / (double) (pos * neg);
+        return sum / (pos * neg);
     }
 
     @Override

@@ -527,28 +527,29 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
 //            this.fixChildrenLevel();
             this.invalParentMaxdist();
         }
-        
+
         /**
-         * Removes a descendant of this node that is a leaf node. 
+         * Removes a descendant of this node that is a leaf node.
+         *
          * @return the descendant that was removed
          */
-        public TreeNode removeAnyLeaf()
-        {
-            if(this.isLeaf())
-                throw new RuntimeException("BUG: node has no children to rmeove");
-            //lets just grab the furthest child? 
+        public TreeNode removeAnyLeaf() {
+            TreeNode result = this;
+            while (true) {
+                if (result.isLeaf())
+                    throw new RuntimeException("BUG: node has no children to rmeove");
+                //lets just grab the furthest child?
 
-            TreeNode child = children.get(children.size()-1);
-            if(child.isLeaf())
-            {
-                child.invalParentMaxdist();
-                children.remove(children.size()-1);
-                children_dists.remove(children_dists.size()-1);
-                return child;
-            }
-            else//need to remove one of child's descentants to get a leaf
-            {
-                return child.removeAnyLeaf();
+                TreeNode child = result.children.get(result.children.size() - 1);
+                if (child.isLeaf()) {
+                    child.invalParentMaxdist();
+                    result.children.remove(result.children.size() - 1);
+                    result.children_dists.remove(result.children_dists.size() - 1);
+                    return child;
+                } else//need to remove one of child's descentants to get a leaf
+                {
+                    result = child;
+                }
             }
         }
         

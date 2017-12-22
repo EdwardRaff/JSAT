@@ -115,43 +115,38 @@ public class ElkanKernelKMeans extends KernelKMeans
         for(int id = 0; id < cores_to_use; id++)
         {
             final int ID = id;
-            Future<double[][]> future = ex.submit(new Callable<double[][]>()
-            {
-                @Override
-                public double[][] call() throws Exception
+            Future<double[][]> future = ex.submit(() -> {
+                double[][] localChanges = new double[centroidPairDots.length][centroidPairDots.length];
+
+                for(int i = ID; i < N; i+=cores_to_use)
                 {
-                    double[][] localChanges = new double[centroidPairDots.length][centroidPairDots.length];
-                    
-                    for(int i = ID; i < N; i+=cores_to_use)
+                    final double w_i = W.get(i);
+                    int old_c_i = prev_assignments[i];
+                    int new_c_i = new_assignments[i];
+
+                    for(int j = i; j < N; j++)
                     {
-                        final double w_i = W.get(i);
-                        int old_c_i = prev_assignments[i];
-                        int new_c_i = new_assignments[i];
+                        int old_c_j = prev_assignments[j];
+                        int new_c_j = new_assignments[j];
 
-                        for(int j = i; j < N; j++)
+                        if(old_c_i == new_c_i && old_c_j == new_c_j)//no class changes
+                            continue;//so we can skip it
+
+                        final double w_j = W.get(j);
+                        double K_ij = w_i * w_j * kernel.eval(i, j, X, accel);
+
+                        if(old_c_i >= 0 && old_c_j >= 0)
                         {
-                            int old_c_j = prev_assignments[j];
-                            int new_c_j = new_assignments[j];
-
-                            if(old_c_i == new_c_i && old_c_j == new_c_j)//no class changes
-                                continue;//so we can skip it
-
-                            final double w_j = W.get(j);
-                            double K_ij = w_i * w_j * kernel.eval(i, j, X, accel);
-
-                            if(old_c_i >= 0 && old_c_j >= 0)
-                            {
-                                localChanges[old_c_i][old_c_j] -= K_ij;
-                                localChanges[old_c_j][old_c_i] -= K_ij;
-                            }
-
-                            localChanges[new_c_i][new_c_j] += K_ij;
-                            localChanges[new_c_j][new_c_i] += K_ij;
+                            localChanges[old_c_i][old_c_j] -= K_ij;
+                            localChanges[old_c_j][old_c_i] -= K_ij;
                         }
+
+                        localChanges[new_c_i][new_c_j] += K_ij;
+                        localChanges[new_c_j][new_c_i] += K_ij;
                     }
-                    
-                    return localChanges;
                 }
+
+                return localChanges;
             });
             futurePairDotChanges.add(future);
         }
@@ -165,11 +160,7 @@ public class ElkanKernelKMeans extends KernelKMeans
                     for(int j = 0; j < changes[i].length; j++)
                         centroidPairDots[i][j] += changes[i][j];
             }
-            catch (InterruptedException ex1)
-            {
-                throw new FailedToFitException(ex1);
-            }
-            catch (ExecutionException ex1)
+            catch (InterruptedException | ExecutionException ex1)
             {
                 throw new FailedToFitException(ex1);
             }
@@ -265,28 +256,22 @@ public class ElkanKernelKMeans extends KernelKMeans
                     for(int id = 0; id < SystemInfo.LogicalCores; id++)
                     {
                         final int ID = id;
-                        threadpool.submit(new Runnable() 
-                        {
-
-                            @Override
-                            public void run()
+                        threadpool.submit(() -> {
+                            for (int q = ID; q < N; q += SystemInfo.LogicalCores)
                             {
-                                for (int q = ID; q < N; q += SystemInfo.LogicalCores)
-                                {
-                                    //Step 2, skip those that u(v) < s(c(v))
-                                    if (upperBound[q] <= sC[assignment[q]])
-                                        continue;
+                                //Step 2, skip those that u(v) < s(c(v))
+                                if (upperBound[q] <= sC[assignment[q]])
+                                    continue;
 
-                                    for (int c = 0; c < k; c++)
-                                        if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
-                                        {
-                                            step3aBoundsUpdate(r, q, assignment, upperBound, lowerBound);
-                                            step3bUpdate(upperBound, q, lowerBound, c, centroidSelfDistances, assignment, changeOccurred);
-                                        }
-                                }
-
-                                latch.countDown();
+                                for (int c = 0; c < k; c++)
+                                    if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
+                                    {
+                                        step3aBoundsUpdate(r, q, assignment, upperBound, lowerBound);
+                                        step3bUpdate(upperBound, q, lowerBound, c, centroidSelfDistances, assignment, changeOccurred);
+                                    }
                             }
+
+                            latch.countDown();
                         });
                     }
                 }
@@ -372,42 +357,36 @@ public class ElkanKernelKMeans extends KernelKMeans
             final int to = pos + blockSize + (extra-- > 0 ? 1 : 0);
             pos = to;
 
-            threadpool.submit(new Runnable()
-            {
+            threadpool.submit(() -> {
+                final boolean[] skip = new boolean[k];
 
-                @Override
-                public void run()
+                for (int q = from; q < to; q++)
                 {
-                    final boolean[] skip = new boolean[k];
-                    
-                    for (int q = from; q < to; q++)
+                    double minDistance = Double.MAX_VALUE;
+                    int index = -1;
+                    //Default value is false, we cant skip anything yet
+                    Arrays.fill(skip, false);
+                    for (int i = 0; i < k; i++)
                     {
-                        double minDistance = Double.MAX_VALUE;
-                        int index = -1;
-                        //Default value is false, we cant skip anything yet
-                        Arrays.fill(skip, false);
-                        for (int i = 0; i < k; i++)
+                        if (skip[i])
+                            continue;
+                        double d = distance(q, i, assignment);
+                        lowerBound[q][i] = d;
+
+                        if (d < minDistance)
                         {
-                            if (skip[i])
-                                continue;
-                            double d = distance(q, i, assignment);
-                            lowerBound[q][i] = d;
-
-                            if (d < minDistance)
-                            {
-                                minDistance = upperBound[q] = d;
-                                index = i;
-                                //We now have some information, use lemma 1 to see if we can skip anything
-                                for (int z = i + 1; z < k; z++)
-                                    if (centroidSelfDistances[i][z] >= 2 * d)
-                                        skip[z] = true;
-                            }
+                            minDistance = upperBound[q] = d;
+                            index = i;
+                            //We now have some information, use lemma 1 to see if we can skip anything
+                            for (int z = i + 1; z < k; z++)
+                                if (centroidSelfDistances[i][z] >= 2 * d)
+                                    skip[z] = true;
                         }
-
-                        newDesignations[q] = index;
                     }
-                    latch.countDown();
+
+                    newDesignations[q] = index;
                 }
+                latch.countDown();
             });
         }
         while(pos++ < SystemInfo.LogicalCores)
@@ -442,22 +421,17 @@ public class ElkanKernelKMeans extends KernelKMeans
                 {
                     final int start = ParallelUtils.getStartBlock(N, id, SystemInfo.LogicalCores);
                     final int end = ParallelUtils.getEndBlock(N, id, SystemInfo.LogicalCores);
-                    futureChanges.add(threadpool.submit(new Callable<Integer>()
-                    {
-                        @Override
-                        public Integer call()
+                    futureChanges.add(threadpool.submit(() -> {
+                        double[] sqrdChange = new double[k];
+                        double[] ownerChange = new double[k];
+                        int localChange = 0;
+                        for(int q = start; q < end; q++)
+                            localChange += updateMeansFromChange(q, assignment, sqrdChange, ownerChange);
+                        synchronized(assignment)
                         {
-                            double[] sqrdChange = new double[k];
-                            double[] ownerChange = new double[k];
-                            int localChange = 0;
-                            for(int q = start; q < end; q++)
-                                localChange += updateMeansFromChange(q, assignment, sqrdChange, ownerChange);
-                            synchronized(assignment)
-                            {
-                                applyMeanUpdates(sqrdChange, ownerChange);
-                            }
-                            return localChange;
+                            applyMeanUpdates(sqrdChange, ownerChange);
                         }
+                        return localChange;
                     }));
                 }
                 
@@ -480,15 +454,10 @@ public class ElkanKernelKMeans extends KernelKMeans
                 for (int i = 0; i < k; i++)
                 {
                     final int c = i;
-                    threadpool.submit(new Runnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            for (int q = 0; q < N; q++)
-                                lowerBound[q][c] = Math.max(lowerBound[q][c] - distancesMoved[c], 0);
-                            latch2.countDown();
-                        }
+                    threadpool.submit(() -> {
+                        for (int q = 0; q < N; q++)
+                            lowerBound[q][c] = Math.max(lowerBound[q][c] - distancesMoved[c], 0);
+                        latch2.countDown();
                     });
                 }
                 latch2.await();
@@ -501,19 +470,14 @@ public class ElkanKernelKMeans extends KernelKMeans
                 {
                     final int start = ParallelUtils.getStartBlock(N, id, SystemInfo.LogicalCores);
                     final int end = ParallelUtils.getEndBlock(N, id, SystemInfo.LogicalCores);
-                    threadpool.submit(new Runnable() 
-                    {
-                        @Override
-                        public void run()
+                    threadpool.submit(() -> {
+
+                        for(int q = start; q < end; q++)
                         {
-                            
-                            for(int q = start; q < end; q++)
-                            {
-                                upperBound[q] +=  distancesMoved[assignment[q]];
-                                r[q] = true; 
-                            }
-                            latch3.countDown();
+                            upperBound[q] +=  distancesMoved[assignment[q]];
+                            r[q] = true;
                         }
+                        latch3.countDown();
                     });
                 }
                 latch3.await();

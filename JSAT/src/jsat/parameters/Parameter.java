@@ -75,7 +75,7 @@ public abstract class Parameter implements Serializable
      * of the algorithm, or <tt>false</tt> if no-retraining is needed to take
      * effect. 
      */
-    public boolean requiresRetrain(){
+    public static boolean requiresRetrain(){
         return true;
     };
     
@@ -309,11 +309,7 @@ public abstract class Parameter implements Serializable
                             params.addAll(Parameter.getParamsFromMethods(paramHolder, subPreFix));
                         }
                     }
-                    catch (IllegalArgumentException ex)
-                    {
-                        Logger.getLogger(Parameter.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                    catch (IllegalAccessException ex)
+                    catch (IllegalArgumentException | IllegalAccessException ex)
                     {
                         Logger.getLogger(Parameter.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -357,10 +353,7 @@ public abstract class Parameter implements Serializable
         {
             tmp = targetObject.getClass().getMethod("guess" + setMethod.getName().replaceFirst("set", ""), DataSet.class);
         }
-        catch (NoSuchMethodException ex)
-        {
-        }
-        catch (SecurityException ex)
+        catch (NoSuchMethodException | SecurityException ex)
         {
         }
         guessMethod = tmp;//ugly hack so that I can reference a final guess method in anon class below
@@ -746,7 +739,7 @@ public abstract class Parameter implements Serializable
                 @Override
                 public List parameterOptions()
                 {
-                    return Collections.unmodifiableList(Arrays.asList(varClass.getEnumConstants()));
+                    return List.of(varClass.getEnumConstants());
                 }
 
                 @Override

@@ -192,14 +192,7 @@ public class KernelPCA extends DataTransformBase
         
         
         EigenValueDecomposition evd = new EigenValueDecomposition(K);
-        evd.sortByEigenValue(new Comparator<Double>() 
-        {
-            @Override
-            public int compare(Double o1, Double o2)
-            {
-                return -Double.compare(o1, o2);
-            }
-        });
+        evd.sortByEigenValue((o1, o2) -> -Double.compare(o1, o2));
         
         eigenVals = evd.getRealEigenvalues();
         eigenVecs = evd.getV();

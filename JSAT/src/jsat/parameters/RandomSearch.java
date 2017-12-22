@@ -17,12 +17,10 @@
 package jsat.parameters;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Random;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
+
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
@@ -32,10 +30,8 @@ import jsat.exceptions.FailedToFitException;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.RegressionModelEvaluation;
 import jsat.regression.Regressor;
-import jsat.utils.FakeExecutor;
 import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 
 /**
  * Random Search is a simple method for tuning the parameters of a
@@ -140,7 +136,7 @@ public class RandomSearch extends ModelSearch
             Distribution dist;
             if (param instanceof DoubleParameter)
             {
-                dist = ((DoubleParameter) param).getGuess(data);
+                dist = ((DoubleParameter)param).getGuess(data);
                 if (dist != null)
                 {
                     addParameter((DoubleParameter) param, dist);
@@ -149,7 +145,7 @@ public class RandomSearch extends ModelSearch
             }
             else if (param instanceof IntParameter)
             {
-                dist = ((IntParameter) param).getGuess(data);
+                dist = ((IntParameter)param).getGuess(data);
                 if (dist != null)
                 {
                     addParameter((IntParameter) param, dist);

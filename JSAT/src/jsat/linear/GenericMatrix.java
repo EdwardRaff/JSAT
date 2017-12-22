@@ -5,7 +5,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.concurrent.Callable;
+
 import jsat.utils.FakeExecutor;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -61,15 +61,11 @@ public abstract class GenericMatrix extends Matrix
         for(int threadId = 0; threadId < LogicalCores; threadId++)
         {
             final int ID = threadId;
-            threadPool.submit(new Runnable() {
-
-                public void run()
-                {
-                    for(int i = 0+ID; i < rows(); i+=LogicalCores)
-                        for(int j = 0; j < cols(); j++)
-                            increment(i, j, c*b.get(i, j));
-                    latch.countDown();
-                }
+            threadPool.submit(() -> {
+                for(int i = 0+ID; i < rows(); i+=LogicalCores)
+                    for(int j = 0; j < cols(); j++)
+                        increment(i, j, c*b.get(i, j));
+                latch.countDown();
             });
         }
         
@@ -79,7 +75,7 @@ public abstract class GenericMatrix extends Matrix
         }
         catch (InterruptedException ex)
         {
-            Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(GenericMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -99,16 +95,11 @@ public abstract class GenericMatrix extends Matrix
         for (int threadId = 0; threadId < LogicalCores; threadId++)
         {
             final int ID = threadId;
-            threadPool.submit(new Runnable()
-            {
-
-                public void run()
-                {
-                    for (int i = 0 + ID; i < rows(); i += LogicalCores)
-                        for (int j = 0; j < cols(); j++)
-                            increment(i, j, c);
-                    latch.countDown();
-                }
+            threadPool.submit(() -> {
+                for (int i = 0 + ID; i < rows(); i += LogicalCores)
+                    for (int j = 0; j < cols(); j++)
+                        increment(i, j, c);
+                latch.countDown();
             });
         }
 
@@ -118,7 +109,7 @@ public abstract class GenericMatrix extends Matrix
         }
         catch (InterruptedException ex)
         {
-            Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(GenericMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -220,24 +211,19 @@ public abstract class GenericMatrix extends Matrix
         for(int threadNum = 0; threadNum < LogicalCores; threadNum++)
         {
             final int threadID = threadNum;
-            threadPool.submit(new Runnable() {
-
-                @Override
-                public void run()
-                {
-                    for (int i0 = blockStep * threadID; i0 < iLimit; i0 += blockStep * LogicalCores)
-                        for (int k0 = 0; k0 < kLimit; k0 += blockStep)
-                            for (int j0 = 0; j0 < jLimit; j0 += blockStep)
-                                for (int i = i0; i < min(i0 + blockStep, iLimit); i++)
-                                    for (int j = j0; j < min(j0 + blockStep, jLimit); j++)
-                                    {
-                                        double C_ij = 0;
-                                        for (int k = k0; k < min(k0 + blockStep, kLimit); k++)
-                                            C_ij += A.get(i, k) * b.get(j, k);
-                                        C.increment(i, j, C_ij);
-                                    }
-                    cdl.countDown();
-                }
+            threadPool.submit(() -> {
+                for (int i0 = blockStep * threadID; i0 < iLimit; i0 += blockStep * LogicalCores)
+                    for (int k0 = 0; k0 < kLimit; k0 += blockStep)
+                        for (int j0 = 0; j0 < jLimit; j0 += blockStep)
+                            for (int i = i0; i < min(i0 + blockStep, iLimit); i++)
+                                for (int j = j0; j < min(j0 + blockStep, jLimit); j++)
+                                {
+                                    double C_ij = 0;
+                                    for (int k = k0; k < min(k0 + blockStep, kLimit); k++)
+                                        C_ij += A.get(i, k) * b.get(j, k);
+                                    C.increment(i, j, C_ij);
+                                }
+                cdl.countDown();
             });
         }
         
@@ -248,7 +234,7 @@ public abstract class GenericMatrix extends Matrix
         }
         catch (InterruptedException ex)
         {
-            Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(GenericMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
         
     }
@@ -272,22 +258,17 @@ public abstract class GenericMatrix extends Matrix
             for (int threadID = 0; threadID < LogicalCores; threadID++)
             {
                 final int ID = threadID;
-                threadPool.submit(new Runnable()
-                {
-
-                    public void run()
-                    {
-                        for (int i0 = NB2 * ID; i0 < iLimit; i0 += NB2 * LogicalCores)
-                            for (int k0 = 0; k0 < kLimit; k0 += NB2)
-                                for (int j0 = 0; j0 < jLimit; j0 += NB2)
-                                    for (int i = i0; i < min(i0 + NB2, iLimit); i++)
-                                        for (int k = k0; k < min(k0 + NB2, kLimit); k++)
-                                        {
-                                            double a = A.get(i, k);
-                                            for (int j = j0; j < min(j0 + NB2, jLimit); j++)
-                                                C.increment(i, j, a * b.get(k, j));
-                                        }
-                    }
+                threadPool.submit(() -> {
+                    for (int i0 = NB2 * ID; i0 < iLimit; i0 += NB2 * LogicalCores)
+                        for (int k0 = 0; k0 < kLimit; k0 += NB2)
+                            for (int j0 = 0; j0 < jLimit; j0 += NB2)
+                                for (int i = i0; i < min(i0 + NB2, iLimit); i++)
+                                    for (int k = k0; k < min(k0 + NB2, kLimit); k++)
+                                    {
+                                        double a = A.get(i, k);
+                                        for (int j = j0; j < min(j0 + NB2, jLimit); j++)
+                                            C.increment(i, j, a * b.get(k, j));
+                                    }
                 });
             }
             return;
@@ -296,20 +277,15 @@ public abstract class GenericMatrix extends Matrix
         for (int threadID = 0; threadID < LogicalCores; threadID++)
         {
             final int ID = threadID;
-            threadPool.submit(new Runnable()
-            {
-
-                public void run()
-                {
-                    for (int i = 0 + ID; i < C.rows(); i += LogicalCores)
-                        for (int k = 0; k < A.cols(); k++)
-                        {
-                            double a = A.get(i, k);
-                            for (int j = 0; j < C.cols(); j++)
-                                C.increment(i, j, a * b.get(k, j));
-                        }
-                    cdl.countDown();
-                }
+            threadPool.submit(() -> {
+                for (int i = 0 + ID; i < C.rows(); i += LogicalCores)
+                    for (int k = 0; k < A.cols(); k++)
+                    {
+                        double a = A.get(i, k);
+                        for (int j = 0; j < C.cols(); j++)
+                            C.increment(i, j, a * b.get(k, j));
+                    }
+                cdl.countDown();
             });
         }
             
@@ -339,15 +315,11 @@ public abstract class GenericMatrix extends Matrix
         for(int threadID = 0; threadID < LogicalCores; threadID++)
         {
             final int ID = threadID;
-            threadPool.submit(new Runnable() {
-
-                public void run()
-                {
-                    for(int i = ID; i < rows(); i+=LogicalCores)
-                        for(int j = 0; j < cols(); j++)
-                            set(i, j, get(i, j)*c);
-                    latch.countDown();
-                }
+            threadPool.submit(() -> {
+                for(int i = ID; i < rows(); i+=LogicalCores)
+                    for(int j = 0; j < cols(); j++)
+                        set(i, j, get(i, j)*c);
+                latch.countDown();
             });
         }
         try
@@ -356,7 +328,7 @@ public abstract class GenericMatrix extends Matrix
         }
         catch (InterruptedException ex)
         {
-            Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(GenericMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
@@ -406,23 +378,19 @@ public abstract class GenericMatrix extends Matrix
         for(int threadNum = 0; threadNum < LogicalCores; threadNum++)
         {
             final int threadID = threadNum;
-            threadPool.submit(new Runnable() {
+            threadPool.submit(() -> {
+                for (int i0 = blockStep * threadID; i0 < iLimit; i0 += blockStep * LogicalCores)
+                    for (int k0 = 0; k0 < kLimit; k0 += blockStep)
+                        for (int j0 = 0; j0 < jLimit; j0 += blockStep)
+                            for (int k = k0; k < min(k0 + blockStep, kLimit); k++)
+                                for (int i = i0; i < min(i0 + blockStep, iLimit); i++)
+                                {
+                                    double a = A.get(k, i);
 
-                public void run()
-                {
-                    for (int i0 = blockStep * threadID; i0 < iLimit; i0 += blockStep * LogicalCores)
-                        for (int k0 = 0; k0 < kLimit; k0 += blockStep)
-                            for (int j0 = 0; j0 < jLimit; j0 += blockStep)
-                                for (int k = k0; k < min(k0 + blockStep, kLimit); k++)
-                                    for (int i = i0; i < min(i0 + blockStep, iLimit); i++)
-                                    {
-                                        double a = A.get(k, i);
-
-                                        for (int j = j0; j < min(j0 + blockStep, jLimit); j++)
-                                            C.increment(i, j, a * b.get(k, j));
-                                    }
-                    cdl.countDown();
-                }
+                                    for (int j = j0; j < min(j0 + blockStep, jLimit); j++)
+                                        C.increment(i, j, a * b.get(k, j));
+                                }
+                cdl.countDown();
             });
         }
         
@@ -433,7 +401,7 @@ public abstract class GenericMatrix extends Matrix
         }
         catch (InterruptedException ex)
         {
-            Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(GenericMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
         
     }
@@ -628,32 +596,28 @@ public abstract class GenericMatrix extends Matrix
                 for (int threadNumber = 0; threadNumber < LogicalCores; threadNumber++)
                 {
                     final int threadID = threadNumber;
-                    bigIndecies.add(threadPool.submit(new Callable<Integer>() {
-
-                        public Integer call() throws Exception
+                    bigIndecies.add(threadPool.submit(() -> {
+                        double largestSeen = 0.0;
+                        int largestIndex = -1;
+                        for(int i = kk+1+threadID; i < UU.rows(); i+=LogicalCores)
                         {
-                            double largestSeen = 0.0;
-                            int largestIndex = -1;
-                            for(int i = kk+1+threadID; i < UU.rows(); i+=LogicalCores)
+                            double tmp = UU.get(i, kk)/UU.get(kk, kk);
+                            L.set(i, kk, (Double.isNaN(tmp) ? 0.0 : tmp) );
+
+                            //We perform the first iteration of the loop outside, as we want to cache its value for searching later
+                            UU.increment(i, kk+1, -L.get(i, kk)*UU.get(kk, kk+1));
+                            if(Math.abs(UU.get(i,kk+1)) > largestSeen)
                             {
-                                double tmp = UU.get(i, kk)/UU.get(kk, kk); 
-                                L.set(i, kk, (Double.isNaN(tmp) ? 0.0 : tmp) );
-
-                                //We perform the first iteration of the loop outside, as we want to cache its value for searching later
-                                UU.increment(i, kk+1, -L.get(i, kk)*UU.get(kk, kk+1));
-                                if(Math.abs(UU.get(i,kk+1)) > largestSeen)
-                                {
-                                    largestSeen = Math.abs(UU.get(i,kk+1));
-                                    largestIndex = i;
-                                }
-                                for(int j = kk+2; j < UU.cols(); j++)
-                                {
-                                    UU.increment(i, j, -L.get(i, kk)*UU.get(kk, j));
-                                }
+                                largestSeen = Math.abs(UU.get(i,kk+1));
+                                largestIndex = i;
                             }
-
-                            return largestIndex;
+                            for(int j = kk+2; j < UU.cols(); j++)
+                            {
+                                UU.increment(i, j, -L.get(i, kk)*UU.get(kk, j));
+                            }
                         }
+
+                        return largestIndex;
                     }));
                 }
             }
@@ -681,15 +645,11 @@ public abstract class GenericMatrix extends Matrix
 
             return lup;
         }
-        catch (InterruptedException ex)
+        catch (InterruptedException | ExecutionException ex)
         {
-            Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(GenericMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
-        catch (ExecutionException ex)
-        {
-            Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
+
         throw new RuntimeException("Uncrecoverable Error");
     }
     
@@ -745,7 +705,7 @@ public abstract class GenericMatrix extends Matrix
         return qr;
     }
 
-    private void qrUpdateR(int k, int N, Matrix A, double[] vk, double TwoOverBeta, int M)
+    private static void qrUpdateR(int k, int N, Matrix A, double[] vk, double TwoOverBeta, int M)
     {
         //First run of loop removed, as it will be setting zeros. More accurate to just set them ourselves
         if(k < N)
@@ -765,7 +725,7 @@ public abstract class GenericMatrix extends Matrix
         }
     }
 
-    private void qrUpdateRInitalLoop(int k, Matrix A, double[] vk, double TwoOverBeta, int M)
+    private static void qrUpdateRInitalLoop(int k, Matrix A, double[] vk, double TwoOverBeta, int M)
     {
         double y = 0;//y = vk dot A_j
         for(int i = k; i < A.cols(); i++)
@@ -778,7 +738,7 @@ public abstract class GenericMatrix extends Matrix
             A.set(k, i, 0.0);
     }
 
-    private void qrUpdateQ(Matrix Q, int k, double[] vk, double TwoOverBeta)
+    private static void qrUpdateQ(Matrix Q, int k, double[] vk, double TwoOverBeta)
     {
         //We are computing Q' in what we are treating as the column major order, which represents Q in row major order, which is what we want!
         for(int j = 0; j < Q.cols(); j++)
@@ -794,7 +754,7 @@ public abstract class GenericMatrix extends Matrix
         }
     }
 
-    private double initalVKNormCompute(int k, int M, double[] vk, Matrix A)
+    private static double initalVKNormCompute(int k, int M, double[] vk, Matrix A)
     {
         double vkNorm = 0.0;
         for(int i = k+1; i < M; i++)
@@ -915,7 +875,7 @@ public abstract class GenericMatrix extends Matrix
             }
             catch (InterruptedException ex)
             {
-                Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(GenericMatrix.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         qr[0] = Q;

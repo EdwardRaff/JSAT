@@ -154,28 +154,24 @@ public class IterativelyReweightedLeastSquares implements Optimizer
             final int START = start;
             final int TO = (overFlow-- > 0 ? 1 : 0) + START + size;
             start = TO;
-            threadpool.submit(new Runnable() {
-
-                public void run()
+            threadpool.submit(() -> {
+                for (int j = START; j < TO; j++)
                 {
-                    for (int j = START; j < TO; j++)
+                    double gradTmp = 0;
+                    for (int k = 0; k < coefficentMatrix.rows(); k++)
                     {
-                        double gradTmp = 0;
-                        for (int k = 0; k < coefficentMatrix.rows(); k++)
-                        {
-                            double coefficient_kj = coefficentMatrix.get(k, j);
-                            gradTmp += coefficient_kj * errors.get(k);
+                        double coefficient_kj = coefficentMatrix.get(k, j);
+                        gradTmp += coefficient_kj * errors.get(k);
 
-                            double multFactor = derivatives.get(k) * coefficient_kj;
+                        double multFactor = derivatives.get(k) * coefficient_kj;
 
-                            for (int i = 0; i < hessian.rows(); i++)
-                                hessian.increment(j, i, coefficentMatrix.get(k, i) * multFactor);
-                        }
-
-                        gradiant.set(j, gradTmp);
+                        for (int i = 0; i < hessian.rows(); i++)
+                            hessian.increment(j, i, coefficentMatrix.get(k, i) * multFactor);
                     }
-                    latch.countDown();
+
+                    gradiant.set(j, gradTmp);
                 }
+                latch.countDown();
             });
         }
         try

@@ -96,7 +96,7 @@ public class MDS implements VisualizationTransform
      * 
      * @return the distance metric used when creating a dissimilarity matrix
      */
-    public DistanceMetric getEmbeddingMetric()
+    public static DistanceMetric getEmbeddingMetric()
     {
         return embedMetric;
     }
@@ -124,25 +124,19 @@ public class MDS implements VisualizationTransform
         for(int id = 0; id < SystemInfo.LogicalCores; id++)
         {
             final int ID = id;
-            futureStats.add(ex.submit(new Callable<OnLineStatistics>()
-            {
-
-                @Override
-                public OnLineStatistics call() throws Exception
+            futureStats.add(ex.submit(() -> {
+                OnLineStatistics local_avg = new OnLineStatistics();
+                for(int i = ID; i < d.getSampleSize(); i+=SystemInfo.LogicalCores)
                 {
-                    OnLineStatistics local_avg = new OnLineStatistics();
-                    for(int i = ID; i < d.getSampleSize(); i+=SystemInfo.LogicalCores)
+                    for(int j = i+1; j < d.getSampleSize(); j++)
                     {
-                        for(int j = i+1; j < d.getSampleSize(); j++)
-                        {
-                            double dist = dm.dist(i, j, orig_vecs, orig_distCache);
-                            local_avg.add(dist);
-                            delta.set(i, j, dist);
-                            delta.set(j, i, dist);
-                        }
+                        double dist = dm.dist(i, j, orig_vecs, orig_distCache);
+                        local_avg.add(dist);
+                        delta.set(i, j, dist);
+                        delta.set(j, i, dist);
                     }
-                    return local_avg;
                 }
+                return local_avg;
             }));
         }
         
@@ -151,11 +145,7 @@ public class MDS implements VisualizationTransform
             {
                 avg.add(fut.get());
             }
-            catch (InterruptedException ex1)
-            {
-                Logger.getLogger(MDS.class.getName()).log(Level.SEVERE, null, ex1);
-            }
-            catch (ExecutionException ex1)
+            catch (InterruptedException | ExecutionException ex1)
             {
                 Logger.getLogger(MDS.class.getName()).log(Level.SEVERE, null, ex1);
             }
@@ -215,32 +205,26 @@ public class MDS implements VisualizationTransform
             for (int id = 0; id < SystemInfo.LogicalCores; id++)
             {
                 final int ID = id;
-                ex.submit(new Runnable()
-                {
+                ex.submit(() -> {
+                    //we need to set B correctly
+                    for (int i = ID; i < B.rows(); i += SystemInfo.LogicalCores)
+                        for (int j = i + 1; j < B.rows(); j++)
+                        {
+                            double d_ij = embedMetric.dist(i, j, X_views, X_rowCache);
 
-                    @Override
-                    public void run()
-                    {
-                        //we need to set B correctly
-                        for (int i = ID; i < B.rows(); i += SystemInfo.LogicalCores)
-                            for (int j = i + 1; j < B.rows(); j++)
+                            if(d_ij > 1e-5)//avoid creating silly huge values
                             {
-                                double d_ij = embedMetric.dist(i, j, X_views, X_rowCache);
-
-                                if(d_ij > 1e-5)//avoid creating silly huge values
-                                {
-                                    double b_ij = -delta.get(i, j)/d_ij;//-w_ij if we support weights in the future
-                                    B.set(i, j, b_ij);
-                                    B.set(j, i, b_ij);
-                                }
-                                else
-                                {
-                                    B.set(i, j, 0);
-                                    B.set(j, i, 0);
-                                }
+                                double b_ij = -delta.get(i, j)/d_ij;//-w_ij if we support weights in the future
+                                B.set(i, j, b_ij);
+                                B.set(j, i, b_ij);
                             }
-                        latch.countDown();
-                    }
+                            else
+                            {
+                                B.set(i, j, 0);
+                                B.set(j, i, 0);
+                            }
+                        }
+                    latch.countDown();
                 });
             }
             
@@ -291,26 +275,20 @@ public class MDS implements VisualizationTransform
         for(int id = 0; id < SystemInfo.LogicalCores; id++)
         {
             final int ID= id;
-            ex.submit(new Runnable()
-            {
-
-                @Override
-                public void run()
+            ex.submit(() -> {
+                double localStress = 0;
+                for(int i = ID; i < delta.rows(); i+=SystemInfo.LogicalCores)
                 {
-                    double localStress = 0;
-                    for(int i = ID; i < delta.rows(); i+=SystemInfo.LogicalCores)
-                    {
 
-                        for(int j = i+1; j < delta.rows(); j++)
-                        {
-                            double tmp = embedMetric.dist(i, j, X_views, X_rowCache)-delta.get(i, j);
-                            localStress += tmp*tmp;
-                        }
+                    for(int j = i+1; j < delta.rows(); j++)
+                    {
+                        double tmp = embedMetric.dist(i, j, X_views, X_rowCache)-delta.get(i, j);
+                        localStress += tmp*tmp;
                     }
-                    
-                    stress.addAndGet(localStress);
-                    latch.countDown();
                 }
+
+                stress.addAndGet(localStress);
+                latch.countDown();
             });
             
         }

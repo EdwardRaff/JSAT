@@ -336,7 +336,7 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         
         //Best attribute has been selected
         //We are no longer using the full array of all values
-        fillStack(reusableLists, Arrays.asList(subSet));
+        fillStack(reusableLists, Collections.singletonList(subSet));
         NodeBase toReturn;
         if(bestAttribute < 0)
             return null;
@@ -494,7 +494,7 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         
         //Best attribute has been selected
         //We are no longer using the full array of all values
-        fillStack(reusableLists, Arrays.asList(subSet));
+        fillStack(reusableLists, Collections.singletonList(subSet));
         NodeBase toReturn;
         if (bestAttribute >= 0)
         {
@@ -504,7 +504,7 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
                 else
                 {
                     toReturn = new NodeRCat(goTo, bestSplit.size(), setScore.getMean());
-                    features.remove(new Integer(bestAttribute));//Feature nolonger viable in this case
+                    features.remove(bestAttribute);//Feature nolonger viable in this case
                 }
             else
                 toReturn = new NodeRNum(bestAttribute - catInfo.length, bestThreshold, setScore.getMean());
@@ -610,7 +610,7 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         root = train(score, data, features, dataSet.getCategories(), rand, reusableLists);
     }
 
-    private OnLineStatistics[] createStats(int count)
+    private static OnLineStatistics[] createStats(int count)
     {
         OnLineStatistics[] stats = new OnLineStatistics[count];
         for(int i = 0; i < stats.length; i++)
@@ -797,7 +797,7 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         @Override
         public Collection<Integer> featuresUsed()
         {
-            return Collections.EMPTY_SET;
+            return Collections.emptySet();
         }
     }
     
@@ -927,7 +927,7 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         @Override
         public Collection<Integer> featuresUsed()
         {
-            return Collections.EMPTY_SET;
+            return Collections.emptySet();
         }
     }
     

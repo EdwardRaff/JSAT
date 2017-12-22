@@ -295,8 +295,8 @@ public class FLAME extends ClustererBase implements Parameterized
                         CSOs.put(i, CSOs.size());
                 }
                 //May have gaps, will be fixed in final step
-                for (int i : CSOs.keySet())
-                    designations[i] = CSOs.get(i);
+                for (Map.Entry<Integer, Integer> integerIntegerEntry : CSOs.entrySet())
+                    designations[integerIntegerEntry.getKey()] = integerIntegerEntry.getValue();
             }
 
             //outlier is implicit extra term
@@ -324,43 +324,37 @@ public class FLAME extends ClustererBase implements Parameterized
                 for (int id = 0; id < SystemInfo.LogicalCores; id++)
                 {
                     final int ID = id;
-                    threadpool.submit(new Runnable() 
-                    {
-
-                        @Override
-                        public void run()
+                    threadpool.submit(() -> {
+                        double localScore = 0;
+                        for (int i = ID; i < FROM.length; i+=SystemInfo.LogicalCores)
                         {
-                            double localScore = 0;
-                            for (int i = ID; i < FROM.length; i+=SystemInfo.LogicalCores)
+                            if (outliers.contains(i) || CSOs.containsKey(i))
+                                continue;
+                            final double[] fuzzy2_i = TO[i];
+                            Arrays.fill(fuzzy2_i, 0);
+                            List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
+
+                            double sum = 0;
+                            for (int j = 1; j < weights[i].length; j++)
                             {
-                                if (outliers.contains(i) || CSOs.containsKey(i))
-                                    continue;
-                                final double[] fuzzy2_i = TO[i];
-                                Arrays.fill(fuzzy2_i, 0);
-                                List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
-
-                                double sum = 0;
-                                for (int j = 1; j < weights[i].length; j++)
-                                {
-                                    int jNN = knns.get(j).getVector().getPair();
-                                    final double[] fuzzy_jNN = FROM[jNN];
-                                    double weight = weights[i][j - 1];
-                                    for (int z = 0; z < FROM[jNN].length; z++)
-                                        fuzzy2_i[z] += weight * fuzzy_jNN[z];
-                                }
-
-                                for (int z = 0; z < fuzzy2_i.length; z++)
-                                    sum += fuzzy2_i[z];
-
-                                for (int z = 0; z < fuzzy2_i.length; z++)
-                                {
-                                    fuzzy2_i[z] /= sum+1e-6;
-                                    localScore += Math.abs(FROM[i][z] - fuzzy2_i[z]);
-                                }
+                                int jNN = knns.get(j).getVector().getPair();
+                                final double[] fuzzy_jNN = FROM[jNN];
+                                double weight = weights[i][j - 1];
+                                for (int z = 0; z < FROM[jNN].length; z++)
+                                    fuzzy2_i[z] += weight * fuzzy_jNN[z];
                             }
-                            score.addAndGet(0, localScore);
-                            cdl.countDown();
+
+                            for (int z = 0; z < fuzzy2_i.length; z++)
+                                sum += fuzzy2_i[z];
+
+                            for (int z = 0; z < fuzzy2_i.length; z++)
+                            {
+                                fuzzy2_i[z] /= sum+1e-6;
+                                localScore += Math.abs(FROM[i][z] - fuzzy2_i[z]);
+                            }
                         }
+                        score.addAndGet(0, localScore);
+                        cdl.countDown();
                     });
                 }
              

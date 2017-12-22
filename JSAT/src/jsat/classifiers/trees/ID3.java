@@ -36,13 +36,14 @@ public class ID3 implements Classifier
     {
         return walkTree(root, data);
     }
-    
-    static private CategoricalResults walkTree(ID3Node node, DataPoint data)
-    {
-        if(node.isLeaf())
-            return node.getResult();
-        
-        return walkTree(node.getNode(data.getCategoricalValue(node.getAttributeId())), data);
+
+    static private CategoricalResults walkTree(ID3Node node, DataPoint data) {
+        while (true) {
+            if (node.isLeaf())
+                return node.getResult();
+
+            node = node.getNode(data.getCategoricalValue(node.getAttributeId()));
+        }
     }
 
     @Override

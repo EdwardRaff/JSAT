@@ -117,7 +117,7 @@ public class DBSCAN extends ClustererBase
         return new DBSCAN(this);
     }
     
-    private class StatsWorker implements Callable<OnLineStatistics>
+    private static class StatsWorker implements Callable<OnLineStatistics>
     {
         final BlockingQueue<DataPoint> queue;
         final VectorCollection<VecPaired<Vec, Integer>> vc;
@@ -179,11 +179,7 @@ public class DBSCAN extends ClustererBase
                 else 
                     stats = OnLineStatistics.add(stats, future.get());
             }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(DBSCAN.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            catch (ExecutionException ex)
+            catch (InterruptedException | ExecutionException ex)
             {
                 Logger.getLogger(DBSCAN.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -194,7 +190,7 @@ public class DBSCAN extends ClustererBase
         return cluster(dataSet, eps, minPts, vc, threadpool, designations);
     }
 
-    private List<VecPaired<Vec, Integer>> getVecIndexPairs(DataSet dataSet)
+    private static List<VecPaired<Vec, Integer>> getVecIndexPairs(DataSet dataSet)
     {
         List<VecPaired<Vec, Integer>> vecs = new ArrayList<VecPaired<Vec, Integer>>(dataSet.getSampleSize());
         for(int i = 0; i < dataSet.getSampleSize(); i++)
@@ -224,7 +220,7 @@ public class DBSCAN extends ClustererBase
         return cluster(dataSet, eps, minPts, vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm), threadpool, designations);
     }
     
-    private int[] cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, int[] pointCats )
+    private static int[] cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, int[] pointCats)
     {
         if (pointCats == null)
             pointCats = new int[dataSet.getSampleSize()];
@@ -244,7 +240,7 @@ public class DBSCAN extends ClustererBase
         return pointCats;
     }
     
-    private int[] cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, ExecutorService threadpool, int[] pointCats)
+    private static int[] cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, ExecutorService threadpool, int[] pointCats)
     {
         if(pointCats == null)
             pointCats = new int[dataSet.getSampleSize()];
@@ -293,7 +289,7 @@ public class DBSCAN extends ClustererBase
      * @param vc the collection to use to search with 
      * @return true if a cluster was expanded, false if the point was marked as noise
      */
-    private boolean expandCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc)
+    private static boolean expandCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc)
     {
         Vec queryPoint = dataSet.getDataPoint(point).getNumericalValues();
         List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> seeds = vc.search(queryPoint, eps);
@@ -330,7 +326,7 @@ public class DBSCAN extends ClustererBase
         return true;
     }
     
-    private class ClusterWorker implements Runnable
+    private static class ClusterWorker implements Runnable
     {
         private VectorCollection<VecPaired<Vec, Integer>> vc;
         private volatile List<? extends VecPaired<VecPaired<Vec, Integer>,Double>> results;
@@ -373,7 +369,7 @@ public class DBSCAN extends ClustererBase
             }
             catch (InterruptedException ex)
             {
-                Logger.getLogger(DBSCAN.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ClusterWorker.class.getName()).log(Level.SEVERE, null, ex);
             }
             
         }
@@ -394,7 +390,7 @@ public class DBSCAN extends ClustererBase
      * @param sourceQ blocking queue used to store points that need to be processed
      * @return true if a cluster was expanded, false if the point was marked as noise
      */
-    private boolean expandCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, ExecutorService threadpool, BlockingQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ, BlockingQueue<Vec> sourceQ )
+    private static boolean expandCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, ExecutorService threadpool, BlockingQueue<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> resultQ, BlockingQueue<Vec> sourceQ)
     {
         Vec queryPoint = dataSet.getDataPoint(point).getNumericalValues();
         List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> seeds = vc.search(queryPoint, eps);

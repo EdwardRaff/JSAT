@@ -23,7 +23,6 @@ import jsat.linear.Vec;
 import jsat.math.FunctionVec;
 import jsat.math.optimization.RosenbrockFunction;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -75,7 +74,7 @@ public class SGDMomentumTest
                 x0.set(i, rand.nextDouble());
 
             RosenbrockFunction f = new RosenbrockFunction();
-            FunctionVec fp = f.getDerivative();
+            FunctionVec fp = RosenbrockFunction.getDerivative();
             double eta = 0.01;
             
             SGDMomentum instance = new SGDMomentum(0.5, b);
@@ -105,7 +104,7 @@ public class SGDMomentumTest
             Vec x0 = new SubVector(0, 20, xWithBias);
 
             RosenbrockFunction f = new RosenbrockFunction();
-            FunctionVec fp = f.getDerivative();
+            FunctionVec fp = RosenbrockFunction.getDerivative();
             double eta = 0.01;
 
             SGDMomentum instance = new SGDMomentum(0.5, b);

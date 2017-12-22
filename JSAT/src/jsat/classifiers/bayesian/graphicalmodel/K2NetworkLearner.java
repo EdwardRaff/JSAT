@@ -151,7 +151,7 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
      * @param D the data set to search
      * @return the number of times the value constraints are satisfied in the data set
      */
-    private double query(int[] classes, int[] values, ClassificationDataSet D)
+    private static double query(int[] classes, int[] values, ClassificationDataSet D)
     {
         double count = 1;
         

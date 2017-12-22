@@ -1,9 +1,7 @@
 package jsat.classifiers.linear.kernelized;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+
 import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
@@ -376,7 +374,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
     private double scoreSaveEval(Vec x, List<Double> qi)
     {
         inputKEvals.clear();
-        inputKEvals.add(k.eval(0, 0, Arrays.asList(x), qi));
+        inputKEvals.add(k.eval(0, 0, Collections.singletonList(x), qi));
         double sum = 0;
         for(int i = 0; i < alphas.size(); i++)
         {

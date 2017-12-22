@@ -183,19 +183,14 @@ public class MeanShift extends ClustererBase
             
             return designations;
         }
-        catch (InterruptedException ex)
-        {
-            Logger.getLogger(MeanShift.class.getName()).log(Level.SEVERE, null, ex);
-            throw new FailedToFitException(ex);
-        }
-        catch (BrokenBarrierException ex)
+        catch (InterruptedException | BrokenBarrierException ex)
         {
             Logger.getLogger(MeanShift.class.getName()).log(Level.SEVERE, null, ex);
             throw new FailedToFitException(ex);
         }
     }
 
-    private void assignmentStep(boolean[] converged, Vec[] xit, int[] designations)
+    private static void assignmentStep(boolean[] converged, Vec[] xit, int[] designations)
     {
         //We now repurpose the 'converged' array to indicate if the point has not yet been asigned to a cluster
         
@@ -261,14 +256,7 @@ public class MeanShift extends ClustererBase
         
         final BlockingQueue<Runnable> jobs = new ArrayBlockingQueue<Runnable>(LogicalCores*2);
         
-        final ThreadLocal<Vec> localScratch = new ThreadLocal<Vec>()
-        {
-            @Override
-            protected Vec initialValue()
-            {
-                return new DenseVector(xit[0].length());
-            }
-        };
+        final ThreadLocal<Vec> localScratch = ThreadLocal.withInitial(() -> new DenseVector(xit[0].length()));
         
         while(progress && count++ < maxIterations)
         {
@@ -284,14 +272,7 @@ public class MeanShift extends ClustererBase
                 progress = true;
                 final int ii = i;
                 
-                jobs.put(new Runnable() {
-
-                    @Override
-                    public void run()
-                    {
-                        convergenceStep(xit, ii, converged, designations, localScratch.get(), k);
-                    }
-                });
+                jobs.put(() -> convergenceStep(xit, ii, converged, designations, localScratch.get(), k));
                 
             }
             

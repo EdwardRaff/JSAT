@@ -2,7 +2,7 @@ package jsat.classifiers.linear.kernelized;
 
 import static java.lang.Math.*;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import jsat.DataSet;
 import jsat.classifiers.BaseUpdateableClassifier;
@@ -17,7 +17,6 @@ import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.Vec;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
@@ -229,7 +228,7 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
             }
         }
         
-        final double k_t = k.eval(0, 0, Arrays.asList(x_t), qi);
+        final double k_t = k.eval(0, 0, Collections.singletonList(x_t), qi);
         if(w_min <= -rho)
         {
             
@@ -308,7 +307,7 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
         }   
     }
     
-    private boolean isIn(double x, double a, double b)
+    private static boolean isIn(double x, double a, double b)
     {
         return a <= x && x <= b;
     }

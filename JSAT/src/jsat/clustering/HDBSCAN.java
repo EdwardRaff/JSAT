@@ -308,14 +308,7 @@ public class HDBSCAN extends ClustererBase implements Parameterized
         for(int i = 0; i < N; i++)
             ufs.add(new UnionFind<Integer>(i));
         //sort edges from smallest weight to largest
-        PriorityQueue<Tuple3<Integer, Integer, Double>> edgeQ = new PriorityQueue<Tuple3<Integer, Integer, Double>>(2*N, new Comparator<Tuple3<Integer, Integer, Double>>()
-        {
-            @Override
-            public int compare(Tuple3<Integer, Integer, Double> o1, Tuple3<Integer, Integer, Double> o2)
-            {
-                return o1.getZ().compareTo(o2.getZ());
-            }
-        });
+        PriorityQueue<Tuple3<Integer, Integer, Double>> edgeQ = new PriorityQueue<Tuple3<Integer, Integer, Double>>(2*N, (o1, o2) -> o1.getZ().compareTo(o2.getZ()));
         edgeQ.addAll(mst_edges);
         
         //everyone starts in their own cluster!

@@ -1,7 +1,7 @@
 package jsat.classifiers.knn;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
+
 import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.classifiers.bayesian.NaiveBayesUpdateable;
@@ -264,18 +264,18 @@ public class LWL implements Classifier, Regressor, Parameterized
         return new LWL(this);
     }
 
-    private List<VecPaired<Vec, Double>> getVecList(ClassificationDataSet dataSet)
+    private static List<VecPaired<Vec, Double>> getVecList(ClassificationDataSet dataSet)
     {
         List<VecPaired<Vec, Double>> trainList = 
                 new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
         for(int i = 0; i < dataSet.getSampleSize(); i++)
             trainList.add(new VecPaired<Vec, Double>(
-                    dataSet.getDataPoint(i).getNumericalValues(), 
-                    new Double(dataSet.getDataPointCategory(i))));
+                    dataSet.getDataPoint(i).getNumericalValues(),
+                    (double) dataSet.getDataPointCategory(i)));
         return trainList;
     }
     
-    private List<VecPaired<Vec, Double>> getVecList(RegressionDataSet dataSet)
+    private static List<VecPaired<Vec, Double>> getVecList(RegressionDataSet dataSet)
     {
         List<VecPaired<Vec, Double>> trainList = 
                 new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());

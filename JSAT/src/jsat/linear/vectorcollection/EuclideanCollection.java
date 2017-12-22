@@ -77,18 +77,13 @@ public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
             final int S = start;
             final int E = id == SystemInfo.LogicalCores-1 ? dotCache.length : start + dotCache.length/SystemInfo.LogicalCores;
             start = E;
-            threadpool.submit(new Runnable() 
-            {
-                @Override
-                public void run()
+            threadpool.submit(() -> {
+                for(int i = S; i < E; i++)
                 {
-                    for(int i = S; i < E; i++)
-                    {
-                        Vec c = source.get(i);
-                        dotCache[i] = c.dot(c);
-                    }
-                    latch.countDown();
+                    Vec c = source.get(i);
+                    dotCache[i] = c.dot(c);
                 }
+                latch.countDown();
             });
         }
         try

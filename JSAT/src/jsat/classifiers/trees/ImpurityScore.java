@@ -121,32 +121,29 @@ public class ImpurityScore implements Cloneable
             return 0;
         double score = 0.0;
 
-        if (impurityMeasure == ImpurityMeasure.INFORMATION_GAIN_RATIO
-                || impurityMeasure == ImpurityMeasure.INFORMATION_GAIN
-                || impurityMeasure == ImpurityMeasure.NMI)
-        {
-            for (Double count : counts)
-            {
-                double p = count / sumOfWeights;
-                if (p > 0)
-                    score += p * log(p) / log(2);
-            }
-        }
-        else if (impurityMeasure == ImpurityMeasure.GINI)
-        {
-            score = 1;
-            for (double count : counts)
-            {
-                double p = count / sumOfWeights;
-                score -= p * p;
-            }
-        }
-        else if (impurityMeasure == ImpurityMeasure.CLASSIFICATION_ERROR)
-        {
-            double maxClass = 0;
-            for (double count : counts)
-                maxClass = Math.max(maxClass, count / sumOfWeights);
-            score = 1.0 - maxClass;
+        switch (impurityMeasure) {
+            case INFORMATION_GAIN_RATIO:
+            case INFORMATION_GAIN:
+            case NMI:
+                for (Double count : counts) {
+                    double p = count / sumOfWeights;
+                    if (p > 0)
+                        score += p * log(p) / log(2);
+                }
+                break;
+            case GINI:
+                score = 1;
+                for (double count : counts) {
+                    double p = count / sumOfWeights;
+                    score -= p * p;
+                }
+                break;
+            case CLASSIFICATION_ERROR:
+                double maxClass = 0;
+                for (double count : counts)
+                    maxClass = Math.max(maxClass, count / sumOfWeights);
+                score = 1.0 - maxClass;
+                break;
         }
 
         return abs(score);

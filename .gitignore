@@ -1,2 +1,4 @@
 /JSAT/nbproject/private/
-/JSAT/target/
+/JSAT/target/.idea
+out
+.idea/

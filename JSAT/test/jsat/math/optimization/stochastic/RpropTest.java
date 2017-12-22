@@ -21,7 +21,6 @@ import jsat.linear.*;
 import jsat.math.FunctionVec;
 import jsat.math.optimization.RosenbrockFunction;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -70,7 +69,7 @@ public class RpropTest
             x0.set(i, rand.nextDouble());
 
         RosenbrockFunction f = new RosenbrockFunction();
-        FunctionVec fp = f.getDerivative();
+        FunctionVec fp = RosenbrockFunction.getDerivative();
         double eta = 0.001;
         Rprop instance = new Rprop();
         instance.setup(x0.length());
@@ -95,7 +94,7 @@ public class RpropTest
         Vec x0 = new SubVector(0, 20, xWithBias);
 
         RosenbrockFunction f = new RosenbrockFunction();
-        FunctionVec fp = f.getDerivative();
+        FunctionVec fp = RosenbrockFunction.getDerivative();
         double eta = 0.001;
         
         

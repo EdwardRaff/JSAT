@@ -40,7 +40,7 @@ public class MajorityVote implements Classifier
      */
     public MajorityVote(List<Classifier> voters)
     {
-        this.voters = voters.toArray(new Classifier[0]);
+        this.voters = voters.toArray(new Classifier[voters.size()]);
     }
     
     @Override

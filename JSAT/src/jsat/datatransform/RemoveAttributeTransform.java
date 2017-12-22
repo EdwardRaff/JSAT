@@ -225,7 +225,7 @@ public class RemoveAttributeTransform implements DataTransform
         Vec newNumVals;
         if (numVals.isSparse())
             if (numVals instanceof SparseVector)
-                newNumVals = new SparseVector(numIndexMap.length, ((SparseVector) numVals).nnz());
+                newNumVals = new SparseVector(numIndexMap.length, numVals.nnz());
             else
                 newNumVals = new SparseVector(numIndexMap.length);
         else

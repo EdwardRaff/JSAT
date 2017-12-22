@@ -327,7 +327,7 @@ public abstract class KMeans extends KClustererBase implements Parameterized
             }
             catch (InterruptedException ex)
             {
-                Logger.getLogger(PAM.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(KMeans.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         

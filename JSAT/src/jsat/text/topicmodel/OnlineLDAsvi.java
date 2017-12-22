@@ -15,7 +15,6 @@ import jsat.linear.ScaledVector;
 import jsat.linear.SparseVector;
 import jsat.linear.Vec;
 import jsat.math.FastMath;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
@@ -167,30 +166,9 @@ public class OnlineLDAsvi implements Parameterized
         if(K < 2)
             throw new IllegalArgumentException("At least 2 topics must be learned");
         this.K = K;
-        gammaLocal = new ThreadLocal<Vec>()
-        {
-            @Override
-            protected Vec initialValue()
-            {
-                return new DenseVector(K);
-            }
-        };
-        logThetaLocal  = new ThreadLocal<Vec>()
-        {
-            @Override
-            protected Vec initialValue()
-            {
-                return new DenseVector(K);
-            }
-        };
-        expLogThetaLocal = new ThreadLocal<Vec>()
-        {
-            @Override
-            protected Vec initialValue()
-            {
-                return new DenseVector(K);
-            }
-        };
+        gammaLocal = ThreadLocal.withInitial(() -> new DenseVector(K));
+        logThetaLocal  = ThreadLocal.withInitial(() -> new DenseVector(K));
+        expLogThetaLocal = ThreadLocal.withInitial(() -> new DenseVector(K));
         
         lambda = null;
     }
@@ -376,7 +354,7 @@ public class OnlineLDAsvi implements Parameterized
      * @param sum the sum of the {@code input} vector
      * @param output the vector to store the transformed inputs in
      */
-    private void expandPsiMinusPsiSum(Vec input, double sum, Vec output)
+    private static void expandPsiMinusPsiSum(Vec input, double sum, Vec output)
     {
         double psiSum = FastMath.digamma(sum);
         for(int i = 0; i < input.length(); i++)
@@ -460,73 +438,68 @@ public class OnlineLDAsvi implements Parameterized
         for(int id = 0; id < P; id++)
         {
             final int ID = id;
-            ex.submit(new Runnable()
-            {
-                @Override
-                public void run()
+            ex.submit(() -> {
+                Random rand = RandomUtil.getRandom();
+                for(int d = ParallelUtils.getStartBlock(docs.size(), ID, P); d < ParallelUtils.getEndBlock(docs.size(), ID, P); d++)
                 {
-                    Random rand = RandomUtil.getRandom();
-                    for(int d = ParallelUtils.getStartBlock(docs.size(), ID, P); d < ParallelUtils.getEndBlock(docs.size(), ID, P); d++)
+                    final Vec doc = docs.get(d);
+                    if(doc.nnz() == 0)
+                        continue;
+                    final Vec ELogTheta_d = logThetaLocal.get();
+                    final Vec ExpELogTheta_d = expLogThetaLocal.get();
+                    final Vec gamma_d = gammaLocal.get();
+
+                    /*
+                     * Make sure gamma and theta are set up and ready to start iterating
+                     */
+                    prepareGammaTheta(gamma_d, ELogTheta_d, ExpELogTheta_d, rand);
+
+                    int[] indexMap = new int[doc.nnz()];
+                    double[] phiCols = new double[doc.nnz()];
+
+                    //φ^k_dn ∝ exp{E[logθdk]+E[logβk,wdn ]}, k ∈ {1, . . . ,K}
+                    computePhi(doc, indexMap, phiCols, K, gamma_d, ELogTheta_d, ExpELogTheta_d);
+
+                    //accumulate updates, the "M" step
+                    IntList toUpdate = new IntList(K);
+                    ListUtils.addRange(toUpdate, 0, K, 1);
+                    Collections.shuffle(toUpdate, rand);//helps reduce contention caused by shared iteration order
+                    int updatePos = 0;
+                    while(!toUpdate.isEmpty())
                     {
-                        final Vec doc = docs.get(d);
-                        if(doc.nnz() == 0)
-                            continue;
-                        final Vec ELogTheta_d = logThetaLocal.get();
-                        final Vec ExpELogTheta_d = expLogThetaLocal.get();
-                        final Vec gamma_d = gammaLocal.get();
+                        int k = toUpdate.getI(updatePos);
 
-                        /*
-                         * Make sure gamma and theta are set up and ready to start iterating 
-                         */
-                        prepareGammaTheta(gamma_d, ELogTheta_d, ExpELogTheta_d, rand);
-
-                        int[] indexMap = new int[doc.nnz()];
-                        double[] phiCols = new double[doc.nnz()];
-
-                        //φ^k_dn ∝ exp{E[logθdk]+E[logβk,wdn ]}, k ∈ {1, . . . ,K}
-                        computePhi(doc, indexMap, phiCols, K, gamma_d, ELogTheta_d, ExpELogTheta_d);
-
-                        //accumulate updates, the "M" step
-                        IntList toUpdate = new IntList(K);
-                        ListUtils.addRange(toUpdate, 0, K, 1);
-                        Collections.shuffle(toUpdate, rand);//helps reduce contention caused by shared iteration order
-                        int updatePos = 0;
-                        while(!toUpdate.isEmpty())
+                        if(lambdaLocks.get(k).tryLock())
                         {
-                            int k = toUpdate.getI(updatePos);
-                            
-                            if(lambdaLocks.get(k).tryLock())
-                            {
-                                final double coeff = ExpELogTheta_d.get(k)*rho_t*D/docs.size();
-                                final Vec lambda_k = lambda.get(k);
-                                final Vec ExpELogBeta_k = ExpELogBeta.get(k);
-                                double lambdaSum_k = lambdaSums.getD(k);
-                                
-                                /*
-                                 * iterate and incremebt ourselves so that we can also compute 
-                                 * the new sums in 1 pass
-                                 */
-                                for(int i = 0; i < doc.nnz(); i++)
-                                {
-                                    int indx = indexMap[i];
-                                    double toAdd = coeff*phiCols[i]*ExpELogBeta_k.get(indx);
-                                    lambda_k.increment(indx, toAdd);
-                                    lambdaSum_k += toAdd;
-                                }
+                            final double coeff = ExpELogTheta_d.get(k)*rho_t*D/docs.size();
+                            final Vec lambda_k = lambda.get(k);
+                            final Vec ExpELogBeta_k = ExpELogBeta.get(k);
+                            double lambdaSum_k = lambdaSums.getD(k);
 
-                                lambdaSums.set(k, lambdaSum_k);
-                                lambdaLocks.get(k).unlock();
-                                
-                                toUpdate.remove(updatePos);
+                            /*
+                             * iterate and incremebt ourselves so that we can also compute
+                             * the new sums in 1 pass
+                             */
+                            for(int i = 0; i < doc.nnz(); i++)
+                            {
+                                int indx = indexMap[i];
+                                double toAdd = coeff*phiCols[i]*ExpELogBeta_k.get(indx);
+                                lambda_k.increment(indx, toAdd);
+                                lambdaSum_k += toAdd;
                             }
-                            
-                            if(!toUpdate.isEmpty())
-                                updatePos = (updatePos+1) % toUpdate.size();
+
+                            lambdaSums.set(k, lambdaSum_k);
+                            lambdaLocks.get(k).unlock();
+
+                            toUpdate.remove(updatePos);
                         }
+
+                        if(!toUpdate.isEmpty())
+                            updatePos = (updatePos+1) % toUpdate.size();
                     }
-                    
-                    latch.countDown();
                 }
+
+                latch.countDown();
             });
             
         }
@@ -627,32 +600,26 @@ public class OnlineLDAsvi implements Parameterized
         final CountDownLatch latch = new CountDownLatch(docSplits.size());
         for(final List<Vec> docsSub :  docSplits)
         {
-            ex.submit(new Runnable()
-            {
-
-                @Override
-                public void run()
-                {
-                    for(Vec doc : docsSub)//make sure out ELogBeta is up to date
-                        for(IndexValue iv : doc)
+            ex.submit(() -> {
+                for(Vec doc : docsSub)//make sure out ELogBeta is up to date
+                    for(IndexValue iv : doc)
+                    {
+                        int indx = iv.getIndex();
+                        if(lastUsed[indx] != t)
                         {
-                            int indx = iv.getIndex();
-                            if(lastUsed[indx] != t)
+                            for(int k = 0; k < K; k++)
                             {
-                                for(int k = 0; k < K; k++)
-                                {
-                                    double lambda_kj = lambda.get(k).get(indx);
+                                double lambda_kj = lambda.get(k).get(indx);
 
-                                    double logBeta_kj = FastMath.digamma(eta+lambda_kj)-digammaLambdaSum[k];
-                                    ELogBeta.get(k).set(indx, logBeta_kj);
-                                    ExpELogBeta.get(k).set(indx, FastMath.exp(logBeta_kj));
-                                }
-                                lastUsed[indx] = t;
+                                double logBeta_kj = FastMath.digamma(eta+lambda_kj)-digammaLambdaSum[k];
+                                ELogBeta.get(k).set(indx, logBeta_kj);
+                                ExpELogBeta.get(k).set(indx, FastMath.exp(logBeta_kj));
                             }
+                            lastUsed[indx] = t;
                         }
-                    
-                    latch.countDown();
-                }
+                    }
+
+                latch.countDown();
             });
         }
         

@@ -63,30 +63,25 @@ public class LloydKernelKMeans extends KernelKMeans
             for(int id = 0; id < SystemInfo.LogicalCores; id++)
             {
                 final int ID = id;
-                threadpool.submit(new Runnable()
-                {
-                    @Override
-                    public void run()
+                threadpool.submit(() -> {
+                    for (int i = ID; i < N; i+=SystemInfo.LogicalCores)
                     {
-                        for (int i = ID; i < N; i+=SystemInfo.LogicalCores)
+                        double minDist = Double.POSITIVE_INFINITY;
+                        int min_indx = 0;
+                        for (int k = 0; k < K; k++)
                         {
-                            double minDist = Double.POSITIVE_INFINITY;
-                            int min_indx = 0;
-                            for (int k = 0; k < K; k++)
+                            double dist_k = distance(i, k, assignments);
+                            if (dist_k < minDist)
                             {
-                                double dist_k = distance(i, k, assignments);
-                                if (dist_k < minDist)
-                                {
-                                    minDist = dist_k;
-                                    min_indx = k;
-                                }
+                                minDist = dist_k;
+                                min_indx = k;
                             }
-                            
-                            newDesignations[i] = min_indx;
                         }
-                        
-                        latch.countDown();
+
+                        newDesignations[i] = min_indx;
                     }
+
+                    latch.countDown();
                 });
             }
             
@@ -103,25 +98,19 @@ public class LloydKernelKMeans extends KernelKMeans
             for(int id = 0; id < SystemInfo.LogicalCores; id++)
             {
                 final int ID = id;
-                futureChanges.add(threadpool.submit(new Callable<Integer>()
-                {
+                futureChanges.add(threadpool.submit(() -> {
+                    double[] sqrdChange = new double[K];
+                    double[] ownerChange = new double[K];
 
-                    @Override
-                    public Integer call() throws Exception
+                    int localChagne = 0;
+                    for (int i = ID; i < N; i+=SystemInfo.LogicalCores)
+                        localChagne += updateMeansFromChange(i, assignments, sqrdChange, ownerChange);
+
+                    synchronized(assignments)
                     {
-                        double[] sqrdChange = new double[K];
-                        double[] ownerChange = new double[K];
-                        
-                        int localChagne = 0;
-                        for (int i = ID; i < N; i+=SystemInfo.LogicalCores)
-                            localChagne += updateMeansFromChange(i, assignments, sqrdChange, ownerChange);
-                        
-                        synchronized(assignments)
-                        {
-                            applyMeanUpdates(sqrdChange, ownerChange);
-                        }
-                        return localChagne;
+                        applyMeanUpdates(sqrdChange, ownerChange);
                     }
+                    return localChagne;
                 }));
             }
             
@@ -131,11 +120,7 @@ public class LloydKernelKMeans extends KernelKMeans
                 for (Future<Integer> f : futureChanges)
                     changed += f.get();
             }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(LloydKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            catch (ExecutionException ex)
+            catch (InterruptedException | ExecutionException ex)
             {
                 Logger.getLogger(LloydKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
             }

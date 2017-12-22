@@ -28,7 +28,6 @@ import jsat.regression.Regressor;
 import jsat.regression.evaluation.MeanSquaredError;
 import jsat.regression.evaluation.RegressionScore;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 
 /**
  * Mean Decrease in Accuracy (MDA) measures feature importance by applying the
@@ -137,7 +136,7 @@ public class MDA implements TreeFeatureImportanceInference
      * @param rand source of randomness
      * @return the leaf node 
      */
-    private TreeNodeVisitor walkCorruptedPath(TreeLearner model, DataPoint dp, int j, Random rand)
+    private static TreeNodeVisitor walkCorruptedPath(TreeLearner model, DataPoint dp, int j, Random rand)
     {
         TreeNodeVisitor curNode = model.getTreeNodeVisitor();
         while(!curNode.isLeaf())
