@@ -83,7 +83,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
                         if(i_min <= curBest.last().getProbability())
                             ABL.add(new ProbailityMatch<RNode<V>>(i_min, N.getChild(i)));
                     }
-                    Collections.sort(ABL, Collections.reverseOrder());
+                    ABL.sort(Collections.reverseOrder());
                     stack.addAll(ABL);
                     ABL.clear();
                 }
@@ -243,8 +243,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
                 cloneChild.parent = clone;
                 clone.children.add(cloneChild);
             }
-            for(V v : points)
-                clone.points.add(v);
+            clone.points.addAll(points);
             if(this.bound != null)
                 clone.bound = this.bound.clone();
             

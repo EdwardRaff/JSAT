@@ -357,218 +357,199 @@ public class KernelPoints
         int origSize = getBasisSize();
         if(cs.nnz() == 0)
             return;
-        
-        if(budgetStrategy == KernelPoint.BudgetStrategy.PROJECTION)
-        {
-            for(IndexValue iv : cs)
-            {
-                int k = iv.getIndex(); 
-                KernelPoint kp_k = points.get(k);
-                double c = iv.getValue();
-                if(kp_k.getBasisSize() == 0)//Special case, init people
-                {
-                    kp_k.mutableAdd(c, x_t, qi);
-                    //That initializes the structure, now we need to make people point to the same ones
-                    for(int i = 0; i < points.size(); i++)
+
+        switch (budgetStrategy) {
+            case PROJECTION:
+                for (IndexValue iv : cs) {
+                    int k = iv.getIndex();
+                    KernelPoint kp_k = points.get(k);
+                    double c = iv.getValue();
+                    if (kp_k.getBasisSize() == 0)//Special case, init people
                     {
-                        if(i == k)
-                            continue;
-                        KernelPoint kp_i = points.get(i);
-                        standardMove(kp_i, kp_k);
-
-                        //Only done one time since structures are mutable
-                        kp_i.kernelAccel = kp_k.kernelAccel;
-                        kp_i.vecs = kp_k.vecs;
-                        //and then everyone gets their own private alphas added too
-                        kp_i.alpha = new DoubleList(16);
-                        kp_i.alpha.add(0.0);
-                    }
-                }
-                else//standard case
-                {
-                    kp_k.mutableAdd(c, x_t, qi);
-                    if(origSize != kp_k.getBasisSize())//update kernels & add alpha
-                    {
-                        for(int i = 0; i < points.size(); i++)
-                            if(i != k)
-                            {
-                                KernelPoint kp_i = points.get(i);
-                                standardMove(kp_i, kp_k);
-                                kp_i.alpha.add(0.0);
-                            }
-                    }
-                }
-                
-                origSize = getBasisSize();//may have changed, but only once
-            }
-        }
-        else if (budgetStrategy == KernelPoint.BudgetStrategy.MERGE_RBF)
-        {
-            Iterator<IndexValue> cIter = cs.getNonZeroIterator();
-            if (getBasisSize() < maxBudget)
-            {
-                IndexValue firstIndx = cIter.next();
-                KernelPoint kp_k = points.get(firstIndx.getIndex());
-                kp_k.mutableAdd(firstIndx.getValue(), x_t, qi);
-                //fill in the non zeros
-                while (cIter.hasNext())
-                {
-                    IndexValue iv = cIter.next();
-                    points.get(iv.getIndex()).alpha.add(iv.getValue());
-                }
-                addMissingZeros();
-            }
-            else//we are going to exceed the budget
-            {
-                KernelPoint kp_k = points.get(0);
-
-                //inser the new vector before merging
-                kp_k.vecs.add(x_t);
-                if (kp_k.kernelAccel != null)
-                    kp_k.kernelAccel.addAll(qi);
-                for (IndexValue iv : cs)
-                    points.get(iv.getIndex()).alpha.add(iv.getValue());
-                addMissingZeros();
-
-                //now go through and merge
-                /*
-                 * we use the same approximation method as in projection 
-                 * (Section 4.2) by fixing m as theSV with the smallest value
-                 * of || α_m ||^2
-                 */
-                int m = 0;
-                double alpha_m = 0;
-                for (KernelPoint kp : points)
-                    alpha_m += pow(kp.alpha.getD(m), 2);
-                for (int i = 1; i < kp_k.alpha.size(); i++)
-                {
-                    double tmp = 0;
-                    for (KernelPoint kp : points)
-                        tmp += pow(kp.alpha.getD(i), 2);
-                    if (tmp < alpha_m)
-                    {
-                        alpha_m = tmp;
-                        m = i;
-                    }
-                }
-
-
-                double minLoss = Double.POSITIVE_INFINITY;
-                int n = -1;
-                double n_h = 0;
-                double tol = 1e-3;
-                double n_k_mz = 0;
-                double n_k_nz = 0;
-                while (n == -1)
-                {
-                    for (int i = 0; i < kp_k.alpha.size(); i++)
-                    {
-                        if (i == m)
-                            continue;
-                        double a_m = 0, a_n = 0;
-                        for (KernelPoint kp : points)
-                        {
-                            double a1 = kp.alpha.getD(m);
-                            double a2 = kp.alpha.getD(i);
-                            double normalize = a1 + a2;
-                            if (normalize < 1e-7)
+                        kp_k.mutableAdd(c, x_t, qi);
+                        //That initializes the structure, now we need to make people point to the same ones
+                        for (int i = 0; i < points.size(); i++) {
+                            if (i == k)
                                 continue;
-                            a_m += a1 / normalize;
-                            a_n += a2 / normalize;
+                            KernelPoint kp_i = points.get(i);
+                            standardMove(kp_i, kp_k);
+
+                            //Only done one time since structures are mutable
+                            kp_i.kernelAccel = kp_k.kernelAccel;
+                            kp_i.vecs = kp_k.vecs;
+                            //and then everyone gets their own private alphas added too
+                            kp_i.alpha = new DoubleList(16);
+                            kp_i.alpha.add(0.0);
                         }
-                        if (abs(a_m + a_n) < tol)//avoid alphas that nearly cancle out
-                            break;
-                        double k_mn = this.k.eval(i, m, kp_k.vecs, kp_k.kernelAccel);
-
-                        double h = getH(k_mn, a_m, a_n);
-
-                        /*
-                         * we can get k(m, z) without forming z when using RBF
-                         * 
-                         * exp(-(m-z)^2) = exp(-(m- (h m+(1-h) n))^2 ) = 
-                         * exp(-(x-y)^2(h-1)^2) = exp((x-y)^2)^(h-1)^2
-                         * 
-                         * and since: 0 < h < 1 (h-1)^2 = (1-h)^2
-                         */
-                        double k_mz = pow(k_mn, (1 - h) * (1 - h));
-                        double k_nz = pow(k_mn, h * h);
-
-                        //TODO should we fall back to forming z if we use a non RBF kernel?
-
-                        double loss = 0;
-                        /*
-                         * Determin the best by the smallest change in norm, 2x2 
-                         * matrix for the original alphs and alpha_z on its own
-                         */
-                        for (KernelPoint kp : points)
+                    } else//standard case
+                    {
+                        kp_k.mutableAdd(c, x_t, qi);
+                        if (origSize != kp_k.getBasisSize())//update kernels & add alpha
                         {
-                            double aml = kp.alpha.getD(m);
-                            double anl = kp.alpha.getD(i);
-                            double alpha_z = aml * k_mz + anl * k_nz;
-
-                            loss += aml * aml + anl * anl
-                                    + 2 * k_mn * aml * anl
-                                    - alpha_z * alpha_z;
-                        }
-
-                        if (loss < minLoss)
-                        {
-                            minLoss = loss;
-                            n = i;
-                            n_h = h;
-                            n_k_mz = k_mz;
-                            n_k_nz = k_nz;
+                            for (int i = 0; i < points.size(); i++)
+                                if (i != k) {
+                                    KernelPoint kp_i = points.get(i);
+                                    standardMove(kp_i, kp_k);
+                                    kp_i.alpha.add(0.0);
+                                }
                         }
                     }
-                    tol /= 10;
-                }
 
-                Vec n_z = kp_k.vecs.get(m).multiply(n_h);
-                n_z.mutableAdd(1 - n_h, kp_k.vecs.get(n));
-                final List<Double> nz_qi = this.k.getQueryInfo(n_z);
-                for (int z = 0; z < points.size(); z++)
+                    origSize = getBasisSize();//may have changed, but only once
+                }
+                break;
+            case MERGE_RBF:
+                Iterator<IndexValue> cIter = cs.getNonZeroIterator();
+                if (getBasisSize() < maxBudget) {
+                    IndexValue firstIndx = cIter.next();
+                    KernelPoint kp_k = points.get(firstIndx.getIndex());
+                    kp_k.mutableAdd(firstIndx.getValue(), x_t, qi);
+                    //fill in the non zeros
+                    while (cIter.hasNext()) {
+                        IndexValue iv = cIter.next();
+                        points.get(iv.getIndex()).alpha.add(iv.getValue());
+                    }
+                    addMissingZeros();
+                } else//we are going to exceed the budget
                 {
-                    KernelPoint kp = points.get(z);
-                    double aml = kp.alpha.getD(m);
-                    double anl = kp.alpha.getD(n);
-                    double alpha_z = aml * n_k_mz + anl * n_k_nz;
-                    kp.finalMergeStep(m, n, n_z, nz_qi, alpha_z, z == 0);
-                }
+                    KernelPoint kp_k = points.get(0);
 
-            }
-        }
-        else if (budgetStrategy == KernelPoint.BudgetStrategy.STOP)
-        {
-            if(getBasisSize() < maxBudget)
-            {
+                    //inser the new vector before merging
+                    kp_k.vecs.add(x_t);
+                    if (kp_k.kernelAccel != null)
+                        kp_k.kernelAccel.addAll(qi);
+                    for (IndexValue iv : cs)
+                        points.get(iv.getIndex()).alpha.add(iv.getValue());
+                    addMissingZeros();
+
+                    //now go through and merge
+                    /*
+                     * we use the same approximation method as in projection
+                     * (Section 4.2) by fixing m as theSV with the smallest value
+                     * of || α_m ||^2
+                     */
+                    int m = 0;
+                    double alpha_m = 0;
+                    for (KernelPoint kp : points)
+                        alpha_m += pow(kp.alpha.getD(m), 2);
+                    for (int i = 1; i < kp_k.alpha.size(); i++) {
+                        double tmp = 0;
+                        for (KernelPoint kp : points)
+                            tmp += pow(kp.alpha.getD(i), 2);
+                        if (tmp < alpha_m) {
+                            alpha_m = tmp;
+                            m = i;
+                        }
+                    }
+
+
+                    double minLoss = Double.POSITIVE_INFINITY;
+                    int n = -1;
+                    double n_h = 0;
+                    double tol = 1e-3;
+                    double n_k_mz = 0;
+                    double n_k_nz = 0;
+                    while (n == -1) {
+                        for (int i = 0; i < kp_k.alpha.size(); i++) {
+                            if (i == m)
+                                continue;
+                            double a_m = 0, a_n = 0;
+                            for (KernelPoint kp : points) {
+                                double a1 = kp.alpha.getD(m);
+                                double a2 = kp.alpha.getD(i);
+                                double normalize = a1 + a2;
+                                if (normalize < 1e-7)
+                                    continue;
+                                a_m += a1 / normalize;
+                                a_n += a2 / normalize;
+                            }
+                            if (abs(a_m + a_n) < tol)//avoid alphas that nearly cancle out
+                                break;
+                            double k_mn = this.k.eval(i, m, kp_k.vecs, kp_k.kernelAccel);
+
+                            double h = getH(k_mn, a_m, a_n);
+
+                            /*
+                             * we can get k(m, z) without forming z when using RBF
+                             *
+                             * exp(-(m-z)^2) = exp(-(m- (h m+(1-h) n))^2 ) =
+                             * exp(-(x-y)^2(h-1)^2) = exp((x-y)^2)^(h-1)^2
+                             *
+                             * and since: 0 < h < 1 (h-1)^2 = (1-h)^2
+                             */
+                            double k_mz = pow(k_mn, (1 - h) * (1 - h));
+                            double k_nz = pow(k_mn, h * h);
+
+                            //TODO should we fall back to forming z if we use a non RBF kernel?
+
+                            double loss = 0;
+                            /*
+                             * Determin the best by the smallest change in norm, 2x2
+                             * matrix for the original alphs and alpha_z on its own
+                             */
+                            for (KernelPoint kp : points) {
+                                double aml = kp.alpha.getD(m);
+                                double anl = kp.alpha.getD(i);
+                                double alpha_z = aml * k_mz + anl * k_nz;
+
+                                loss += aml * aml + anl * anl
+                                        + 2 * k_mn * aml * anl
+                                        - alpha_z * alpha_z;
+                            }
+
+                            if (loss < minLoss) {
+                                minLoss = loss;
+                                n = i;
+                                n_h = h;
+                                n_k_mz = k_mz;
+                                n_k_nz = k_nz;
+                            }
+                        }
+                        tol /= 10;
+                    }
+
+                    Vec n_z = kp_k.vecs.get(m).multiply(n_h);
+                    n_z.mutableAdd(1 - n_h, kp_k.vecs.get(n));
+                    final List<Double> nz_qi = this.k.getQueryInfo(n_z);
+                    for (int z = 0; z < points.size(); z++) {
+                        KernelPoint kp = points.get(z);
+                        double aml = kp.alpha.getD(m);
+                        double anl = kp.alpha.getD(n);
+                        double alpha_z = aml * n_k_mz + anl * n_k_nz;
+                        kp.finalMergeStep(m, n, n_z, nz_qi, alpha_z, z == 0);
+                    }
+
+                }
+                break;
+            case STOP:
+                if (getBasisSize() < maxBudget) {
+                    this.points.get(0).vecs.add(x_t);
+                    if (this.points.get(0).kernelAccel != null)
+                        this.points.get(0).kernelAccel.addAll(qi);
+                    for (IndexValue iv : cs)
+                        this.points.get(iv.getIndex()).alpha.add(iv.getValue());
+                    addMissingZeros();
+                }
+                break;
+            case RANDOM:
+                if (getBasisSize() >= maxBudget) {
+                    int toRemove = RandomUtil.getRandom().nextInt(getBasisSize());
+                    if (getBasisSize() == maxBudget)
+                        this.points.get(0).removeIndex(toRemove);//now remove alpha from others
+                    for (int i = 1; i < this.points.size(); i++)
+                        this.points.get(i).removeIndex(toRemove);
+                }
+                //now add the point
                 this.points.get(0).vecs.add(x_t);
-                if(this.points.get(0).kernelAccel != null)
+                if (this.points.get(0).kernelAccel != null)
                     this.points.get(0).kernelAccel.addAll(qi);
-                for(IndexValue iv : cs)
+                for (IndexValue iv : cs)
                     this.points.get(iv.getIndex()).alpha.add(iv.getValue());
                 addMissingZeros();
-            }
+                break;
+            default:
+                throw new RuntimeException("BUG: Report Me!");
         }
-        else if(budgetStrategy == KernelPoint.BudgetStrategy.RANDOM)
-        {
-            if(getBasisSize() >= maxBudget)
-            {
-                int toRemove = RandomUtil.getRandom().nextInt(getBasisSize());
-                if (getBasisSize() == maxBudget)
-                    this.points.get(0).removeIndex(toRemove);//now remove alpha from others
-                for (int i = 1; i < this.points.size(); i++)
-                    this.points.get(i).removeIndex(toRemove);
-            }
-            //now add the point 
-            this.points.get(0).vecs.add(x_t);
-            if (this.points.get(0).kernelAccel != null)
-                this.points.get(0).kernelAccel.addAll(qi);
-            for (IndexValue iv : cs)
-                this.points.get(iv.getIndex()).alpha.add(iv.getValue());
-            addMissingZeros();
-        }
-        else
-            throw new RuntimeException("BUG: Report Me!");
     }
     
     /**
@@ -598,7 +579,7 @@ public class KernelPoints
      * @param destination the destination object
      * @param source the source object 
      */
-    private void standardMove(KernelPoint destination, KernelPoint source)
+    private static void standardMove(KernelPoint destination, KernelPoint source)
     {
         destination.InvK = source.InvK;
         destination.InvKExpanded = source.InvKExpanded;

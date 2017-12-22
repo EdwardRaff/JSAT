@@ -231,7 +231,7 @@ public class MiniBatchKMeans extends KClustererBase
             if (dm.supportsAcceleration())
                 meanQIs.add(dm.getQueryInfo(means.get(i)));
             else
-                meanQIs.add(Collections.EMPTY_LIST);
+                meanQIs.add(Collections.<Double>emptyList());
 
         final int[] v = new int[means.size()];
         
@@ -262,31 +262,26 @@ public class MiniBatchKMeans extends KClustererBase
                     final int s = start;
                     final int end = start + blockSize + (extra-- > 0 ? 1 : 0);
                     start = end;
-                    threadpool.submit(new Runnable()
-                    {
-                        @Override
-                        public void run()
+                    threadpool.submit(() -> {
+                        double tmp;
+                        for (int i = s; i < end; i++)
                         {
-                            double tmp;
-                            for (int i = s; i < end; i++)
+                            double minDist = Double.POSITIVE_INFINITY;
+                            int min = -1;
+
+                            for (int j = 0; j < means.size(); j++)
                             {
-                                double minDist = Double.POSITIVE_INFINITY;
-                                int min = -1;
-                                
-                                for (int j = 0; j < means.size(); j++)
+                                tmp = dm.dist(M.get(i), means.get(j), meanQIs.get(j), source, distCache);
+
+                                if (tmp < minDist)
                                 {
-                                    tmp = dm.dist(M.get(i), means.get(j), meanQIs.get(j), source, distCache);
-                                    
-                                    if (tmp < minDist)
-                                    {
-                                        minDist = tmp;
-                                        min = j;
-                                    }
+                                    minDist = tmp;
+                                    min = j;
                                 }
-                                nearestCenter[i] = min;
                             }
-                            latch.countDown();
+                            nearestCenter[i] = min;
                         }
+                        latch.countDown();
                     });
                 }
                 
@@ -331,33 +326,28 @@ public class MiniBatchKMeans extends KClustererBase
             final int end = start + blockSize + (extra-- > 0 ? 1 : 0);
             start = end;
 
-            futures.add(threadpool.submit(new Callable<Double>()
-            {
-                @Override
-                public Double call() throws Exception
+            futures.add(threadpool.submit(() -> {
+                double dists = 0;
+                double tmp;
+                for (int i = s; i < end; i++)
                 {
-                    double dists = 0;
-                    double tmp;
-                    for (int i = s; i < end; i++)
+                    double minDist = Double.POSITIVE_INFINITY;
+                    int min = -1;
+                    for (int j = 0; j < means.size(); j++)
                     {
-                        double minDist = Double.POSITIVE_INFINITY;
-                        int min = -1;
-                        for (int j = 0; j < means.size(); j++)
-                        {
-                            tmp = dm.dist(i, means.get(j), meanQIs.get(j), source, distCache);
+                        tmp = dm.dist(i, means.get(j), meanQIs.get(j), source, distCache);
 
-                            if (tmp < minDist)
-                            {
-                                minDist = tmp;
-                                min = j;
-                            }
+                        if (tmp < minDist)
+                        {
+                            minDist = tmp;
+                            min = j;
                         }
-                        
-                        des[i] = min;
-                        dists += minDist*minDist;
                     }
-                    return dists;
+
+                    des[i] = min;
+                    dists += minDist*minDist;
                 }
+                return dists;
             }));
         }
 
@@ -368,11 +358,7 @@ public class MiniBatchKMeans extends KClustererBase
             for (Future<Double> future : futures)
                 sumErr += future.get();
         }
-        catch (InterruptedException ex)
-        {
-            Logger.getLogger(MiniBatchKMeans.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        catch (ExecutionException ex)
+        catch (InterruptedException | ExecutionException ex)
         {
             Logger.getLogger(MiniBatchKMeans.class.getName()).log(Level.SEVERE, null, ex);
         }

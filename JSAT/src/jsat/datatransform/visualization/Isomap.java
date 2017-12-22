@@ -183,27 +183,21 @@ public class Isomap implements VisualizationTransform
         for(int id = 0; id < SystemInfo.LogicalCores; id++)
         {
             final int ID = id;
-            ex.submit(new Runnable()
-            {
-
-                @Override
-                public void run()
+            ex.submit(() -> {
+                for (int i = ID; i < N; i+=SystemInfo.LogicalCores)
                 {
-                    for (int i = ID; i < N; i+=SystemInfo.LogicalCores)
+                    List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = vc.search(vecs.get(i).getVector(), knn);
+                    neighborGraph.set(i, neighbors);
+                    //Compute stats that may be used for c-isomap version
+                    for (int z = 1; z < neighbors.size(); z++)
                     {
-                        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = vc.search(vecs.get(i).getVector(), knn);
-                        neighborGraph.set(i, neighbors);
-                        //Compute stats that may be used for c-isomap version
-                        for (int z = 1; z < neighbors.size(); z++)
-                        {
-                            VecPaired<VecPaired<Vec, Integer>, Double> neighbor = neighbors.get(z);
-                            double dist = neighbor.getPair();
-                            avgNeighborDist[i] += dist;
-                        }
-                        avgNeighborDist[i] /= (neighbors.size()-1);
+                        VecPaired<VecPaired<Vec, Integer>, Double> neighbor = neighbors.get(z);
+                        double dist = neighbor.getPair();
+                        avgNeighborDist[i] += dist;
                     }
-                    latch1.countDown();
+                    avgNeighborDist[i] /= (neighbors.size()-1);
                 }
+                latch1.countDown();
             });
         }
         
@@ -231,25 +225,18 @@ public class Isomap implements VisualizationTransform
         for(int id = 0; id < SystemInfo.LogicalCores; id++)
         {
             final int ID = id;
-            ex.submit(new Runnable()
-            {
-
-                @Override
-                public void run()
+            ex.submit(() -> {
+                for (int k = ID; k < N; k += SystemInfo.LogicalCores)
                 {
-                    for (int k = ID; k < N; k += SystemInfo.LogicalCores)
+                    double[] tmp_dist = dijkstra(neighborGraph, k);
+                    for (int i = 0; i < N; i++)
                     {
-                        double[] tmp_dist = dijkstra(neighborGraph, k);
-                        for (int i = 0; i < N; i++)
-                        {
-                            tmp_dist[i] = Math.min(tmp_dist[i], delta.get(k, i));
-                            delta.set(i, k, tmp_dist[i]);
-                            delta.set(k, i, tmp_dist[i]);
-                        }
+                        tmp_dist[i] = Math.min(tmp_dist[i], delta.get(k, i));
+                        delta.set(i, k, tmp_dist[i]);
+                        delta.set(k, i, tmp_dist[i]);
                     }
-                    latch2.countDown();
                 }
-
+                latch2.countDown();
             });
         }
         
@@ -276,26 +263,20 @@ public class Isomap implements VisualizationTransform
         for(int id = 0; id < SystemInfo.LogicalCores; id++)
         {
             final int ID = id;
-            ex.submit(new Runnable()
-            {
-
-                @Override
-                public void run()
+            ex.submit(() -> {
+                for (int i = ID; i < N; i += SystemInfo.LogicalCores)
                 {
-                    for (int i = ID; i < N; i += SystemInfo.LogicalCores)
+                    for (int j = i + 1; j < N; j++)
                     {
-                        for (int j = i + 1; j < N; j++)
+                        double d_ij = delta.get(i, j);
+                        if (d_ij >= Double.MAX_VALUE)//replace with the normal distance + 1 order of magnitude?
                         {
-                            double d_ij = delta.get(i, j);
-                            if (d_ij >= Double.MAX_VALUE)//replace with the normal distance + 1 order of magnitude? 
-                            {
-                                d_ij = 10*dm.dist(i, j, vecs, cache)+1.5*largest_natural_dist;
-                                delta.set(i, j, d_ij);
-                                delta.set(j, i, d_ij);
-                            }
+                            d_ij = 10*dm.dist(i, j, vecs, cache)+1.5*largest_natural_dist;
+                            delta.set(i, j, d_ij);
+                            delta.set(j, i, d_ij);
                         }
-                        latch3.countDown();
                     }
+                    latch3.countDown();
                 }
             });
         }
@@ -316,7 +297,7 @@ public class Isomap implements VisualizationTransform
         return (Type) transformed;
     }
 
-    private double[] dijkstra(List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> neighborGraph, int sourceIndex)
+    private static double[] dijkstra(List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> neighborGraph, int sourceIndex)
     {
         //TODO generalize and move this out into some other class as a static method 
         final int N = neighborGraph.size();

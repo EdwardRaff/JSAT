@@ -23,7 +23,6 @@ import jsat.linear.Vec;
 import jsat.math.FunctionVec;
 import jsat.math.optimization.RosenbrockFunction;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -72,7 +71,7 @@ public class AdamTest
             x0.set(i, rand.nextDouble());
 
         RosenbrockFunction f = new RosenbrockFunction();
-        FunctionVec fp = f.getDerivative();
+        FunctionVec fp = RosenbrockFunction.getDerivative();
         double eta = 1.0;
         Adam instance = new Adam();
         instance.setup(x0.length());
@@ -97,7 +96,7 @@ public class AdamTest
         Vec x0 = new SubVector(0, 20, xWithBias);
 
         RosenbrockFunction f = new RosenbrockFunction();
-        FunctionVec fp = f.getDerivative();
+        FunctionVec fp = RosenbrockFunction.getDerivative();
         double eta = 1.0;
         
         

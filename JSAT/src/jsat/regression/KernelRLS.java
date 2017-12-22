@@ -2,6 +2,7 @@ package jsat.regression;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.CategoricalData;
@@ -208,7 +209,7 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
         Vec x_t = dataPoint.getNumericalValues();
         
         final List<Double> qi = k.getQueryInfo(x_t);
-        final double k_tt = k.eval(0, 0, Arrays.asList(x_t), qi);
+        final double k_tt = k.eval(0, 0, Collections.singletonList(x_t), qi);
         
         if(K == null)//first point to be added
         {

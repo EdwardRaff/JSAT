@@ -106,28 +106,13 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
         this.slotsPerEntry = toCopy.slotsPerEntry;
         this.vecs = new ArrayList<V>(toCopy.vecs);
         
-        this.tempVecs = new ThreadLocal<Vec>()
-        {
-
-            @Override
-            protected Vec initialValue()
-            {
-                return new DenseVector(randProjMatrix.rows());
-            }
-        };
+        this.tempVecs = ThreadLocal.withInitial(() -> new DenseVector(randProjMatrix.rows()));
     }
 
     private void setUpVecs(final List<V> vecs)
     {
         this.vecs = vecs;
-        tempVecs = new ThreadLocal<Vec>()
-        {
-            @Override
-            protected Vec initialValue()
-            {
-                return new DenseVector(randProjMatrix.rows());
-            }
-        };
+        tempVecs = ThreadLocal.withInitial(() -> new DenseVector(randProjMatrix.rows()));
                 
         slotsPerEntry = randProjMatrix.rows()/Integer.SIZE;
         

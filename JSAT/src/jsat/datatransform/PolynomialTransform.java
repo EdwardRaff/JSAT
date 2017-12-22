@@ -88,7 +88,7 @@ public class PolynomialTransform implements DataTransform
      * @param curCount the current sum of all counts in the array <tt>setTo</tt>
      * @return the new value of <tt>curCount</tt>
      */
-    private int increment(int[] setTo, int max, int curCount)
+    private static int increment(int[] setTo, int max, int curCount)
     {
         setTo[0]++;
         curCount++;

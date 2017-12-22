@@ -56,7 +56,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
         this.k = k;
     }
     
-    public int getNeighbors(int k)
+    public static int getNeighbors(int k)
     {
         return k;
     }

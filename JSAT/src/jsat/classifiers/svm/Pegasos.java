@@ -1,17 +1,15 @@
 package jsat.classifiers.svm;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
+
 import jsat.DataSet;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.*;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.distributions.Distribution;
-import jsat.distributions.Gamma;
 import jsat.distributions.LogUniform;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.*;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
@@ -271,13 +269,7 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
                 miniBatch.clear();
                 miniBatch.addAll(randOrder.subList(indx, Math.min(indx+batchSize, m)));
                 //Filter to only the points that have the correct label
-                Iterator<Integer> iter = miniBatch.iterator();
-                while (iter.hasNext())
-                {
-                    int i = iter.next();
-                    if (getSign(dataSet, i) * (w.dot(getX(dataSet, i)) + bias) >= 1)
-                        iter.remove();
-                }
+                miniBatch.removeIf(i -> getSign(dataSet, i) * (w.dot(getX(dataSet, i)) + bias) >= 1);
 
                 final double nt = 1.0 / (reg * t);
 
@@ -309,12 +301,12 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
         return false;
     }
 
-    private Vec getX(ClassificationDataSet dataSet, int i)
+    private static Vec getX(ClassificationDataSet dataSet, int i)
     {
         return dataSet.getDataPoint(i).getNumericalValues();
     }
 
-    private double getSign(ClassificationDataSet dataSet, int i)
+    private static double getSign(ClassificationDataSet dataSet, int i)
     {
         return dataSet.getDataPointCategory(i) == 1 ? 1.0 : -1.0;
     }

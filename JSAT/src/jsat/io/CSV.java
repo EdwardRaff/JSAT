@@ -334,92 +334,86 @@ public class CSV
         
         List<Vec> all_vecs = new ArrayList<Vec>();
         List<int[]> all_cats = new ArrayList<int[]>();
-        
-        while(true)
-        {
-            
-            while(charBuffer.length()-position <= 1)//make sure we have chars to handle
+
+        label:
+        while (true) {
+
+            while (charBuffer.length() - position <= 1)//make sure we have chars to handle
             {
                 //move everything to the front
                 charBuffer.delete(0, position);
                 position = 0;
-                
+
                 int read = reader.read(read_buffer);
-                if(read < 0)
+                if (read < 0)
                     break;
                 charBuffer.append(read_buffer, 0, read);
             }
-            
-            if(charBuffer.length()-position == 0)//EOF, no more chars
+
+            if (charBuffer.length() - position == 0)//EOF, no more chars
             {
                 //Look at the last state we were in before EOF
-                if(state == STATE.NEWLINE)
-                {
-                    //nothing to do and everything already processed, just return
-                    break;
+                switch (state) {
+                    case NEWLINE:
+                        //nothing to do and everything already processed, just return
+                        break label;
+                    case COMMENT:
+                        break label;
+
+                    case VALUE:
+//line ended in the middle of processing
+
+                        charBuffer.append("\n");//append the wanted newline and let it run thought like normal
+
+                        break;
+                    default:
+                        throw new RuntimeException();
                 }
-                else if(state == STATE.COMMENT)
-                {
-                    break;///nothing to do, values should have already been added once we transition to comment state
-                }
-                else if(state == STATE.VALUE)//line ended in the middle of processing
-                {
-                    charBuffer.append("\n");//append the wanted newline and let it run thought like normal
-                }
-                else
-                    throw new RuntimeException();
-                
+
             }
-            
+
             //Normal processing of states
             char ch = charBuffer.charAt(position);
-            switch(state)
-            {
+            switch (state) {
                 case INITIAL:
-                    if(lines_to_skip > 0)
-                        state =  STATE.SKIPPING_ROWS;
+                    if (lines_to_skip > 0)
+                        state = STATE.SKIPPING_ROWS;
                     else
                         state = STATE.VALUE;
                     break;
                 case COMMENT://comment behaves basically the same as SKIPPING ROWS
                 case SKIPPING_ROWS:
-                    if(isNewLine(ch))
-                    {
-                        if(state == STATE.SKIPPING_ROWS)
+                    if (isNewLine(ch)) {
+                        if (state == STATE.SKIPPING_ROWS)
                             lines_to_skip--;
                         state = STATE.NEWLINE;
-                    }
-                    else
-                    {
+                    } else {
                         //keep moving till we hit a new line
                         position++;
                     }
                     break;
                 case VALUE:
-                    
-                    if(ch == delimiter || isNewLine(ch) || ch == comment )
-                    {
+
+                    if (ch == delimiter || isNewLine(ch) || ch == comment) {
                         //trim all the white space from the end of what we have been reading
-                        while(processBuffer.length() > 0 && isWhitespace(processBuffer.charAt(processBuffer.length()-1)))
-                            processBuffer.setLength(processBuffer.length()-1);
-                        
+                        while (processBuffer.length() > 0 && isWhitespace(processBuffer.charAt(processBuffer.length() - 1)))
+                            processBuffer.setLength(processBuffer.length() - 1);
+
                         //clean up the value we are looking at
-                        if(cat_col.contains(cur_column) || cur_column == cat_target)
-                        {
+                        if (cat_col.contains(cur_column) || cur_column == cat_target) {
                             Map<String, Integer> map = (cur_column == cat_target) ? seenCats_target : seenCats.get(cur_column);
                             String cat_op = processBuffer.toString();
                             processBuffer.setLength(0);
-                            
+
                             int val;
-                            if(cat_op.length() == 0)
+                            if (cat_op.length() == 0)
                                 val = -1;
-                            else
-                            {
-                                if(!map.containsKey(cat_op))
+                            else {
+                                if (!map.containsKey(cat_op))
                                     map.put(cat_op, map.size());
                                 val = map.get(cat_op);
                             }
-                       
+
                             if (cur_column == cat_target)
                                 if (val == -1)
                                     throw new RuntimeException("Categorical column can't have missing values!");
@@ -427,63 +421,56 @@ public class CSV
                                     catTargets.add(val);
                             else
                                 catFeats.add(val);
-                            
 
-                            if(cur_column != cat_target)
-                                cat_indx_to_csv_column.put(catFeats.size()-1, cur_column);
-                        }
-                        else//numeric feature
+
+                            if (cur_column != cat_target)
+                                cat_indx_to_csv_column.put(catFeats.size() - 1, cur_column);
+                        } else//numeric feature
                         {
                             double val;
-                            if(processBuffer.length() == 0)
+                            if (processBuffer.length() == 0)
                                 val = Double.NaN;
                             else
                                 val = StringUtils.parseDouble(processBuffer, 0, processBuffer.length());
                             processBuffer.setLength(0);
-                            if(cur_column == numeric_target)
-                            {
+                            if (cur_column == numeric_target) {
                                 regressionTargets.add(val);
-                            }
-                            else//normal storage
+                            } else//normal storage
                             {
                                 numericFeats.add(val);
                             }
                         }
-                        
+
                         //now do the state transitions
-                        if(ch == delimiter)
+                        if (ch == delimiter)
                             state = STATE.DELIMITER;
-                        else
-                        {
-                            if(ch == comment)
+                        else {
+                            if (ch == comment)
                                 state = STATE.COMMENT;
                             else
                                 state = STATE.NEWLINE;
-                            
-                            if(totalCols < 0)
-                                totalCols = cur_column+1;
-                            else if(totalCols != cur_column+1)
+
+                            if (totalCols < 0)
+                                totalCols = cur_column + 1;
+                            else if (totalCols != cur_column + 1)
                                 throw new RuntimeException("Inconsistent number of columns in CSV");
-                            
+
                             //add out stuff to the list 
                             all_vecs.add(new DenseVector(numericFeats));
                             int[] cat_vals = new int[catFeats.size()];
-                            for(int i = 0; i <cat_vals.length; i++)
+                            for (int i = 0; i < cat_vals.length; i++)
                                 cat_vals[i] = catFeats.getI(i);
                             all_cats.add(cat_vals);
-                            
+
                             numericFeats.clear();
                             catFeats.clear();
                         }
-                    }
-                    else//process a character value
+                    } else//process a character value
                     {
-                        if(processBuffer.length() == 0 && Character.isWhitespace(ch))
-                        {
+                        if (processBuffer.length() == 0 && Character.isWhitespace(ch)) {
                             //don't add leading whitespace to the buffer, just move to next char
                             position++;
-                        }
-                        else//normal value, add to buffer and increment to next char
+                        } else//normal value, add to buffer and increment to next char
                         {
                             processBuffer.append(ch);
                             position++;
@@ -492,16 +479,14 @@ public class CSV
 
                     break;
                 case DELIMITER:
-                    
-                    if(ch == delimiter)
-                    {
+
+                    if (ch == delimiter) {
                         position++;
                         cur_column++;
                         state = STATE.VALUE;
-                    }
-                    else
+                    } else
                         throw new RuntimeException("BAD CSV");//how did we get here?
-                    
+
                     break;
                 case NEWLINE:
                     cur_column = 0;
@@ -509,13 +494,10 @@ public class CSV
                         position++;
                     else//now we move to next state
                     {
-                        if (lines_to_skip > 0)
-                        {
+                        if (lines_to_skip > 0) {
                             //keep skipping until we are out of lines to skip
                             state = STATE.SKIPPING_ROWS;
-                        }
-                        else
-                        {
+                        } else {
                             state = STATE.VALUE;
                         }
                     }

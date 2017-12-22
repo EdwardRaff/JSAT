@@ -18,13 +18,10 @@ package jsat.math.optimization.stochastic;
 
 import java.util.Random;
 import jsat.FixedProblems;
-import jsat.SimpleDataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.classifiers.linear.LinearSGD;
 import jsat.datatransform.LinearTransform;
-import jsat.distributions.TruncatedDistribution;
-import jsat.distributions.Uniform;
 import jsat.linear.DenseVector;
 import jsat.linear.SubVector;
 import jsat.linear.Vec;
@@ -32,9 +29,7 @@ import jsat.lossfunctions.LogisticLoss;
 import jsat.math.FunctionVec;
 import jsat.math.decayrates.NoDecay;
 import jsat.math.optimization.RosenbrockFunction;
-import jsat.utils.GridDataGenerator;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -83,7 +78,7 @@ public class NAdaGradTest
             x0.set(i, rand.nextDouble());
 
         RosenbrockFunction f = new RosenbrockFunction();
-        FunctionVec fp = f.getDerivative();
+        FunctionVec fp = RosenbrockFunction.getDerivative();
         double eta = 0.01;
         NAdaGrad instance = new NAdaGrad();
         instance.setup(x0.length());
@@ -108,7 +103,7 @@ public class NAdaGradTest
         Vec x0 = new SubVector(0, 20, xWithBias);
 
         RosenbrockFunction f = new RosenbrockFunction();
-        FunctionVec fp = f.getDerivative();
+        FunctionVec fp = RosenbrockFunction.getDerivative();
         double eta = 0.01;
         
         

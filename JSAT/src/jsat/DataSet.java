@@ -169,15 +169,10 @@ public abstract class DataSet<Type extends DataSet>
             for(int id = 0; id < SystemInfo.LogicalCores; id++)
             {
                 final int ID = id;
-                ex.submit(new Runnable() 
-                {
-                    @Override
-                    public void run()
-                    {
-                        for (int i = ID; i < getSampleSize(); i+=SystemInfo.LogicalCores)
-                            ipt.mutableTransform(getDataPoint(i));
-                        latch.countDown();
-                    }
+                ex.submit(() -> {
+                    for (int i = ID; i < getSampleSize(); i+=SystemInfo.LogicalCores)
+                        ipt.mutableTransform(getDataPoint(i));
+                    latch.countDown();
                 });
             }
         }
@@ -185,15 +180,10 @@ public abstract class DataSet<Type extends DataSet>
             for(int id = 0; id < SystemInfo.LogicalCores; id++)
             {
                 final int ID = id;
-                ex.submit(new Runnable() 
-                {
-                    @Override
-                    public void run()
-                    {
-                        for (int i = ID; i < getSampleSize(); i+=SystemInfo.LogicalCores)
-                            setDataPoint(i, dt.transform(getDataPoint(i)));
-                        latch.countDown();
-                    }
+                ex.submit(() -> {
+                    for (int i = ID; i < getSampleSize(); i+=SystemInfo.LogicalCores)
+                        setDataPoint(i, dt.transform(getDataPoint(i)));
+                    latch.countDown();
                 });
             }
         try
@@ -635,7 +625,7 @@ public abstract class DataSet<Type extends DataSet>
     @SuppressWarnings("unchecked")
     public Vec[] getNumericColumns()
     {
-        return getNumericColumns(Collections.EMPTY_SET);
+        return getNumericColumns(Collections.<Integer>emptySet());
     }
     
     /**

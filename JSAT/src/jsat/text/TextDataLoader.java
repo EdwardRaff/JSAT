@@ -165,11 +165,7 @@ public abstract class TextDataLoader implements TextVectorCreator
         
         for(String word : localStorageSpace)
         {
-            Integer count = localWordCounts.get(word);
-            if(count == null)
-                localWordCounts.put(word, 1);
-            else
-                localWordCounts.put(word, count+1);
+            localWordCounts.merge(word, 1, (a, b) -> a + b);
         }
         
         SparseVector vec = new SparseVector(currentLength.get()+1, localWordCounts.size());//+1 to avoid issues when its length is zero, will be corrected in finalization step anyway
@@ -404,6 +400,6 @@ public abstract class TextDataLoader implements TextVectorCreator
             if(termDocumentFrequencys.get(i).get() < minCount)
                 numericToRemove.add(i);
         
-        return new RemoveAttributeTransform(Collections.EMPTY_SET, numericToRemove);
+        return new RemoveAttributeTransform(Collections.<Integer>emptySet(), numericToRemove);
     }
 }

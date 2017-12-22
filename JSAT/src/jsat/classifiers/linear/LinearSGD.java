@@ -361,7 +361,7 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         if(ws.length == 1)
         {
             final double y = targetClass*2-1;
-            final double lossD = ((LossC)loss).getDeriv(ws[0].dot(x)+bs[0], y);
+            final double lossD = loss.getDeriv(ws[0].dot(x)+bs[0], y);
             performGradientUpdate(0, eta_t, lossD, x);
         }
         else
@@ -406,7 +406,7 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         
         applyL2Reg(eta_t);
         
-        final double lossD = ((LossR)loss).getDeriv(ws[0].dot(x)+bs[0], targetValue);
+        final double lossD = loss.getDeriv(ws[0].dot(x)+bs[0], targetValue);
         
         performGradientUpdate(0, eta_t, lossD, x);
         

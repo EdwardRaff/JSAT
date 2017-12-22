@@ -143,7 +143,7 @@ public class KSTest
         return pValue(n, d);
     }
     
-    private double pValue(double n, double d)
+    private static double pValue(double n, double d)
     {
         return 1 - k.cdf( (Math.sqrt(n) + 0.12 + 0.11/Math.sqrt(n)) * d);
     }

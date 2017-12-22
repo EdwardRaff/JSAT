@@ -2,6 +2,7 @@ package jsat.classifiers.linear.kernelized;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
@@ -235,7 +236,7 @@ public class Projectron extends BaseUpdateableClassifier implements BinaryScoreC
         //Used for both cases, so hoisted out. 
         DenseVector k_t = new DenseVector(k_raw, 0, S.size());
         Vec d = InvK.multiply(k_t);//equation (7)
-        final double k_xt = k.eval(0, 0, Arrays.asList(x_t), qi);
+        final double k_xt = k.eval(0, 0, Collections.singletonList(x_t), qi);
         final double k_t_d = k_t.dot(d);
         final double deltaSqrd = Math.max(k_xt - k_t_d, 0);//avoid sqrt(-val)  bellow
         final double delta = Math.sqrt(deltaSqrd);

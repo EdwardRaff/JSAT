@@ -70,20 +70,14 @@ public class Max2NormRegularizer implements WeightRegularizer
         for (int indx = 0; indx < W.rows(); indx++)
         {
             final int i = indx;
-            futures.add(ex.submit(new Runnable()
-            {
-
-                @Override
-                public void run()
+            futures.add(ex.submit(() -> {
+                Vec W_li = W.getRowView(i);
+                double norm = W_li.pNorm(2);
+                if (norm >= maxNorm)
                 {
-                    Vec W_li = W.getRowView(i);
-                    double norm = W_li.pNorm(2);
-                    if (norm >= maxNorm)
-                    {
-                        W_li.mutableMultiply(maxNorm / norm);
-                        double oldB_i = b.get(i);
-                        b.set(i, oldB_i * maxNorm / norm);
-                    }
+                    W_li.mutableMultiply(maxNorm / norm);
+                    double oldB_i = b.get(i);
+                    b.set(i, oldB_i * maxNorm / norm);
                 }
             }));
         }
@@ -94,11 +88,7 @@ public class Max2NormRegularizer implements WeightRegularizer
             for (Future<?> future : futures)
                 future.get();
         }
-        catch (InterruptedException ex1)
-        {
-            Logger.getLogger(Max2NormRegularizer.class.getName()).log(Level.SEVERE, null, ex1);
-        }
-        catch (ExecutionException ex1)
+        catch (InterruptedException | ExecutionException ex1)
         {
             Logger.getLogger(Max2NormRegularizer.class.getName()).log(Level.SEVERE, null, ex1);
         }

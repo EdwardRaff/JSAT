@@ -101,23 +101,18 @@ public class PriorityHAC extends KClustererBase
         }
     }
     
-    private List<IntPriorityQueue> setUpProrityQueue(int[] I, final double[][] distanceMatrix)
+    private static List<IntPriorityQueue> setUpProrityQueue(int[] I, final double[][] distanceMatrix)
     {
         List<IntPriorityQueue> P = new ArrayList<IntPriorityQueue>(I.length);
         for(int i = 0; i < I.length; i++)
         {
             //The row index we are considering
             final int supremeIndex = i;
-            IntPriorityQueue pq = new IntPriorityQueue(I.length, new Comparator<Integer>() 
-            {
-                @Override
-                public int compare(Integer o1, Integer o2)
-                {
-                    double d1 = getDistance(distanceMatrix, supremeIndex, o1);
-                    double d2 = getDistance(distanceMatrix, supremeIndex, o2);
-                    
-                    return Double.compare(d1, d2);
-                }
+            IntPriorityQueue pq = new IntPriorityQueue(I.length, (o1, o2) -> {
+                double d1 = getDistance(distanceMatrix, supremeIndex, o1);
+                double d2 = getDistance(distanceMatrix, supremeIndex, o2);
+
+                return Double.compare(d1, d2);
             }, IntPriorityQueue.Mode.BOUNDED);
             
             

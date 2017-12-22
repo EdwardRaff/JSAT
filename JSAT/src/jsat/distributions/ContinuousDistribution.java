@@ -55,7 +55,7 @@ public abstract class ContinuousDistribution extends Distribution
     {
         double intMin = getIntegrationMin();
         
-        return Romberg.romb((z)->this.pdf(z), intMin, x);
+        return Romberg.romb(this::pdf, intMin, x);
     }
     
     @Override

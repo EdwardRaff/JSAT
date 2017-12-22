@@ -62,8 +62,7 @@ public abstract class BaseDriftDetector<V> implements Cloneable, Serializable
         if(toCopy.history != null)
         {
             this.history = new ArrayDeque<V>(toCopy.history.size());
-            for(V v : toCopy.history)
-                this.history.add(v);
+            this.history.addAll(toCopy.history);
         }
     }
     

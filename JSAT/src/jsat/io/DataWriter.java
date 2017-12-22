@@ -42,7 +42,7 @@ public abstract class DataWriter implements Closeable
     /**
      * The list of all local buffers, used to make sure all data makes it out when {@link #finish() } is called. 
      */
-    protected List<ByteArrayOutputStream> all_buffers = Collections.synchronizedList(new ArrayList<ByteArrayOutputStream>());
+    protected static List<ByteArrayOutputStream> all_buffers = Collections.synchronizedList(new ArrayList<ByteArrayOutputStream>());
     /**
      * The destination to ultimately write the dataset to
      */
@@ -73,16 +73,11 @@ public abstract class DataWriter implements Closeable
     /**
      * The local buffers that writing will be done to. 
      */
-    protected ThreadLocal<ByteArrayOutputStream> local_baos = new ThreadLocal<ByteArrayOutputStream>()
-    {
-        @Override
-        protected ByteArrayOutputStream initialValue()
-        {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream(LOCAL_BUFFER_SIZE);
-            all_buffers.add(baos);
-            return baos;
-        }
-    };
+    protected static final ThreadLocal<ByteArrayOutputStream> local_baos = ThreadLocal.withInitial(() -> {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(LOCAL_BUFFER_SIZE);
+        all_buffers.add(baos);
+        return baos;
+    });
     
     
     abstract protected void writeHeader(CategoricalData[] catInfo, int dim, DataSetType type, OutputStream out) throws IOException;

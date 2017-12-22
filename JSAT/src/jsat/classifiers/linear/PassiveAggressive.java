@@ -295,12 +295,14 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     private double getCorrection(final double loss, Vec x)
     {
         final double xNorm = Math.pow(x.pNorm(2), 2);
-        if(mode == Mode.PA1)
-            return Math.min(C, loss/xNorm);
-        else if(mode == Mode.PA2)
-            return loss/(xNorm+1.0/(2*C));
-        else
-            return loss/xNorm;
+        switch (mode) {
+            case PA1:
+                return Math.min(C, loss / xNorm);
+            case PA2:
+                return loss / (xNorm + 1.0 / (2 * C));
+            default:
+                return loss / xNorm;
+        }
     }
 
     @Override

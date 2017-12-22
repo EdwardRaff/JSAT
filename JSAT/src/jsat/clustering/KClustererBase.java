@@ -18,7 +18,7 @@ public abstract class KClustererBase extends ClustererBase implements KClusterer
 	@Override
     public List<List<DataPoint>> cluster(DataSet dataSet, int clusters, ExecutorService threadpool)
     {
-        int[] assignments = cluster(dataSet, clusters, threadpool, (int[]) null);
+        int[] assignments = cluster(dataSet, clusters, threadpool, null);
         return createClusterListFromAssignmentArray(assignments, dataSet);
     }
 
@@ -33,7 +33,7 @@ public abstract class KClustererBase extends ClustererBase implements KClusterer
     @Override
     public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool)
     {
-        int[] assignments = cluster(dataSet, lowK, highK, threadpool, (int[]) null);
+        int[] assignments = cluster(dataSet, lowK, highK, threadpool, null);
         return createClusterListFromAssignmentArray(assignments, dataSet);
     }
 

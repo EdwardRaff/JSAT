@@ -898,7 +898,7 @@ public class SparseVector extends  Vec
     public Iterator<IndexValue> getNonZeroIterator(final int start)
     {
         if(used <= 0)
-            return Collections.EMPTY_LIST.iterator();
+            return Collections.emptyIterator();
         final int startPos;
         if(start <= indexes[0])
             startPos = 0;

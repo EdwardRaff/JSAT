@@ -188,11 +188,7 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
                     biasChange += partialResult.getSecondItem()[0];
                     globalError += partialResult.getSecondItem()[1];
                 }
-                catch (InterruptedException ex)
-                {
-                    
-                }
-                catch (ExecutionException ex)
+                catch (InterruptedException | ExecutionException ex)
                 {
                     
                 }

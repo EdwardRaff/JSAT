@@ -66,18 +66,13 @@ public class VectorCollectionUtils
         
         for(final List<V1> subSearch : ListUtils.splitList(search, LogicalCores))
         {
-            subResults.add(threadpool.submit(new Callable<List<List<? extends VecPaired<V0, Double>>>>() {
+            subResults.add(threadpool.submit(() -> {
+                List<List<? extends VecPaired<V0, Double>>> subResult = new ArrayList<>(subSearch.size());
 
-                @Override
-                public List<List<? extends VecPaired<V0, Double>>> call() throws Exception
-                {
-                    List<List<? extends VecPaired<V0, Double>>> subResult = new ArrayList<>(subSearch.size());
-                    
-                    for(Vec v : subSearch )
-                        subResult.add(collection.search(v, k));
-                    
-                    return subResult;
-                }
+                for(Vec v : subSearch )
+                    subResult.add(collection.search(v, k));
+
+                return subResult;
             }));
         }
 
@@ -86,11 +81,7 @@ public class VectorCollectionUtils
             for (List<List<? extends VecPaired<V0, Double>>> subResult : ListUtils.collectFutures(subResults))
                 results.addAll(subResult);
         }
-        catch (ExecutionException ex)
-        {
-            Logger.getLogger(VectorCollectionUtils.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        catch (InterruptedException ex)
+        catch (ExecutionException | InterruptedException ex)
         {
             Logger.getLogger(VectorCollectionUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -115,18 +106,13 @@ public class VectorCollectionUtils
         
         for(final List<V1> subSearch : ListUtils.splitList(search, LogicalCores))
         {
-            subResults.add(threadpool.submit(new Callable<List<List<? extends VecPaired<V0, Double>>>>() {
+            subResults.add(threadpool.submit(() -> {
+                List<List<? extends VecPaired<V0, Double>>> subResult = new ArrayList<>(subSearch.size());
 
-                @Override
-                public List<List<? extends VecPaired<V0, Double>>> call() throws Exception
-                {
-                    List<List<? extends VecPaired<V0, Double>>> subResult = new ArrayList<>(subSearch.size());
-                    
-                    for(Vec v : subSearch )
-                        subResult.add(collection.search(v, radius));
-                    
-                    return subResult;
-                }
+                for(Vec v : subSearch )
+                    subResult.add(collection.search(v, radius));
+
+                return subResult;
             }));
         }
 
@@ -135,11 +121,7 @@ public class VectorCollectionUtils
             for (List<List<? extends VecPaired<V0, Double>>> subResult : ListUtils.collectFutures(subResults))
                 results.addAll(subResult);
         }
-        catch (ExecutionException ex)
-        {
-            Logger.getLogger(VectorCollectionUtils.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        catch (InterruptedException ex)
+        catch (ExecutionException | InterruptedException ex)
         {
             Logger.getLogger(VectorCollectionUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -213,17 +195,13 @@ public class VectorCollectionUtils
         
         for(final List<V1> subSearch : ListUtils.splitList(search, LogicalCores))
         {
-            futureStats.add(threadpool.submit(new Callable<OnLineStatistics>() {
+            futureStats.add(threadpool.submit(() -> {
+                OnLineStatistics stats = new OnLineStatistics();
 
-                public OnLineStatistics call() throws Exception
-                {
-                    OnLineStatistics stats = new OnLineStatistics();
-                    
-                    for(Vec v: subSearch)
-                        stats.add(collection.search(v, k).get(k-1).getPair());
-                    
-                    return stats;
-                }
+                for(Vec v: subSearch)
+                    stats.add(collection.search(v, k).get(k-1).getPair());
+
+                return stats;
             }));
         }
 
@@ -233,11 +211,7 @@ public class VectorCollectionUtils
             for (OnLineStatistics subResult : ListUtils.collectFutures(futureStats))
                 stats = OnLineStatistics.add(stats, subResult);
         }
-        catch (ExecutionException ex)
-        {
-            Logger.getLogger(VectorCollectionUtils.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        catch (InterruptedException ex)
+        catch (ExecutionException | InterruptedException ex)
         {
             Logger.getLogger(VectorCollectionUtils.class.getName()).log(Level.SEVERE, null, ex);
         }

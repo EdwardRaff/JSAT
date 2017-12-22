@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 
 import jsat.utils.FakeExecutor;
 import static java.lang.Math.*;
-import static jsat.linear.GenericMatrix.NB2;
 import static jsat.utils.SystemInfo.*;
 
 /**
@@ -175,7 +174,7 @@ public class DenseMatrix extends GenericMatrix
      * @param vkNorm the initial value for vkNorm
      * @return vkNorm plus the summation of the squared values for all values copied into vk
      */
-    private double initalVKNormCompute(int k, int M, double[] vk, double[] A_k)
+    private static double initalVKNormCompute(int k, int M, double[] vk, double[] A_k)
     {
         double vkNorm = 0.0;
         for(int i = k+1; i < M; i++)
@@ -186,7 +185,7 @@ public class DenseMatrix extends GenericMatrix
         return vkNorm;
     }
 
-    private void qrUpdateQ(DenseMatrix Q, int k, double[] vk, double TwoOverBeta)
+    private static void qrUpdateQ(DenseMatrix Q, int k, double[] vk, double TwoOverBeta)
     {
         //Computing Q
 
@@ -207,7 +206,7 @@ public class DenseMatrix extends GenericMatrix
 
     }
 
-    private void qrUpdateR(int k, int N, DenseMatrix A, double[] vk, double TwoOverBeta, int M)
+    private static void qrUpdateR(int k, int N, DenseMatrix A, double[] vk, double TwoOverBeta, int M)
     {
         //First run of loop removed, as it will be setting zeros. More accurate to just set them ourselves
         if(k < N)
@@ -228,7 +227,7 @@ public class DenseMatrix extends GenericMatrix
         }
     }
 
-    private void qrUpdateRFirstIteration(DenseMatrix A, int k, double[] vk, double TwoOverBeta, int M)
+    private static void qrUpdateRFirstIteration(DenseMatrix A, int k, double[] vk, double TwoOverBeta, int M)
     {
         double[] A_j = A.matrix[k];
         double y = 0;//y = vk dot A_j
@@ -359,34 +358,30 @@ public class DenseMatrix extends GenericMatrix
         for(int threadNum = 0; threadNum < LogicalCores; threadNum++)
         {
             final int threadID = threadNum;
-            threadPool.submit(new Runnable() {
-
-                public void run()
-                {
-                    DenseMatrix BB = (DenseMatrix) b;
-                    DenseMatrix CC = (DenseMatrix) C;
-                    for (int i0 = blockStep * threadID; i0 < iLimit; i0 += blockStep * LogicalCores)
-                        for (int k0 = 0; k0 < kLimit; k0 += blockStep)
-                            for (int j0 = 0; j0 < jLimit; j0 += blockStep)
+            threadPool.submit(() -> {
+                DenseMatrix BB = (DenseMatrix) b;
+                DenseMatrix CC = (DenseMatrix) C;
+                for (int i0 = blockStep * threadID; i0 < iLimit; i0 += blockStep * LogicalCores)
+                    for (int k0 = 0; k0 < kLimit; k0 += blockStep)
+                        for (int j0 = 0; j0 < jLimit; j0 += blockStep)
+                        {
+                            for (int k = k0; k < min(k0 + blockStep, kLimit); k++)
                             {
-                                for (int k = k0; k < min(k0 + blockStep, kLimit); k++)
+                                double[] A_row_k = A.matrix[k];
+                                double[] B_row_k = BB.matrix[k];
+
+                                for (int i = i0; i < min(i0 + blockStep, iLimit); i++)
                                 {
-                                    double[] A_row_k = A.matrix[k];
-                                    double[] B_row_k = BB.matrix[k];
+                                    final double a = A_row_k[i];
+                                    final double[] c_row_i = CC.matrix[i];
 
-                                    for (int i = i0; i < min(i0 + blockStep, iLimit); i++)
-                                    {
-                                        final double a = A_row_k[i];
-                                        final double[] c_row_i = CC.matrix[i];
-
-                                        for (int j = j0; j < min(j0 + blockStep, jLimit); j++)
-                                            c_row_i[j] += a * B_row_k[j];
-                                    }
+                                    for (int j = j0; j < min(j0 + blockStep, jLimit); j++)
+                                        c_row_i[j] += a * B_row_k[j];
                                 }
                             }
-                    
-                    cdl.countDown();
-                }
+                        }
+
+                cdl.countDown();
             });
         }
         
@@ -455,7 +450,7 @@ public class DenseMatrix extends GenericMatrix
     /**
      * this is a direct conversion of the outer most loop of {@link #multiply(jsat.linear.Matrix) } 
      */
-    private class MultRun implements Runnable
+    private static class MultRun implements Runnable
     {
         
         final CountDownLatch latch;
@@ -519,7 +514,7 @@ public class DenseMatrix extends GenericMatrix
         CountDownLatch cdl = new CountDownLatch(LogicalCores);
         
         for (int threadID = 0; threadID < LogicalCores; threadID++)
-            threadPool.submit(new MultRun(cdl, this, (DenseMatrix)C, (DenseMatrix)b, threadID));
+            threadPool.submit(new MultRun(cdl, this, (DenseMatrix) C, (DenseMatrix) b, threadID));
             
         try
         {
@@ -700,7 +695,7 @@ public class DenseMatrix extends GenericMatrix
         return lup;
     }
     
-    private class LUProwRun implements Callable<Integer>
+    private static class LUProwRun implements Callable<Integer>
     {
         final DenseMatrix L;
         final DenseMatrix U;
@@ -791,15 +786,11 @@ public class DenseMatrix extends GenericMatrix
                             largestVal = rowJLeadVal;
                         }
                     }
-                    catch (InterruptedException ex)
+                    catch (InterruptedException | ExecutionException ex)
                     {
                         Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    catch (ExecutionException ex)
-                    {
-                        Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                    
+
                 }
                 
                 bigIndecies.clear();
@@ -852,7 +843,7 @@ public class DenseMatrix extends GenericMatrix
             A = this;
         }
         else
-            A = (DenseMatrix) this.transpose();
+            A = this.transpose();
         int to = cols() > rows() ? M : N;
         double[] vk = new double[M];
         for(int k = 0; k < to; k++)
@@ -967,7 +958,7 @@ public class DenseMatrix extends GenericMatrix
             A = this;
         }
         else
-            A = (DenseMatrix) this.transpose();
+            A = this.transpose();
         
         double[] vk = new double[M];
         

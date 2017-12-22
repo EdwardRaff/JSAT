@@ -285,7 +285,7 @@ public class RFF_RBF extends DataTransformBase
      * @param d the data set to get the guess for
      * @return the guess for the &sigma; parameter in the RBF Kernel
      */
-    public Distribution guessSigma(DataSet d)
+    public static Distribution guessSigma(DataSet d)
     {
         return RBFKernel.guessSigma(d);
     }

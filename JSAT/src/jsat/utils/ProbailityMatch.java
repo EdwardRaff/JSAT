@@ -22,7 +22,7 @@ public class ProbailityMatch<T> implements Comparable<ProbailityMatch<T>>, Seria
 
     public int compareTo(ProbailityMatch t)
     {
-        return new Double(probability).compareTo(t.probability);
+        return Double.compare(probability, t.probability);
     }
 
     public double getProbability()

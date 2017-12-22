@@ -17,7 +17,6 @@ import jsat.linear.vectorcollection.VectorCollection;
 import jsat.linear.vectorcollection.VectorCollectionFactory;
 import jsat.parameters.Parameterized;
 import jsat.utils.BoundedSortedList;
-import jsat.utils.FakeExecutor;
 
 /**
  * DANN is an implementation of Discriminant Adaptive Nearest Neighbor. DANN has
@@ -388,7 +387,7 @@ public class DANN implements Classifier, Parameterized
         return clone;
     }
     
-    private double dist(Matrix sigma, Vec query, Vec mean, Vec scratch0, Vec scartch1)
+    private static double dist(Matrix sigma, Vec query, Vec mean, Vec scratch0, Vec scartch1)
     {
         query.copyTo(scratch0);
         scratch0.mutableSubtract(mean);
@@ -412,7 +411,7 @@ public class DANN implements Classifier, Parameterized
             knn.add(new VecPairedComparable<VecPaired<Vec, Integer>, Double>(v, d));
         }
         
-        return (List<VecPaired<VecPaired<Vec, Integer>, Double>>) (Object) knn;
+        return knn;
     }
    
     /**

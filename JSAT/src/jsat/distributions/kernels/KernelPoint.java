@@ -354,7 +354,7 @@ public class KernelPoint
      */
     public double dist(Vec x, List<Double> qi)
     {
-        double k_xx = k.eval(0, 0, Arrays.asList(x), qi);
+        double k_xx = k.eval(0, 0, Collections.singletonList(x), qi);
         return Math.sqrt(k_xx+getSqrdNorm()-2*dot(x, qi));
     }
     
@@ -419,178 +419,168 @@ public class KernelPoint
             return;
         normGood = false;
         double y_t = c;
-        final double k_tt = k.eval(0, 0, Arrays.asList(x_t), qi);
-        
-        if(budgetStrategy == BudgetStrategy.PROJECTION)
-        {
-            if(K == null)//first point to be added
-            {
-                KExpanded = new DenseMatrix(16, 16);
-                K = new SubMatrix(KExpanded, 0, 0, 1, 1);
-                K.set(0, 0, k_tt);
-                InvKExpanded = new DenseMatrix(16, 16);
-                InvK = new SubMatrix(InvKExpanded, 0, 0, 1, 1);
-                InvK.set(0, 0, 1/k_tt);
-                alpha.add(y_t);
-                vecs.add(x_t);
-                if(kernelAccel != null)
-                    kernelAccel.addAll(qi);
-                return;
-            }
+        final double k_tt = k.eval(0, 0, Collections.singletonList(x_t), qi);
 
-            //Normal case
-            DenseVector kxt = new DenseVector(K.rows());
-
-            for (int i = 0; i < kxt.length(); i++)
-                kxt.set(i, k.eval(i, x_t, qi, vecs, kernelAccel));
-
-            //ALD test
-            final Vec alphas_t = InvK.multiply(kxt);
-            final double delta_t = k_tt-alphas_t.dot(kxt);
-            final int size = K.rows();
-
-            if(delta_t > errorTolerance && size < maxBudget)//add to the dictionary
-            {
-                vecs.add(x_t);
-                if(kernelAccel != null)
-                    kernelAccel.addAll(qi);
-
-                if(size == KExpanded.rows())//we need to grow first
+        switch (budgetStrategy) {
+            case PROJECTION:
+                if (K == null)//first point to be added
                 {
-                    KExpanded.changeSize(size*2, size*2);
-                    InvKExpanded.changeSize(size*2, size*2);
+                    KExpanded = new DenseMatrix(16, 16);
+                    K = new SubMatrix(KExpanded, 0, 0, 1, 1);
+                    K.set(0, 0, k_tt);
+                    InvKExpanded = new DenseMatrix(16, 16);
+                    InvK = new SubMatrix(InvKExpanded, 0, 0, 1, 1);
+                    InvK.set(0, 0, 1 / k_tt);
+                    alpha.add(y_t);
+                    vecs.add(x_t);
+                    if (kernelAccel != null)
+                        kernelAccel.addAll(qi);
+                    return;
                 }
 
-                Matrix.OuterProductUpdate(InvK, alphas_t, alphas_t, 1/delta_t);
-                K = new SubMatrix(KExpanded, 0, 0, size+1, size+1);
-                InvK = new SubMatrix(InvKExpanded, 0, 0, size+1, size+1);
+                //Normal case
+                DenseVector kxt = new DenseVector(K.rows());
 
-                //update bottom row and side columns
-                for(int i = 0; i < size; i++)
+                for (int i = 0; i < kxt.length(); i++)
+                    kxt.set(i, k.eval(i, x_t, qi, vecs, kernelAccel));
+
+                //ALD test
+                final Vec alphas_t = InvK.multiply(kxt);
+                final double delta_t = k_tt - alphas_t.dot(kxt);
+                final int size = K.rows();
+
+                if (delta_t > errorTolerance && size < maxBudget)//add to the dictionary
                 {
-                    K.set(size, i, kxt.get(i));
-                    K.set(i, size, kxt.get(i));
+                    vecs.add(x_t);
+                    if (kernelAccel != null)
+                        kernelAccel.addAll(qi);
 
-                    InvK.set(size, i, -alphas_t.get(i)/delta_t);
-                    InvK.set(i, size, -alphas_t.get(i)/delta_t);
+                    if (size == KExpanded.rows())//we need to grow first
+                    {
+                        KExpanded.changeSize(size * 2, size * 2);
+                        InvKExpanded.changeSize(size * 2, size * 2);
+                    }
+
+                    Matrix.OuterProductUpdate(InvK, alphas_t, alphas_t, 1 / delta_t);
+                    K = new SubMatrix(KExpanded, 0, 0, size + 1, size + 1);
+                    InvK = new SubMatrix(InvKExpanded, 0, 0, size + 1, size + 1);
+
+                    //update bottom row and side columns
+                    for (int i = 0; i < size; i++) {
+                        K.set(size, i, kxt.get(i));
+                        K.set(i, size, kxt.get(i));
+
+                        InvK.set(size, i, -alphas_t.get(i) / delta_t);
+                        InvK.set(i, size, -alphas_t.get(i) / delta_t);
+                    }
+
+                    //update bottom right corner
+                    K.set(size, size, k_tt);
+                    InvK.set(size, size, 1 / delta_t);
+                    alpha.add(y_t);
+
+                } else//project onto dictionary
+                {
+                    Vec alphaVec = alpha.getVecView();
+                    alphaVec.mutableAdd(y_t, alphas_t);
+                    normGood = false;
                 }
-
-                //update bottom right corner
-                K.set(size, size, k_tt);
-                InvK.set(size, size, 1/delta_t);
-                alpha.add(y_t);
-
-            }
-            else//project onto dictionary
-            {
-                Vec alphaVec = alpha.getVecView();
-                alphaVec.mutableAdd(y_t, alphas_t);
+                break;
+            case MERGE_RBF:
                 normGood = false;
-            }
-        }
-        else if(budgetStrategy == BudgetStrategy.MERGE_RBF)
-        {
-            normGood = false;
-            addPoint(x_t, qi, y_t);
-            
-            if(vecs.size() > maxBudget)
-            {
-                /*
-                 * we use the same approximation method as in projection 
-                 * (Section 4.2) by fixing m as theSV with the smallest value
-                 * of || α_m ||^2
-                 */
-                int m = 0;
-                double alpha_m = abs(alpha.get(m));
-                for(int i = 1; i < alpha.size(); i++)
-                    if(abs(alpha.getD(i)) < abs(alpha_m))
-                    {
-                        alpha_m = alpha.getD(i);
-                        m = i;
-                    }
-                
-                
-                double minLoss = Double.POSITIVE_INFINITY;
-                int n = -1;
-                double n_h = 0;
-                double n_alpha_z = 0;
-                double tol = 1e-3;
-                while (n == -1)
-                {
-                    for (int i = 0; i < alpha.size(); i++)
-                    {
-                        if (i == m)
-                            continue;
-                        double a_m = alpha_m, a_n = alpha.getD(i);
-                        double normalize = a_m+a_n;
-                        if (abs(normalize) < tol)//avoid alphas that nearly cancle out
-                            continue;
-                        final double k_mn = k.eval(i, m, vecs, kernelAccel);
-                        
-                        double h = getH(k_mn, a_m/normalize, a_n/normalize);
-                        
-                        /*
-                         * we can get k(m, z) without forming z when using RBF
-                         * 
-                         * exp(-(m-z)^2) = exp(-(m- (h m+(1-h) n))^2 ) = 
-                         * exp(-(x-y)^2(h-1)^2) = exp((x-y)^2)^(h-1)^2
-                         * 
-                         * and since: 0 < h < 1 (h-1)^2 = (1-h)^2
-                         */
-                        double k_mz = pow(k_mn, (1 - h) * (1 - h));
-                        double k_nz = pow(k_mn, h * h);
-                        
-                        //TODO should we fall back to forming z if we use a non RBF kernel?
+                addPoint(x_t, qi, y_t);
 
-
-                        /*
-                         * Determin the best by the smallest change in norm, 2x2 
-                         * matrix for the original alphs and alpha_z on its own
-                         */
-                        double alpha_z = a_m * k_mz + a_n * k_nz;
-
-                        double loss = a_m * a_m + a_n * a_n
-                                + 2 * k_mn * a_m * a_n
-                                - alpha_z*alpha_z;
-
-                        if (loss < minLoss)
-                        {
-                            minLoss = loss;
-                            n = i;
-                            n_h = h;
-                            n_alpha_z = alpha_z;
+                if (vecs.size() > maxBudget) {
+                    /*
+                     * we use the same approximation method as in projection
+                     * (Section 4.2) by fixing m as theSV with the smallest value
+                     * of || α_m ||^2
+                     */
+                    int m = 0;
+                    double alpha_m = abs(alpha.get(m));
+                    for (int i = 1; i < alpha.size(); i++)
+                        if (abs(alpha.getD(i)) < abs(alpha_m)) {
+                            alpha_m = alpha.getD(i);
+                            m = i;
                         }
+
+
+                    double minLoss = Double.POSITIVE_INFINITY;
+                    int n = -1;
+                    double n_h = 0;
+                    double n_alpha_z = 0;
+                    double tol = 1e-3;
+                    while (n == -1) {
+                        for (int i = 0; i < alpha.size(); i++) {
+                            if (i == m)
+                                continue;
+                            double a_m = alpha_m, a_n = alpha.getD(i);
+                            double normalize = a_m + a_n;
+                            if (abs(normalize) < tol)//avoid alphas that nearly cancle out
+                                continue;
+                            final double k_mn = k.eval(i, m, vecs, kernelAccel);
+
+                            double h = getH(k_mn, a_m / normalize, a_n / normalize);
+
+                            /*
+                             * we can get k(m, z) without forming z when using RBF
+                             *
+                             * exp(-(m-z)^2) = exp(-(m- (h m+(1-h) n))^2 ) =
+                             * exp(-(x-y)^2(h-1)^2) = exp((x-y)^2)^(h-1)^2
+                             *
+                             * and since: 0 < h < 1 (h-1)^2 = (1-h)^2
+                             */
+                            double k_mz = pow(k_mn, (1 - h) * (1 - h));
+                            double k_nz = pow(k_mn, h * h);
+
+                            //TODO should we fall back to forming z if we use a non RBF kernel?
+
+
+                            /*
+                             * Determin the best by the smallest change in norm, 2x2
+                             * matrix for the original alphs and alpha_z on its own
+                             */
+                            double alpha_z = a_m * k_mz + a_n * k_nz;
+
+                            double loss = a_m * a_m + a_n * a_n
+                                    + 2 * k_mn * a_m * a_n
+                                    - alpha_z * alpha_z;
+
+                            if (loss < minLoss) {
+                                minLoss = loss;
+                                n = i;
+                                n_h = h;
+                                n_alpha_z = alpha_z;
+                            }
+                        }
+                        tol /= 10;
                     }
-                    tol /= 10;
+
+                    Vec n_z = vecs.get(m).multiply(n_h);
+                    n_z.mutableAdd(1 - n_h, vecs.get(n));
+                    final List<Double> nz_qi = k.getQueryInfo(n_z);
+
+                    finalMergeStep(m, n, n_z, nz_qi, n_alpha_z, true);
+                }
+                break;
+            case STOP:
+                normGood = false;
+                if (getBasisSize() < maxBudget)
+                    addPoint(x_t, qi, y_t);
+                break;
+            case RANDOM:
+                normGood = false;
+                if (getBasisSize() >= maxBudget) {
+                    Random rand = RandomUtil.getRandom();//TODO should probably move this out
+                    int toRemove = rand.nextInt(vecs.size());
+                    removeIndex(toRemove);
                 }
 
-                Vec n_z = vecs.get(m).multiply(n_h);
-                n_z.mutableAdd(1-n_h, vecs.get(n));
-                final List<Double> nz_qi = k.getQueryInfo(n_z);
-                
-                finalMergeStep(m, n, n_z, nz_qi, n_alpha_z, true);
-            }
-        }
-        else if(budgetStrategy == BudgetStrategy.STOP)
-        {
-            normGood = false;
-            if(getBasisSize() < maxBudget)
                 addPoint(x_t, qi, y_t);
+                break;
+            default:
+                throw new RuntimeException("BUG: report me!");
         }
-        else if(budgetStrategy == BudgetStrategy.RANDOM)
-        {
-            normGood = false;
-            if(getBasisSize() >= maxBudget)
-            {
-                Random rand = RandomUtil.getRandom();//TODO should probably move this out
-                int toRemove = rand.nextInt(vecs.size());
-                removeIndex(toRemove);
-            }
-            
-            addPoint(x_t, qi, y_t);
-        }
-        else
-            throw new RuntimeException("BUG: report me!");
             
         
     }

@@ -15,7 +15,7 @@ public class DenseVector extends Vec
 {
 
 	private static final long serialVersionUID = -889493251793828934L;
-	protected  double[] array;
+	protected final double[] array;
     private Double sumCache = null;
     private Double varianceCache = null;
     private Double minCache = null;
@@ -299,12 +299,19 @@ public class DenseVector extends Vec
             throw new ArithmeticException("Can not add vectors of unequal length");
         
         clearCaches();
-        if (b.isSparse())
-            for (IndexValue iv : b)
-                array[iv.getIndex()] += c * iv.getValue();
-        else
+        double[] a = this.array;
+        if (b instanceof DenseVector) {
+            DenseVector db = (DenseVector)b;
             for (int i = startIndex; i < endIndex; i++)
-                array[i] += c * b.get(i);
+                    a[i] += c * db.array[i];
+        } else {
+            if (b.isSparse())
+                for (IndexValue iv : b)
+                    a[iv.getIndex()] += c * iv.getValue();
+            else
+                for (int i = startIndex; i < endIndex; i++)
+                    a[i] += c * b.get(i);
+        }
     }
 
     @Override

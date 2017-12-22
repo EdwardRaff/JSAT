@@ -133,7 +133,7 @@ public class SingularValueDecomposition implements Cloneable, Serializable
             
             for (int j = k + 1; j < n; j++)
             {
-                if ((k < nct) & (s[k] != 0.0))
+                if ((k < nct) && (s[k] != 0.0))
                 {
 
                     // Apply the transformation.
@@ -193,7 +193,7 @@ public class SingularValueDecomposition implements Cloneable, Serializable
         }
         
         e[k] = -e[k];
-        if ((k + 1 < m) & (e[k] != 0.0))
+        if ((k + 1 < m) && (e[k] != 0.0))
         {
 
             // Apply the transformation.
@@ -223,7 +223,7 @@ public class SingularValueDecomposition implements Cloneable, Serializable
     {
         for (int k = n - 1; k >= 0; k--)
         {
-            if ((k < nrt) & (e[k] != 0.0))
+            if ((k < nrt) && (e[k] != 0.0))
             {
                 for (int j = k + 1; j < nu; j++)
                 {
@@ -454,7 +454,7 @@ public class SingularValueDecomposition implements Cloneable, Serializable
         }
     }
 
-    private void UVCase12Update(Matrix UV, int m, double cs, int j, double sn, int k)
+    private static void UVCase12Update(Matrix UV, int m, double cs, int j, double sn, int k)
     {
         double t;
         for (int i = 0; i < m; i++)
@@ -480,7 +480,7 @@ public class SingularValueDecomposition implements Cloneable, Serializable
         double b = ((spm1 + sp) * (spm1 - sp) + epm1 * epm1) / 2.0;
         double c = (sp * epm1) * (sp * epm1);
         double shift = 0.0;
-        if ((b != 0.0) | (c != 0.0))
+        if ((b != 0.0) || (c != 0.0))
         {
             shift = sqrt(b * b + c);
             if (b < 0.0)
@@ -524,7 +524,7 @@ public class SingularValueDecomposition implements Cloneable, Serializable
         e[p - 2] = f;
     }
     
-    private void UVCase3Update(Matrix UV, int m, double cs, int j, double sn)
+    private static void UVCase3Update(Matrix UV, int m, double cs, int j, double sn)
     {
         double t;
         for (int i = 0; i < m; i++)

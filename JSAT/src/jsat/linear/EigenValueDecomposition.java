@@ -210,10 +210,7 @@ public class EigenValueDecomposition implements Serializable
         //  Auto. Comp., Vol.ii-Linear Algebra, and the corresponding
         //  Fortran subroutine in EISPACK.
 
-        for (int i = 1; i < n; i++)
-        {
-            e[i - 1] = e[i];
-        }
+        System.arraycopy(e, 1, e, 0, n - 1);
         e[n - 1] = 0.0;
 
         double f = 0.0;
@@ -609,7 +606,7 @@ public class EigenValueDecomposition implements Serializable
         // Vectors of isolated roots
 
         for (int i = 0; i < nn; i++)
-            if (i < low | i > high)
+            if (i < low || i > high)
             {
                 for(int j = i; j < nn-1; j++)
                     H.set(i, j, V.get(i, j));
@@ -842,7 +839,7 @@ public class EigenValueDecomposition implements Serializable
      * @param r fourth constant
      * @param q fifth constant
      */
-    private void columnOpTransform2(Matrix M, int low, int high, double x, int k, double y, boolean notlast, double z, double r, double q)
+    private static void columnOpTransform2(Matrix M, int low, int high, double x, int k, double y, boolean notlast, double z, double r, double q)
     {
         double p;
         for (int i = low; i <= high; i++)
@@ -884,7 +881,7 @@ public class EigenValueDecomposition implements Serializable
      * @param r fourth constant
      * @param q fifth constant
      */
-    private void rowOpTransform2(Matrix M, int low, int high, double x, int k, double y, boolean notlast, double z, double r, double q)
+    private static void rowOpTransform2(Matrix M, int low, int high, double x, int k, double y, boolean notlast, double z, double r, double q)
     {
         double p;
         for (int j = low; j <= high; j++)
@@ -949,7 +946,7 @@ public class EigenValueDecomposition implements Serializable
         y = H.get(i+1, i);
         vr = (d[i] - p) * (d[i] - p) + e[i] * e[i] - q * q;
         vi = (d[i] - p) * 2.0 * q;
-        if (vr == 0.0 & vi == 0.0)
+        if (vr == 0.0 && vi == 0.0)
         {
             vr = eps * norm * (abs(w) + abs(q)
                     + abs(x) + abs(y) + abs(z));
@@ -1121,7 +1118,7 @@ public class EigenValueDecomposition implements Serializable
         double norm = 0.0;
         for (int i = 0; i < nn; i++)
         {
-            if (i < low | i > high)
+            if (i < low || i > high)
             {
                 d[i] = H.get(i, i);
                 e[i] = 0.0;

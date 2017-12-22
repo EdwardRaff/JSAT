@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
-import jsat.datatransform.DataTransformBase;
 import jsat.datatransform.RemoveAttributeTransform;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
@@ -255,44 +254,38 @@ public class ReliefF extends RemoveAttributeTransform
                 mm = blockSize+1;
             else
                 mm = blockSize;
-            threadPool.submit(new Runnable() 
-            {
-
-                @Override
-                public void run()
+            threadPool.submit(() -> {
+                double[] wLocal = new double[w.length];
+                Random rand = RandomUtil.getRandom();
+                for(int iter = 0; iter < mm; iter++)
                 {
-                    double[] wLocal = new double[w.length];
-                    Random rand = RandomUtil.getRandom();
-                    for(int iter = 0; iter < mm; iter++)
-                    {
-                        final int k = rand.nextInt(cds.getSampleSize());
-                        final Vec x_k = allVecs.get(k);
-                        final int y_k = cds.getDataPointCategory(k);
+                    final int k = rand.nextInt(cds.getSampleSize());
+                    final Vec x_k = allVecs.get(k);
+                    final int y_k = cds.getDataPointCategory(k);
 
-                        for (int y = 0; y < priors.length; y++)//# classes = C
-                        {
-                            int searchFor = y == y_k ? n + 1 : n;//+1 so we dont search for ourselves
-                            List<? extends VecPaired<Vec, Double>> nNearestC = classVC.get(y).search(x_k, searchFor);
-                            if (searchFor != n)
-                                nNearestC = nNearestC.subList(1, searchFor);//chop off the first value which is ourselves
-                            for (int i = 0; i < w.length; i++)
-                                for (VecPaired<Vec, Double> x_jy : nNearestC)// j loop
-                                {
-                                    if (y == y_k)
-                                        wLocal[i] -= diff(i, x_k, x_jy.getVector(), normalizer)/(m*n);
-                                    else
-                                        wLocal[i] += priors[y]/(1-priors[y_k])*diff(i, x_k, x_jy.getVector(), normalizer)/(m*n);
-                                }
-                        }
-                    }
-                    
-                    synchronized(w)
+                    for (int y = 0; y < priors.length; y++)//# classes = C
                     {
-                        for(int i = 0; i < w.length; i++)
-                            w[i] += wLocal[i];
+                        int searchFor = y == y_k ? n + 1 : n;//+1 so we dont search for ourselves
+                        List<? extends VecPaired<Vec, Double>> nNearestC = classVC.get(y).search(x_k, searchFor);
+                        if (searchFor != n)
+                            nNearestC = nNearestC.subList(1, searchFor);//chop off the first value which is ourselves
+                        for (int i = 0; i < w.length; i++)
+                            for (VecPaired<Vec, Double> x_jy : nNearestC)// j loop
+                            {
+                                if (y == y_k)
+                                    wLocal[i] -= diff(i, x_k, x_jy.getVector(), normalizer)/(m*n);
+                                else
+                                    wLocal[i] += priors[y]/(1-priors[y_k])*diff(i, x_k, x_jy.getVector(), normalizer)/(m*n);
+                            }
                     }
-                    latch.countDown();
                 }
+
+                synchronized(w)
+                {
+                    for(int i = 0; i < w.length; i++)
+                        w[i] += wLocal[i];
+                }
+                latch.countDown();
             });
         }
         try
@@ -310,7 +303,7 @@ public class ReliefF extends RemoveAttributeTransform
         
         for(int i = 0; i < w.length-featureCount; i++)
             numericalToRemove.add(it.index(i));
-        setUp(cds, Collections.EMPTY_SET, numericalToRemove);
+        setUp(cds, Collections.<Integer>emptySet(), numericalToRemove);
     }
     
     /**
@@ -323,7 +316,7 @@ public class ReliefF extends RemoveAttributeTransform
         return new DenseVector(w);
     }
 
-    private double diff(int i, Vec xj, Vec xk, double[] normalzer)
+    private static double diff(int i, Vec xj, Vec xk, double[] normalzer)
     {
         if(normalzer[i] == 0)
             return 0;

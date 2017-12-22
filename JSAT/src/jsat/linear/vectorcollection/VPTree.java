@@ -266,14 +266,7 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
     {
         for (Pair<Double, Integer> S1 : S)
             S1.setFirstItem(dm.dist(node.p, S1.getSecondItem(), allVecs, distCache)); //Each point gets its distance to the vantage point
-        Collections.sort(S, new Comparator<Pair<Double, Integer>>() 
-        {
-            @Override
-            public int compare(Pair<Double, Integer> o1, Pair<Double, Integer> o2)
-            {
-                return Double.compare(o1.getFirstItem(), o2.getFirstItem());
-            }
-        });
+        S.sort((o1, o2) -> Double.compare(o1.getFirstItem(), o2.getFirstItem()));
         int splitIndex = splitListIndex(S); 
         node.left_low = S.get(0).getFirstItem();
         node.left_high = S.get(splitIndex).getFirstItem();
@@ -375,14 +368,9 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         final List<Pair<Double, Integer>> rightS = S.subList(splitIndex+1, S.size());
         final List<Pair<Double, Integer>> leftS = S.subList(1, splitIndex+1);
         
-        threadpool.submit(new Runnable() 
-        {
-            @Override
-            public void run()
-            {
-                node.right = makeVPTree(rightS, threadpool, mcdl);
-                mcdl.countDown();
-            }
+        threadpool.submit(() -> {
+            node.right = makeVPTree(rightS, threadpool, mcdl);
+            mcdl.countDown();
         });
         node.left  = makeVPTree(leftS, threadpool, mcdl);
 

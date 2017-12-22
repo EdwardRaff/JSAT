@@ -63,8 +63,7 @@ public class LogitBoostPL extends LogitBoost
             LogitBoost boost = new LogitBoost(baseLearner.clone(), getMaxIterations());
 
             boost.train(subSet);
-            for(Regressor r : boost.baseLearners)
-                baseLearners.add(r);
+            baseLearners.addAll(boost.baseLearners);
         });
         
         this.fScaleConstant = 1.0;

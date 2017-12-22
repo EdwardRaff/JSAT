@@ -84,14 +84,7 @@ public class DivisiveLocalClusterer extends KClustererBase
          */
         final double[] splitEvaluation = new double[clusters];
         
-        PriorityQueue<Integer> clusterToSplit = new PriorityQueue<Integer>(clusters, new Comparator<Integer>() {
-
-            @Override
-            public int compare(Integer t, Integer t1) 
-            {
-                return Double.compare(splitEvaluation[t], splitEvaluation[t1]);
-            }
-        });
+        PriorityQueue<Integer> clusterToSplit = new PriorityQueue<Integer>(clusters, (t, t1) -> Double.compare(splitEvaluation[t], splitEvaluation[t1]));
         clusterToSplit.add(0);//We must start out spliting the one cluster of everyone!
         
         Arrays.fill(designations, 0);

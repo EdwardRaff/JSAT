@@ -1,10 +1,7 @@
 
 package jsat.clustering.kmeans;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -302,7 +299,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
     {
         if(k >= meanSqrdNorms.length || k < 0)
             throw new IndexOutOfBoundsException("Only " + meanSqrdNorms.length + " clusters. " + k + " is not a valid index");
-        return Math.sqrt(Math.max(kernel.eval(0, 0, Arrays.asList(x), qi) - 2.0/ownes[k] * evalSumK(x, qi, k, newDesignations) + meanSqrdNorms[k]*normConsts[k], 0));
+        return Math.sqrt(Math.max(kernel.eval(0, 0, Collections.singletonList(x), qi) - 2.0/ownes[k] * evalSumK(x, qi, k, newDesignations) + meanSqrdNorms[k]*normConsts[k], 0));
     }
     
     /**
@@ -589,22 +586,17 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
                 continue;
             a += w_i;
             final int I = i;
-            dotPartials.add(ex.submit(new Callable<Double>()
-            {
-                @Override
-                public Double call() throws Exception
+            dotPartials.add(ex.submit(() -> {
+                double localDot = 0;
+                for(int j = 0; j < N; j++)
                 {
-                    double localDot = 0;
-                    for(int j = 0; j < N; j++)
-                    {
-                        if(assignment1[j] != k1)
-                            continue;
-                        final double w_j = W.get(j);
-                        localDot += w_i * w_j * kernel.eval(I, j, X, accel);
-                    }
-                    
-                    return localDot;
+                    if(assignment1[j] != k1)
+                        continue;
+                    final double w_j = W.get(j);
+                    localDot += w_i * w_j * kernel.eval(I, j, X, accel);
                 }
+
+                return localDot;
             }));
         }
         for(int j = 0; j < N; j++)
@@ -615,11 +607,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
             for (double pDot : ListUtils.collectFutures(dotPartials))
                 dot += pDot;
         }
-        catch (ExecutionException ex1)
-        {
-            Logger.getLogger(KernelKMeans.class.getName()).log(Level.SEVERE, null, ex1);
-        }
-        catch (InterruptedException ex1)
+        catch (ExecutionException | InterruptedException ex1)
         {
             Logger.getLogger(KernelKMeans.class.getName()).log(Level.SEVERE, null, ex1);
         }

@@ -211,13 +211,13 @@ public class DirectedGraph<N> implements Cloneable
         DirectedGraph<N> clone = new DirectedGraph<N>();
         
         clone.addNodes(this.nodes.keySet());
-        for(N key : nodes.keySet())
+        for(Map.Entry<N, Pair<HashSet<N>, HashSet<N>>> nPairEntry : nodes.entrySet())
         {
-            Pair<HashSet<N>, HashSet<N>> p = nodes.get(key);
+            Pair<HashSet<N>, HashSet<N>> p = nPairEntry.getValue();
             for(N n : p.getIncoming())
-                clone.nodes.get(key).getIncoming().add(n);
+                clone.nodes.get(nPairEntry.getKey()).getIncoming().add(n);
             for(N n : p.getOutgoing())
-                clone.nodes.get(key).getOutgoing().add(n);
+                clone.nodes.get(nPairEntry.getKey()).getOutgoing().add(n);
             
         }
         

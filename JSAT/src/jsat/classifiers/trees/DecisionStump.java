@@ -617,7 +617,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             }
         }
         //do what i want!
-        Collection<List<?>> paired = (Collection<List<?>> )(Collection<?> )Arrays.asList(dataPoints);
+        Collection<List<?>> paired = (Collection<List<?>> )(Collection<?> ) Collections.singletonList(dataPoints);
         QuickSort.sort(vals, 0, vals.length-wasNaN, paired );//sort the numeric values and put our original list of data points in the correct order at the same time
 
         double bestGain = Double.NEGATIVE_INFINITY;
@@ -828,15 +828,8 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                 {
                     final int numAttri = attribute - catAttributes.length;
                     //We need our list in sorted order by attribute!
-                    Comparator<DataPointPair<Double>> dppDoubleSorter = new Comparator<DataPointPair<Double>>()
-                    {
-                        @Override
-                        public int compare(DataPointPair<Double> o1, DataPointPair<Double> o2)
-                        {
-                            return Double.compare(o1.getVector().get(numAttri), o2.getVector().get(numAttri));
-                        }
-                    };
-                    Collections.sort(DPs, dppDoubleSorter);//this will put nans to the right
+                    Comparator<DataPointPair<Double>> dppDoubleSorter = (o1, o2) -> Double.compare(o1.getVector().get(numAttri), o2.getVector().get(numAttri));
+                    DPs.sort(dppDoubleSorter);//this will put nans to the right
                     
                     //2 passes, first to sum up the right side, 2nd to move down the grow the left side
                     OnLineStatistics rightSide = new OnLineStatistics();

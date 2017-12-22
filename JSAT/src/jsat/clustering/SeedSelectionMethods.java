@@ -196,44 +196,38 @@ public class SeedSelectionMethods
         {
             int k = indices.length;
 
-            if (selectionMethod == SeedSelection.RANDOM)
-            {
-                Set<Integer> indecies = new IntSet(k);
+            switch (selectionMethod) {
+                case RANDOM:
+                    Set<Integer> indecies = new IntSet(k);
 
-                while (indecies.size() != k)//Keep sampling, we cant use the same point twice. 
-                    indecies.add(rand.nextInt(d.getSampleSize()));//TODO create method to do uniform sampleling for a select range
+                    while (indecies.size() != k)//Keep sampling, we cant use the same point twice.
+                        indecies.add(rand.nextInt(d.getSampleSize()));//TODO create method to do uniform sampleling for a select range
 
-                int j = 0;
-                for (Integer i : indecies)
-                    indices[j++] = i;
-            }
-            else if (selectionMethod == SeedSelection.KPP)
-            {
-                if (threadpool == null || threadpool instanceof FakeExecutor)
-                    kppSelection(indices, rand, d, k, dm, accelCache);
-                else
-                    kppSelection(indices, rand, d, k, dm, accelCache, threadpool);
-            }
-            else if(selectionMethod == SeedSelection.FARTHEST_FIRST)
-            {
-                if(threadpool == null)
-                    ffSelection(indices, rand, d, k, dm, accelCache, new FakeExecutor());
-                else
-                    ffSelection(indices, rand, d, k, dm, accelCache, threadpool);
-            }
-            else if(selectionMethod == SeedSelection.MEAN_QUANTILES)
-            {
-                if(threadpool == null)
-                    mqSelection(indices, d, k, dm, accelCache, new FakeExecutor());
-                else
-                    mqSelection(indices, d, k, dm, accelCache, threadpool);
+                    int j = 0;
+                    for (Integer i : indecies)
+                        indices[j++] = i;
+                    break;
+                case KPP:
+                    if (threadpool == null || threadpool instanceof FakeExecutor)
+                        kppSelection(indices, rand, d, k, dm, accelCache);
+                    else
+                        kppSelection(indices, rand, d, k, dm, accelCache, threadpool);
+                    break;
+                case FARTHEST_FIRST:
+                    if (threadpool == null)
+                        ffSelection(indices, rand, d, k, dm, accelCache, new FakeExecutor());
+                    else
+                        ffSelection(indices, rand, d, k, dm, accelCache, threadpool);
+                    break;
+                case MEAN_QUANTILES:
+                    if (threadpool == null)
+                        mqSelection(indices, d, k, dm, accelCache, new FakeExecutor());
+                    else
+                        mqSelection(indices, d, k, dm, accelCache, threadpool);
+                    break;
             }
         }
-        catch (InterruptedException ex)
-        {
-            Logger.getLogger(SeedSelectionMethods.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        catch (ExecutionException ex)
+        catch (InterruptedException | ExecutionException ex)
         {
             Logger.getLogger(SeedSelectionMethods.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -323,28 +317,22 @@ public class SeedSelectionMethods
                 final int from = ParallelUtils.getStartBlock(X.size(), id, LogicalCores);
                 final int to = ParallelUtils.getEndBlock(X.size(), id, LogicalCores);
                 final boolean forceCompute = j == 1;
-                Future<Double> future = threadpool.submit(new Callable<Double>()
-                {
-
-                    @Override
-                    public Double call() throws Exception
+                Future<Double> future = threadpool.submit(() -> {
+                    double sqrdDistChanges = 0.0;
+                    for (int i = from; i < to; i++)
                     {
-                        double sqrdDistChanges = 0.0;
-                        for (int i = from; i < to; i++)
+                        double newDist =  dm.dist(newMeanIndx, i, X, accelCache);
+
+                        newDist *= newDist;
+                        if (newDist < closestDist[i] || forceCompute)
                         {
-                            double newDist =  dm.dist(newMeanIndx, i, X, accelCache);
-
-                            newDist *= newDist;
-                            if (newDist < closestDist[i] || forceCompute)
-                            {
-                                sqrdDistChanges -= closestDist[i];//on inital, -= 0  changes nothing. on others, removed the old value
-                                sqrdDistChanges += newDist;
-                                closestDist[i] = newDist;
-                            }
+                            sqrdDistChanges -= closestDist[i];//on inital, -= 0  changes nothing. on others, removed the old value
+                            sqrdDistChanges += newDist;
+                            closestDist[i] = newDist;
                         }
-
-                        return sqrdDistChanges;
                     }
+
+                    return sqrdDistChanges;
                 });
 
                 futureChanges.add(future);
@@ -403,28 +391,22 @@ public class SeedSelectionMethods
                 final int from = pos;
                 final int to = Math.min(pos + blockSize + (extra-- > 0 ? 1 : 0), d.getSampleSize());
                 pos = to;
-                Future<Integer> future = threadpool.submit(new Callable<Integer>()
-                {
-
-                    @Override
-                    public Integer call() throws Exception
+                Future<Integer> future = threadpool.submit(() -> {
+                    double maxDist = Double.NEGATIVE_INFINITY;
+                    int max = -1;
+                    for (int i = from; i < to; i++)
                     {
-                        double maxDist = Double.NEGATIVE_INFINITY;
-                        int max = -1;
-                        for (int i = from; i < to; i++)
-                        {
-                            double newDist = dm.dist(newMeanIndx, i, X, accelCache);
-                            closestDist[i] = Math.min(newDist, closestDist[i]);
-                            
-                            if (closestDist[i] > maxDist)
-                            {
-                                maxDist = closestDist[i];
-                                max = i;
-                            }
-                        }
+                        double newDist = dm.dist(newMeanIndx, i, X, accelCache);
+                        closestDist[i] = Math.min(newDist, closestDist[i]);
 
-                        return max;
+                        if (closestDist[i] > maxDist)
+                        {
+                            maxDist = closestDist[i];
+                            max = i;
+                        }
                     }
+
+                    return max;
                 });
 
                 futures.add(future);
@@ -461,15 +443,10 @@ public class SeedSelectionMethods
             final int from = pos;
             final int to = Math.min(pos + blockSize + (extra-- > 0 ? 1 : 0), d.getSampleSize());
             pos = to;
-            threadpool.submit(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    for (int i = from; i < to; i++)
-                        meanDist[i] = dm.dist(i, newMean, meanQI, X, accelCache);
-                    latch.countDown();
-                }
+            threadpool.submit(() -> {
+                for (int i = from; i < to; i++)
+                    meanDist[i] = dm.dist(i, newMean, meanQI, X, accelCache);
+                latch.countDown();
             });
         }
         

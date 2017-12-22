@@ -5,7 +5,6 @@ import java.util.List;
 import jsat.DataSet;
 import jsat.distributions.Distribution;
 import jsat.linear.Vec;
-import jsat.linear.distancemetrics.EuclideanDistance;
 
 /**
  * Provides an implementation of the Rational Quadratic Kernel, which is of the 

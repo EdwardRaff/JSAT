@@ -208,25 +208,20 @@ public class TSNE implements VisualizationTransform
             for (int id = 0; id < SystemInfo.LogicalCores; id++)
             {
                 final int ID = id;
-                ex.submit(new Runnable()
-                {
-                    @Override
-                    public void run()
+                ex.submit(() -> {
+                    double[] workSpace = new double[s];
+                    double local_Z = 0;
+                    for (int i = ID; i < N; i += SystemInfo.LogicalCores)
                     {
-                        double[] workSpace = new double[s];
-                        double local_Z = 0;
-                        for (int i = ID; i < N; i += SystemInfo.LogicalCores)
-                        {
-                            Arrays.fill(workSpace, 0.0);
-                            local_Z += computeF_rep(qt.root, i, y, workSpace);
+                        Arrays.fill(workSpace, 0.0);
+                        local_Z += computeF_rep(qt.root, i, y, workSpace);
 
-                            //should be multiplied by 4, rolling it into the normalization by Z after
-                            for (int k = 0; k < s; k++)
-                                inc_z_ij(workSpace[k], i, k, y_grad, s);
-                        }
-                        Z.addAndGet(local_Z);
-                        latch_g0.countDown();
+                        //should be multiplied by 4, rolling it into the normalization by Z after
+                        for (int k = 0; k < s; k++)
+                            inc_z_ij(workSpace[k], i, k, y_grad, s);
                     }
+                    Z.addAndGet(local_Z);
+                    latch_g0.countDown();
                 });
             }
             
@@ -250,34 +245,29 @@ public class TSNE implements VisualizationTransform
             for (int id = 0; id < SystemInfo.LogicalCores; id++)
             {
                 final int ID = id;
-                ex.submit(new Runnable()
-                {
-                    @Override
-                    public void run()
+                ex.submit(() -> {
+                    int start = ParallelUtils.getStartBlock(N, ID, SystemInfo.LogicalCores);
+                    int end = ParallelUtils.getEndBlock(N, ID, SystemInfo.LogicalCores);
+                    for (int i = start; i < end; i++)//N
                     {
-                        int start = ParallelUtils.getStartBlock(N, ID, SystemInfo.LogicalCores);
-                        int end = ParallelUtils.getEndBlock(N, ID, SystemInfo.LogicalCores);
-                        for (int i = start; i < end; i++)//N
+                        for(int j_indx = 0; j_indx < knn; j_indx ++) //O(u)
                         {
-                            for(int j_indx = 0; j_indx < knn; j_indx ++) //O(u)
-                            {
-                                int j = nearMe[i][j_indx];
-                                if(i == j)//this should never happen b/c we skipped that when creating nearMe
-                                    continue;
-                                double pij = nearMePij[i][j_indx];
-                                if(ITER < T*exageratedPortion)
-                                    pij *= alpha;
-                                double cnst = pij*q_ijZ(i, j, y, s)*4;
+                            int j = nearMe[i][j_indx];
+                            if(i == j)//this should never happen b/c we skipped that when creating nearMe
+                                continue;
+                            double pij = nearMePij[i][j_indx];
+                            if(ITER < T*exageratedPortion)
+                                pij *= alpha;
+                            double cnst = pij*q_ijZ(i, j, y, s)*4;
 
-                                for(int k = 0; k < s; k++)
-                                {
-                                    double diff = z_ij(i, k, y, s)-z_ij(j, k, y, s);
-                                    inc_z_ij(cnst*diff, i, k, y_grad, s);
-                                }
+                            for(int k = 0; k < s; k++)
+                            {
+                                double diff = z_ij(i, k, y, s)-z_ij(j, k, y, s);
+                                inc_z_ij(cnst*diff, i, k, y_grad, s);
                             }
                         }
-                        latch_g1.countDown();
                     }
+                    latch_g1.countDown();
                 });
             }
             
@@ -370,23 +360,18 @@ public class TSNE implements VisualizationTransform
             for (int id = 0; id < SystemInfo.LogicalCores; id++)
             {
                 final int ID = id;
-                ex.submit(new Runnable()
-                {
-                    @Override
-                    public void run()
+                ex.submit(() -> {
+                    for (int i = ID; i < N; i += SystemInfo.LogicalCores)//lets pre-compute the 3u nearesst neighbors used in eq(1)
                     {
-                        for (int i = ID; i < N; i += SystemInfo.LogicalCores)//lets pre-compute the 3u nearesst neighbors used in eq(1)
+                        Vec x_i = vecs.get(i);
+                        List<? extends VecPaired<Vec, Double>> closest = vp.search(x_i, knn+1);//+1 b/c self is closest
+                        neighbors.set(i, closest);
+                        for (int j = 1; j < closest.size(); j++)
                         {
-                            Vec x_i = vecs.get(i);
-                            List<? extends VecPaired<Vec, Double>> closest = vp.search(x_i, knn+1);//+1 b/c self is closest
-                            neighbors.set(i, closest);
-                            for (int j = 1; j < closest.size(); j++)
-                            {
-                                nearMe[i][j - 1] = vecIndex.get(closest.get(j).getVector());
-                            }
+                            nearMe[i][j - 1] = vecIndex.get(closest.get(j).getVector());
                         }
-                        latch.countDown();
                     }
+                    latch.countDown();
                 });
             }
 
@@ -421,46 +406,41 @@ public class TSNE implements VisualizationTransform
         for (int id = 0; id < SystemInfo.LogicalCores; id++)
         {
             final int ID = id;
-            ex.submit(new Runnable()
-            {
-                @Override
-                public void run()
+            ex.submit(() -> {
+                for (int i = ID; i < N; i += SystemInfo.LogicalCores)
                 {
-                    for (int i = ID; i < N; i += SystemInfo.LogicalCores)
+                    final int I = i;
+
+                    boolean tryAgain = false;
+                    do
                     {
-                        final int I = i;
-                        
-                        boolean tryAgain = false;
-                        do
+                        tryAgain = false;
+                        try
                         {
-                            tryAgain = false;
-                            try
+                            double sigma_i = Zeroin.root(1e-2, 100, minSigma.get(), maxSigma.get(),
+                                    (double x) -> perp(I, nearMe, x, neighbors, vecs, accelCache, dm) - perplexity);
+
+                            sigma[i] = sigma_i;
+                        }
+                        catch (ArithmeticException exception)//perp not in search range?
+                        {
+                            if(maxSigma.get() >= Double.MAX_VALUE/2)
                             {
-                                double sigma_i = Zeroin.root(1e-2, 100, minSigma.get(), maxSigma.get(),
-                                        (double x) -> perp(I, nearMe, x, neighbors, vecs, accelCache, dm) - perplexity);
-                                
-                                sigma[i] = sigma_i;
+                                //Why can't we find a range that fits? Just pick a value..
+                                //Not max value, but data is small.. so lets just set someting to break the loop
+                                sigma[i] = 1e100;
                             }
-                            catch (ArithmeticException exception)//perp not in search range?
+                            else
                             {
-                                if(maxSigma.get() >= Double.MAX_VALUE/2)
-                                {
-                                    //Why can't we find a range that fits? Just pick a value.. 
-                                    //Not max value, but data is small.. so lets just set someting to break the loop
-                                    sigma[i] = 1e100;
-                                }
-                                else
-                                {
-                                    tryAgain = true;
-                                    minSigma.set(Math.max(minSigma.get() / 2, 1e-6));
-                                    maxSigma.set(Math.min(maxSigma.get() * 2, Double.MAX_VALUE / 2));
-                                }
+                                tryAgain = true;
+                                minSigma.set(Math.max(minSigma.get() / 2, 1e-6));
+                                maxSigma.set(Math.min(maxSigma.get() * 2, Double.MAX_VALUE / 2));
                             }
                         }
-                        while (tryAgain);
                     }
-                    latch0.countDown();
+                    while (tryAgain);
                 }
+                latch0.countDown();
             });
         }
         
@@ -479,21 +459,16 @@ public class TSNE implements VisualizationTransform
         for (int id = 0; id < SystemInfo.LogicalCores; id++)
         {
             final int ID = id;
-            ex.submit(new Runnable()
-            {
-                @Override
-                public void run()
+            ex.submit(() -> {
+                for (int i = ID; i < N; i += SystemInfo.LogicalCores)
                 {
-                    for (int i = ID; i < N; i += SystemInfo.LogicalCores)
+                    for(int j_indx = 0; j_indx < knn; j_indx++)
                     {
-                        for(int j_indx = 0; j_indx < knn; j_indx++)
-                        {
-                            int j = nearMe[i][j_indx];
-                            nearMePij[i][j_indx] =  p_ij(i, j, sigma[i], sigma[j], neighbors, vecs, accelCache, dm);
-                        }
+                        int j = nearMe[i][j_indx];
+                        nearMePij[i][j_indx] =  p_ij(i, j, sigma[i], sigma[j], neighbors, vecs, accelCache, dm);
                     }
-                    latch1.countDown();
                 }
+                latch1.countDown();
             });
         }
         
@@ -673,7 +648,7 @@ public class TSNE implements VisualizationTransform
     }
     
     
-    private class Quadtree
+    private static class Quadtree
     {
         public Node root;
 

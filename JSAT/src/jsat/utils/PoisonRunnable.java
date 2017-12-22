@@ -84,11 +84,7 @@ public final class PoisonRunnable implements Runnable
             if(barrier != null)
                 barrier.await();
         }
-        catch (InterruptedException ex)
-        {
-            Logger.getLogger(PoisonRunnable.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        catch (BrokenBarrierException ex)
+        catch (InterruptedException | BrokenBarrierException ex)
         {
             Logger.getLogger(PoisonRunnable.class.getName()).log(Level.SEVERE, null, ex);
         }

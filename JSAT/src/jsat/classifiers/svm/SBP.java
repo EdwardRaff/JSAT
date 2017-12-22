@@ -2,9 +2,8 @@ package jsat.classifiers.svm;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
+
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;
@@ -13,12 +12,10 @@ import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.Vec;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.IndexTable;
 import jsat.utils.ListUtils;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 
 /**
  * Implementation of the Stochastic Batch Perceptron (SBP) algorithm. Despite
@@ -280,7 +277,7 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
         return rSqrd;
     }
 
-    private int sampleC(Random rand, final int n, double[] C, final double gamma) throws FailedToFitException
+    private static int sampleC(Random rand, final int n, double[] C, final double gamma) throws FailedToFitException
     {
         int i = 0;
         //Samply uniformly from C[i] <= gamma

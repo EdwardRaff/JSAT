@@ -424,7 +424,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         return ws.length;
     }
 
-    private class VecWithBias extends Vec
+    private static class VecWithBias extends Vec
     {
         public Vec w;
         public double[] b;
@@ -566,13 +566,9 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
                 for (Double partial : ListUtils.collectFutures(partialSums))
                     sum += partial;
             }
-            catch (ExecutionException ex1)
+            catch (ExecutionException | InterruptedException ex1)
             {
-                Logger.getLogger(LinearBatch.class.getName()).log(Level.SEVERE, null, ex1);
-            }
-            catch (InterruptedException ex1)
-            {
-                Logger.getLogger(LinearBatch.class.getName()).log(Level.SEVERE, null, ex1);
+                Logger.getLogger(LossFunction.class.getName()).log(Level.SEVERE, null, ex1);
             }
 
             double weightSum = 0;
@@ -650,14 +646,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
                 s = w.clone();
             s.zeroOut();
             if (tempVecs == null)
-                tempVecs = new ThreadLocal<Vec>()
-                {
-                    @Override
-                    protected Vec initialValue()
-                    {
-                        return w.clone();
-                    }
-                };
+                tempVecs = ThreadLocal.withInitial(() -> w.clone());
             final Vec store = s;
             final int N = D.getSampleSize();
             final int P = SystemInfo.LogicalCores;
@@ -666,29 +655,24 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             for (int p = 0; p < SystemInfo.LogicalCores; p++)
             {
                 final int ID = p;
-                ex.submit(new Runnable()
-                {
-                    @Override
-                    public void run()
+                ex.submit(() -> {
+                    Vec temp = tempVecs.get();
+                    temp.zeroOut();
+                    double weightSum = 0;
+                    for (int i = ParallelUtils.getStartBlock(N, ID, P); i < ParallelUtils.getEndBlock(N, ID, P); i++)
                     {
-                        Vec temp = tempVecs.get();
-                        temp.zeroOut();
-                        double weightSum = 0;
-                        for (int i = ParallelUtils.getStartBlock(N, ID, P); i < ParallelUtils.getEndBlock(N, ID, P); i++)
-                        {
-                            DataPoint dp = D.getDataPoint(i);
-                            Vec x = dp.getNumericalValues();
-                            double y = getTargetY(D, i);
-                            temp.mutableAdd(loss.getDeriv(w.dot(x), y)*dp.getWeight(), x);
-                            weightSum += dp.getWeight();
-                        }
-                        synchronized (store)
-                        {
-                            store.mutableAdd(temp);
-                        }
-                        weightSums[ID] = weightSum;
-                        latch.countDown();
+                        DataPoint dp = D.getDataPoint(i);
+                        Vec x = dp.getNumericalValues();
+                        double y = getTargetY(D, i);
+                        temp.mutableAdd(loss.getDeriv(w.dot(x), y)*dp.getWeight(), x);
+                        weightSum += dp.getWeight();
                     }
+                    synchronized (store)
+                    {
+                        store.mutableAdd(temp);
+                    }
+                    weightSums[ID] = weightSum;
+                    latch.countDown();
                 });
             }
             
@@ -698,7 +682,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             }
             catch (InterruptedException ex1)
             {
-                Logger.getLogger(LinearBatch.class.getName()).log(Level.SEVERE, null, ex1);
+                Logger.getLogger(GradFunction.class.getName()).log(Level.SEVERE, null, ex1);
             }
 
             double weightSum = 0;
@@ -760,31 +744,26 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             for (int p = 0; p < SystemInfo.LogicalCores; p++)
             {
                 final int ID = p;
-                partialSums.add(ex.submit(new Callable<Double>()
-                {
-                    @Override
-                    public Double call() throws Exception
+                partialSums.add(ex.submit(() -> {
+                    double sum = 0;
+                    Vec pred = new DenseVector(D.getClassSize());//store the predictions in
+                    double weightSum = 0;
+                    for (int i = ParallelUtils.getStartBlock(N, ID, P); i < ParallelUtils.getEndBlock(N, ID, P); i++)
                     {
-                        double sum = 0;
-                        Vec pred = new DenseVector(D.getClassSize());//store the predictions in
-                        double weightSum = 0;
-                        for (int i = ParallelUtils.getStartBlock(N, ID, P); i < ParallelUtils.getEndBlock(N, ID, P); i++)
-                        {
-                            DataPoint dp = D.getDataPoint(i);
-                            Vec x = dp.getNumericalValues();
-                            for(int k = 0; k < pred.length(); k++)
-                                pred.set(k, new SubVector(k * subWSize, subWSize, w).dot(x));
-                            if(useBiasTerm)
-                                pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
-                            loss.process(pred, pred);
-                            int y = D.getDataPointCategory(i);
-                            sum += loss.getLoss(pred, y)*dp.getWeight();
-                            weightSum += dp.getWeight();
-                        }
-
-                        weightSums[ID] = weightSum;
-                        return sum;
+                        DataPoint dp = D.getDataPoint(i);
+                        Vec x = dp.getNumericalValues();
+                        for(int k = 0; k < pred.length(); k++)
+                            pred.set(k, new SubVector(k * subWSize, subWSize, w).dot(x));
+                        if(useBiasTerm)
+                            pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
+                        loss.process(pred, pred);
+                        int y = D.getDataPointCategory(i);
+                        sum += loss.getLoss(pred, y)*dp.getWeight();
+                        weightSum += dp.getWeight();
                     }
+
+                    weightSums[ID] = weightSum;
+                    return sum;
                 }));
             }
             double sum = 0;
@@ -794,13 +773,9 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
                 for (Double partial : ListUtils.collectFutures(partialSums))
                     sum += partial;
             }
-            catch (ExecutionException ex1)
+            catch (ExecutionException | InterruptedException ex1)
             {
-                Logger.getLogger(LinearBatch.class.getName()).log(Level.SEVERE, null, ex1);
-            }
-            catch (InterruptedException ex1)
-            {
-                Logger.getLogger(LinearBatch.class.getName()).log(Level.SEVERE, null, ex1);
+                Logger.getLogger(LossMCFunction.class.getName()).log(Level.SEVERE, null, ex1);
             }
 
             double weightSum = 0;
@@ -882,14 +857,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
                 s = w.clone();
             s.zeroOut();
             if (tempVecs == null)
-                tempVecs = new ThreadLocal<Vec>()
-                {
-                    @Override
-                    protected Vec initialValue()
-                    {
-                        return w.clone();
-                    }
-                };
+                tempVecs = ThreadLocal.withInitial(() -> w.clone());
             final Vec store = s;
             final int N = D.getSampleSize();
             final int P = SystemInfo.LogicalCores;
@@ -899,37 +867,32 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             for (int p = 0; p < SystemInfo.LogicalCores; p++)
             {
                 final int ID = p;
-                ex.submit(new Runnable()
-                {
-                    @Override
-                    public void run()
+                ex.submit(() -> {
+                    Vec temp = tempVecs.get();
+                    temp.zeroOut();
+                    Vec pred = new DenseVector(D.getClassSize());//store the predictions in
+                    double weightSum = 0;
+                    for (int i = ParallelUtils.getStartBlock(N, ID, P); i < ParallelUtils.getEndBlock(N, ID, P); i++)
                     {
-                        Vec temp = tempVecs.get();
-                        temp.zeroOut();
-                        Vec pred = new DenseVector(D.getClassSize());//store the predictions in
-                        double weightSum = 0;
-                        for (int i = ParallelUtils.getStartBlock(N, ID, P); i < ParallelUtils.getEndBlock(N, ID, P); i++)
-                        {
-                            DataPoint dp = D.getDataPoint(i);
-                            Vec x = dp.getNumericalValues();
-                            for (int k = 0; k < pred.length(); k++)
-                                pred.set(k, new SubVector(k * subWSize, subWSize, w).dot(x));
-                            if(useBiasTerm)
-                                pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
-                            loss.process(pred, pred);
-                            int y = D.getDataPointCategory(i);
-                            loss.deriv(pred, pred, y);
-                            for(IndexValue iv : pred)
-                                new SubVector(iv.getIndex() * subWSize, subWSize, temp).mutableAdd(iv.getValue()*dp.getWeight(), x);
-                            weightSum += dp.getWeight();
-                        }
-                        synchronized (store)
-                        {
-                            store.mutableAdd(temp);
-                        }
-                        weightSums[ID] = weightSum;
-                        latch.countDown();
+                        DataPoint dp = D.getDataPoint(i);
+                        Vec x = dp.getNumericalValues();
+                        for (int k = 0; k < pred.length(); k++)
+                            pred.set(k, new SubVector(k * subWSize, subWSize, w).dot(x));
+                        if(useBiasTerm)
+                            pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
+                        loss.process(pred, pred);
+                        int y = D.getDataPointCategory(i);
+                        loss.deriv(pred, pred, y);
+                        for(IndexValue iv : pred)
+                            new SubVector(iv.getIndex() * subWSize, subWSize, temp).mutableAdd(iv.getValue()*dp.getWeight(), x);
+                        weightSum += dp.getWeight();
                     }
+                    synchronized (store)
+                    {
+                        store.mutableAdd(temp);
+                    }
+                    weightSums[ID] = weightSum;
+                    latch.countDown();
                 });
             }
             
@@ -939,7 +902,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             }
             catch (InterruptedException ex1)
             {
-                Logger.getLogger(LinearBatch.class.getName()).log(Level.SEVERE, null, ex1);
+                Logger.getLogger(GradMCFunction.class.getName()).log(Level.SEVERE, null, ex1);
             }
             
             double weightSum = 0;

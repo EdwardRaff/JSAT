@@ -322,14 +322,7 @@ public class VecPaired<V extends Vec, P> extends Vec
     
     public static <V extends Vec, P extends Comparable<P>> Comparator<VecPaired<V, P>>  vecPairedComparator()
     {
-        Comparator<VecPaired<V, P>> comp = new Comparator<VecPaired<V, P>>() {
-
-            @Override
-            public int compare(VecPaired<V, P> o1, VecPaired<V, P> o2)
-            {
-                return o1.getPair().compareTo(o2.getPair());
-            }
-        };
+        Comparator<VecPaired<V, P>> comp = (o1, o2) -> o1.getPair().compareTo(o2.getPair());
         return comp;
     };
 

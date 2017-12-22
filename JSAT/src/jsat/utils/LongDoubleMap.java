@@ -264,7 +264,7 @@ public final class LongDoubleMap extends AbstractMap<Long, Double>
      */
     public static int h(long key)
     {
-        return (int) ((int) ( key >> 32) ^ Integer.reverseBytes((int) (key & 0xFFFFFFFF))) & 0x7fffffff;
+        return ((int) ( key >> 32) ^ Integer.reverseBytes((int) (key & 0xFFFFFFFF))) & 0x7fffffff;
     }
     
 

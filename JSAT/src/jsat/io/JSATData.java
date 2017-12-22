@@ -137,7 +137,7 @@ public class JSATData
             {
                 //below can only return true if ther eis no loss in storing these values as 32 bit floats instead of doubles
                 float f_o = (float) orig;
-                return Double.valueOf(f_o)-orig == 0.0;
+                return (double) f_o -orig == 0.0;
             }
         },
         SHORT 
@@ -219,22 +219,12 @@ public class JSATData
                     DataPoint dp = data.getDataPoint(i);
                     for (IndexValue iv : dp.getNumericalValues())
                     {
-                        Iterator<FloatStorageMethod> iter = storageCandidates.iterator();
-                        while (iter.hasNext())
-                        {
-                            if (!iter.next().noLoss(iv.getValue()))
-                                iter.remove();
-                        }
+                        storageCandidates.removeIf(floatStorageMethod -> !floatStorageMethod.noLoss(iv.getValue()));
                         if (storageCandidates.size() == 1)
                             break;
                     }
 
-                    Iterator<FloatStorageMethod> iter = storageCandidates.iterator();
-                    while (iter.hasNext())
-                    {
-                        if (!iter.next().noLoss(dp.getWeight()))
-                            iter.remove();
-                    }
+                    storageCandidates.removeIf(floatStorageMethod -> !floatStorageMethod.noLoss(dp.getWeight()));
                     if (storageCandidates.size() == 1)
                         break;
                 }
@@ -243,12 +233,7 @@ public class JSATData
                 {
                     for(IndexValue iv : ((RegressionDataSet)data).getTargetValues())
                     {
-                        Iterator<FloatStorageMethod> iter = storageCandidates.iterator();
-                        while (iter.hasNext())
-                        {
-                            if (!iter.next().noLoss(iv.getValue()))
-                                iter.remove();
-                        }
+                        storageCandidates.removeIf(floatStorageMethod -> !floatStorageMethod.noLoss(iv.getValue()));
                         if (storageCandidates.size() == 1)
                             break;
                     }

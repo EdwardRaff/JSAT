@@ -14,23 +14,26 @@ public class StringUtils
         for(int i = start; i < end; i++)
         {
             char c = s.charAt(i);
-            if (c == '-')
-                if (i == start)
-                    negative = true;
-                else
-                    throw new NumberFormatException("Negative sign did not occur at begining of sequence");
-            else if (c == '+')
-                if (i == start)
-                    negative = false;//do nothing really
-                else
-                    throw new NumberFormatException("Positive sign did not occur at begining of sequence");
-            else
-            {
-                int digit = Character.digit(c, radix);
-                if(digit < 0)
-                    throw new NumberFormatException("Non digit character '" + c + "' encountered");
-                val *= radix;
-                val += digit;
+            switch (c) {
+                case '-':
+                    if (i == start)
+                        negative = true;
+                    else
+                        throw new NumberFormatException("Negative sign did not occur at begining of sequence");
+                    break;
+                case '+':
+                    if (i == start)
+                        negative = false;//do nothing really
+                    else
+                        throw new NumberFormatException("Positive sign did not occur at begining of sequence");
+                    break;
+                default:
+                    int digit = Character.digit(c, radix);
+                    if (digit < 0)
+                        throw new NumberFormatException("Non digit character '" + c + "' encountered");
+                    val *= radix;
+                    val += digit;
+                    break;
             }
         }
         if(negative)

@@ -162,33 +162,28 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
 
         final CountDownLatch latch = new CountDownLatch(LogicalCores);
         for (final List<Integer> subSet : ListUtils.splitList(vecIndices, LogicalCores))
-            execServ.submit(new Runnable()
-            {
-                @Override
-                public void run()
+            execServ.submit(() -> {
+                double tmp;
+                for (int v : subSet)
                 {
-                    double tmp;
-                    for (int v : subSet)
-                    {
-                        int bestRep = 0;
-                        double bestDist = dm.dist(v, R.get(0), allVecs, distCache);
-                        for (int potentialRep = 1; potentialRep < R.size(); potentialRep++)
-                            if ((tmp = dm.dist(v, R.get(potentialRep), allVecs, distCache)) < bestDist)
-                            {
-                                bestDist = tmp;
-                                bestRep = potentialRep;
-                            }
-
-                        synchronized (ownedVecs.get(bestRep))
+                    int bestRep = 0;
+                    double bestDist = dm.dist(v, R.get(0), allVecs, distCache);
+                    for (int potentialRep = 1; potentialRep < R.size(); potentialRep++)
+                        if ((tmp = dm.dist(v, R.get(potentialRep), allVecs, distCache)) < bestDist)
                         {
-                            ownedVecs.get(bestRep).add(v);
-                            ownedRDists.get(bestRep).add(bestDist);
-                            repRadius[bestRep] = Math.max(repRadius[bestRep], bestDist);
+                            bestDist = tmp;
+                            bestRep = potentialRep;
                         }
-                    }
 
-                    latch.countDown();
+                    synchronized (ownedVecs.get(bestRep))
+                    {
+                        ownedVecs.get(bestRep).add(v);
+                        ownedRDists.get(bestRep).add(bestDist);
+                        repRadius[bestRep] = Math.max(repRadius[bestRep], bestDist);
+                    }
                 }
+
+                latch.countDown();
             });
 
         latch.await();

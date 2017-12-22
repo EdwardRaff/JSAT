@@ -443,7 +443,7 @@ public class OPTICS extends ClustererBase implements Parameterized
                         }
                         if(sdaOrdered > orderIndex)
                             continue;
-                        OPTICSCluster newClust = new OPTICSCluster(sdaOrdered, orderIndex+1);
+                        OPTICSCluster newClust = new OPTICSCluster(sdaOrdered, orderIndex + 1);
                         OPTICSCluster tmp;
                         for(Iterator<OPTICSCluster> clustIter = clusters.iterator(); clustIter.hasNext();)
                         {
@@ -480,7 +480,7 @@ public class OPTICS extends ClustererBase implements Parameterized
     /**
      * Private class for keeping track of heiarchies of clusters
      */
-    private class OPTICSCluster 
+    private static class OPTICSCluster
     {
         int start, end;
         List<OPTICSCluster> subClusters;
@@ -522,14 +522,7 @@ public class OPTICS extends ClustererBase implements Parameterized
             designations = new int[n];
         
         Arrays.fill(designations, NOISE);
-        orderdSeeds = new PriorityQueue<Integer>(n, new Comparator<Integer>() {
-
-            @Override
-            public int compare(Integer o1, Integer o2)
-            {
-                return Double.compare(reach_d[o1], reach_d[o2]);
-            }
-        });
+        orderdSeeds = new PriorityQueue<Integer>(n, (o1, o2) -> Double.compare(reach_d[o1], reach_d[o2]));
         core_distance = new double[n];
         reach_d = new double[n];
         Arrays.fill(reach_d, UNDEFINED);
@@ -562,12 +555,17 @@ public class OPTICS extends ClustererBase implements Parameterized
         }
         
         int clustersFound;
-        if(extractionMethod == ExtractionMethod.THRESHHOLD)
-            clustersFound = threshHoldExtractCluster(orderedFile, designations);
-        else if(extractionMethod == ExtractionMethod.THRESHHOLD_FIXUP)
-            clustersFound = threshHoldFixExtractCluster(orderedFile, designations);
-        else if(extractionMethod == ExtractionMethod.XI_STEEP_ORIGINAL)
-            clustersFound = xiSteepClusterExtract(n, orderedFile, designations);
+        switch (extractionMethod) {
+            case THRESHHOLD:
+                clustersFound = threshHoldExtractCluster(orderedFile, designations);
+                break;
+            case THRESHHOLD_FIXUP:
+                clustersFound = threshHoldFixExtractCluster(orderedFile, designations);
+                break;
+            case XI_STEEP_ORIGINAL:
+                clustersFound = xiSteepClusterExtract(n, orderedFile, designations);
+                break;
+        }
         
         
         //Sort reachability values 

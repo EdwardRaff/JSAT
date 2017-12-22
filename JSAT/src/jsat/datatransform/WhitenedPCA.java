@@ -1,6 +1,5 @@
 package jsat.datatransform;
 
-import java.util.Comparator;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.Distribution;
@@ -156,7 +155,7 @@ public class WhitenedPCA extends DataTransformBase
      * @param dataSet the data set in question
      * @return the SVD for the covariance
      */
-    private SingularValueDecomposition getSVD(DataSet dataSet)
+    private static SingularValueDecomposition getSVD(DataSet dataSet)
     {
         Matrix cov = covarianceMatrix(meanVector(dataSet), dataSet);
         for(int i = 0; i < cov.rows(); i++)//force it to be symmetric
@@ -164,14 +163,7 @@ public class WhitenedPCA extends DataTransformBase
                 cov.set(j, i, cov.get(i, j));
         EigenValueDecomposition evd = new EigenValueDecomposition(cov);
         //Sort form largest to smallest
-        evd.sortByEigenValue(new Comparator<Double>() 
-        {
-            @Override
-            public int compare(Double o1, Double o2)
-            {
-                return -Double.compare(o1, o2);
-            }
-        });
+        evd.sortByEigenValue((o1, o2) -> -Double.compare(o1, o2));
         return new SingularValueDecomposition(evd.getVRaw(), evd.getVRaw(), evd.getRealEigenvalues());
     }
     

@@ -34,7 +34,7 @@ public abstract class ClustererBase implements Clusterer
     @Override
     public List<List<DataPoint>> cluster(DataSet dataSet, ExecutorService threadpool)
     {
-        int[] assignments = cluster(dataSet, threadpool, (int[]) null);
+        int[] assignments = cluster(dataSet, threadpool, null);
         return createClusterListFromAssignmentArray(assignments, dataSet);
     }
 

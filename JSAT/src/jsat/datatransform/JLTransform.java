@@ -248,27 +248,26 @@ public class JLTransform extends DataTransformBase
         @Override
         protected double getVal(Random rand)
         {
-            if (mode == TransformMode.GAUSS)
-            {
-                return rand.nextGaussian()*cnst;
+            switch (mode) {
+                case GAUSS:
+                    return rand.nextGaussian() * cnst;
+                case BINARY:
+                    return (rand.nextBoolean() ? -cnst : cnst);
+                case SPARSE:
+                    int val = rand.nextInt(6);
+                    //1 with prob 1/6, -1 with prob 1/6
+                    switch (val) {
+                        case 0:
+                            return -cnst;
+                        case 1:
+                            return cnst;
+                        default:
+//0 with prob 2/3
+                            return 0;
+                    }
+                default:
+                    throw new RuntimeException("BUG: Please report");
             }
-            else if (mode == TransformMode.BINARY)
-            {
-                return (rand.nextBoolean() ? -cnst : cnst);
-            }
-            else if (mode == TransformMode.SPARSE)
-            {
-                int val = rand.nextInt(6);
-                //1 with prob 1/6, -1 with prob 1/6
-                if(val == 0)
-                    return -cnst;
-                else if(val == 1)
-                    return cnst;
-                else //0 with prob 2/3
-                    return 0;
-            }
-            else
-                throw new RuntimeException("BUG: Please report");
         }
         
     }

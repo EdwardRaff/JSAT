@@ -915,14 +915,9 @@ public abstract class Matrix implements Cloneable, Serializable
             for (final IndexValue iv : x)
             {
                 mcdl.countUp();
-                threadpool.submit(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        A.updateRow(iv.getIndex(), iv.getValue() * c, y);
-                        mcdl.countDown();
-                    }
+                threadpool.submit(() -> {
+                    A.updateRow(iv.getIndex(), iv.getValue() * c, y);
+                    mcdl.countDown();
                 });
             }
             mcdl.countDown();
@@ -941,19 +936,13 @@ public abstract class Matrix implements Cloneable, Serializable
             for(int id = 0; id < LogicalCores; id++)
             {
                 final int threadID = id;
-                threadpool.submit(new Runnable() 
-                {
-
-                    @Override
-                    public void run()
+                threadpool.submit(() -> {
+                    for(int i = threadID; i < x.length(); i+=LogicalCores)
                     {
-                        for(int i = threadID; i < x.length(); i+=LogicalCores)
-                        {
-                            double rowCosnt = c*x.get(i);
-                            A.updateRow(i, rowCosnt, y);
-                        }
-                        latch.countDown();
+                        double rowCosnt = c*x.get(i);
+                        A.updateRow(i, rowCosnt, y);
                     }
+                    latch.countDown();
                 });
 
             }

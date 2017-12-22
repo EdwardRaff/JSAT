@@ -242,73 +242,74 @@ public class LIBSVMLoader
          * The index that we have parse out of a non zero pair
          */
         int indexProcessing = -1;
-        while(true)
-        {
-            
-            while(charBuffer.length()-position <= 1)//make sure we have chars to handle
+        label:
+        while (true) {
+
+            while (charBuffer.length() - position <= 1)//make sure we have chars to handle
             {
                 //move everything to the front
                 charBuffer.delete(0, position);
                 position = 0;
-                
+
                 int read = reader.read(buffer);
-                if(read < 0)
+                if (read < 0)
                     break;
                 charBuffer.append(buffer, 0, read);
             }
-            
-            if(charBuffer.length()-position == 0)//EOF, no more chars
+
+            if (charBuffer.length() - position == 0)//EOF, no more chars
             {
-                if(state == STATE.LABEL)//last line was empty
-                {
-                    double label = Double.parseDouble(processBuffer.toString());
+                switch (state) {
+                    case LABEL:
+//last line was empty
 
-                    if (!possibleCats.containsKey(label) && classification)
-                        possibleCats.put(label, possibleCats.size());
-                    labelVals.add(label);
-                    
-                    sparceVecs.add(new SparseVector(maxLen, 0));
-                }
-                else if(state == STATE.WHITESPACE_AFTER_LABEL)//last line was empty, but we have already eaten the label
-                {
-                    sparceVecs.add(new SparseVector(maxLen, 0));
-                }
-                else if(state == STATE.FEATURE_VALUE || state == STATE.WHITESPACE_AFTER_FEATURE)//line ended after a value pair
-                {
-                    //process the last value pair & insert into vec
-                    double value = StringUtils.parseDouble(processBuffer, 0, processBuffer.length());
-                    processBuffer.delete(0, processBuffer.length());
+                        double label = Double.parseDouble(processBuffer.toString());
 
-                    maxLen = Math.max(maxLen, indexProcessing+1);
-                    tempVec.setLength(maxLen);
-                    if (value != 0)
-                        tempVec.set(indexProcessing, value);
-                    sparceVecs.add(tempVec.clone());
+                        if (!possibleCats.containsKey(label) && classification)
+                            possibleCats.put(label, possibleCats.size());
+                        labelVals.add(label);
+
+                        sparceVecs.add(new SparseVector(maxLen, 0));
+                        break;
+                    case WHITESPACE_AFTER_LABEL:
+//last line was empty, but we have already eaten the label
+
+                        sparceVecs.add(new SparseVector(maxLen, 0));
+                        break;
+                    case FEATURE_VALUE:
+                    case WHITESPACE_AFTER_FEATURE:
+//line ended after a value pair
+
+                        //process the last value pair & insert into vec
+                        double value = StringUtils.parseDouble(processBuffer, 0, processBuffer.length());
+                        processBuffer.delete(0, processBuffer.length());
+
+                        maxLen = Math.max(maxLen, indexProcessing + 1);
+                        tempVec.setLength(maxLen);
+                        if (value != 0)
+                            tempVec.set(indexProcessing, value);
+                        sparceVecs.add(tempVec.clone());
+                        break;
+                    case NEWLINE:
+                        //nothing to do and everything already processed, just return
+                        break label;
+                    default:
+                        throw new RuntimeException();
                 }
-                else if(state == STATE.NEWLINE)
-                {
-                    //nothing to do and everything already processed, just return
-                    break;
-                }
-                else
-                    throw new RuntimeException();
                 //we may have ended on a line, and have a sparse vec to add before returning
                 break;
             }
-            
+
             char ch = charBuffer.charAt(position);
-            switch(state)
-            {
+            switch (state) {
                 case INITIAL:
                     state = STATE.LABEL;
                     break;
                 case LABEL:
-                    if (Character.isDigit(ch)  || ch == '.' || ch == 'E' || ch == 'e' || ch == '-' || ch == '+')
-                    {
+                    if (Character.isDigit(ch) || ch == '.' || ch == 'E' || ch == 'e' || ch == '-' || ch == '+') {
                         processBuffer.append(ch);
                         position++;
-                    }
-                    else if (Character.isWhitespace(ch))//this gets spaces and new lines
+                    } else if (Character.isWhitespace(ch))//this gets spaces and new lines
                     {
                         double label = Double.parseDouble(processBuffer.toString());
 
@@ -318,103 +319,85 @@ public class LIBSVMLoader
 
                         //clean up and move to new state
                         processBuffer.delete(0, processBuffer.length());
-                        
+
                         if (ch == '\n' || ch == '\r')//empty line, so add a zero vector
                         {
                             tempVec.zeroOut();
                             sparceVecs.add(new SparseVector(maxLen, 0));
                             state = STATE.NEWLINE;
-                        }
-                        else//just white space
+                        } else//just white space
                         {
                             tempVec.zeroOut();
                             state = STATE.WHITESPACE_AFTER_LABEL;
                         }
-                    }
-                    else
+                    } else
                         throw new RuntimeException("Invalid LIBSVM file");
                     break;
                 case WHITESPACE_AFTER_LABEL:
                     if (Character.isDigit(ch))//move to next state
                     {
                         state = STATE.FEATURE_INDEX;
-                    }
-                    else if (Character.isWhitespace(ch))
-                    {
-                        if (ch == '\n' || ch == '\r')
-                        {
+                    } else if (Character.isWhitespace(ch)) {
+                        if (ch == '\n' || ch == '\r') {
                             tempVec.zeroOut();
                             sparceVecs.add(new SparseVector(maxLen, 0));///no features again, add zero vec
                             state = STATE.NEWLINE;
-                        }
-                        else//normal whie space
+                        } else//normal whie space
                             position++;
-                    }
-                    else
+                    } else
                         throw new RuntimeException();
                     break;
                 case FEATURE_INDEX:
-                    if (Character.isDigit(ch))
-                    {
+                    if (Character.isDigit(ch)) {
                         processBuffer.append(ch);
                         position++;
-                    }
-                    else if(ch == ':')
-                    {
-                        indexProcessing = StringUtils.parseInt(processBuffer, 0, processBuffer.length())-1;
+                    } else if (ch == ':') {
+                        indexProcessing = StringUtils.parseInt(processBuffer, 0, processBuffer.length()) - 1;
                         processBuffer.delete(0, processBuffer.length());
-                        
-                        
+
+
                         state = STATE.FEATURE_VALUE;
                         position++;
-                    }
-                    else
+                    } else
                         throw new RuntimeException();
                     break;
                 case FEATURE_VALUE:
                     //we need to accept all the values that may be part of a float value
-                    if (Character.isDigit(ch) || ch == '.' || ch == 'E' || ch == 'e' || ch == '-' || ch == '+')
-                    {
+                    if (Character.isDigit(ch) || ch == '.' || ch == 'E' || ch == 'e' || ch == '-' || ch == '+') {
                         processBuffer.append(ch);
                         position++;
-                    }
-                    else
-                    {
+                    } else {
                         double value = StringUtils.parseDouble(processBuffer, 0, processBuffer.length());
                         processBuffer.delete(0, processBuffer.length());
-   
-                        maxLen = Math.max(maxLen, indexProcessing+1);
+
+                        maxLen = Math.max(maxLen, indexProcessing + 1);
                         tempVec.setLength(maxLen);
                         if (value != 0)
                             tempVec.set(indexProcessing, value);
-                        
+
                         if (Character.isWhitespace(ch))
                             state = STATE.WHITESPACE_AFTER_FEATURE;
                         else
                             throw new RuntimeException();
                     }
-                    
+
                     break;
                 case WHITESPACE_AFTER_FEATURE:
                     if (Character.isDigit(ch))
                         state = STATE.FEATURE_INDEX;
-                    else if (Character.isWhitespace(ch))
-                    {
-                        if (ch == '\n' || ch == '\r')
-                        {
+                    else if (Character.isWhitespace(ch)) {
+                        if (ch == '\n' || ch == '\r') {
                             sparceVecs.add(tempVec.clone());
                             tempVec.zeroOut();
                             state = STATE.NEWLINE;
-                        }
-                        else
+                        } else
                             position++;
                     }
                     break;
                 case NEWLINE:
                     if (ch == '\n' || ch == '\r')
                         position++;
-                    else
-                    {
+                    else {
                         state = STATE.LABEL;
                     }
                     break;
@@ -549,12 +532,17 @@ public class LIBSVMLoader
                 PrintWriter writer = new PrintWriter(byteOut);
                 
                 //write out label
-                if(this.type == DataSetType.REGRESSION)
-                    writer.write(label + " ");
-                else if(this.type == DataSetType.CLASSIFICATION)
-                    writer.write((int)label + " ");
-                else if(this.type == DataSetType.SIMPLE)
-                    writer.write("0 ");
+                switch (this.type) {
+                    case REGRESSION:
+                        writer.write(label + " ");
+                        break;
+                    case CLASSIFICATION:
+                        writer.write((int) label + " ");
+                        break;
+                    case SIMPLE:
+                        writer.write("0 ");
+                        break;
+                }
                 
                 Vec vals = dp.getNumericalValues();
                 for(IndexValue iv : vals)

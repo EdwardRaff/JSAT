@@ -92,14 +92,9 @@ public class SparseMatrix extends Matrix
         for (int i = 0; i < rows.length; i++)
         {
             final int ii = i;
-            threadPool.submit(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    rows[ii].mutableAdd(c, B.getRowView(ii));
-                    latch.countDown();
-                }
+            threadPool.submit(() -> {
+                rows[ii].mutableAdd(c, B.getRowView(ii));
+                latch.countDown();
             });
         }
         try
@@ -125,14 +120,9 @@ public class SparseMatrix extends Matrix
         final CountDownLatch latch = new CountDownLatch(rows.length);
         for(final SparseVector row : rows)
         {
-            threadPool.submit(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    row.mutableAdd(c);
-                    latch.countDown();
-                }
+            threadPool.submit(() -> {
+                row.mutableAdd(c);
+                latch.countDown();
             });
         }
         try
@@ -197,21 +187,16 @@ public class SparseMatrix extends Matrix
             final Vec Arowi = this.rows[i];
             final Vec Crowi = C.getRowView(i);
 
-            threadPool.submit(new Runnable()
-            {
-                @Override
-                public void run()
+            threadPool.submit(() -> {
+                for (IndexValue iv : Arowi)
                 {
-                    for (IndexValue iv : Arowi)
-                    {
-                        final int k = iv.getIndex();
-                        double a = iv.getValue();
-                        Vec Browk = B.getRowView(k);
-                        Crowi.mutableAdd(a, Browk);
-                    }
-                    
-                    latch.countDown();
+                    final int k = iv.getIndex();
+                    double a = iv.getValue();
+                    Vec Browk = B.getRowView(k);
+                    Crowi.mutableAdd(a, Browk);
                 }
+
+                latch.countDown();
             });
         }
         try
@@ -237,14 +222,9 @@ public class SparseMatrix extends Matrix
         final CountDownLatch latch = new CountDownLatch(rows.length);
         for(final SparseVector row : rows)
         {
-            threadPool.submit(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    row.mutableMultiply(c);
-                    latch.countDown();
-                }
+            threadPool.submit(() -> {
+                row.mutableMultiply(c);
+                latch.countDown();
             });
         }
         try
@@ -527,79 +507,73 @@ public class SparseMatrix extends Matrix
         for(int id = 0; id < SystemInfo.LogicalCores; id++)
         {
             final int ID = id;
-            threadPool.submit(new Runnable()
-            {
-
-                @Override
-                public void run()
+            threadPool.submit(() -> {
+                try{
+                for (int i = ID; i < A.rows(); i += SystemInfo.LogicalCores)
                 {
-                    try{
-                    for (int i = ID; i < A.rows(); i += SystemInfo.LogicalCores)
+                    final SparseVector A_i = A.rows[i];
+                    for (int j = 0; j < B.rows(); j++)
                     {
-                        final SparseVector A_i = A.rows[i];
-                        for (int j = 0; j < B.rows(); j++)
+                        final Vec B_j = B.getRowView(j);
+                        double C_ij = 0;
+
+                        if(!B_j.isSparse())//B is dense, lets do this the easy way
                         {
-                            final Vec B_j = B.getRowView(j);
-                            double C_ij = 0;
-
-                            if(!B_j.isSparse())//B is dense, lets do this the easy way
-                            {
-                                for (IndexValue iv : A_i)
-                                    C_ij += iv.getValue() * B_j.get(iv.getIndex());
-                                C.increment(i, j, C_ij);
-                                continue;//Skip early, we did it!
-                            }
-                            //else, sparse 
-                            Iterator<IndexValue> A_iter = A_i.getNonZeroIterator();
-                            Iterator<IndexValue> B_iter = B_j.getNonZeroIterator();
-                            if(!B_iter.hasNext() || !A_iter.hasNext())//one is all zeros, nothing to do
-                                continue;
-
-                            IndexValue A_val = A_iter.next();
-                            IndexValue B_val = B_iter.next();
-
-                            while(A_val != null && B_val != null)//go add everything together!
-                            {
-                                if(A_val.getIndex() == B_val.getIndex())//inc and bump both
-                                {
-                                    C_ij += A_val.getValue()*B_val.getValue();
-                                    if(A_iter.hasNext())
-                                        A_val = A_iter.next();
-                                    else
-                                        A_val = null;
-                                    if(B_iter.hasNext())
-                                        B_val = B_iter.next();
-                                    else
-                                        B_val = null;
-                                }
-                                else if(A_val.getIndex() < B_val.getIndex())//A is behind, bump it
-                                {
-                                    if(A_iter.hasNext())
-                                        A_val = A_iter.next();
-                                    else
-                                        A_val = null;
-                                }
-                                else//B is behind, bump it
-                                {
-                                    if(B_iter.hasNext())
-                                        B_val = B_iter.next();
-                                    else
-                                        B_val = null;
-                                }
-                            }
-
+                            for (IndexValue iv : A_i)
+                                C_ij += iv.getValue() * B_j.get(iv.getIndex());
                             C.increment(i, j, C_ij);
+                            continue;//Skip early, we did it!
                         }
+                        //else, sparse
+                        Iterator<IndexValue> A_iter = A_i.getNonZeroIterator();
+                        Iterator<IndexValue> B_iter = B_j.getNonZeroIterator();
+                        if(!B_iter.hasNext() || !A_iter.hasNext())//one is all zeros, nothing to do
+                            continue;
+
+                        IndexValue A_val = A_iter.next();
+                        IndexValue B_val = B_iter.next();
+
+                        while(A_val != null && B_val != null)//go add everything together!
+                        {
+                            if(A_val.getIndex() == B_val.getIndex())//inc and bump both
+                            {
+                                C_ij += A_val.getValue()*B_val.getValue();
+                                if(A_iter.hasNext())
+                                    A_val = A_iter.next();
+                                else
+                                    A_val = null;
+                                if(B_iter.hasNext())
+                                    B_val = B_iter.next();
+                                else
+                                    B_val = null;
+                            }
+                            else if(A_val.getIndex() < B_val.getIndex())//A is behind, bump it
+                            {
+                                if(A_iter.hasNext())
+                                    A_val = A_iter.next();
+                                else
+                                    A_val = null;
+                            }
+                            else//B is behind, bump it
+                            {
+                                if(B_iter.hasNext())
+                                    B_val = B_iter.next();
+                                else
+                                    B_val = null;
+                            }
+                        }
+
+                        C.increment(i, j, C_ij);
                     }
-                    
-                    }
-                    catch(Exception ex)
-                    {
-                        ex.printStackTrace();
-                    }
-                    System.out.println(ID + " fin");
-                    latch.countDown();
                 }
+
+                }
+                catch(Exception ex)
+                {
+                    ex.printStackTrace();
+                }
+                System.out.println(ID + " fin");
+                latch.countDown();
             });
         }
         

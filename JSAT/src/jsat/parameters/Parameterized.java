@@ -14,7 +14,7 @@ public interface Parameterized
      * Returns the list of parameters that can be altered for this learner. 
      * @return the list of parameters that can be altered for this learner. 
      */
-    default public List<Parameter> getParameters()
+    default List<Parameter> getParameters()
     {
         return Parameter.getParamsFromMethods(this);
     }
@@ -26,7 +26,7 @@ public interface Parameterized
      * @param paramName the name of the parameter to obtain
      * @return the Parameter in question, or null if no such named Parameter exists. 
      */
-    default public Parameter getParameter(String paramName)
+    default Parameter getParameter(String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

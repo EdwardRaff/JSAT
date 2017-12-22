@@ -3,16 +3,14 @@ package jsat.classifiers.svm;
 
 import static java.lang.Math.*;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
+
 import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.distributions.Distribution;
-import jsat.distributions.Exponential;
 import jsat.distributions.LogUniform;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.distributions.kernels.LinearKernel;
-import jsat.distributions.kernels.RBFKernel;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.ConstantVector;
@@ -430,12 +428,12 @@ public class PlattSMO extends SupportVectorLearner implements BinaryScoreClassif
         I0[i1] = a1 > 0 && a1 < C;
     }
     
-    private double fuzzyClamp(double val, double max)
+    private static double fuzzyClamp(double val, double max)
     {
         return fuzzyClamp(val, max, max*1e-7);
     }
     
-    private double fuzzyClamp(double val, double max, double e)
+    private static double fuzzyClamp(double val, double max, double e)
     {
         if(val > max-e)
             return max;
@@ -1235,7 +1233,7 @@ public class PlattSMO extends SupportVectorLearner implements BinaryScoreClassif
     @Override
     public void train(RegressionDataSet dataSet)
     {
-        train(dataSet, (Regressor)null);
+        train(dataSet, null);
     }
 
     @Override

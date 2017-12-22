@@ -222,11 +222,7 @@ public class EMGaussianMixture extends KClustererBase implements MultivariateDis
                 
                 mStep(means, N, dataPoints, K, p_ik, covs, execServ);
             }
-            catch (ExecutionException ex)
-            {
-                Logger.getLogger(EMGaussianMixture.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            catch (InterruptedException ex)
+            catch (ExecutionException | InterruptedException ex)
             {
                 Logger.getLogger(EMGaussianMixture.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -290,37 +286,32 @@ public class EMGaussianMixture extends KClustererBase implements MultivariateDis
                 final int to = Math.min((remainder-- > 0  ? 1 : 0) + start + step, N);
                 final int Start = start;
                 start = to;
-                execServ.submit(new Runnable() {
+                execServ.submit(() -> {
+                    Vec[] partialMean = new Vec[means.size()];
+                    for(int i = 0; i < partialMean.length; i++)
+                        partialMean[i] = new DenseVector(means.get(i).length());
+                    double[] partial_a_k = new double[a_k.length];
 
-                    @Override
-                    public void run()
+                    for(int i = Start; i < to; i++)
                     {
-                        Vec[] partialMean = new Vec[means.size()];
-                        for(int i = 0; i < partialMean.length; i++)
-                            partialMean[i] = new DenseVector(means.get(i).length());
-                        double[] partial_a_k = new double[a_k.length];
-                        
-                        for(int i = Start; i < to; i++)
+                        Vec x_i = dataPoints.get(i).getNumericalValues();
+                        for(int k = 0; k < K; k++)
                         {
-                            Vec x_i = dataPoints.get(i).getNumericalValues();
-                            for(int k = 0; k < K; k++)
-                            {
-                                partial_a_k[k] += p_ik[i][k];
-                                partialMean[k].mutableAdd(p_ik[i][k], x_i);
-                            }
+                            partial_a_k[k] += p_ik[i][k];
+                            partialMean[k].mutableAdd(p_ik[i][k], x_i);
                         }
-                        
-                        synchronized(means)
-                        {
-                            for(int k = 0; k < a_k.length; k++)
-                            {
-                                a_k[k] += partial_a_k[k];
-                                means.get(k).mutableAdd(partialMean[k]);
-                            }
-                        }
-                        latch.countDown();
-                        
                     }
+
+                    synchronized(means)
+                    {
+                        for(int k = 0; k < a_k.length; k++)
+                        {
+                            a_k[k] += partial_a_k[k];
+                            means.get(k).mutableAdd(partialMean[k]);
+                        }
+                    }
+                    latch.countDown();
+
                 });
             }
             
@@ -365,42 +356,37 @@ public class EMGaussianMixture extends KClustererBase implements MultivariateDis
                 final int to = Math.min((remainder-- > 0  ? 1 : 0) + start + step, N);
                 final int Start = start;
                 start = to;
-                execServ.submit(new Runnable() {
+                execServ.submit(() -> {
+                    Matrix[] partialCovs = new Matrix[K];
+                    for(int i = 0; i < partialCovs.length; i++)
+                        partialCovs[i] = new DenseMatrix(D, D);
 
-                    @Override
-                    public void run()
+                    for(int i = Start; i < to; i++)
                     {
-                        Matrix[] partialCovs = new Matrix[K];
-                        for(int i = 0; i < partialCovs.length; i++)
-                            partialCovs[i] = new DenseMatrix(D, D);
-                        
-                        for(int i = Start; i < to; i++)
+                        DataPoint dp = dataPoints.get(i);
+                        Vec x = dp.getNumericalValues();
+                        Vec scratch = new DenseVector(x.length());
+
+                        for(int k = 0; k < K; k++)
                         {
-                            DataPoint dp = dataPoints.get(i);
-                            Vec x = dp.getNumericalValues();
-                            Vec scratch = new DenseVector(x.length());
-                            
-                            for(int k = 0; k < K; k++)
-                            {
-                                Matrix covariance = partialCovs[k];
-                                Vec mean = means.get(k);
-                                
-                                x.copyTo(scratch);
-                                scratch.mutableSubtract(mean);
-                                Matrix.OuterProductUpdate(covariance, scratch, scratch, p_ik[i][k]);
-                            }
-                            
+                            Matrix covariance = partialCovs[k];
+                            Vec mean = means.get(k);
+
+                            x.copyTo(scratch);
+                            scratch.mutableSubtract(mean);
+                            Matrix.OuterProductUpdate(covariance, scratch, scratch, p_ik[i][k]);
                         }
-                        
-                        synchronized(covs)
-                        {
-                            for(int  k = 0; k < K; k++)
-                                covs.get(k).mutableAdd(partialCovs[k]);
-                        }
-                        
-                        
-                        latch.countDown();
+
                     }
+
+                    synchronized(covs)
+                    {
+                        for(int  k = 0; k < K; k++)
+                            covs.get(k).mutableAdd(partialCovs[k]);
+                    }
+
+
+                    latch.countDown();
                 });
             }
             latch.await();
@@ -482,35 +468,29 @@ public class EMGaussianMixture extends KClustererBase implements MultivariateDis
                 final int Start = start;
                 start = to;
                 
-                partialLogLikes.add(execServ.submit(new Callable<Double>() 
-                {
-
-                    @Override
-                    public Double call() throws Exception
+                partialLogLikes.add(execServ.submit(() -> {
+                    double partialLog = 0;
+                    for(int i = Start; i < to; i++)
                     {
-                        double partialLog = 0;
-                        for(int i = Start; i < to; i++)
+                        Vec x_i = dataPoints.get(i).getNumericalValues();
+                        double p_ikNormalizer = 0.0;
+
+                        for(int k = 0; k < K; k++)
                         {
-                            Vec x_i = dataPoints.get(i).getNumericalValues();
-                            double p_ikNormalizer = 0.0;
-
-                            for(int k = 0; k < K; k++)
-                            {
-                                double tmp = a_k[k] * gaussians.get(k).pdf(x_i);
-                                p_ik[i][k] = tmp;
-                                p_ikNormalizer += tmp;
-                            }
-
-                            //Normalize previous values
-                            for(int k = 0; k < K; k++)
-                                p_ik[i][k] /= p_ikNormalizer;
-
-                            //Add to part of the log likelyhood 
-                            partialLog += Math.log(p_ikNormalizer);
+                            double tmp = a_k[k] * gaussians.get(k).pdf(x_i);
+                            p_ik[i][k] = tmp;
+                            p_ikNormalizer += tmp;
                         }
-                        
-                        return partialLog;
+
+                        //Normalize previous values
+                        for(int k = 0; k < K; k++)
+                            p_ik[i][k] /= p_ikNormalizer;
+
+                        //Add to part of the log likelyhood
+                        partialLog += Math.log(p_ikNormalizer);
                     }
+
+                    return partialLog;
                 }));
             }
             

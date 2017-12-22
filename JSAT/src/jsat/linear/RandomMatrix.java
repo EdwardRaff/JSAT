@@ -82,14 +82,9 @@ abstract public class RandomMatrix extends GenericMatrix
         this(toCopy.rows, toCopy.cols, toCopy.seedMult);
     }
     
-    private ThreadLocal<Random> localRand = new ThreadLocal<Random>()
-    {
-        @Override
-        protected Random initialValue()
-        {
-            return new Random(1);//seed will get set by user
-        }
-    };
+    private static final ThreadLocal<Random> localRand = ThreadLocal.withInitial(() -> {
+        return new Random(1);//seed will get set by user
+    });
 
     @Override
     protected Matrix getMatrixOfSameType(int rows, int cols)

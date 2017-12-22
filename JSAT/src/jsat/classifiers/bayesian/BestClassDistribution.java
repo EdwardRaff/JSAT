@@ -123,7 +123,7 @@ public class BestClassDistribution implements Classifier, Parameterized
             List<DataPoint> samp = dataSet.getSamples(i);
             if(samp.isEmpty())
             {
-                return (MultivariateDistribution) null;
+                return null;
             }
             dist.setUsingDataList(samp);
             return dist;

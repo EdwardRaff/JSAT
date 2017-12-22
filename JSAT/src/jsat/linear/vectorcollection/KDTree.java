@@ -410,7 +410,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
                 pivot = depth % mod;
         }
         
-        Collections.sort(data, new VecIndexComparator(pivot));
+        data.sort(new VecIndexComparator(pivot));
         
         final int medianIndex = getSplitIndex(data, pivot);
         if(medianIndex == data.size()-1)//Everyone has the same value? OK, leaf node then
@@ -432,14 +432,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         {
             mcdl.countUp();
             //Right side first, it will start running on a different core
-            threadpool.submit(new Runnable() {
-
-                @Override
-                public void run()
-                {
-                    node.setRight(buildTree(data.subList(medianIndex+1, data.size()), depth+1, threadpool, mcdl));
-                }
-            });
+            threadpool.submit(() -> node.setRight(buildTree(data.subList(medianIndex+1, data.size()), depth+1, threadpool, mcdl)));
             
             //now do the left here, 
             node.setLeft(buildTree(data.subList(0, medianIndex), depth+1, threadpool, mcdl));

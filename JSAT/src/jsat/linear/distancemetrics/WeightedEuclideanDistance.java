@@ -138,15 +138,10 @@ public class WeightedEuclideanDistance implements DistanceMetric
         {
             final int start = ParallelUtils.getStartBlock(cache.length, ID, P);
             final int end = ParallelUtils.getEndBlock(cache.length, ID, P);
-            threadpool.submit(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    for(int i = start; i < end; i++)
-                        cache[i] = VecOps.weightedDot(w, vecs.get(i), vecs.get(i));
-                    latch.countDown();
-                }
+            threadpool.submit(() -> {
+                for(int i = start; i < end; i++)
+                    cache[i] = VecOps.weightedDot(w, vecs.get(i), vecs.get(i));
+                latch.countDown();
             });
         }
         

@@ -42,7 +42,7 @@ public class AveragedRegressor implements Regressor
     {
         if(voters == null || voters.isEmpty())
             throw new RuntimeException("No voters given for construction");
-        this.voters = voters.toArray(new Regressor[0]);
+        this.voters = voters.toArray(new Regressor[voters.size()]);
     }
     
     public double regress(DataPoint data)

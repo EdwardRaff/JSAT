@@ -307,7 +307,7 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
                 ListUtils.addRange(indicies, 0, N, 1);
             }
             else
-                sub_results = clusters.cluster(toCluster, k_l, threads, (int[])null);
+                sub_results = clusters.cluster(toCluster, k_l, threads, null);
             
             //create partitioning
             //First, don't bother with distance computations for people we just clustered
@@ -385,8 +385,7 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
             early_models.put(0, svm);
 
             //Update all alphas
-            for (int i = 0; i < N; i++)
-                this.alphas[i] = svm.alphas[i];
+            System.arraycopy(svm.alphas, 0, this.alphas, 0, N);
         }
         
         threads.shutdownNow();

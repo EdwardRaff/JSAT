@@ -238,29 +238,30 @@ public class PorterStemmer extends Stemmer
             return m-1;
     }
 
-    private static boolean isVowel(String s, int pos)
-    {
-        /*
-         * A \consonant\ in a word is a letter other than A, E, I, O or U, and other
-         * than Y preceded by a consonant.
-         */
-        if (pos >= s.length())
-            return false;
-
-        switch (s.charAt(pos))
-        {
-            case 'a':
-            case 'e':
-            case 'i':
-            case 'o':
-            case 'u':
-                return true;
-            case 'y':
-                if (pos == s.length() - 1)//end of the array
-                    return true;
-                return isVowel(s, pos + 1);//Y preceded by a constant is a Vowel
-            default:
+    private static boolean isVowel(String s, int pos) {
+        while (true) {
+            /*
+             * A \consonant\ in a word is a letter other than A, E, I, O or U, and other
+             * than Y preceded by a consonant.
+             */
+            if (pos >= s.length())
                 return false;
+
+            switch (s.charAt(pos)) {
+                case 'a':
+                case 'e':
+                case 'i':
+                case 'o':
+                case 'u':
+                    return true;
+                case 'y':
+                    if (pos == s.length() - 1)//end of the array
+                        return true;
+                    pos = pos + 1;
+                    continue;
+                default:
+                    return false;
+            }
         }
     }
     

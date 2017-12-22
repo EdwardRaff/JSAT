@@ -2,7 +2,7 @@ package jsat.classifiers.linear.kernelized;
 
 import static java.lang.Math.*;
 import java.util.Arrays;
-import java.util.List;
+
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
@@ -12,7 +12,6 @@ import jsat.classifiers.neuralnetwork.Perceptron;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.Vec;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 
@@ -207,7 +206,7 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
      * @param mu
      * @return the update for equation 15
      */
-    private double psi(double lambda, double mu)
+    private static double psi(double lambda, double mu)
     {
         return lambda*lambda+2*lambda-2*lambda*mu;
     }

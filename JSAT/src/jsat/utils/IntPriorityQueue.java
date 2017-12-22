@@ -15,14 +15,7 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
 {
 
 	private static final long serialVersionUID = -310756323843109562L;
-	public static final Comparator<Integer> naturalComparator = new Comparator<Integer>() {
-
-        @Override
-        public int compare(Integer o1, Integer o2)
-        {
-            return o1.compareTo(o2);
-        }
-    };
+	public static final Comparator<Integer> naturalComparator = (o1, o2) -> o1.compareTo(o2);
     
     /**
      * Sets the mode used for the priority queue.  
@@ -119,16 +112,19 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
         this.size = 0;
         this.fastValueRemove = fastValueRemove;
         valueIndexStore = null;
-        if(fastValueRemove == Mode.HASH)
-            valueIndexMap = new HashMap<Integer, Integer>(initialSize);
-        else if(fastValueRemove == Mode.BOUNDED)
-        {
-            valueIndexStore = new int[initialSize];
-            Arrays.fill(valueIndexStore, -1);
-            valueIndexMap = null;
+        switch (fastValueRemove) {
+            case HASH:
+                valueIndexMap = new HashMap<Integer, Integer>(initialSize);
+                break;
+            case BOUNDED:
+                valueIndexStore = new int[initialSize];
+                Arrays.fill(valueIndexStore, -1);
+                valueIndexMap = null;
+                break;
+            default:
+                valueIndexMap = null;
+                break;
         }
-        else
-            valueIndexMap = null;
     }
 
     @Override
@@ -303,12 +299,12 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
         heap[j] = tmp;
     }
 
-    private int parent(int i)
+    private static int parent(int i)
     {
         return (i-1)/2;
     }
     
-    private int leftChild(int i)
+    private static int leftChild(int i)
     {
         return 2*i+1;
     }
@@ -338,7 +334,7 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
         return val;
     }
     
-    private int rightChild(int i)
+    private static int rightChild(int i)
     {
         return 2*i+2;
     }
@@ -373,7 +369,7 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
         {
             if( o instanceof Integer)
             {
-                int val = ((Integer) o).intValue();
+                int val = (Integer) o;
                 return val >= 0 && valueIndexStore[val] >= 0;
             }
             return false;
@@ -407,7 +403,7 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
         {
             if(o instanceof Integer)
             {
-                int val = ((Integer) o).intValue();
+                int val = (Integer) o;
                 if(val <0 || val >= valueIndexStore.length)
                     return false;
                 int index = valueIndexStore[val];

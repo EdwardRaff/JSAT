@@ -299,7 +299,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     @Override
     public void train(ClassificationDataSet dataSet)
     {
-        train(dataSet, (Classifier)null);
+        train(dataSet, null);
     }
 
     @Override
@@ -510,7 +510,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     @Override
     public void train(RegressionDataSet dataSet)
     {
-        train(dataSet, (Regressor) null);
+        train(dataSet, null);
     }
     
     @Override

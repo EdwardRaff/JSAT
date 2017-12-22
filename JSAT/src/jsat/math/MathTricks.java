@@ -117,7 +117,8 @@ public class MathTricks
         max = max(max, x.max());
         
         double z =implicitExtra ? exp(-max) : 0;
-        for (int c = 0; c < x.length(); c++)
+        int xlen = x.length();
+        for (int c = 0; c < xlen; c++)
         {
             double newVal = exp(x.get(c) - max);
             x.set(c, newVal);

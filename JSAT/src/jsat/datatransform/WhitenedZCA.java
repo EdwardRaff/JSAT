@@ -113,16 +113,8 @@ public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
         transform = U.multiply(Matrix.diag(diag)).multiply(U.transpose());
     }
 
-    private ThreadLocal<Vec> getThreadLocal(final int dim)
+    private static ThreadLocal<Vec> getThreadLocal(final int dim)
     {
-        return new ThreadLocal<Vec>()
-        {
-
-            @Override
-            protected Vec initialValue()
-            {
-                return new DenseVector(dim);
-            }
-        };
+        return ThreadLocal.withInitial(() -> new DenseVector(dim));
     }
 }
