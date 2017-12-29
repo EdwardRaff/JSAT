@@ -34,7 +34,6 @@ public class DivisiveGlobalClustererTest
 {
     static private DivisiveGlobalClusterer dgc;
     static private SimpleDataSet easyData;
-    static private ExecutorService ex;
     
     public DivisiveGlobalClustererTest()
     {
@@ -45,7 +44,6 @@ public class DivisiveGlobalClustererTest
     {
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.05, 0.05), RandomUtil.getRandom(), 2, 2);
         easyData = gdg.generateData(60);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
 
     @AfterClass
@@ -101,7 +99,7 @@ public class DivisiveGlobalClustererTest
     public void testCluster_DataSet_ExecutorService()
     {
         System.out.println("cluster(dataset, ExecutorService)");
-        List<List<DataPoint>> clusters = dgc.cluster(easyData, ex);
+        List<List<DataPoint>> clusters = dgc.cluster(easyData, true);
         assertEquals(4, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
@@ -133,7 +131,7 @@ public class DivisiveGlobalClustererTest
     public void testCluster_DataSet_int_int_ExecutorService()
     {
         System.out.println("cluster(dataset, int, int, ExecutorService)");
-        List<List<DataPoint>> clusters = dgc.cluster(easyData, 2, 20, ex);
+        List<List<DataPoint>> clusters = dgc.cluster(easyData, 2, 20, true);
         assertEquals(4, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
@@ -149,7 +147,7 @@ public class DivisiveGlobalClustererTest
     public void testCluster_DataSet_int_ExecutorService()
     {
         System.out.println("cluster(dataset, int, ExecutorService)");
-        List<List<DataPoint>> clusters = dgc.cluster(easyData, 4, ex);
+        List<List<DataPoint>> clusters = dgc.cluster(easyData, 4, true);
         assertEquals(4, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)

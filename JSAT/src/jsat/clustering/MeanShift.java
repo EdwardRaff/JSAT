@@ -3,6 +3,7 @@ package jsat.clustering;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
@@ -17,9 +18,8 @@ import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.utils.PoisonRunnable;
-import jsat.utils.RunnableConsumer;
 import static jsat.utils.SystemInfo.LogicalCores;
+import jsat.utils.concurrent.ParallelUtils;
 
 
 /**
@@ -42,12 +42,13 @@ import static jsat.utils.SystemInfo.LogicalCores;
  * 
  * @author Edward Raff
  */
-public class MeanShift extends ClustererBase
+public class MeanShift implements Clusterer
 {
 
-	private static final long serialVersionUID = 4061491342362690455L;
-	/**
-     * The default number of {@link #getMaxIterations() } is {@value #DefaultMaxIterations}
+    private static final long serialVersionUID = 4061491342362690455L;
+    /**
+     * The default number of {@link #getMaxIterations() } is
+     * {@value #DefaultMaxIterations}
      */
     public static final int DefaultMaxIterations = 1000;
     /**
@@ -146,15 +147,9 @@ public class MeanShift extends ClustererBase
     {
         return scaleBandwidthFactor;
     }
-    
-    @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
-    {
-        return cluster(dataSet, null, designations);
-    }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
         try
         {
@@ -164,20 +159,13 @@ public class MeanShift extends ClustererBase
             Arrays.fill(converged, false);
             
             final KernelFunction k = mkde.getKernelFunction();
-            if(threadpool == null)
-                mkde.setUsingData(dataSet);
-            else
-                mkde.setUsingData(dataSet, threadpool);
+            mkde.setUsingData(dataSet, parallel);
             mkde.scaleBandwidth(scaleBandwidthFactor);
             
-            Vec scratch = new DenseVector(dataSet.getNumNumericalVars());
             Vec[] xit = new Vec[converged.length];
             for(int i = 0; i < xit.length; i++)
                 xit[i] = dataSet.getDataPoint(i).getNumericalValues().clone();
-            if(threadpool == null)
-                mainLoop(converged, xit, designations, scratch, k);
-            else
-                mainLoop(converged, xit, designations, k, threadpool);
+            mainLoop(converged, xit, designations, k, parallel);
             
             assignmentStep(converged, xit, designations);
             
@@ -223,34 +211,10 @@ public class MeanShift extends ClustererBase
             curClusterID++;
         }
     }
-
-    private void mainLoop(boolean[] converged, Vec[] xit, int[] designations, Vec scratch, final KernelFunction k)
-    {
-        boolean progress = true;
-        
-        int count = 0;
-        
-        while(progress && count++ < maxIterations)
-        {
-            progress = false;
-            
-            for(int i = 0; i < converged.length; i++)
-            {
-                if(converged[i])
-                    continue;
-                progress = true;
-                
-                convergenceStep(xit, i, converged, designations, scratch, k);
-            }
-        }
-        
-        //Fill b/c we may have bailed out due to maxIterations
-        Arrays.fill(converged, true);
-    }
     
-    private void mainLoop(final boolean[] converged, final Vec[] xit, final int[] designations, final KernelFunction k, ExecutorService ex) throws InterruptedException, BrokenBarrierException
+    private void mainLoop(final boolean[] converged, final Vec[] xit, final int[] designations, final KernelFunction k, boolean parallel) throws InterruptedException, BrokenBarrierException
     {
-        boolean progress = true;
+        AtomicBoolean progress = new AtomicBoolean(true);
         
         int count = 0;
         /*
@@ -259,46 +223,19 @@ public class MeanShift extends ClustererBase
          */
         CyclicBarrier barrier = new CyclicBarrier(LogicalCores+1);
         
-        final BlockingQueue<Runnable> jobs = new ArrayBlockingQueue<Runnable>(LogicalCores*2);
+        final ThreadLocal<Vec> localScratch = ThreadLocal.withInitial(()->new DenseVector(xit[0].length()));
         
-        final ThreadLocal<Vec> localScratch = new ThreadLocal<Vec>()
+        while(progress.get() && count++ < maxIterations)
         {
-            @Override
-            protected Vec initialValue()
-            {
-                return new DenseVector(xit[0].length());
-            }
-        };
-        
-        while(progress && count++ < maxIterations)
-        {
-            progress = false;
+            progress.set(false);
             
-            for(int i = 0; i < LogicalCores; i++)
-                ex.submit(new RunnableConsumer(jobs));
-            
-            for(int i = 0; i < converged.length; i++)
+            ParallelUtils.run(parallel, converged.length, (i)->
             {
                 if(converged[i])
-                    continue;
-                progress = true;
-                final int ii = i;
-                
-                jobs.put(new Runnable() {
-
-                    @Override
-                    public void run()
-                    {
-                        convergenceStep(xit, ii, converged, designations, localScratch.get(), k);
-                    }
-                });
-                
-            }
-            
-            for(int i = 0; i < LogicalCores; i++)
-                jobs.put(new PoisonRunnable(barrier));
-            barrier.await();
-            barrier.reset();
+                    return;
+                progress.lazySet(true);
+                convergenceStep(xit, i, converged, designations, localScratch.get(), k);
+            });
         }
         
         //Fill b/c we may have bailed out due to maxIterations

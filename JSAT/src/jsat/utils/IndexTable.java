@@ -21,17 +21,12 @@ import java.util.*;
 public class IndexTable implements Serializable
 {
 
-	private static final long serialVersionUID = -1917765351445664286L;
-	static private final Comparator defaultComp = new Comparator()        
+    private static final long serialVersionUID = -1917765351445664286L;
+    static private final Comparator defaultComp = (Comparator) (Object o1, Object o2) ->
     {
-
-        @Override
-        public int compare(Object o1, Object o2)
-        {
-            Comparable co1 = (Comparable) o1;
-            Comparable co2 = (Comparable) o2;
-            return co1.compareTo(co2);
-        }
+        Comparable co1 = (Comparable) o1;
+        Comparable co2 = (Comparable) o2;
+        return co1.compareTo(co2);
     };
     
     /**
@@ -42,14 +37,7 @@ public class IndexTable implements Serializable
      */
     public static <T> Comparator<T> getReverse(final Comparator<T> cmp)
     {
-        return new Comparator<T>() 
-        {
-            @Override
-            public int compare(T o1, T o2)
-            {
-                return -cmp.compare(o1, o2);
-            }
-        };
+        return (T o1, T o2) -> -cmp.compare(o1, o2);
     }
     
     /**

@@ -21,6 +21,7 @@ import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 import jsat.utils.ListUtils;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
 /**
@@ -105,7 +106,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         this.maximumIterations = toCopy.maximumIterations;
         if(toCopy.X != null)
         {
-            this.X = new ArrayList<Vec>(toCopy.X.size());
+            this.X = new ArrayList<>(toCopy.X.size());
             for( Vec v : toCopy.X)
                 this.X.add(v.clone());
             
@@ -160,13 +161,13 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
         throw new UnsupportedOperationException("Not supported.");
     }
     
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, int lowK, int highK, boolean parallel, int[] designations)
     {
         throw new UnsupportedOperationException("Not supported.");
     }
@@ -453,9 +454,9 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         return Math.sqrt(Math.max(0, d));//Avoid rare cases wehre 2*dot might be slightly larger
     }
     
-    protected double meanToMeanDistance(int k0, int k1, int[] assignments, ExecutorService ex)
+    protected double meanToMeanDistance(int k0, int k1, int[] assignments, boolean parallel)
     {
-        double d = meanSqrdNorms[k0]*normConsts[k0]+meanSqrdNorms[k1]*normConsts[k1]-2*dot(k0, k1, assignments, ex);
+        double d = meanSqrdNorms[k0]*normConsts[k0]+meanSqrdNorms[k1]*normConsts[k1]-2*dot(k0, k1, assignments, parallel);
         return Math.sqrt(Math.max(0, d));//Avoid rare cases wehre 2*dot might be slightly larger
     }
     
@@ -483,12 +484,12 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * @param assignments1 the array of assignments to use for index k1
      * @param k1SqrdNorm the <i>normalized</i> squared norm for the mean 
      * indicated by {@code k1}. (ie: {@link #meanSqrdNorms} multiplied by {@link #normConsts}
-     * @param ex source of threads for parallel execution
+     * @param parallel source of threads for parallel execution
      * @return 
      */
-    protected double meanToMeanDistance(int k0, int k1, int[] assignments0, int[] assignments1, double k1SqrdNorm, ExecutorService ex)
+    protected double meanToMeanDistance(int k0, int k1, int[] assignments0, int[] assignments1, double k1SqrdNorm, boolean parallel)
     {
-        double d = meanSqrdNorms[k0]*normConsts[k0]+k1SqrdNorm-2*dot(k0, k1, assignments0, assignments1, ex);
+        double d = meanSqrdNorms[k0]*normConsts[k0]+k1SqrdNorm-2*dot(k0, k1, assignments0, assignments1, parallel);
         return Math.sqrt(Math.max(0, d));//Avoid rare cases wehre 2*dot might be slightly larger
     }
     
@@ -509,12 +510,12 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * @param k0 the index of the first cluster 
      * @param k1 the index of the second cluster
      * @param assignment the array of assignments for cluster ownership
-     * @param ex source of threads for parallel execution
+     * @param parallel source of threads for parallel execution
      * @return the dot product between the two clusters.
      */
-    private double dot(final int k0, final int k1, final int[] assignment, ExecutorService ex)
+    private double dot(final int k0, final int k1, final int[] assignment, boolean parallel)
     {
-        return dot(k0, k1, assignment, assignment, ex);
+        return dot(k0, k1, assignment, assignment, parallel);
     }
     
     /**
@@ -572,57 +573,37 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * @param ex source of threads for parallel execution
      * @return the dot product between the two clusters.
      */
-    private double dot(final int k0, final int k1, final int[] assignment0, final int[] assignment1, ExecutorService ex)
+    private double dot(final int k0, final int k1, final int[] assignment0, final int[] assignment1, boolean parallel)
     {
         double dot = 0;
         final int N = X.size();
         double a = 0, b = 0;
         
-        List<Future<Double>> dotPartials = new ArrayList<Future<Double>>();
         /*
          * Below, unless i&amp;j are somehow in the same cluster - nothing bad will happen 
          */
-        for(int i = 0; i < N; i++)
+        ParallelUtils.run(parallel, N, (i) ->
         {
             final double w_i = W.get(i);
             if(assignment0[i] != k0)
-                continue;
-            a += w_i;
-            final int I = i;
-            dotPartials.add(ex.submit(new Callable<Double>()
+                return 0.0;
+            double localDot = 0;
+            for(int j = 0; j < N; j++)
             {
-                @Override
-                public Double call() throws Exception
-                {
-                    double localDot = 0;
-                    for(int j = 0; j < N; j++)
-                    {
-                        if(assignment1[j] != k1)
-                            continue;
-                        final double w_j = W.get(j);
-                        localDot += w_i * w_j * kernel.eval(I, j, X, accel);
-                    }
-                    
-                    return localDot;
-                }
-            }));
-        }
+                if(assignment1[j] != k1)
+                    continue;
+                final double w_j = W.get(j);
+                localDot += w_i * w_j * kernel.eval(i, j, X, accel);
+            }
+            return localDot;
+        }, (t, u)->t+u);
+        
+        a = W.sum();
+        
         for(int j = 0; j < N; j++)
             if(assignment1[j] == k1)
                 b += W.get(j);
-        try
-        {
-            for (double pDot : ListUtils.collectFutures(dotPartials))
-                dot += pDot;
-        }
-        catch (ExecutionException ex1)
-        {
-            Logger.getLogger(KernelKMeans.class.getName()).log(Level.SEVERE, null, ex1);
-        }
-        catch (InterruptedException ex1)
-        {
-            Logger.getLogger(KernelKMeans.class.getName()).log(Level.SEVERE, null, ex1);
-        }
+
         return dot/(a*b);
     }
     

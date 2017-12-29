@@ -21,10 +21,9 @@ import jsat.utils.concurrent.ParallelUtils;
 public class EuclideanDistance implements DenseSparseMetric
 {
 
+    private static final long serialVersionUID = 8155062933851345574L;
 
-	private static final long serialVersionUID = 8155062933851345574L;
-
-	@Override
+    @Override
     public double dist(Vec a, Vec b)
     {
         return a.pNormDist(2, b);
@@ -104,12 +103,19 @@ public class EuclideanDistance implements DenseSparseMetric
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs, boolean parallel)
     {
-        DoubleList cache = new DoubleList(vecs.size());
-        for(Vec v : vecs)
-            cache.add(v.dot(v));
-        return cache;
+        //Store the pnorms in the cache
+        double[] cache = new double[vecs.size()];
+        ParallelUtils.run(parallel, vecs.size(), (start, end) ->
+        {
+            for(int i = start; i < end; i++)
+            {
+                Vec v = vecs.get(i);
+                cache[i] = v.dot(v);
+            }
+        });
+        return DoubleList.view(cache, vecs.size());
     }
     
     @Override

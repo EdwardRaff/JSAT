@@ -5,11 +5,13 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.math.OnLineStatistics;
 import jsat.utils.ListUtils;
 import static jsat.utils.SystemInfo.LogicalCores;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * A collection of common utility methods to perform on a {@link VectorCollection}
@@ -58,6 +60,7 @@ public class VectorCollectionUtils
      * @param k the number of nearest neighbors
      * @param threadpool the source of threads to perform the computation in parallel 
      * @return The list of lists for all nearest neighbors 
+     * @deprecated This will be deleted soon
      */
     public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allNearestNeighbors(final VectorCollection<V0> collection, List<V1> search, final int k, ExecutorService threadpool)
     {
@@ -66,18 +69,14 @@ public class VectorCollectionUtils
         
         for(final List<V1> subSearch : ListUtils.splitList(search, LogicalCores))
         {
-            subResults.add(threadpool.submit(new Callable<List<List<? extends VecPaired<V0, Double>>>>() {
-
-                @Override
-                public List<List<? extends VecPaired<V0, Double>>> call() throws Exception
-                {
-                    List<List<? extends VecPaired<V0, Double>>> subResult = new ArrayList<>(subSearch.size());
-                    
-                    for(Vec v : subSearch )
-                        subResult.add(collection.search(v, k));
-                    
-                    return subResult;
-                }
+            subResults.add(threadpool.submit(() ->
+            {
+                List<List<? extends VecPaired<V0, Double>>> subResult = new ArrayList<>(subSearch.size());
+                
+                for(Vec v : subSearch )
+                    subResult.add(collection.search(v, k));
+                
+                return subResult;
             }));
         }
 
@@ -86,16 +85,31 @@ public class VectorCollectionUtils
             for (List<List<? extends VecPaired<V0, Double>>> subResult : ListUtils.collectFutures(subResults))
                 results.addAll(subResult);
         }
-        catch (ExecutionException ex)
-        {
-            Logger.getLogger(VectorCollectionUtils.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        catch (InterruptedException ex)
+        catch (ExecutionException | InterruptedException ex)
         {
             Logger.getLogger(VectorCollectionUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         return results;
+    }
+    
+    /**
+     * Searches the given collection for the <tt>k</tt> nearest neighbors for every data point in the given search list. 
+     * @param <V0> the vector type in the collection
+     * @param <V1> the type of vector in the search collection 
+     * @param collection the collection to search from
+     * @param search the vectors to search for
+     * @param k the number of nearest neighbors
+     * @param parallel {@code true} if multiple threads should be used to
+     * perform clustering. {@code false} if it should be done in a single
+     * threaded manner.
+     * @return The list of lists for all nearest neighbors 
+     */
+    public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allNearestNeighbors(final VectorCollection<V0> collection, List<V1> search, final int k, boolean parallel)
+    {
+        return ParallelUtils.streamP(search.stream(), parallel)
+                .map(v -> collection.search(v, k))
+                .collect(Collectors.toList());
     }
     
     /**
@@ -115,18 +129,14 @@ public class VectorCollectionUtils
         
         for(final List<V1> subSearch : ListUtils.splitList(search, LogicalCores))
         {
-            subResults.add(threadpool.submit(new Callable<List<List<? extends VecPaired<V0, Double>>>>() {
-
-                @Override
-                public List<List<? extends VecPaired<V0, Double>>> call() throws Exception
-                {
-                    List<List<? extends VecPaired<V0, Double>>> subResult = new ArrayList<>(subSearch.size());
-                    
-                    for(Vec v : subSearch )
-                        subResult.add(collection.search(v, radius));
-                    
-                    return subResult;
-                }
+            subResults.add(threadpool.submit(() ->
+            {
+                List<List<? extends VecPaired<V0, Double>>> subResult = new ArrayList<>(subSearch.size());
+                
+                for(Vec v : subSearch )
+                    subResult.add(collection.search(v, radius));
+                
+                return subResult;
             }));
         }
 
@@ -135,16 +145,31 @@ public class VectorCollectionUtils
             for (List<List<? extends VecPaired<V0, Double>>> subResult : ListUtils.collectFutures(subResults))
                 results.addAll(subResult);
         }
-        catch (ExecutionException ex)
-        {
-            Logger.getLogger(VectorCollectionUtils.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        catch (InterruptedException ex)
+        catch (ExecutionException | InterruptedException ex)
         {
             Logger.getLogger(VectorCollectionUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         return results;
+    }
+    
+    /**
+     * Searches the given collection for all the neighbors within a distance of <tt>radius</tt> for every data point in the given search list. 
+     * @param <V0> the vector type in the collection
+     * @param <V1> the type of vector in the search collection 
+     * @param collection the collection to search from
+     * @param search the vectors to search for
+     * @param radius the distance to search for neighbors 
+     * @param parallel {@code true} if multiple threads should be used to
+     * perform clustering. {@code false} if it should be done in a single
+     * threaded manner.
+     * @return The list of lists for all nearest neighbors 
+     */
+    public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allEpsNeighbors(final VectorCollection<V0> collection, List<V1> search, final double radius, boolean parallel)
+    {
+        return ParallelUtils.streamP(search.stream(), parallel)
+                .map(v -> collection.search(v, radius))
+                .collect(Collectors.toList());
     }
     
     /**

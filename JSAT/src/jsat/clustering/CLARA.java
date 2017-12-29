@@ -20,8 +20,8 @@ import jsat.utils.random.RandomUtil;
 public class CLARA extends PAM
 {
 
-	private static final long serialVersionUID = 174392533688953706L;
-	/**
+    private static final long serialVersionUID = 174392533688953706L;
+    /**
      * The number of samples to take
      */
     private int sampleSize;
@@ -79,8 +79,6 @@ public class CLARA extends PAM
         this.autoSampleSize = toCopy.autoSampleSize;
     }
     
-    
-    
     /**
      * 
      * @return the number of times {@link PAM} will be applied to a sample from the data set. 
@@ -126,7 +124,7 @@ public class CLARA extends PAM
     }
     
     @Override
-    protected double cluster(DataSet data, boolean doInit, int[] medioids, int[] assignments, List<Double> cacheAccel)
+    protected double cluster(DataSet data, boolean doInit, int[] medioids, int[] assignments, List<Double> cacheAccel, boolean parallel)
     {
         int k = medioids.length;
         int[] bestMedoids = new int[medioids.length];
@@ -137,7 +135,7 @@ public class CLARA extends PAM
         
         if(sampleSize >= data.getSampleSize())//Then we might as well just do one round of PAM
         {
-            return super.cluster(data, true, medioids, assignments, cacheAccel);
+            return super.cluster(data, true, medioids, assignments, cacheAccel, parallel);
         }
         else if(doInit)
         {
@@ -148,13 +146,13 @@ public class CLARA extends PAM
         int sampSize = autoSampleSize ? 40+2*k : sampleSize;
         int[] sampleAssignments = new int[sampSize];
         
-        List<DataPoint> sample = new ArrayList<DataPoint>(sampSize);
+        List<DataPoint> sample = new ArrayList<>(sampSize);
         /**
          * We need the mapping to be able to go from the sample indicies back to their position in the full data set
          * Key is the sample index [1, 2, 3, ..., sampSize]
          * Value is the coresponding index in the full data set
          */
-        Map<Integer, Integer> samplePoints = new LinkedHashMap<Integer, Integer>();
+        Map<Integer, Integer> samplePoints = new LinkedHashMap<>();
         DoubleList subCache = new DoubleList(sampSize);
         
         for(int i = 0; i < sampleCount; i++)
@@ -180,7 +178,7 @@ public class CLARA extends PAM
             
             //Sampling done, now apply PAM
             SeedSelectionMethods.selectIntialPoints(sampleSet, medioids, dm, subCache, rand, getSeedSelection());
-            super.cluster(sampleSet, false, medioids, sampleAssignments, subCache);
+            super.cluster(sampleSet, false, medioids, sampleAssignments, subCache, parallel);
             
             //Map the sample medoids back to the full data set
             for(int j = 0; j < medioids.length; j++)
@@ -218,20 +216,6 @@ public class CLARA extends PAM
         System.arraycopy(bestAssignments, 0, assignments, 0, assignments.length);
         
         return bestMedoidsDist;
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
-    {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
-        medoids = new int[clusters];
-        
-        this.cluster(dataSet, true, medoids, designations, null);
-        if(!storeMedoids)
-            medoids = null;
-        
-        return designations;
     }
 
     @Override

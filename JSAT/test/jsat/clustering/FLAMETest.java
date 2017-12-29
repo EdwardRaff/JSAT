@@ -31,7 +31,6 @@ public class FLAMETest
 
     static private FLAME algo;
     static private SimpleDataSet easyData10;
-    static private ExecutorService ex;
 
     @BeforeClass
     public static void setUpClass() throws Exception
@@ -39,13 +38,11 @@ public class FLAMETest
         algo = new FLAME(new EuclideanDistance(), 30, 800);
         GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2, 5);
         easyData10 = gdg.generateData(100);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception
     {
-        ex.shutdown();
     }
     
     @Before
@@ -76,7 +73,7 @@ public class FLAMETest
     {
         System.out.println("cluster(dataset, ExecutorService)");
         Clusterer toUse = algo.clone();
-        List<List<DataPoint>> clusters = toUse.cluster(easyData10, ex);
+        List<List<DataPoint>> clusters = toUse.cluster(easyData10, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)

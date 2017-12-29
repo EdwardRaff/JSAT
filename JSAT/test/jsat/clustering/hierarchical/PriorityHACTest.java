@@ -41,7 +41,7 @@ public class PriorityHACTest
      */
     static private PriorityHAC priorityHAC;
     static private SimpleDataSet easyData10;
-    static private ExecutorService ex;
+    
     public PriorityHACTest()
     {
     }
@@ -52,13 +52,11 @@ public class PriorityHACTest
         priorityHAC = new PriorityHAC(new SingleLinkDissimilarity(new EuclideanDistance()));
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 5);
         easyData10 = gdg.generateData(50);
-        ex = Executors.newFixedThreadPool(10);
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception
     {
-        ex.shutdown();
     }
     
     @Before
@@ -107,7 +105,7 @@ public class PriorityHACTest
     public void testCluster_DataSet_ExecutorService()
     {
         System.out.println("cluster(dataset, ExecutorService)");
-        List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, ex);
+        List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
@@ -139,7 +137,7 @@ public class PriorityHACTest
     public void testCluster_DataSet_int_int_ExecutorService()
     {
         System.out.println("cluster(dataset, int, int, ExecutorService)");
-        List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, 2, 20, ex);
+        List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, 2, 20, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
@@ -158,7 +156,7 @@ public class PriorityHACTest
     public void testCluster_DataSet_int_ExecutorService()
     {
         System.out.println("cluster(dataset, int, ExecutorService)");
-        List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, 10, ex);
+        List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, 10, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)

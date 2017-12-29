@@ -26,11 +26,9 @@ public class CosineDistanceNormalized implements DistanceMetric
      * the cosineToDinstance calculation, resulting in a NaN. So the max is used
      * to avoid this.
      */
-    
+    private static final long serialVersionUID = -4041803247001806577L;
 
-	private static final long serialVersionUID = -4041803247001806577L;
-
-	@Override
+    @Override
     public double dist(Vec a, Vec b)
     {
         return CosineDistance.cosineToDistance(Math.min(a.dot(b), 1));
@@ -79,7 +77,7 @@ public class CosineDistanceNormalized implements DistanceMetric
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs, boolean parallel)
     {
         return null;
     }

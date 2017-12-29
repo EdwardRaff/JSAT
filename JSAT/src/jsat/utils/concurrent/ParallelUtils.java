@@ -1,9 +1,13 @@
 package jsat.utils.concurrent;
 import static java.lang.Math.min;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.Future;
+import java.util.function.BinaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -71,14 +75,15 @@ public class ParallelUtils
             return;
         }
         
-        final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+        int cores_to_use = Math.min(SystemInfo.LogicalCores, N);
+        final CountDownLatch latch = new CountDownLatch(cores_to_use);
 
-        IntStream.range(0, SystemInfo.LogicalCores).forEach(threadID ->
+        IntStream.range(0, cores_to_use).forEach(threadID ->
         {
             threadPool.submit(() ->
             {
-                int start = ParallelUtils.getStartBlock(N, threadID);
-                int end = ParallelUtils.getEndBlock(N, threadID);
+                int start = ParallelUtils.getStartBlock(N, threadID, cores_to_use);
+                int end = ParallelUtils.getEndBlock(N, threadID, cores_to_use);
                 lcr.run(start, end);
                 latch.countDown();
             });
@@ -93,6 +98,69 @@ public class ParallelUtils
             Logger.getLogger(ParallelUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+    }
+    
+    public static <T> T run(boolean parallel, int N, LoopChunkReducer<T> lcr, BinaryOperator<T> reducer, ExecutorService threadPool)
+    {
+        if(!parallel)
+        {
+            return lcr.run(0, N);
+        }
+        
+        
+        int cores_to_use = Math.min(SystemInfo.LogicalCores, N);
+        final List<Future<T>> futures = new ArrayList<>(cores_to_use);
+        
+
+        IntStream.range(0, cores_to_use).forEach(threadID ->
+        {
+            futures.add(threadPool.submit(() ->
+            {
+                int start = ParallelUtils.getStartBlock(N, threadID, cores_to_use);
+                int end = ParallelUtils.getEndBlock(N, threadID, cores_to_use);
+                return lcr.run(start, end);
+            }));
+        });
+
+        T cur = null;
+        for(Future<T> ft : futures)
+        {
+            try
+            {
+                T chunk = ft.get();
+                if(cur == null)
+                    cur = chunk;
+                else
+                    cur = reducer.apply(cur, chunk);
+            }
+            catch (InterruptedException | ExecutionException ex)
+            {
+                Logger.getLogger(ParallelUtils.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        return cur;
+    }
+    
+    public static <T> T run(boolean parallel, int N, LoopChunkReducer<T> lcr, BinaryOperator<T> reducer)
+    {
+        ExecutorService threadPool = Executors.newWorkStealingPool(SystemInfo.LogicalCores);
+        T toRet = run(parallel, N, lcr, reducer, threadPool);
+        threadPool.shutdownNow();
+        return toRet;
+    }
+    
+    public static <T> T run(boolean parallel, int N, IndexReducer<T> ir, BinaryOperator<T> reducer)
+    {
+        if(!parallel)
+        {
+            T runner = ir.run(0);
+            for(int i = 1; i < N; i++)
+                runner = reducer.apply(runner, ir.run(i));
+            return runner;
+        }
+        
+        return range(N, parallel).mapToObj(j -> ir.run(j)).reduce(reducer).orElse(null);
     }
     
     public static void run(boolean parallel, int N, IndexRunnable ir)

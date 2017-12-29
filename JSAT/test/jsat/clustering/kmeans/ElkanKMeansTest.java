@@ -37,7 +37,6 @@ import static org.junit.Assert.*;
 public class ElkanKMeansTest
 {
     static private SimpleDataSet easyData10;
-    static private ExecutorService ex;
     /**
      * Used as the starting seeds for k-means clustering to get consistent desired behavior
      */
@@ -52,13 +51,11 @@ public class ElkanKMeansTest
     {
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new XORWOW(1238962356), 2, 5);
         easyData10 = gdg.generateData(110);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception
     {
-        ex.shutdown();
     }
     
     @Before
@@ -83,7 +80,7 @@ public class ElkanKMeansTest
         System.out.println("cluster(dataset, int)");
         ElkanKMeans kMeans = new ElkanKMeans(new EuclideanDistance());
         int[] assignment = new int[easyData10.getSampleSize()];
-        kMeans.cluster(easyData10, null, 10, seeds, assignment, true, null, true, null);
+        kMeans.cluster(easyData10, null, 10, seeds, assignment, true, false, true, null);
         List<List<DataPoint>> clusters = KClustererBase.createClusterListFromAssignmentArray(assignment, easyData10);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
@@ -106,7 +103,7 @@ public class ElkanKMeansTest
         System.out.println("cluster(dataset, int, threadpool)");
         ElkanKMeans kMeans = new ElkanKMeans(new EuclideanDistance());
         int[] assignment = new int[easyData10.getSampleSize()];
-        kMeans.cluster(easyData10, null, 10, seeds, assignment, true, ex, true, null);
+        kMeans.cluster(easyData10, null, 10, seeds, assignment, true, true, true, null);
         List<List<DataPoint>> clusters = KClustererBase.createClusterListFromAssignmentArray(assignment, easyData10);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
@@ -141,8 +138,8 @@ public class ElkanKMeansTest
             orig_seeds.add(v.clone());
             seeds2.add(v.clone());
         }
-        kMeans.cluster(easyData10, null, 10, seeds, assignment, true, ex, true, null);
-        kMeans2.cluster(data2, null, 10, seeds2, assignment, true, ex, true, null);
+        kMeans.cluster(easyData10, null, 10, seeds, assignment, true, true, true, null);
+        kMeans2.cluster(data2, null, 10, seeds2, assignment, true, true, true, null);
         
         //multiplied weights by a constant, should get same solutions
         
@@ -164,8 +161,8 @@ public class ElkanKMeansTest
         Random rand = new XORWOW(897654);
         for(int i = 0; i < data2.getSampleSize(); i++)
             data2.getDataPoint(i).setWeight(0.5+5*rand.nextDouble());
-        kMeans.cluster(easyData10, null, 10, seeds, assignment, true, ex, true, null);
-        kMeans2.cluster(data2, null, 10, seeds2, assignment, true, ex, true, null);
+        kMeans.cluster(easyData10, null, 10, seeds, assignment, true, true, true, null);
+        kMeans2.cluster(data2, null, 10, seeds2, assignment, true, true, true, null);
         
         //multiplied weights by a constant, should get similar solutions, but slightly different
         

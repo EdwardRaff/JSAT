@@ -48,7 +48,7 @@ public class DBSCANTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        dbscan = new DBSCAN(new EuclideanDistance(), new VectorArrayFactory<VecPaired<Vec, Integer>>());
+        dbscan = new DBSCAN(new EuclideanDistance(), new VectorArrayFactory<>());
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 5);
         easyData10 = gdg.generateData(40);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
@@ -110,7 +110,7 @@ public class DBSCANTest
     public void testCluster_DataSet_ExecutorService()
     {
         System.out.println("cluster(dataset, executorService)");
-        List<List<DataPoint>> clusters = dbscan.cluster(easyData10, ex);
+        List<List<DataPoint>> clusters = dbscan.cluster(easyData10, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
@@ -149,7 +149,7 @@ public class DBSCANTest
     public void testCluster_3args_2()
     {
         System.out.println("cluster(dataset, int, executorService)");
-        List<List<DataPoint>> clusters = dbscan.cluster(easyData10, 3, ex);
+        List<List<DataPoint>> clusters = dbscan.cluster(easyData10, 3, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
@@ -169,7 +169,7 @@ public class DBSCANTest
     {
         System.out.println("cluster(dataset, double, int, executorService)");
         //We know the range is [-.15, .15]
-        List<List<DataPoint>> clusters = dbscan.cluster(easyData10, 0.15, 5, ex);
+        List<List<DataPoint>> clusters = dbscan.cluster(easyData10, 0.15, 5, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)

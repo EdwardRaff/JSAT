@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import static jsat.clustering.ClustererBase.createClusterListFromAssignmentArray;
+import jsat.clustering.KClusterer;
 import jsat.clustering.KClustererBase;
 import jsat.clustering.dissimilarity.LanceWilliamsDissimilarity;
 import jsat.clustering.dissimilarity.WardsDissimilarity;
@@ -43,6 +44,7 @@ import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDouble;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * This class implements Hierarchical Agglomerative Clustering via the Nearest
@@ -62,7 +64,7 @@ import jsat.utils.concurrent.AtomicDouble;
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class NNChainHAC extends KClustererBase
+public class NNChainHAC implements KClusterer
 {
     private LanceWilliamsDissimilarity distMeasure;
     private DistanceMetric dm;
@@ -128,15 +130,9 @@ public class NNChainHAC extends KClustererBase
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
+    public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, new FakeExecutor(), designations);
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
-    {
-        return cluster(dataSet, 2, (int) Math.sqrt(dataSet.getSampleSize()), threadpool, designations);
+        return cluster(dataSet, 2, (int) Math.sqrt(dataSet.getSampleSize()), parallel, designations);
     }
     
     private double getDist(int a, int j, int[] size, List<Vec> vecs, List<Double> cache, List<Map<Integer, Double>> d_xk)
@@ -195,19 +191,13 @@ public class NNChainHAC extends KClustererBase
     }
     
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, int clusters, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, clusters, clusters, threadpool, designations);
+        return cluster(dataSet, clusters, clusters, parallel, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
-    {
-        return cluster(dataSet, clusters, new FakeExecutor(), designations);
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, int lowK, int highK, boolean parallel, int[] designations)
     {
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
@@ -242,12 +232,12 @@ public class NNChainHAC extends KClustererBase
         ListUtils.addRange(S, 0, N, 1);
         
         
-        final List<Map<Integer, Double>> dist_map = new ArrayList<Map<Integer, Double>>(N);
+        final List<Map<Integer, Double>> dist_map = new ArrayList<>(N);
         for(int i = 0; i < N; i++)
             dist_map.add(null);
         
         final List<Vec> vecs = dataSet.getDataVectors();
-        final List<Double> cache = dm.getAccelerationCache(vecs, threadpool);
+        final List<Double> cache = dm.getAccelerationCache(vecs, parallel);
         
         int[] chain = new int[N];
         int chainPos = 0;
@@ -280,91 +270,48 @@ public class NNChainHAC extends KClustererBase
             {
                 // 16: c ← argmin_{ x!=a} d[x, a] with preference for b
                 
-                int c = b;
-                double minDist = getDist(a, c, size, vecs, cache, dist_map);
+                AtomicInteger c = new AtomicInteger(b);
+                AtomicDouble minDist = new AtomicDouble(getDist(a, c.get(), size, vecs, cache, dist_map));
                 
-                if(threadpool == null || threadpool instanceof FakeExecutor || S.size() < SystemInfo.LogicalCores*2)
-                {
-                    for(int j : S)
-                    {
-                        if(j == a || j == c)
-                            continue;//we already have these guys! just not removed from S yet
+                final int a_ = a;
+                final int c_ = c.get();
+                boolean doPara = parallel && S.size() > SystemInfo.LogicalCores*2 && S.size() >= 100;
 
-                        double dist = getDist(a, j, size, vecs, cache, dist_map);
-                        if(dist < minDist)
+                ParallelUtils.run(doPara, S.size(), (start, end)->
+                {
+                    double local_minDist = Double.POSITIVE_INFINITY;
+                    int local_c = S.get(start);
+                    
+                    
+                    for(int i = start; i < end; i++)
+                    {
+                        int j = S.getI(i);
+                        if(j == a_ || j == c_)
+                            continue;//we already have these guys! just not removed from S yet
+                        double dist = getDist(a_, j, size, vecs, cache, dist_map);
+                        
+                        if(dist < local_minDist)
                         {
-                        minDist = dist;
-                        c = j;
+                            local_minDist = dist;
+                            local_c = j;
                         }
                     }
-                }
-                else//parallel search
-                {
-                    final AtomicInteger c_ = new AtomicInteger(b);
-                    final AtomicDouble minDist_ = new AtomicDouble(minDist);
-
-                    final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-                    for(int id = 0; id < SystemInfo.LogicalCores; id++)
+                    
+                    synchronized(minDist)
                     {
-                        final int ID = id, A = a, B = b;
-
-                        threadpool.submit(new Runnable()
+                        if(local_minDist < minDist.get())
                         {
-                            @Override
-                            public void run()
-                            {
-                                double localMinDist = Double.POSITIVE_INFINITY;
-                                int localC = -1;
-                                for(int indx = ID; indx < S.size(); indx+=SystemInfo.LogicalCores)
-                                {
-                                    int j = S.getI(indx);
-                                    if (j == A || j == B)
-                                        continue;//we already have these guys! just not removed from S yet
-
-                                    double dist = getDist(A, j, size, vecs, cache, dist_map);
-                                    if (dist < localMinDist)
-                                    {
-                                        localMinDist = dist;
-                                        localC = j;
-                                    }
-                                }
-                                
-                                if (localMinDist < minDist_.get())
-                                {
-                                    synchronized(S)
-                                    {
-                                        if (localMinDist < minDist_.get())
-                                        {
-                                            minDist_.set(localMinDist);
-                                            c_.set(localC);
-                                        }
-                                    }
-                                }
-
-                                latch.countDown();
-                            }
-                        });
+                            minDist.set(local_minDist);
+                            c.set(local_c);
+                        }
                     }
-                    
-                    
-                    
-                    try
-                    {
-                        latch.await();
-                        c = c_.get();
-                        minDist = minDist_.get();
-                    }
-                    catch (InterruptedException ex)
-                    {
-                        Logger.getLogger(NNChainHAC.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
+                });
                 
-                dist_ab = minDist;
+                dist_ab = minDist.get();
                       
                 //17: a, b ← c, a
                 b = a;
-                a = c;
+                a = c.get();
                 //18: Append a to chain
                 chain[chainPos++] = a;
                 
@@ -395,87 +342,46 @@ public class NNChainHAC extends KClustererBase
             
             // 24: Update d with the information d[n,x], for all x ∈ S.
             
-            boolean singleThread = threadpool == null || threadpool instanceof FakeExecutor || S.size() <= SystemInfo.LogicalCores*10;
+            boolean singleThread = !parallel || S.size() <= SystemInfo.LogicalCores*10;
             final Map<Integer, Double> map_n; // = S.isEmpty() ? null : new IntDoubleMap(S.size());
             if(S.isEmpty())
                 map_n = null;
             else if(S.size()*100 >= N || !singleThread)// Wastefull, but faster and acceptable
                 map_n = new IntDoubleMapArray(N);
             else
-                map_n = new IntDoubleMap(S.size());
-            if(singleThread)
-            {//single threaded if warnted or workign set is too small
-                for(final int x : S)
-                {
-                    double d_ax = getDist(a, x, size, vecs, cache, dist_map);
-                    double d_bx = getDist(b, x, size, vecs, cache, dist_map);
-                    double d_xn = distMeasure.dissimilarity(size_a, size_b, size[x], dist_ab, d_ax, d_bx);
-
-                    Map<Integer, Double> dist_map_x = dist_map.get(x);
-                    if(dist_map_x == null)
-                    {
-                        //                    dist_map[x] = new IntDoubleMap(1);
-                        //                    dist_map[x].put(n, d_xn);
-                    }
-                    else //if(dist_map[x] != null)
-                    {
-                        dist_map_x.remove(b);
-                        dist_map_x.put(n, d_xn);
-                        if(dist_map_x.size()*50 < N && !(dist_map_x instanceof IntDoubleMap))//we are using such a small percentage, put it into a sparser map
-                            dist_map.set(x, new IntDoubleMap(dist_map_x));
-                    }
-
-                    map_n.put(x, d_xn);
-
-                }
-            }
-            else//parallel  case
             {
-                final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-                final int A = a, B = b;
-                final double dist_AB = dist_ab;
-                for(int id = 0; id < SystemInfo.LogicalCores; id++)
-                {
-                    final int ID = id;
-                    
-                    threadpool.submit(new Runnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            for(int indx = ID; indx < S.size(); indx += SystemInfo.LogicalCores)
-                            {
-                                int x = S.getI(indx);
-                                double d_ax = getDist(A, x, size, vecs, cache, dist_map);
-                                double d_bx = getDist(B, x, size, vecs, cache, dist_map);
-                                double d_xn = distMeasure.dissimilarity(size_a, size_b, size[x], dist_AB, d_ax, d_bx);
-
-                                Map<Integer, Double> dist_map_x = dist_map.get(x);
-                                if(dist_map_x != null)
-                                {
-                                    dist_map_x.remove(B);
-                                    dist_map_x.put(n, d_xn);
-                                    if(dist_map_x.size()*50 < N && !(dist_map_x instanceof IntDoubleMap))//we are using such a small percentage, put it into a sparser map
-                                        dist_map.set(x, new IntDoubleMap(dist_map_x));
-                                }
-
-                                map_n.put(x, d_xn);
-                            }
-                            latch.countDown();
-                        }
-                    });
-
-                }
-
-                try
-                {
-                    latch.await();
-                }
-                catch (InterruptedException ex)
-                {
-                    Logger.getLogger(NNChainHAC.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                map_n = new IntDoubleMap(S.size());
+                //pre fill to guarantee thread safe alteration of values when done in parallel && using IntDoubleMap implementation
+                for(int x : S)
+                    map_n.put(x, -0.0);
             }
+
+            
+            final int a_ = a;
+            final int b_ = b;
+            final double dist_ab_ = dist_ab;
+            ParallelUtils.streamP(S.streamInts(), !singleThread).forEach(x ->
+            {
+                double d_ax = getDist(a_, x, size, vecs, cache, dist_map);
+                double d_bx = getDist(b_, x, size, vecs, cache, dist_map);
+                double d_xn = distMeasure.dissimilarity(size_a, size_b, size[x], dist_ab_, d_ax, d_bx);
+
+                Map<Integer, Double> dist_map_x = dist_map.get(x);
+                if(dist_map_x == null)
+                {
+                    //                    dist_map[x] = new IntDoubleMap(1);
+                    //                    dist_map[x].put(n, d_xn);
+                }
+                else //if(dist_map[x] != null)
+                {
+                    dist_map_x.remove(b_);
+                    dist_map_x.put(n, d_xn);
+                    if(dist_map_x.size()*50 < N && !(dist_map_x instanceof IntDoubleMap))//we are using such a small percentage, put it into a sparser map
+                        dist_map.set(x, new IntDoubleMap(dist_map_x));//distMap is an Array list already filled with entries, so this is thread safe set
+                }
+
+                map_n.put(x, d_xn);
+            });
             
             dist_map.set(removed,  null);//no longer in use no mater what
             dist_map.set(n,  map_n);
@@ -548,11 +454,4 @@ public class NNChainHAC extends KClustererBase
         
         PriorityHAC.assignClusterDesignations(designations, clusterSize, merges);
     }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
-    {
-        return cluster(dataSet, lowK, highK, new FakeExecutor(), designations);
-    }
-    
 }

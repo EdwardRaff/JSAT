@@ -56,13 +56,13 @@ public class SimpleHAC extends KClustererBase
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
         return cluster(dataSet, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, int clusters, boolean parallel, int[] designations)
     {
         return cluster(dataSet, clusters, designations);
     }
@@ -74,7 +74,7 @@ public class SimpleHAC extends KClustererBase
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, int lowK, int highK, boolean parallel, int[] designations)
     {
         return cluster(dataSet, lowK, highK, designations);
     }

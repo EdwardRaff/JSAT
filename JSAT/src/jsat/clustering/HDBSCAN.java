@@ -26,6 +26,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.vectorcollection.*;
 import jsat.utils.FibHeap;
 import static java.lang.Math.max;
+import jsat.exceptions.FailedToFitException;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.*;
@@ -51,7 +52,7 @@ import jsat.utils.*;
  * doi:10.1007/978-3-642-37456-2_14
  * @author Edward Raff
  */
-public class HDBSCAN extends ClustererBase implements Parameterized
+public class HDBSCAN implements Clusterer, Parameterized
 {
     private DistanceMetric dm;
     /**
@@ -209,13 +210,7 @@ public class HDBSCAN extends ClustererBase implements Parameterized
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
-    {
-        return cluster(dataSet, new FakeExecutor(), designations);
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
@@ -223,14 +218,14 @@ public class HDBSCAN extends ClustererBase implements Parameterized
         @SuppressWarnings("unchecked")
         final List<Vec> X = dataSet.getDataVectors();
         final int N = X.size();
-        List<Double> cache = dm.getAccelerationCache(X, threadpool);
-        VectorCollection<Vec> X_vc = vcf.getVectorCollection(X, dm, threadpool);
+        List<Double> cache = dm.getAccelerationCache(X, parallel);
+        VectorCollection<Vec> X_vc = vcf.getVectorCollection(X, dm, parallel);
         //1. Compute the core distance w.r.t. m_pts for all data objects in X.
         /*
          * (Core Distance): The core distance of an object x_p ∈ X w.r.t. m_pts, 
          * d_core(x_p), is the distance from x_p to its m_pts-nearest neighbor (incl. x_p)
          */
-        List<List<? extends VecPaired<Vec, Double>>> allNearestNeighbors = VectorCollectionUtils.allNearestNeighbors(X_vc, X, m_pts, threadpool);
+        List<List<? extends VecPaired<Vec, Double>>> allNearestNeighbors = VectorCollectionUtils.allNearestNeighbors(X_vc, X, m_pts, parallel);
         double[] core = new double[N];
         for(int i = 0; i < N; i++)
             core[i] = allNearestNeighbors.get(i).get(m_pts-1).getPair();
@@ -243,16 +238,16 @@ public class HDBSCAN extends ClustererBase implements Parameterized
         int[] E = new int[N];
         Arrays.fill(E, -1);//-1 "a special flag value indicating that there is no edge connecting v to earlier vertices"
         
-        FibHeap<Integer> Q = new FibHeap<Integer>();
-        List<FibHeap.FibNode<Integer>> q_nodes = new ArrayList<FibHeap.FibNode<Integer>>(N);
+        FibHeap<Integer> Q = new FibHeap<>();
+        List<FibHeap.FibNode<Integer>> q_nodes = new ArrayList<>(N);
         for(int i = 0; i < N; i++)
             q_nodes.add(Q.insert(i, C[i]));
-        Set<Integer> F = new HashSet<Integer>();
+        Set<Integer> F = new HashSet<>();
 
         /**
          * First 2 indicate the edges, 3d value is the weight
          */
-        List<Tuple3<Integer, Integer, Double>> mst_edges = new ArrayList<Tuple3<Integer, Integer, Double>>(N*2);
+        List<Tuple3<Integer, Integer, Double>> mst_edges = new ArrayList<>(N*2);
 
         while(Q.size() > 0)
         {
@@ -264,7 +259,7 @@ public class HDBSCAN extends ClustererBase implements Parameterized
             F.add(v);
             
             if(E[v] >= 0)
-                mst_edges.add(new Tuple3<Integer, Integer, Double>(v, E[v], C[v]));
+                mst_edges.add(new Tuple3<>(v, E[v], C[v]));
             
             /*
              * c. Loop over the edges vw connecting v to other vertices w. For 
@@ -300,26 +295,21 @@ public class HDBSCAN extends ClustererBase implements Parameterized
          */
         
         for(int i = 0; i < N; i++)
-            mst_edges.add(new Tuple3<Integer, Integer, Double>(i, i, core[i]));
+            mst_edges.add(new Tuple3<>(i, i, core[i]));
         
         //4. Extract the HDBSCAN hierarchy as a dendrogram from MSText:
         
-        List<UnionFind<Integer>> ufs = new ArrayList<UnionFind<Integer>>(N);
+        List<UnionFind<Integer>> ufs = new ArrayList<>(N);
         for(int i = 0; i < N; i++)
-            ufs.add(new UnionFind<Integer>(i));
+            ufs.add(new UnionFind<>(i));
         //sort edges from smallest weight to largest
-        PriorityQueue<Tuple3<Integer, Integer, Double>> edgeQ = new PriorityQueue<Tuple3<Integer, Integer, Double>>(2*N, new Comparator<Tuple3<Integer, Integer, Double>>()
-        {
-            @Override
-            public int compare(Tuple3<Integer, Integer, Double> o1, Tuple3<Integer, Integer, Double> o2)
-            {
-                return o1.getZ().compareTo(o2.getZ());
-            }
-        });
+        PriorityQueue<Tuple3<Integer, Integer, Double>> edgeQ = new PriorityQueue<>(2*N, 
+                (o1, o2) -> o1.getZ().compareTo(o2.getZ())
+        );
         edgeQ.addAll(mst_edges);
         
         //everyone starts in their own cluster!
-        List<List<Integer>> currentGroups = new ArrayList<List<Integer>>();
+        List<List<Integer>> currentGroups = new ArrayList<>();
         for(int i = 0; i < N; i++)
         {
             IntList il = new IntList(1);
@@ -331,15 +321,15 @@ public class HDBSCAN extends ClustererBase implements Parameterized
         /**
          * List of all the cluster options we have found
          */
-        List<List<Integer>> cluster_options = new ArrayList<List<Integer>>();
+        List<List<Integer>> cluster_options = new ArrayList<>();
         /**
          * Stores a list for each cluster. Each value in the sub list is the
          * weight at which that data point was added to the cluster 
          */
-        List<DoubleList> entry_size = new ArrayList<DoubleList>();
+        List<DoubleList> entry_size = new ArrayList<>();
         DoubleList birthSize = new DoubleList();
         DoubleList deathSize = new DoubleList();
-        List<Pair<Integer, Integer>> children = new ArrayList<Pair<Integer, Integer>>();
+        List<Pair<Integer, Integer>> children = new ArrayList<>();
         int[] map_to_cluster_label = new int[N];
         Arrays.fill(map_to_cluster_label, -1);
         
@@ -412,7 +402,7 @@ public class HDBSCAN extends ClustererBase implements Parameterized
                     dl.add(weight);
                 entry_size.add(dl);
                 
-                children.add(new Pair<Integer, Integer>(map_to_cluster_label[mergedClust], map_to_cluster_label[otherClust]));
+                children.add(new Pair<>(map_to_cluster_label[mergedClust], map_to_cluster_label[otherClust]));
                 birthSize.add(weight);
                 deathSize.add(Double.MAX_VALUE);//we don't know yet
                 map_to_cluster_label[mergedClust] = next_cluster_label;
@@ -439,6 +429,7 @@ public class HDBSCAN extends ClustererBase implements Parameterized
                     catch(IndexOutOfBoundsException ex)
                     {
                         ex.printStackTrace();
+                        throw new FailedToFitException(ex);
                     }
                     
             }
@@ -472,7 +463,7 @@ public class HDBSCAN extends ClustererBase implements Parameterized
         boolean[] toKeep = new boolean[S.length];
         double[] S_hat = new double[cluster_options.size()];
         Arrays.fill(toKeep, true);
-        Queue<Integer> notKeeping = new ArrayDeque<Integer>();
+        Queue<Integer> notKeeping = new ArrayDeque<>();
         
         for(int i = 0; i < S.length; i++)
         {

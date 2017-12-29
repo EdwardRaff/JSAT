@@ -11,6 +11,7 @@ import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.*;
 import jsat.utils.*;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
 /**
@@ -27,8 +28,8 @@ import jsat.utils.random.RandomUtil;
 public class MiniBatchKMeans extends KClustererBase
 {
 
-	private static final long serialVersionUID = 412553399508594014L;
-	private int batchSize;
+    private static final long serialVersionUID = 412553399508594014L;
+    private int batchSize;
     private int iterations;
     private DistanceMetric dm;
     private SeedSelectionMethods.SeedSelection seedSelection;
@@ -90,7 +91,7 @@ public class MiniBatchKMeans extends KClustererBase
         this.storeMeans = toCopy.storeMeans;
         if(toCopy.means != null)
         {
-            this.means = new ArrayList<Vec>();
+            this.means = new ArrayList<>();
             for(Vec v : toCopy.means)
                 this.means.add(v.clone());
         }
@@ -204,29 +205,26 @@ public class MiniBatchKMeans extends KClustererBase
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations) 
+    public int[] cluster(DataSet dataSet, int clusters, boolean parallel, int[] designations) 
     {
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
         
-        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
         
         final List<Vec> source = dataSet.getDataVectors();
         final List<Double> distCache;
-        if(threadpool == null || threadpool instanceof FakeExecutor)
-            distCache = dm.getAccelerationCache(source);
-        else
-            distCache = dm.getAccelerationCache(source, threadpool);
+        distCache = dm.getAccelerationCache(source, parallel);
         
-        means = SeedSelectionMethods.selectIntialPoints(dataSet, clusters, dm, distCache, RandomUtil.getRandom(), seedSelection, threadpool);
+        means = SeedSelectionMethods.selectIntialPoints(dataSet, clusters, dm, distCache, RandomUtil.getRandom(), seedSelection, parallel);
         
-        final List<List<Double>> meanQIs = new ArrayList<List<Double>>(means.size());
+        final List<List<Double>> meanQIs = new ArrayList<>(means.size());
         for (int i = 0; i < means.size(); i++)
             if (dm.supportsAcceleration())
                 meanQIs.add(dm.getQueryInfo(means.get(i)));
@@ -252,53 +250,28 @@ public class MiniBatchKMeans extends KClustererBase
             M.clear();
             ListUtils.randomSample(allIndx, M, usedBatchSize);
             
-            {//compute centers
-                final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-                final int blockSize = usedBatchSize / SystemInfo.LogicalCores;
-                int extra = usedBatchSize % SystemInfo.LogicalCores;
-                int start = 0;
-                while (start < usedBatchSize)
+            //compute centers
+            ParallelUtils.run(parallel, usedBatchSize, (start, end) -> 
+            {
+                double tmp;
+                for (int i = start; i < end; i++)
                 {
-                    final int s = start;
-                    final int end = start + blockSize + (extra-- > 0 ? 1 : 0);
-                    start = end;
-                    threadpool.submit(new Runnable()
+                    double minDist = Double.POSITIVE_INFINITY;
+                    int min = -1;
+
+                    for (int j = 0; j < means.size(); j++)
                     {
-                        @Override
-                        public void run()
+                        tmp = dm.dist(M.get(i), means.get(j), meanQIs.get(j), source, distCache);
+
+                        if (tmp < minDist)
                         {
-                            double tmp;
-                            for (int i = s; i < end; i++)
-                            {
-                                double minDist = Double.POSITIVE_INFINITY;
-                                int min = -1;
-                                
-                                for (int j = 0; j < means.size(); j++)
-                                {
-                                    tmp = dm.dist(M.get(i), means.get(j), meanQIs.get(j), source, distCache);
-                                    
-                                    if (tmp < minDist)
-                                    {
-                                        minDist = tmp;
-                                        min = j;
-                                    }
-                                }
-                                nearestCenter[i] = min;
-                            }
-                            latch.countDown();
+                            minDist = tmp;
+                            min = j;
                         }
-                    });
+                    }
+                    nearestCenter[i] = min;
                 }
-                
-                try
-                {
-                    latch.await();
-                }
-                catch (InterruptedException ex)
-                {
-                    Logger.getLogger(MiniBatchKMeans.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
+            });
             
             //Update centers
             for(int j = 0; j < M.size(); j++)
@@ -317,65 +290,33 @@ public class MiniBatchKMeans extends KClustererBase
         }
         
         //Stochastic travel complete, calculate all
-        List<Future<Double>> futures = new ArrayList<Future<Double>>(SystemInfo.LogicalCores);//Getting the objective function
-        final int blockSize = dataSet.getSampleSize() / SystemInfo.LogicalCores;
-        int extra = dataSet.getSampleSize() % SystemInfo.LogicalCores;
-        int start = 0;
-
         final int[] des = designations;
 
-
-        while (start < dataSet.getSampleSize())
+        double sumErr = ParallelUtils.run(parallel, dataSet.getSampleSize(), (start, end) ->
         {
-            final int s = start;
-            final int end = start + blockSize + (extra-- > 0 ? 1 : 0);
-            start = end;
-
-            futures.add(threadpool.submit(new Callable<Double>()
+            double dists = 0;
+            double tmp;
+            for (int i = start; i < end; i++)
             {
-                @Override
-                public Double call() throws Exception
+                double minDist = Double.POSITIVE_INFINITY;
+                int min = -1;
+                for (int j = 0; j < means.size(); j++)
                 {
-                    double dists = 0;
-                    double tmp;
-                    for (int i = s; i < end; i++)
+                    tmp = dm.dist(i, means.get(j), meanQIs.get(j), source, distCache);
+
+                    if (tmp < minDist)
                     {
-                        double minDist = Double.POSITIVE_INFINITY;
-                        int min = -1;
-                        for (int j = 0; j < means.size(); j++)
-                        {
-                            tmp = dm.dist(i, means.get(j), meanQIs.get(j), source, distCache);
-
-                            if (tmp < minDist)
-                            {
-                                minDist = tmp;
-                                min = j;
-                            }
-                        }
-                        
-                        des[i] = min;
-                        dists += minDist*minDist;
+                        minDist = tmp;
+                        min = j;
                     }
-                    return dists;
                 }
-            }));
-        }
 
-        double sumErr = 0;
+                des[i] = min;
+                dists += minDist*minDist;
+            }
+            return dists;
+        }, (t, u) -> t+u);
 
-        try
-        {
-            for (Future<Double> future : futures)
-                sumErr += future.get();
-        }
-        catch (InterruptedException ex)
-        {
-            Logger.getLogger(MiniBatchKMeans.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        catch (ExecutionException ex)
-        {
-            Logger.getLogger(MiniBatchKMeans.class.getName()).log(Level.SEVERE, null, ex);
-        }
         if(!storeMeans)
             means = null;
 
@@ -383,19 +324,7 @@ public class MiniBatchKMeans extends KClustererBase
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
-    {
-        return cluster(dataSet, clusters, new FakeExecutor(), designations);
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
+    public int[] cluster(DataSet dataSet, int lowK, int highK, boolean parallel, int[] designations)
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }

@@ -30,7 +30,6 @@ import static org.junit.Assert.*;
 public class KMeansPDNTest
 {
     static private SimpleDataSet easyData10;
-    static private ExecutorService ex;
     
     public KMeansPDNTest()
     {
@@ -41,13 +40,11 @@ public class KMeansPDNTest
     {
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 2);
         easyData10 = gdg.generateData(110);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -65,7 +62,7 @@ public class KMeansPDNTest
     {
         System.out.println("cluster findK");
         KMeansPDN kMeans = new KMeansPDN(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
-        List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 1, 20, ex);
+        List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 1, 20, true);
         assertEquals(4, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)

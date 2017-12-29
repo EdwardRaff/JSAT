@@ -2,6 +2,7 @@ package jsat.clustering;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.DoubleAdder;
 
 import jsat.DataSet;
 import jsat.exceptions.FailedToFitException;
@@ -19,7 +20,9 @@ import jsat.parameters.Parameterized;
 import jsat.utils.FakeExecutor;
 import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.AtomicDouble;
 import jsat.utils.concurrent.AtomicDoubleArray;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * Provides an implementation of the FLAME clustering algorithm. The original 
@@ -190,275 +193,223 @@ public class FLAME extends ClustererBase implements Parameterized
     {
         this.vectorCollectionFactory = vectorCollectionFactory;
     }
-    
-    @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
-    {
-        return cluster(dataSet, new FakeExecutor(), designations);
-    }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
         if(k >= dataSet.getSampleSize())
             throw new FailedToFitException("Number of k-neighbors (" + k + ") can not be larger than the number of datapoints (" + dataSet.getSampleSize() + ")");
-        try
+        final int n = dataSet.getSampleSize();
+        if (designations == null || designations.length < dataSet.getSampleSize())
+            designations = new int[n];
+        List<VecPaired<Vec, Integer>> vecs = new ArrayList<>(n);
+        for (int i = 0; i < dataSet.getSampleSize(); i++)
+            vecs.add(new VecPaired<>(dataSet.getDataPoint(i).getNumericalValues(), i));
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
+        VectorCollection<VecPaired<Vec, Integer>> vc;
+        final List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> allNNs;
+        vc = vectorCollectionFactory.getVectorCollection(vecs, dm, parallel);
+        allNNs = VectorCollectionUtils.allNearestNeighbors(vc, vecs, k + 1, parallel);
+        //NOTE: Density is done in reverse, so large values indicate low density, small values indiciate high density.
+        //mark density as the sum of distances
+        final double[] density = new double[vecs.size()];
+        final double[][] weights = new double[n][k];
+        OnLineStatistics densityStats = new OnLineStatistics();
+        for (int i = 0; i < density.length; i++)
         {
-            final int n = dataSet.getSampleSize();
-            if (designations == null || designations.length < dataSet.getSampleSize())
-                designations = new int[n];
-            List<VecPaired<Vec, Integer>> vecs = new ArrayList<VecPaired<Vec, Integer>>(n);
-            for (int i = 0; i < dataSet.getSampleSize(); i++)
-                vecs.add(new VecPaired<Vec, Integer>(dataSet.getDataPoint(i).getNumericalValues(), i));
+            List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
+            for (int j = 1; j < knns.size(); j++)
+                density[i] += (weights[i][j - 1] = knns.get(j).getPair());
+            densityStats.add(density[i]);
             
-            TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
-            VectorCollection<VecPaired<Vec, Integer>> vc;
-            final List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> allNNs;
-            if (threadpool instanceof FakeExecutor)
+            double sum = 0;
+            for (int j = 0; j < k; j++)
+                sum += (weights[i][j] = Math.min(1.0 / Math.pow(weights[i][j], 2), Double.MAX_VALUE / (k + 1)));
+            
+            for (int j = 0; j < k; j++)
+                weights[i][j] /= sum;
+        }
+        final Map<Integer, Integer> CSOs = new HashMap<>();
+        final Set<Integer> outliers = new IntSet();
+        Arrays.fill(designations, -1);
+        final double threshold = densityStats.getMean() + densityStats.getStandardDeviation() * stndDevs;
+        for (int i = 0; i < density.length; i++)
+        {
+            List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
+            boolean lowest = true;//if my density score is lower then all neighbors, then i am a CSO
+            boolean highest = true;//if heigher, then I am an outlier
+            for (int j = 1; j < knns.size() && (highest || lowest); j++)
             {
-                vc = vectorCollectionFactory.getVectorCollection(vecs, dm);
-                allNNs = VectorCollectionUtils.allNearestNeighbors(vc, vecs, k + 1);
+                int jNN = knns.get(j).getVector().getPair();
+                if (density[i] > density[jNN])
+                    lowest = false;
+                else
+                    highest = false;
             }
+            
+            if (lowest)
+                CSOs.put(i, CSOs.size());
+            else if (highest && density[i] > threshold)
+                outliers.add(i);
+        }
+        //remove CSO that occur near outliers
+        {
+        int origSize = CSOs.size();
+        Iterator<Integer> iter = CSOs.keySet().iterator();
+        while (iter.hasNext())
+        {
+            int i = iter.next();
+            List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
+            for (int j = 1; j < knns.size(); j++)
+                if (outliers.contains(knns.get(j).getVector().getPair()))
+                {
+                    iter.remove();
+                    break;
+                }
+        }
+        
+        if(origSize != CSOs.size())//we did a removal, re-order clusters
+        {
+            Set<Integer> keys = new IntSet(CSOs.keySet());
+            CSOs.clear();
+            for(int i : keys)
+                CSOs.put(i, CSOs.size());
+        }
+        //May have gaps, will be fixed in final step
+        for (int i : CSOs.keySet())
+            designations[i] = CSOs.get(i);
+    }
+        //outlier is implicit extra term
+        double[][] fuzzy = new double[n][CSOs.size() + 1];
+        for (int i = 0; i < n; i++)
+            if (CSOs.containsKey(i))
+                fuzzy[i][CSOs.get(i)] = 1.0;//each CSO is full it itself
+            else if (outliers.contains(i))
+                fuzzy[i][CSOs.size()] = 1.0;
             else
+                Arrays.fill(fuzzy[i], 1.0 / (CSOs.size() + 1));
+        //iterate
+        double[][] fuzzy2 = new double[n][CSOs.size() + 1];
+        double prevScore = Double.POSITIVE_INFINITY;
+        for (int iter = 0; iter < maxIterations; iter++)
+        {
+            final double[][] FROM = fuzzy, TO = fuzzy2;
+            final DoubleAdder score = new DoubleAdder();
+            
+            //Single index loop b/c of uneven workloads
+            ParallelUtils.run(parallel, FROM.length, (i)->
             {
-                vc = vectorCollectionFactory.getVectorCollection(vecs, dm, threadpool);
-                allNNs = VectorCollectionUtils.allNearestNeighbors(vc, vecs, k + 1, threadpool);
-            }
-
-            //NOTE: Density is done in reverse, so large values indicate low density, small values indiciate high density. 
-            //mark density as the sum of distances
-            final double[] density = new double[vecs.size()];
-            final double[][] weights = new double[n][k];
-            OnLineStatistics densityStats = new OnLineStatistics();
-            for (int i = 0; i < density.length; i++)
-            {
+                if (outliers.contains(i) || CSOs.containsKey(i))
+                    return;
+                final double[] fuzzy2_i = TO[i];
+                Arrays.fill(fuzzy2_i, 0);
                 List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
-                for (int j = 1; j < knns.size(); j++)
-                    density[i] += (weights[i][j - 1] = knns.get(j).getPair());
-                densityStats.add(density[i]);
                 
                 double sum = 0;
-                for (int j = 0; j < k; j++)
-                    sum += (weights[i][j] = Math.min(1.0 / Math.pow(weights[i][j], 2), Double.MAX_VALUE / (k + 1)));
-                
-                for (int j = 0; j < k; j++)
-                    weights[i][j] /= sum;
-            }
-            
-            final Map<Integer, Integer> CSOs = new HashMap<Integer, Integer>();
-            final Set<Integer> outliers = new IntSet();
-            Arrays.fill(designations, -1);
-            
-            final double threshold = densityStats.getMean() + densityStats.getStandardDeviation() * stndDevs;
-            
-            for (int i = 0; i < density.length; i++)
-            {
-                List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
-                boolean lowest = true;//if my density score is lower then all neighbors, then i am a CSO
-                boolean highest = true;//if heigher, then I am an outlier
-                for (int j = 1; j < knns.size() && (highest || lowest); j++)
+                for (int j = 1; j < weights[i].length; j++)
                 {
                     int jNN = knns.get(j).getVector().getPair();
-                    if (density[i] > density[jNN])
-                        lowest = false;
-                    else
-                        highest = false;
+                    final double[] fuzzy_jNN = FROM[jNN];
+                    double weight = weights[i][j - 1];
+                    for (int z = 0; z < FROM[jNN].length; z++)
+                        fuzzy2_i[z] += weight * fuzzy_jNN[z];
                 }
                 
-                if (lowest)
-                    CSOs.put(i, CSOs.size());
-                else if (highest && density[i] > threshold)
-                    outliers.add(i);
-            }
-            
-            //remove CSO that occur near outliers
-            {
-                int origSize = CSOs.size();
-                Iterator<Integer> iter = CSOs.keySet().iterator();
-                while (iter.hasNext())
-                {
-                    int i = iter.next();
-                    List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
-                    for (int j = 1; j < knns.size(); j++)
-                        if (outliers.contains(knns.get(j).getVector().getPair()))
-                        {
-                            iter.remove();
-                            break;
-                        }
-                }
+                for (int z = 0; z < fuzzy2_i.length; z++)
+                    sum += fuzzy2_i[z];
                 
-                if(origSize != CSOs.size())//we did a removal, re-order clusters
+                double localScore = 0;
+                for (int z = 0; z < fuzzy2_i.length; z++)
                 {
-                    Set<Integer> keys = new IntSet(CSOs.keySet());
-                    CSOs.clear();
-                    for(int i : keys)
-                        CSOs.put(i, CSOs.size());
+                    fuzzy2_i[z] /= sum + 1e-6;
+                    localScore += Math.abs(FROM[i][z] - fuzzy2_i[z]);
                 }
-                //May have gaps, will be fixed in final step
-                for (int i : CSOs.keySet())
-                    designations[i] = CSOs.get(i);
-            }
-
-            //outlier is implicit extra term
-            double[][] fuzzy = new double[n][CSOs.size() + 1];
-            for (int i = 0; i < n; i++)
-                if (CSOs.containsKey(i))
-                    fuzzy[i][CSOs.get(i)] = 1.0;//each CSO is full it itself
-                else if (outliers.contains(i))
-                    fuzzy[i][CSOs.size()] = 1.0;
-                else
-                    Arrays.fill(fuzzy[i], 1.0 / (CSOs.size() + 1));
-
-
-
-            //iterate
-            double[][] fuzzy2 = new double[n][CSOs.size() + 1];
-
-            double prevScore = Double.POSITIVE_INFINITY;
+                score.add(localScore);
+            });
             
-            for (int iter = 0; iter < maxIterations; iter++)
+            if (Math.abs(prevScore - score.doubleValue()) < eps)
+                break;
+            prevScore = score.doubleValue();
+            
+            double[][] tmp = fuzzy;
+            fuzzy = fuzzy2;
+            fuzzy2 = tmp;
+        }
+        //Figure out final clsutering
+        int[] clusterCounts = new int[n];
+        for (int i = 0; i < fuzzy.length; i++)
+        {
+            int pos = -1;
+            double maxVal = 0;
+            for (int j = 0; j < fuzzy[i].length; j++)
             {
-                final double[][] FROM = fuzzy, TO = fuzzy2;
-                final AtomicDoubleArray score = new AtomicDoubleArray(1);
-                final CountDownLatch cdl = new CountDownLatch(SystemInfo.LogicalCores);
-                for (int id = 0; id < SystemInfo.LogicalCores; id++)
+                if (fuzzy[i][j] > maxVal)
                 {
-                    final int ID = id;
-                    threadpool.submit(new Runnable() 
-                    {
-
-                        @Override
-                        public void run()
-                        {
-                            double localScore = 0;
-                            for (int i = ID; i < FROM.length; i+=SystemInfo.LogicalCores)
-                            {
-                                if (outliers.contains(i) || CSOs.containsKey(i))
-                                    continue;
-                                final double[] fuzzy2_i = TO[i];
-                                Arrays.fill(fuzzy2_i, 0);
-                                List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
-
-                                double sum = 0;
-                                for (int j = 1; j < weights[i].length; j++)
-                                {
-                                    int jNN = knns.get(j).getVector().getPair();
-                                    final double[] fuzzy_jNN = FROM[jNN];
-                                    double weight = weights[i][j - 1];
-                                    for (int z = 0; z < FROM[jNN].length; z++)
-                                        fuzzy2_i[z] += weight * fuzzy_jNN[z];
-                                }
-
-                                for (int z = 0; z < fuzzy2_i.length; z++)
-                                    sum += fuzzy2_i[z];
-
-                                for (int z = 0; z < fuzzy2_i.length; z++)
-                                {
-                                    fuzzy2_i[z] /= sum+1e-6;
-                                    localScore += Math.abs(FROM[i][z] - fuzzy2_i[z]);
-                                }
-                            }
-                            score.addAndGet(0, localScore);
-                            cdl.countDown();
-                        }
-                    });
+                    maxVal = fuzzy[i][j];
+                    pos = j;
                 }
-             
-                cdl.await();
-
-                if (Math.abs(prevScore - score.get(0)) < eps)
-                    break;
-                prevScore = score.get(0);
-
-                double[][] tmp = fuzzy;
-                fuzzy = fuzzy2;
-                fuzzy2 = tmp;
             }
-
-            //Figure out final clsutering
-            int[] clusterCounts = new int[n];
+            
+            if(pos == -1)//TODO how di this happen? Mark it as an outlier. Somehow your whole row became zeros to cause this
+                pos = CSOs.size();
+            clusterCounts[pos]++;
+            if (pos == CSOs.size())//outlier
+                pos = -1;
+            designations[i] = pos;
+        }
+        /* Transform clusterCOunts to indicate the new cluster ID. If
+        * everyone gets there own id, no clusters removed. Else, people
+        * with a negative value know they need to remove themsleves
+        */
+        int newCCount = 0;
+        for(int i = 0; i < clusterCounts.length; i++)
+            if(clusterCounts[i] > 1)
+                clusterCounts[i] = newCCount++;
+            else
+                clusterCounts[i] = -1;
+        //Go through and remove clusters with a count of 1
+        if(newCCount != clusterCounts.length)
+        {
+            double[] tmp = new double[CSOs.size()+1];
             for (int i = 0; i < fuzzy.length; i++)
             {
-                int pos = -1;
-                double maxVal = 0;
-                for (int j = 0; j < fuzzy[i].length; j++)
+                int d = designations[i];
+                if(d > 0)//not outlier
                 {
-                    if (fuzzy[i][j] > maxVal)
+                    if (clusterCounts[d] == -1)//remove self
                     {
-                        maxVal = fuzzy[i][j];
-                        pos = j;
-                    }
-                }
-
-                if(pos == -1)//TODO how di this happen? Mark it as an outlier. Somehow your whole row became zeros to cause this
-                    pos = CSOs.size();
-                clusterCounts[pos]++;
-                if (pos == CSOs.size())//outlier
-                    pos = -1;
-                designations[i] = pos;
-            }
-            
-            /* Transform clusterCOunts to indicate the new cluster ID. If 
-             * everyone gets there own id, no clusters removed. Else, people 
-             * with a negative value know they need to remove themsleves 
-             */
-            int newCCount = 0;
-            for(int i = 0; i < clusterCounts.length; i++)
-                if(clusterCounts[i] > 1)
-                    clusterCounts[i] = newCCount++;
-                else
-                    clusterCounts[i] = -1;
-                    
-            
-            //Go through and remove clusters with a count of 1
-            if(newCCount != clusterCounts.length)
-            {
-                double[] tmp = new double[CSOs.size()+1];
-                for (int i = 0; i < fuzzy.length; i++)
-                {
-                    int d = designations[i];
-                    if(d > 0)//not outlier
-                    {
-                        if (clusterCounts[d] == -1)//remove self
+                        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
+                        
+                        for (int j = 1; j < weights[i].length; j++)
                         {
-                            List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
-                            
-                            for (int j = 1; j < weights[i].length; j++)
+                            int jNN = knns.get(j).getVector().getPair();
+                            final double[] fuzzy_jNN = fuzzy[jNN];
+                            double weight = weights[i][j - 1];
+                            for (int z = 0; z < fuzzy[jNN].length; z++)
+                                tmp[z] += weight * fuzzy_jNN[z];
+                        }
+                        
+                        double maxVal = -1;
+                        int maxIndx = -1;
+                        for(int z = 0; z < tmp.length; z++)
+                            if(tmp[z] > maxVal)
                             {
-                                int jNN = knns.get(j).getVector().getPair();
-                                final double[] fuzzy_jNN = fuzzy[jNN];
-                                double weight = weights[i][j - 1];
-                                for (int z = 0; z < fuzzy[jNN].length; z++)
-                                    tmp[z] += weight * fuzzy_jNN[z];
+                                maxVal =tmp[z];
+                                maxIndx = z;
                             }
-                            
-                            double maxVal = -1;
-                            int maxIndx = -1;
-                            for(int z = 0; z < tmp.length; z++)
-                                if(tmp[z] > maxVal)
-                                {
-                                    maxVal =tmp[z];
-                                    maxIndx = z;
-                                }
-                            if(maxIndx == CSOs.size())
-                                designations[i] = -1;
-                            else
-                                designations[i] = clusterCounts[maxIndx];
-                        }
+                        if(maxIndx == CSOs.size())
+                            designations[i] = -1;
                         else
-                        {
-                            designations[i] = clusterCounts[d];
-                        }
+                            designations[i] = clusterCounts[maxIndx];
+                    }
+                    else
+                    {
+                        designations[i] = clusterCounts[d];
                     }
                 }
             }
-            
-            return designations;
         }
-        catch (InterruptedException interruptedException)
-        {
-            throw new ClusterFailureException();
-        }
+        return designations;
     }
 
     @Override

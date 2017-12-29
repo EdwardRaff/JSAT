@@ -42,7 +42,7 @@ public class SimpleHACTest
      */
     static private SimpleHAC simpleHAC;
     static private SimpleDataSet easyData10;
-    static private ExecutorService ex;
+    
     public SimpleHACTest()
     {
     }
@@ -53,13 +53,11 @@ public class SimpleHACTest
         simpleHAC = new SimpleHAC(new SingleLinkDissimilarity(new EuclideanDistance()));
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 5);
         easyData10 = gdg.generateData(30);//HAC is O(n^3), so we make the data set a good deal smaller
-        ex = Executors.newFixedThreadPool(10);
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception
     {
-        ex.shutdown();
     }
     
     @Before
@@ -108,7 +106,7 @@ public class SimpleHACTest
     public void testCluster_DataSet_ExecutorService()
     {
         System.out.println("cluster(dataset, ExecutorService)");
-        List<List<DataPoint>> clusters = simpleHAC.cluster(easyData10, ex);
+        List<List<DataPoint>> clusters = simpleHAC.cluster(easyData10, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
@@ -140,7 +138,7 @@ public class SimpleHACTest
     public void testCluster_DataSet_int_int_ExecutorService()
     {
         System.out.println("cluster(dataset, int, int, ExecutorService)");
-        List<List<DataPoint>> clusters = simpleHAC.cluster(easyData10, 2, 20, ex);
+        List<List<DataPoint>> clusters = simpleHAC.cluster(easyData10, 2, 20, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
@@ -159,7 +157,7 @@ public class SimpleHACTest
     public void testCluster_DataSet_int_ExecutorService()
     {
         System.out.println("cluster(dataset, int, ExecutorService)");
-        List<List<DataPoint>> clusters = simpleHAC.cluster(easyData10, 10, ex);
+        List<List<DataPoint>> clusters = simpleHAC.cluster(easyData10, 10, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)

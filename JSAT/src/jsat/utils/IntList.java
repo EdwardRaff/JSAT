@@ -3,6 +3,8 @@ package jsat.utils;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Provides a modifiable implementation of a List using a int array. This provides considerable
@@ -221,4 +223,14 @@ public class IntList extends AbstractList<Integer> implements Serializable
             throw new IllegalArgumentException("length must be non-negative and no more than the size of the array("+array.length+"), not " + length);
         return new IntList(array, length);
     }
+
+    /**
+     * 
+     * @return a sequential stream of integers with <tt>this</tt> as its source
+     */
+    public IntStream streamInts()
+    {
+        return IntStream.of(array).limit(end);
+    }
+    
 }

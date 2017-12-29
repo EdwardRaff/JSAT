@@ -82,7 +82,7 @@ public class HamerlyKMeansTest
         System.out.println("cluster");
         HamerlyKMeans kMeans = new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
         int[] assignment = new int[easyData10.getSampleSize()];
-        kMeans.cluster(easyData10, null, 10, seeds, assignment, true, ex, true, null);
+        kMeans.cluster(easyData10, null, 10, seeds, assignment, true, true, true, null);
         List<List<DataPoint>> clusters = KClustererBase.createClusterListFromAssignmentArray(assignment, easyData10);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
@@ -104,7 +104,7 @@ public class HamerlyKMeansTest
         System.out.println("cluster");
         HamerlyKMeans kMeans = new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
         int[] assignment = new int[easyData10.getSampleSize()];
-        kMeans.cluster(easyData10, null, 10, seeds, assignment, true, null, true, null);
+        kMeans.cluster(easyData10, null, 10, seeds, assignment, true, true, true, null);
         List<List<DataPoint>> clusters = KClustererBase.createClusterListFromAssignmentArray(assignment, easyData10);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
@@ -138,8 +138,8 @@ public class HamerlyKMeansTest
             orig_seeds.add(v.clone());
             seeds2.add(v.clone());
         }
-        kMeans.cluster(easyData10, null, 10, seeds, assignment, true, ex, true, null);
-        kMeans2.cluster(data2, null, 10, seeds2, assignment, true, ex, true, null);
+        kMeans.cluster(easyData10, null, 10, seeds, assignment, true, true, true, null);
+        kMeans2.cluster(data2, null, 10, seeds2, assignment, true, true, true, null);
         
         //multiplied weights by a constant, should get same solutions
         
@@ -161,8 +161,8 @@ public class HamerlyKMeansTest
         Random rand = new XORWOW(897654);
         for(int i = 0; i < data2.getSampleSize(); i++)
             data2.getDataPoint(i).setWeight(0.5+5*rand.nextDouble());
-        kMeans.cluster(easyData10, null, 10, seeds, assignment, true, ex, true, null);
-        kMeans2.cluster(data2, null, 10, seeds2, assignment, true, ex, true, null);
+        kMeans.cluster(easyData10, null, 10, seeds, assignment, true, true, true, null);
+        kMeans2.cluster(data2, null, 10, seeds2, assignment, true, true, true, null);
         
         //multiplied weights by a constant, should get similar solutions, but slightly different
         

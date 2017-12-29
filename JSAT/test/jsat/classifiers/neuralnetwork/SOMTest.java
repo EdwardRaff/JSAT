@@ -17,11 +17,8 @@
 
 package jsat.classifiers.neuralnetwork;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import jsat.FixedProblems;
 import jsat.classifiers.*;
-import jsat.utils.SystemInfo;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -105,8 +102,8 @@ public class SOMTest
         SOM instance = new SOM(5, 5);
         instance.setMaxIterations(50);
         
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(500, 3);
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(500, 6);
+        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(5000, 3);
+        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(5000, 6);
 
         instance = instance.clone();
 

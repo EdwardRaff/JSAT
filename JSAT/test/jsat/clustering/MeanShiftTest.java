@@ -7,15 +7,12 @@ package jsat.clustering;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.Normal;
 import jsat.utils.GridDataGenerator;
 import jsat.utils.IntSet;
-import jsat.utils.SystemInfo;
 
 import org.junit.*;
 
@@ -34,7 +31,6 @@ public class MeanShiftTest
 
     static private MeanShift meanShift;
     static private SimpleDataSet easyData10;
-    static private ExecutorService ex;
 
     @BeforeClass
     public static void setUpClass() throws Exception
@@ -42,13 +38,11 @@ public class MeanShiftTest
         meanShift = new MeanShift();
         GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.10), new Random(12), 2, 5);
         easyData10 = gdg.generateData(40);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception
     {
-        ex.shutdown();
     }
     
     @Before
@@ -78,7 +72,7 @@ public class MeanShiftTest
     public void testCluster_DataSet_ExecutorService()
     {
         System.out.println("cluster(dataset, ExecutorService)");
-        List<List<DataPoint>> clusters = meanShift.cluster(easyData10, ex);
+        List<List<DataPoint>> clusters = meanShift.cluster(easyData10, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)

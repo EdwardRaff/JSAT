@@ -14,10 +14,9 @@ import jsat.linear.Vec;
 public class ManhattanDistance implements DenseSparseMetric
 {
 
+    private static final long serialVersionUID = 3028834823742743351L;
 
-	private static final long serialVersionUID = 3028834823742743351L;
-
-	@Override
+    @Override
     public double dist(Vec a, Vec b)
     {
         return a.pNormDist(1, b);
@@ -91,7 +90,7 @@ public class ManhattanDistance implements DenseSparseMetric
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs, boolean parallel)
     {
         return null;
     }

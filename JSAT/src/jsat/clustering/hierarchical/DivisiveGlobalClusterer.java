@@ -35,10 +35,10 @@ import jsat.clustering.evaluation.ClusterEvaluation;
 public class DivisiveGlobalClusterer extends KClustererBase
 {
 
-	private static final long serialVersionUID = -9117751530105155090L;
-	private KClusterer baseClusterer;
+    private static final long serialVersionUID = -9117751530105155090L;
+    private KClusterer baseClusterer;
     private ClusterEvaluation clusterEvaluation;
-    
+
     private int[] splitList;
     private int[] fullDesignations;
     private DataSet originalDataSet;
@@ -65,31 +65,19 @@ public class DivisiveGlobalClusterer extends KClustererBase
     }
     
     @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
+    public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()), designations);
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()), parallel, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, int clusters, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()), threadpool, designations);
+        return cluster(dataSet, clusters, clusters, parallel, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
-    {
-        return cluster(dataSet, clusters, clusters, threadpool, designations);
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
-    {
-        return cluster(dataSet, clusters, clusters, designations);
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, int lowK, int highK, boolean parallel, int[] designations)
     {
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
@@ -112,9 +100,9 @@ public class DivisiveGlobalClusterer extends KClustererBase
         /**
          * List of Lists for holding the data points of each cluster in
          */
-        List<List<DataPoint>> pointsInCluster = new ArrayList<List<DataPoint>>(highK);
+        List<List<DataPoint>> pointsInCluster = new ArrayList<>(highK);
         for(int i = 0; i < highK; i++)
-            pointsInCluster.add(new ArrayList<DataPoint>(dataSet.getSampleSize()));
+            pointsInCluster.add(new ArrayList<>(dataSet.getSampleSize()));
         
         
         /**
@@ -169,10 +157,7 @@ public class DivisiveGlobalClusterer extends KClustererBase
                     
                     try
                     {
-//                        if (threadpool == null)
-                            baseClusterer.cluster(subDataSet, 2, subDesignation[z]);
-//                        else
-//                            baseClusterer.cluster(subDataSet, 2, threadpool, subDesignation[z]);
+                        baseClusterer.cluster(subDataSet, 2, parallel, subDesignation[z]);
                     }
                     catch(ClusterFailureException ex)
                     {
@@ -265,12 +250,6 @@ public class DivisiveGlobalClusterer extends KClustererBase
                     newDesignations[j] = splitList[k * 2];
         }
         return newDesignations;
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
-    {
-        return cluster(dataSet, lowK, highK, null, designations);
     }
 
     @Override

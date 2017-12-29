@@ -8,6 +8,7 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
@@ -22,6 +23,7 @@ import jsat.utils.DoubleList;
 import jsat.utils.IndexTable;
 import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDoubleArray;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
 /**
@@ -87,12 +89,12 @@ public class HamerlyKMeans extends KMeans
     //TODO reduce some code duplication in the methods bellow 
     
     @Override
-    protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, ExecutorService threadpool, boolean returnError, Vec dataPointWeights)
+    protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, boolean parallel, boolean returnError, Vec dataPointWeights)
     {
         final int N = dataSet.getSampleSize();
         final int D = dataSet.getNumNumericalVars();
         
-        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
         /**
          * Weights for each data point
          */
@@ -104,16 +106,16 @@ public class HamerlyKMeans extends KMeans
         final List<Vec> X = dataSet.getDataVectors();
         final List<Double> distAccel;//used like htis b/c we want it final for convinence, but input may be null
         if(accelCache == null)
-            distAccel = dm.getAccelerationCache(X, threadpool);
+            distAccel = dm.getAccelerationCache(X, parallel);
         else
             distAccel = accelCache;
         
-        final List<List<Double>> meanQI = new ArrayList<List<Double>>(k);
+        final List<List<Double>> meanQI = new ArrayList<>(k);
         
         if (means.size() != k)
         {
             means.clear();
-            means.addAll(selectIntialPoints(dataSet, k, dm, distAccel, rand, seedSelection, threadpool));
+            means.addAll(selectIntialPoints(dataSet, k, dm, distAccel, rand, seedSelection, parallel));
         }
 
         /**
@@ -175,34 +177,33 @@ public class HamerlyKMeans extends KMeans
          */
         final double[] l = new double[N];
         
-        final ThreadLocal<Vec[]> localDeltas = new ThreadLocal<Vec[]>()
+        final List<Vec[]> allLocalDeltas = Collections.synchronizedList(new ArrayList<>());
+        final ThreadLocal<Vec[]> localDeltas =  ThreadLocal.withInitial(()->
         {
-            @Override
-            protected Vec[] initialValue()
-            {
-                Vec[] toRet = new Vec[means.size()];
-                for(int i = 0; i < k; i++)
-                    toRet[i] = new DenseVector(D);
-                return toRet;
-            }
-        };
+            Vec[] toRet = new Vec[means.size()];
+            for(int i = 0; i < k; i++)
+                toRet[i] = new DenseVector(D);
+            allLocalDeltas.add(toRet);
+            return toRet;
+        });
         
         //Start of algo
-        Initialize(dataSet, q, means, tmpVecs, cP, u, l, assignment, threadpool, localDeltas, X, distAccel, meanQI, W);
+        Initialize(dataSet, q, means, tmpVecs, cP, u, l, assignment, parallel, localDeltas, X, distAccel, meanQI, W);
         //Use dense mean objects
         for(int i = 0; i < means.size(); i++)
             if(means.get(i).isSparse())
                 means.set(i, new DenseVector(means.get(i)));
-        final AtomicInteger updates = new AtomicInteger(N);
+        int updates = N;
+
         /**
          * How many iterations over the dataset did this take? 
          */
         int iteration = 0;
-        while(updates.get() > 0)
+        while(updates > 0)
         {
             moveCenters(means, oldMeans, tmpVecs, cP, q, p, meanQI);
-            updates.set(0);
-            updateS(s, distanceMoved, means, oldMeans, threadpool, meanQI);
+            updates = 0;
+            updateS(s, distanceMoved, means, oldMeans, parallel, meanQI);
             /**
              * we maintain m(ci), which is the radius of a hypersphere centered
              * at centroid ci that contains all points assigned to ci. (Note
@@ -217,85 +218,49 @@ public class HamerlyKMeans extends KMeans
             //Algorithm 3, new bounds update scheme. See "Geometric methods to accelerate k-means algorithms"
             EnhancedUpdateBounds(means, distanceMoved, m, s, oldMeans, tmpVecs, tmpVecs2, updateB, p, assignment, u, l);
             
-            if(threadpool == null)
+            //perform all updates
+            updates = ParallelUtils.run(parallel, N, (i) ->
             {
-                int localUpdates = 0;
-                for(int i = 0; i < N; i++)
-                {
-                    localUpdates += mainLoopWork(dataSet, i, s, assignment, u, l, q, cP, X, distAccel, means, meanQI, W);
-                }
-                updates.set(localUpdates);
-            }
-            else
+                Vec[] deltas = localDeltas.get();
+                return mainLoopWork(dataSet, i, s, assignment, u, l, q, deltas, X, distAccel, means, meanQI, W);
+            }, (a, b) -> a + b);
+            
+            //acumulate all deltas
+            ParallelUtils.range(cP.length, parallel).forEach(i -> 
             {
-                final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-                for(int id = 0; id < SystemInfo.LogicalCores; id++)
+                for (Vec[] deltas : allLocalDeltas)
                 {
-                    final int ID = id;
-                    threadpool.submit(new Runnable() 
-                    {
-                        @Override
-                        public void run()
-                        {
-                            Vec[] deltas = localDeltas.get();
-                            int localUpdates = 0;
-                            for(int i = ID; i < N; i+=SystemInfo.LogicalCores)
-                            {
-                                localUpdates += mainLoopWork(dataSet, i, s, assignment, u, l, q, deltas, X, distAccel, means, meanQI, W);
-                            }
-                            //collect deltas
-                            if(localUpdates > 0)
-                            {
-                                updates.getAndAdd(localUpdates);
-                                for(int i = 0; i < cP.length; i++)
-                                {
-                                    synchronized(cP[i])
-                                    {
-                                        cP[i].mutableAdd(deltas[i]);
-                                    }
-                                    deltas[i].zeroOut();
-                                }
-                            }
-                            latch.countDown();
-                        }
-                    });
+                    cP[i].mutableAdd(deltas[i]);
+                    deltas[i].zeroOut();
                 }
-                try
-                {
-                    latch.await();
-                }
-                catch (InterruptedException ex)
-                {
-                    Logger.getLogger(HamerlyKMeans.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
+            });
             iteration++;
         }
         
         if (returnError)
-        {
-            double totalDistance = 0;
-            
+        {   
             if (saveCentroidDistance)
                 nearestCentroidDist = new double[N];
             else
                 nearestCentroidDist = null;
 
-            if (exactTotal == true)
-                for (int i = 0; i < N; i++)
+            double totalDistance = ParallelUtils.run(parallel, N, (start, end) ->
+            {
+                double localDistTotal = 0;
+                for(int i = start; i < end; i++)
                 {
-                    double dist = dm.dist(i, means.get(assignment[i]), meanQI.get(assignment[i]), X, distAccel);
-                    totalDistance += Math.pow(dist, 2);
+                    double dist;
+                    if(exactTotal)
+                        dist = dm.dist(i, means.get(assignment[i]), meanQI.get(assignment[i]), X, distAccel);
+                    else
+                        dist = u[i];
+                    localDistTotal += Math.pow(dist, 2);
                     if (saveCentroidDistance)
                         nearestCentroidDist[i] = dist;
                 }
-            else
-                for (int i = 0; i < N; i++)
-                {
-                    totalDistance += Math.pow(u[i], 2);
-                    if (saveCentroidDistance)
-                        nearestCentroidDist[i] = u[i];
-                }
+                return localDistTotal;
+            },
+            (a,b)->a+b);
 
             return totalDistance;
         }
@@ -419,13 +384,11 @@ public class HamerlyKMeans extends KMeans
      * @param distanceMoved distance each cluster has moved from the previous locations. Updated by this method call. 
      * @param means the new cluster means
      * @param oldMeans the old cluster means
-     * @param threadpool
+     * @param parallel
      * @param meanQIs 
      */
-    private void updateS(final double[] s, final double[] distanceMoved, final List<Vec> means, final Vec[] oldMeans, final ExecutorService threadpool, final List<List<Double>> meanQIs)
+    private void updateS(final double[] s, final double[] distanceMoved, final List<Vec> means, final Vec[] oldMeans, final boolean parallel, final List<List<Double>> meanQIs)
     {
-        final int tasks = means.size();
-        final CountDownLatch latch = new CountDownLatch(tasks);
         Arrays.fill(s, Double.MAX_VALUE);
         //TODO temp object for puting all the query info into a cache, should probably be cleaned up - or change original code to have one massive list and then use sub lits to get the QIs individualy 
         final DoubleList meanCache = meanQIs.get(0).isEmpty() ? null : new DoubleList(meanQIs.size());
@@ -433,71 +396,31 @@ public class HamerlyKMeans extends KMeans
             for (List<Double> qi : meanQIs)
                 meanCache.addAll(qi);
         
-        final ThreadLocal<double[]> localS = new ThreadLocal<double[]>()
-        {
-            @Override
-            protected double[] initialValue()
-            {
-                return  new double[s.length];
-            }
-        };
-
-        for (int j = 0; j < means.size(); j++)
-        {
-            if(threadpool == null)
-            {
-                distanceMoved[j] = dm.dist(oldMeans[j], means.get(j));
-                double tmp;
-                for(int jp = j+1; jp < means.size(); jp++)
-                {
-                    tmp = dm.dist(j, jp, means, meanCache);
-                    s[j] = Math.min(s[j], tmp);
-                    s[jp] = Math.min(s[jp], tmp);
-                }
-            }
-            else
-            {
-                final int J = j;
-                threadpool.submit(new Runnable() 
-                {
-                    @Override
-                    public void run()
-                    {
-                        double[] sTmp = localS.get();
-                        Arrays.fill(sTmp, Double.POSITIVE_INFINITY);
-                        distanceMoved[J] = dm.dist(oldMeans[J], means.get(J));
-                        double tmp;
-                        for (int jp = J + 1; jp < means.size(); jp++)
-                        {
-                            tmp = dm.dist(J, jp, means, meanCache);
-                            sTmp[J] = Math.min(sTmp[J], tmp);
-                            sTmp[jp] = Math.min(sTmp[jp], tmp);
-                        }
-                        
-                        synchronized(s)
-                        {
-                            for(int i = 0; i < s.length; i++)
-                                s[i] = Math.min(s[i], sTmp[i]);
-                        }
-                        
-                        latch.countDown();
-                    }
-                });
-            }
-        }
+        final ThreadLocal<double[]> localS = ThreadLocal.withInitial(()->new double[s.length]);
         
-        if (threadpool != null)
-            try
+        ParallelUtils.run(parallel, means.size(), (j)->
+        {
+            double[] sTmp = localS.get();
+            Arrays.fill(sTmp, Double.POSITIVE_INFINITY);
+            distanceMoved[j] = dm.dist(oldMeans[j], means.get(j));
+            double tmp;
+            for (int jp = j + 1; jp < means.size(); jp++)
             {
-                latch.await();
+                tmp = dm.dist(j, jp, means, meanCache);
+                sTmp[j] = Math.min(sTmp[j], tmp);
+                sTmp[jp] = Math.min(sTmp[jp], tmp);
             }
-            catch (InterruptedException ex)
+
+            synchronized(s)
             {
-                Logger.getLogger(HamerlyKMeans.class.getName()).log(Level.SEVERE, null, ex);
+                for(int i = 0; i < s.length; i++)
+                    s[i] = Math.min(s[i], sTmp[i]);
             }
+
+        });
     }
     
-    private void Initialize(final DataSet d, final AtomicDoubleArray q, final List<Vec> means, final Vec[] tmp, final Vec[] cP, final double[] u, final double[] l, final int[] a, ExecutorService threadpool, final ThreadLocal<Vec[]> localDeltas, final List<Vec> X, final List<Double> distAccel, final List<List<Double>> meanQI, final Vec W)
+    private void Initialize(final DataSet d, final AtomicDoubleArray q, final List<Vec> means, final Vec[] tmp, final Vec[] cP, final double[] u, final double[] l, final int[] a, boolean parallel, final ThreadLocal<Vec[]> localDeltas, final List<Vec> X, final List<Double> distAccel, final List<List<Double>> meanQI, final Vec W)
     {
         for(int j = 0; j < means.size(); j++)
         {
@@ -511,61 +434,28 @@ public class HamerlyKMeans extends KMeans
             else
                 meanQI.add(Collections.EMPTY_LIST);
         }
-
-        if(threadpool==null)
+        
+        ParallelUtils.run(parallel, u.length, (start, end) ->
         {
-            for(int i = 0; i < u.length; i++)
+            Vec[] deltas = localDeltas.get();
+            for (int i = start; i < end; i++)
             {
                 Vec x = X.get(i);
                 int j = PointAllCtrs(x, i, means, a, u, l, X, distAccel, meanQI);
                 double w = W.get(i);
                 q.addAndGet(j, w);
-                cP[j].mutableAdd(w, x);
+                deltas[j].mutableAdd(w, x);
             }
-        }
-        else
-        {
-            final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-            for(int id = 0; id < SystemInfo.LogicalCores; id++)
+
+            for(int i = 0; i < cP.length; i++)
             {
-                final int ID = id;
-                threadpool.submit(new Runnable() 
+                synchronized(cP[i])
                 {
-                    @Override
-                    public void run()
-                    {
-                        Vec[] deltas = localDeltas.get();
-                        for (int i = ID; i < u.length; i+=SystemInfo.LogicalCores)
-                        {
-                            Vec x = X.get(i);
-                            int j = PointAllCtrs(x, i, means, a, u, l, X, distAccel, meanQI);
-                            double w = W.get(i);
-                            q.addAndGet(j, w);
-                            deltas[j].mutableAdd(w, x);
-                        }
-
-                        for(int i = 0; i < cP.length; i++)
-                        {
-                            synchronized(cP[i])
-                            {
-                                cP[i].mutableAdd(deltas[i]);
-                            }
-                            deltas[i].zeroOut();
-                        }
-
-                        latch.countDown();
-                    }
-                });
+                    cP[i].mutableAdd(deltas[i]);
+                }
+                deltas[i].zeroOut();
             }
-            try
-            {
-                latch.await();
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(HamerlyKMeans.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
+        });
     }
     
     /**

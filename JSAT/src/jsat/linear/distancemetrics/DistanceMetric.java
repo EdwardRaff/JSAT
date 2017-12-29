@@ -106,7 +106,10 @@ public interface DistanceMetric extends Cloneable, Serializable
      * @param vecs the list of vectors to build an acceleration cache for
      * @return the list of double for the cache
      */
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs);
+    default public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    {
+        return getAccelerationCache(vecs, false);
+    }
     
     /**
      * Returns a cache of double values associated with the given list of 
@@ -123,6 +126,21 @@ public interface DistanceMetric extends Cloneable, Serializable
      * @return the list of double for the cache
      */
     public List<Double> getAccelerationCache(List<? extends Vec> vecs, ExecutorService threadpool);
+    
+    /**
+     * Returns a cache of double values associated with the given list of 
+     * vectors in the given order. This can be used by the distance metric to 
+     * increase runtime at the cost of memory. This is an optional method. 
+     * <br> If this metric does not support acceleration, {@code null} will be 
+     * returned.
+     * 
+     * @param vecs the list of vectors to build an acceleration cache for
+     * @param parallel {@code true} if multiple threads should be used to
+     * perform clustering. {@code false} if it should be done in a single
+     * threaded manner.
+     * @return the list of double for the cache
+     */
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs, boolean parallel);
     
     /**
      * Computes the distance between 2 vectors in the original list of vectors. 

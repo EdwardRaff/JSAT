@@ -169,7 +169,7 @@ public class SVMnoBias extends SupportVectorLearner implements BinaryScoreClassi
     {
         final int N = alphas.length;
         final double lambda = 1/(2*C*N);
-        ExecutorService ex = ParallelUtils.getNewExecutor(parallel);
+        
         //Algorithm 1 1D-SVM solver
         while(S_a > tolerance/(2*lambda))
         {
@@ -217,7 +217,7 @@ public class SVMnoBias extends SupportVectorLearner implements BinaryScoreClassi
                     Ea_delta += weights.get(j) * C * min(max(0, nabla_W[j]), 2);
                 }
                 E_a.addAndGet(Ea_delta);
-            }, ex);
+            });
             
             S_a = T_a + E_a.get();
         }

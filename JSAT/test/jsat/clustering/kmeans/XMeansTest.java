@@ -33,7 +33,6 @@ import static org.junit.Assert.*;
 public class XMeansTest
 {
     static private SimpleDataSet easyData10;
-    static private ExecutorService ex;
     
     public XMeansTest()
     {
@@ -44,13 +43,11 @@ public class XMeansTest
     {
         GridDataGenerator gdg = new GridDataGenerator(new TruncatedDistribution(new Normal(0, 0.05), -.15, .15), RandomUtil.getRandom(), 2, 2);
         easyData10 = gdg.generateData(100);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -68,7 +65,7 @@ public class XMeansTest
     {
         System.out.println("cluster findK");
         XMeans kMeans = new XMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
-        List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 2, 40, ex);
+        List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 2, 40, true);
         assertEquals(4, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)

@@ -11,9 +11,6 @@ import jsat.datatransform.UnitVarianceTransform;
 import jsat.linear.MatrixStatistics;
 import jsat.linear.Vec;
 import jsat.linear.VecOps;
-import jsat.math.Function;
-import jsat.math.Function1D;
-import jsat.math.MathTricks;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
@@ -36,8 +33,8 @@ import jsat.utils.concurrent.ParallelUtils;
 public class NormalizedEuclideanDistance extends TrainableDistanceMetric
 {
 
-	private static final long serialVersionUID = 210109457671623688L;
-	private Vec invStndDevs;
+    private static final long serialVersionUID = 210109457671623688L;
+    private Vec invStndDevs;
 
     /**
      * Creates a new Normalized Euclidean distance metric
@@ -167,16 +164,21 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     {
         return true;
     }
-
+    
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs, boolean parallel)
     {
-        DoubleList cache = new DoubleList(vecs.size());
-        
-        for(Vec v : vecs)
-            cache.add(VecOps.weightedDot(invStndDevs, v, v));
-        
-        return cache;
+        //Store the pnorms in the cache
+        double[] cache = new double[vecs.size()];
+        ParallelUtils.run(parallel, vecs.size(), (start, end) ->
+        {
+            for(int i = start; i < end; i++)
+            {
+                Vec v = vecs.get(i);
+                cache[i] = VecOps.weightedDot(invStndDevs, v, v);
+            }
+        });
+        return DoubleList.view(cache, vecs.size());
     }
     
     @Override

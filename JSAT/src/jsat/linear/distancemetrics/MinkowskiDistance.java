@@ -126,7 +126,7 @@ public class MinkowskiDistance implements DenseSparseMetric
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs, boolean parallel)
     {
         return null;
     }

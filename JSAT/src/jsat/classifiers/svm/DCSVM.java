@@ -252,8 +252,6 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
          * Used to keep track of which sub cluster each training datapoint belongs to
          */
         final int[] group = new int[N];
-        
-        ExecutorService threads = ParallelUtils.getNewExecutor(parallel);
                 
         /**
          * Used to select subsamples of data points for clustering, and to map them back to their original indicies 
@@ -307,7 +305,7 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
                 ListUtils.addRange(indicies, 0, N, 1);
             }
             else
-                sub_results = clusters.cluster(toCluster, k_l, threads, (int[])null);
+                sub_results = clusters.cluster(toCluster, k_l, parallel, (int[])null);
             
             //create partitioning
             //First, don't bother with distance computations for people we just clustered
@@ -388,8 +386,6 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
             for (int i = 0; i < N; i++)
                 this.alphas[i] = svm.alphas[i];
         }
-        
-        threads.shutdownNow();
     }
 
     @Override

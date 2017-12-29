@@ -604,7 +604,7 @@ public class OPTICS extends ClustererBase implements Parameterized
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
         return cluster(dataSet, designations);
     }

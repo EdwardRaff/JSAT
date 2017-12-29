@@ -37,7 +37,7 @@ public class NNChainHACTest
      */
     static private NNChainHAC hac;
     static private SimpleDataSet easyData10;
-    static private ExecutorService ex;
+
     public NNChainHACTest()
     {
     }
@@ -48,13 +48,11 @@ public class NNChainHACTest
         hac = new NNChainHAC(new SingleLinkDissimilarity());
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 5);
         easyData10 = gdg.generateData(50);
-        ex = Executors.newFixedThreadPool(10);
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception
     {
-        ex.shutdown();
     }
     
     @Before
@@ -103,7 +101,7 @@ public class NNChainHACTest
     public void testCluster_DataSet_ExecutorService()
     {
         System.out.println("cluster(dataset, ExecutorService)");
-        List<List<DataPoint>> clusters = hac.cluster(easyData10, ex);
+        List<List<DataPoint>> clusters = hac.cluster(easyData10, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
@@ -135,7 +133,7 @@ public class NNChainHACTest
     public void testCluster_DataSet_int_int_ExecutorService()
     {
         System.out.println("cluster(dataset, int, int, ExecutorService)");
-        List<List<DataPoint>> clusters = hac.cluster(easyData10, 2, 20, ex);
+        List<List<DataPoint>> clusters = hac.cluster(easyData10, 2, 20, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
@@ -154,7 +152,7 @@ public class NNChainHACTest
     public void testCluster_DataSet_int_ExecutorService()
     {
         System.out.println("cluster(dataset, int, ExecutorService)");
-        List<List<DataPoint>> clusters = hac.cluster(easyData10, 10, ex);
+        List<List<DataPoint>> clusters = hac.cluster(easyData10, 10, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)

@@ -6,28 +6,18 @@
 
 package jsat.clustering.kmeans;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import jsat.DataSet;
 
 import jsat.FixedProblems;
-import jsat.SimpleDataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.distributions.Uniform;
 import jsat.distributions.kernels.LinearKernel;
 import jsat.distributions.kernels.RBFKernel;
-import jsat.linear.DenseVector;
-import jsat.linear.Vec;
-import jsat.utils.DoubleList;
 import jsat.utils.GridDataGenerator;
 import jsat.utils.IntSet;
-import jsat.utils.SystemInfo;
 import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
@@ -41,7 +31,7 @@ import static org.junit.Assert.*;
  */
 public class LloydKernelKMeansTest
 {
-    static private ExecutorService ex;
+    
     public LloydKernelKMeansTest()
     {
     }
@@ -49,7 +39,6 @@ public class LloydKernelKMeansTest
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
@@ -76,9 +65,9 @@ public class LloydKernelKMeansTest
         System.out.println("cluster");
         LloydKernelKMeans kmeans = new LloydKernelKMeans(new RBFKernel(0.1));
         ClassificationDataSet toCluster = FixedProblems.getCircles(1000, RandomUtil.getRandom(), 1e-3, 1.0);
-        int[] result = kmeans.cluster(toCluster, 2, ex, (int[])null);
+        int[] result = kmeans.cluster(toCluster, 2, true, (int[])null);
         //make sure each cluster has points from only 1 class. If true then everyone is good
-        Map<Integer, Set<Integer>> tmp = new HashMap<Integer, Set<Integer>>();
+        Map<Integer, Set<Integer>> tmp = new HashMap<>();
         for(int c = 0; c< toCluster.getClassSize(); c++)
             tmp.put(c, new IntSet());
         for(int i = 0; i < result.length; i++)
@@ -98,7 +87,7 @@ public class LloydKernelKMeansTest
         ClassificationDataSet toCluster = FixedProblems.getCircles(1000, RandomUtil.getRandom(), 1e-3, 1.0);
         int[] result = kmeans.cluster(toCluster, 2, (int[])null);
         //make sure each cluster has points from only 1 class. If true then everyone is good
-        Map<Integer, Set<Integer>> tmp = new HashMap<Integer, Set<Integer>>();
+        Map<Integer, Set<Integer>> tmp = new HashMap<>();
         for(int c = 0; c< toCluster.getClassSize(); c++)
             tmp.put(c, new IntSet());
         for(int i = 0; i < result.length; i++)
@@ -124,7 +113,7 @@ public class LloydKernelKMeansTest
         
         int[] result = kmeans.cluster(toCluster, 2, (int[])null);
         //make sure each cluster has points from only 1 class. If true then everyone is good
-        Map<Integer, Set<Integer>> tmp = new HashMap<Integer, Set<Integer>>();
+        Map<Integer, Set<Integer>> tmp = new HashMap<>();
         IntSet allSeen = new IntSet();
         for(int c = 0; c< toCluster.getClassSize(); c++)
             tmp.put(c, new IntSet());
@@ -137,9 +126,9 @@ public class LloydKernelKMeansTest
             assertEquals(1, set.size());
         assertEquals(2, allSeen.size());//make sure we saw both clusters!
         
-        result = kmeans.cluster(toCluster, 2, ex, (int[])null);
+        result = kmeans.cluster(toCluster, 2, true, (int[])null);
         //make sure each cluster has points from only 1 class. If true then everyone is good
-        tmp = new HashMap<Integer, Set<Integer>>();
+        tmp = new HashMap<>();
         allSeen = new IntSet();
         for(int c = 0; c< toCluster.getClassSize(); c++)
             tmp.put(c, new IntSet());

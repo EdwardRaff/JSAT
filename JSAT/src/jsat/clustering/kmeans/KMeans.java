@@ -18,7 +18,6 @@ import jsat.math.OnLineStatistics;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.*;
 import jsat.utils.SystemInfo;
-import jsat.utils.random.XORWOW;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.random.RandomUtil;
 
@@ -31,12 +30,12 @@ import jsat.utils.random.RandomUtil;
 public abstract class KMeans extends KClustererBase implements Parameterized
 {
 
-	private static final long serialVersionUID = 8730927112084289722L;
+    private static final long serialVersionUID = 8730927112084289722L;
 
-	/**
-     * This is the default seed selection method used in ElkanKMeans. When used with 
-     * the {@link EuclideanDistance}, it selects seeds that are log optimal with
-     * a high probability. 
+    /**
+     * This is the default seed selection method used in ElkanKMeans. When used
+     * with the {@link EuclideanDistance}, it selects seeds that are log optimal
+     * with a high probability.
      */
     public static final SeedSelectionMethods.SeedSelection DEFAULT_SEED_SELECTION = SeedSelectionMethods.SeedSelection.KPP;
     
@@ -92,7 +91,7 @@ public abstract class KMeans extends KClustererBase implements Parameterized
             this.nearestCentroidDist = Arrays.copyOf(toCopy.nearestCentroidDist, toCopy.nearestCentroidDist.length);
         if (toCopy.means != null)
         {
-            this.means = new ArrayList<Vec>(toCopy.means.size());
+            this.means = new ArrayList<>(toCopy.means.size());
             for (Vec v : toCopy.means)
                 this.means.add(v.clone());
         }
@@ -186,7 +185,7 @@ public abstract class KMeans extends KClustererBase implements Parameterized
      * distance from each data point to its cluster. If false, an upper bound
      * approximation will be used. This also impacts the value stored in 
      * {@link #nearestCentroidDist}
-     * @param threadpool the source of threads for parallel computation. If
+     * @param parallel the source of threads for parallel computation. If
      * <tt>null</tt>, single threaded execution will occur
      * @param returnError {@code true} is the sum of squared distances should be
      * returned. {@code false} means any value can be returned. 
@@ -195,13 +194,13 @@ public abstract class KMeans extends KClustererBase implements Parameterized
      * <tt>null</tt>, assume each point has equal weight.
      * @return the double
      */
-    abstract protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError, Vec dataPointWeights);
+    abstract protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, boolean exactTotal, boolean parallel, boolean returnError, Vec dataPointWeights);
     
     static protected List<List<DataPoint>> getListOfLists(int k)
     {
-        List<List<DataPoint>> ks = new ArrayList<List<DataPoint>>(k);
+        List<List<DataPoint>> ks = new ArrayList<>(k);
         for(int i = 0; i < k; i++)
-            ks.add(new ArrayList<DataPoint>());
+            ks.add(new ArrayList<>());
         return ks;
     }
 
@@ -212,144 +211,43 @@ public abstract class KMeans extends KClustererBase implements Parameterized
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), threadpool, designations);
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), parallel, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, int clusters, boolean parallel, int[] designations)
     {
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
         if(dataSet.getSampleSize() < clusters)
             throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         
-        means = new ArrayList<Vec>(clusters);
-        cluster(dataSet, null, clusters, means, designations, false, threadpool, false, null);
+        means = new ArrayList<>(clusters);
+        cluster(dataSet, null, clusters, means, designations, false, parallel, false, null);
         if(!storeMeans)
             means = null;
         return designations;
     }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
-    {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
-        if(dataSet.getSampleSize() < clusters)
-            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
-        means = new ArrayList<Vec>(clusters);
-        cluster(dataSet, null, clusters, means, designations, false, null, false, null);
-        if(!storeMeans)
-            means = null;
-        
-        return designations;
-    }
-    
-    //We use the object itself to return the k 
-    private class ClusterWorker implements Runnable
-    {
-        private DataSet dataSet;
-        private int k;
-        int[] clusterIDs;
-        private Random rand;
-        private volatile double result = -1;
-        private volatile BlockingQueue<ClusterWorker> putSelf;
-
-
-        public ClusterWorker(DataSet dataSet, int k, BlockingQueue<ClusterWorker> que)
-        {
-            this.dataSet = dataSet;
-            this.k = k;
-            this.putSelf = que;
-            clusterIDs = new int[dataSet.getSampleSize()];
-            rand = RandomUtil.getRandom();
-        }
-
-        public ClusterWorker(DataSet dataSet, BlockingQueue<ClusterWorker> que)
-        {
-            this(dataSet, 2, que);
-        }
-
-        public void setK(int k)
-        {
-            this.k = k;
-        }
-
-        public int getK()
-        {
-            return k;
-        }
-
-        public double getResult()
-        {
-            return result;
-        }
-
-        public void run()
-        {
-            result = cluster(dataSet, null, k, new ArrayList<Vec>(), clusterIDs, true, null, true, null);
-            putSelf.add(this);
-        }
-        
-    }
     
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, int lowK, int highK, boolean parallel, int[] designations)
     {
         if(dataSet.getSampleSize() < highK)
             throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
-        
-        double[] totDistances = new double[highK-lowK+1];
-        
-        BlockingQueue<ClusterWorker> workerQue = new ArrayBlockingQueue<ClusterWorker>(SystemInfo.LogicalCores);
-        for(int i = 0; i < SystemInfo.LogicalCores; i++)
-            workerQue.add(new ClusterWorker(dataSet, workerQue));
-        
-        int k = lowK;
-        int received = 0;
-        while(received < totDistances.length)
-        {
-            try
-            {
-                ClusterWorker worker = workerQue.take();
-                if(worker.getResult() != -1)//-1 means not really in use
-                {
-                    totDistances[worker.getK() - lowK] = worker.getResult();
-                    received++;
-                }
-                if(k <= highK)
-                {
-                    worker.setK(k++);
-                    threadpool.submit(worker);
-                }
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(PAM.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        
-        return findK(lowK, highK, totDistances, dataSet, designations);
-    }
-    
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
-    {
-        /**
-         * Stores the cluster ids associated with each data point
-         */
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
-        if(dataSet.getSampleSize() < highK)
-            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         
         double[] totDistances = new double[highK-lowK+1];
-
-        for(int i = lowK; i <= highK; i++)
-            totDistances[i-lowK] = cluster(dataSet, null, i, new ArrayList<Vec>(), designations, true, null, true, null);
-
+        
+        List<Double> cache = dm.getAccelerationCache(dataSet.getDataVectors(), parallel);
+        for(int k = lowK; k <= highK; k++)
+        {
+            totDistances[k-lowK] = cluster(dataSet, cache, k, new ArrayList<>(), designations, true, parallel, true, null);
+        }
+        
+        
         return findK(lowK, highK, totDistances, dataSet, designations);
     }
     

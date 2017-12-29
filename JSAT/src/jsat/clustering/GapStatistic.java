@@ -1,7 +1,6 @@
 package jsat.clustering;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
@@ -14,11 +13,9 @@ import jsat.linear.*;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.math.OnLineStatistics;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 
 /**
  * This class implements a method for estimating the number of clusters in a 
@@ -58,8 +55,8 @@ import jsat.utils.random.XORWOW;
 public class GapStatistic extends KClustererBase implements Parameterized
 {
 
-	private static final long serialVersionUID = 8893929177942856618L;
-	@ParameterHolder
+    private static final long serialVersionUID = 8893929177942856618L;
+    @ParameterHolder
     private KClusterer base;
     private int B;
     private DistanceMetric dm;
@@ -260,33 +257,21 @@ public class GapStatistic extends KClustererBase implements Parameterized
     {
         return s_k;
     }
-    
+
     @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
+    public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, 1, (int) Math.min(Math.max(Math.sqrt(dataSet.getSampleSize()), 10), 100), designations);
+        return cluster(dataSet, 1, (int) Math.min(Math.max(Math.sqrt(dataSet.getSampleSize()), 10), 100), parallel, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, int clusters, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, 1, (int) Math.min(Math.max(Math.sqrt(dataSet.getSampleSize()), 10), 100), threadpool, designations);
+        return base.cluster(dataSet, clusters, parallel, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
-    {
-        return base.cluster(dataSet, clusters, threadpool, designations);
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
-    {
-        return base.cluster(dataSet, clusters, designations);
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, int lowK, int highK, boolean parallel, int[] designations)
     {
         final int D = dataSet.getNumNumericalVars();
         final int N = dataSet.getSampleSize();
@@ -307,7 +292,7 @@ public class GapStatistic extends KClustererBase implements Parameterized
         logW[0] = Math.log(ssd.evaluate(designations, dataSet));//base case
         for(int k = 2; k < highK; k++)
         {
-            designations = base.cluster(dataSet, k, threadpool, designations);
+            designations = base.cluster(dataSet, k, parallel, designations);
             logW[k-1] = Math.log(ssd.evaluate(designations, dataSet));
         }
         //Step 2: 
@@ -384,7 +369,7 @@ public class GapStatistic extends KClustererBase implements Parameterized
             expected[0].add(Math.log(ssd.evaluate(designations, Xp)));//base case
             for(int k = 2; k < highK; k++)
             {
-                designations = base.cluster(Xp, k, threadpool, designations);
+                designations = base.cluster(Xp, k, parallel, designations);
                 expected[k-1].add(Math.log(ssd.evaluate(designations, Xp)));
             }
         }
@@ -414,13 +399,7 @@ public class GapStatistic extends KClustererBase implements Parameterized
             return designations;
         }
         
-        return base.cluster(dataSet, k_first, threadpool, designations);
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
-    {
-        return cluster(dataSet, lowK, highK, null, designations);
+        return base.cluster(dataSet, k_first, parallel, designations);
     }
 
     @Override

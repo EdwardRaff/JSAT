@@ -30,7 +30,6 @@ public class MiniBatchKMeansTest
     //NOTE: FARTHER FIST seed + 2 x 2 grid of 4 classes results in a deterministic result given a high density
     
     static private SimpleDataSet easyData10;
-    static private ExecutorService ex;
     
     public MiniBatchKMeansTest()
     {
@@ -41,13 +40,11 @@ public class MiniBatchKMeansTest
     {
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 2);
         easyData10 = gdg.generateData(110);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -88,7 +85,7 @@ public class MiniBatchKMeansTest
     {
         System.out.println("cluster");
         MiniBatchKMeans kMeans = new MiniBatchKMeans(new EuclideanDistance(), 50, 50, SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
-        List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 10, ex);
+        List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 10, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)

@@ -22,13 +22,12 @@ import jsat.utils.concurrent.ParallelUtils;
 public class SquaredEuclideanDistance implements DistanceMetric
 {
 
+    private static final long serialVersionUID = 2966818558802484702L;
 
-	private static final long serialVersionUID = 2966818558802484702L;
-
-	@Override
+    @Override
     public double dist(Vec a, Vec b)
     {
-        if(a.length() != b.length())
+        if (a.length() != b.length())
             throw new ArithmeticException("Length miss match, vectors must have the same length");
         double d = 0;
         
@@ -93,12 +92,19 @@ public class SquaredEuclideanDistance implements DistanceMetric
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs, boolean parallel)
     {
-        DoubleList cache = new DoubleList(vecs.size());
-        for(Vec v : vecs)
-            cache.add(v.dot(v));
-        return cache;
+        //Store the pnorms in the cache
+        double[] cache = new double[vecs.size()];
+        ParallelUtils.run(parallel, vecs.size(), (start, end) ->
+        {
+            for(int i = start; i < end; i++)
+            {
+                Vec v = vecs.get(i);
+                cache[i] = v.dot(v);
+            }
+        });
+        return DoubleList.view(cache, vecs.size());
     }
     
     @Override

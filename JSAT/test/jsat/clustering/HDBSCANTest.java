@@ -4,25 +4,14 @@ import java.util.Set;
 
 import jsat.classifiers.DataPoint;
 
-import java.util.Random;
-import java.util.concurrent.Executors;
 
 import jsat.distributions.Uniform;
 import jsat.utils.GridDataGenerator;
 import jsat.SimpleDataSet;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import jsat.distributions.Normal;
-
-import jsat.linear.Vec;
-import jsat.linear.VecPaired;
-import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.linear.vectorcollection.VectorArray.VectorArrayFactory;
 import jsat.utils.IntSet;
-import jsat.utils.SystemInfo;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -39,7 +28,7 @@ public class HDBSCANTest
 {
     static private HDBSCAN hdbscan;
     static private SimpleDataSet easyData10;
-    static private ExecutorService ex;
+    
     public HDBSCANTest()
     {
     }
@@ -50,13 +39,11 @@ public class HDBSCANTest
         hdbscan = new HDBSCAN();
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), RandomUtil.getRandom(), 2, 5);
         easyData10 = gdg.generateData(40);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception
     {
-        ex.shutdown();
     }
     
     @Before
@@ -91,7 +78,7 @@ public class HDBSCANTest
     public void testCluster_DataSet_ExecutorService()
     {
         System.out.println("cluster(dataset, executorService)");
-        List<List<DataPoint>> clusters = hdbscan.cluster(easyData10, ex);
+        List<List<DataPoint>> clusters = hdbscan.cluster(easyData10, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)

@@ -16,6 +16,7 @@ import jsat.linear.Vec;
 import jsat.linear.distancemetrics.*;
 import jsat.utils.*;
 import jsat.utils.concurrent.AtomicDoubleArray;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
 /**
@@ -113,7 +114,7 @@ public class ElkanKMeans extends KMeans
      */
     
     @Override
-    protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError, Vec dataPointWeights)
+    protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, boolean exactTotal, boolean parallel, boolean returnError, Vec dataPointWeights)
     {
         try
         {
@@ -138,25 +139,17 @@ public class ElkanKMeans extends KMeans
             
             //Distance computation acceleration
             final List<Double> distAccelCache;
-            final List<List<Double>> meanQIs = new ArrayList<List<Double>>(k);;
+            final List<List<Double>> meanQIs = new ArrayList<>(k);
             //done a wonky way b/c we want this as a final object for convinence, otherwise we may be stuck with null accel when we dont need to be
             if(accelCache == null)
-            {
-                if(threadpool == null || threadpool instanceof FakeExecutor)
-                    distAccelCache = dm.getAccelerationCache(X);
-                else
-                    distAccelCache = dm.getAccelerationCache(X, threadpool);
-            }
+                distAccelCache = dm.getAccelerationCache(X, parallel);
             else
                 distAccelCache = accelCache;
             
             if(means.size() != k)
             {
                 means.clear();
-                if(threadpool == null || threadpool instanceof FakeExecutor)
-                    means.addAll(selectIntialPoints(dataSet, k, dm, distAccelCache, rand, seedSelection));
-                else
-                    means.addAll(selectIntialPoints(dataSet, k, dm, distAccelCache, rand, seedSelection, threadpool));
+                means.addAll(selectIntialPoints(dataSet, k, dm, distAccelCache, rand, seedSelection, parallel));
             }
             
             //Make our means dense
@@ -172,7 +165,7 @@ public class ElkanKMeans extends KMeans
              */
             final double[][] centroidSelfDistances = new double[k][k];
             final double[] sC = new double[k];
-            calculateCentroidDistances(k, centroidSelfDistances, means, sC, null, threadpool);
+            calculateCentroidDistances(k, centroidSelfDistances, means, sC, null, parallel);
             final AtomicDoubleArray meanCount = new AtomicDoubleArray(k);
             Vec[] oldMeans = new Vec[k];//The means fromt he current step are needed when computing the new means
             final Vec[] meanSums = new Vec[k];
@@ -206,10 +199,7 @@ public class ElkanKMeans extends KMeans
                 }
             };
             
-            if (threadpool == null)
-                initialClusterSetUp(k, N, X, means, lowerBound, upperBound, centroidSelfDistances, assignment, meanCount, meanSums, distAccelCache, meanQIs, W);
-            else
-                initialClusterSetUp(k, N, X, means, lowerBound, upperBound, centroidSelfDistances, assignment, meanCount, meanSums, distAccelCache, meanQIs, localDeltas, threadpool, W);
+            initialClusterSetUp(k, N, X, means, lowerBound, upperBound, centroidSelfDistances, assignment, meanCount, meanSums, distAccelCache, meanQIs, localDeltas, parallel, W);
 
             int iterLimit = MaxIterLimit;
             while ((changeOccurred.get() || atLeast > 0) && iterLimit-- >= 0)
@@ -218,77 +208,29 @@ public class ElkanKMeans extends KMeans
                 changeOccurred.set(false);
                 //Step 1 
                 if(iterLimit < MaxIterLimit-1)//we already did this on before iteration
-                    calculateCentroidDistances(k, centroidSelfDistances, means, sC, meanSummaryConsts, threadpool);
+                    calculateCentroidDistances(k, centroidSelfDistances, means, sC, meanSummaryConsts, parallel);
                 
                 final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
 
                 //Step 2 / 3
-                if (threadpool == null)
+                ParallelUtils.run(parallel, N, (q)->
                 {
-                    for (int q = 0; q < N; q++)
-                    {
-                        //Step 2, skip those that u(v) < s(c(v))
-                        if (upperBound[q] <= sC[assignment[q]])
-                            continue;
+                    //Step 2, skip those that u(v) < s(c(v))
+                    if (upperBound[q] <= sC[assignment[q]])
+                        return;
 
-                        final Vec v = X.get(q);
+                    final Vec v = X.get(q);
 
-                        for (int c = 0; c < k; c++)
-                            if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
-                            {
-                                step3aBoundsUpdate(X, r, q, v, means, assignment, upperBound, lowerBound, meanSummaryConsts, distAccelCache, meanQIs);
-                                step3bUpdate(X, upperBound, q, lowerBound, c, centroidSelfDistances, assignment, v, means, localDeltas, meanCount, changeOccurred, meanSummaryConsts, distAccelCache, meanQIs, W);
-                            }
-                    }
-                }
-                else
-                {
-                    for(int id = 0; id < SystemInfo.LogicalCores; id++)
-                    {
-                        final int ID = id;
-                        threadpool.submit(new Runnable() {
-
-                            @Override
-                            public void run()
-                            {
-                                for (int q = ID; q < N; q += SystemInfo.LogicalCores)
-                                {
-                                    //Step 2, skip those that u(v) < s(c(v))
-                                    if (upperBound[q] <= sC[assignment[q]])
-                                        continue;
-
-                                    final Vec v = dataSet.getDataPoint(q).getNumericalValues();
-
-                                    for (int c = 0; c < k; c++)
-                                        if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
-                                        {
-                                            step3aBoundsUpdate(X, r, q, v, means, assignment, upperBound, lowerBound, meanSummaryConsts, distAccelCache, meanQIs);
-                                            step3bUpdate(X, upperBound, q, lowerBound, c, centroidSelfDistances, assignment, v, means, localDeltas, meanCount, changeOccurred, meanSummaryConsts, distAccelCache, meanQIs, W);
-                                        }
-                                }
-
-                                step4UpdateCentroids(meanSums, localDeltas);
-                                latch.countDown();
-                            }
-                        });
-                    }
-                }
-              
-                if (threadpool != null)
-                {
-                    try
-                    {
-                        latch.await();
-                    }
-                    catch (InterruptedException ex)
-                    {
-                        throw new ClusterFailureException("Clustering failed");
-                    }
-                }
-                else
+                    for (int c = 0; c < k; c++)
+                        if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
+                        {
+                            step3aBoundsUpdate(X, r, q, v, means, assignment, upperBound, lowerBound, meanSummaryConsts, distAccelCache, meanQIs);
+                            step3bUpdate(X, upperBound, q, lowerBound, c, centroidSelfDistances, assignment, v, means, localDeltas, meanCount, changeOccurred, meanSummaryConsts, distAccelCache, meanQIs, W);
+                        }
                     step4UpdateCentroids(meanSums, localDeltas);
+                });
                 
-                step5_6_distanceMovedBoundsUpdate(k, oldMeans, means, meanSums, meanCount, N, lowerBound, upperBound, assignment, r, meanQIs, threadpool);
+                step5_6_distanceMovedBoundsUpdate(k, oldMeans, means, meanSums, meanCount, N, lowerBound, upperBound, assignment, r, meanQIs, parallel);
             }
 
             double totalDistance = 0.0;
@@ -325,123 +267,55 @@ public class ElkanKMeans extends KMeans
         }
         return Double.MAX_VALUE;
     }
-
-    private void initialClusterSetUp(final int k, final int N, final List<Vec> dataSet, 
-            final List<Vec> means, final double[][] lowerBound, final double[] upperBound, 
-            final double[][] centroidSelfDistances, final int[] assignment, 
-            AtomicDoubleArray meanCount, final Vec[] meanSums, 
-            List<Double> distAccelCache, List<List<Double>> meanQIs, Vec W)
-    {
-        //Skip markers
-        final boolean[] skip = new boolean[k];
-        for (int q = 0; q < N; q++)
-        {
-            Vec v = dataSet.get(q);
-            double minDistance = Double.MAX_VALUE;
-            int index = -1;
-            //Default value is false, we cant skip anything yet
-            Arrays.fill(skip, false);
-            for (int i = 0; i < k; i++)
-            {
-                if (skip[i])
-                    continue;
-                double d = dm.dist(q, means.get(i), meanQIs.get(i), dataSet, distAccelCache);
-                lowerBound[q][i] = d;
-
-                if (d < minDistance)
-                {
-                    minDistance = upperBound[q] = d;
-                    index = i;
-                    //We now have some information, use lemma 1 to see if we can skip anything
-                    for (int z = i + 1; z < k; z++)
-                        if (centroidSelfDistances[i][z] >= 2 * d)
-                            skip[z] = true;
-                }
-            }
-
-            assignment[q] = index;
-            final double weight = W.get(q);
-            meanCount.addAndGet(index, weight);
-            meanSums[index].mutableAdd(weight, v);
-        }
-    }
     
     private void initialClusterSetUp(final int k, final int N, final List<Vec> dataSet, final List<Vec> means, final double[][] lowerBound, 
             final double[] upperBound, final double[][] centroidSelfDistances, final int[] assignment, final AtomicDoubleArray meanCount, 
             final Vec[] meanSums, final List<Double> distAccelCache, final List<List<Double>> meanQIs, 
-            final ThreadLocal<Vec[]> localDeltas, ExecutorService threadpool, final Vec W)
+            final ThreadLocal<Vec[]> localDeltas, boolean parallel, final Vec W)
     {
-        final int blockSize = N / SystemInfo.LogicalCores;
-        int extra = N % SystemInfo.LogicalCores;
-        int pos = 0;
-        final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-        while (pos < N)
+        ParallelUtils.run(parallel, N, (from, to)->
         {
-            final int from = pos;
-            final int to = pos + blockSize + (extra-- > 0 ? 1 : 0);
-            pos = to;
-
-            threadpool.submit(new Runnable()
+            Vec[] deltas = localDeltas.get();
+            final boolean[] skip = new boolean[k];
+            for (int q = from; q < to; q++)
             {
-
-                @Override
-                public void run()
+                Vec v = dataSet.get(q);
+                double minDistance = Double.MAX_VALUE;
+                int index = -1;
+                //Default value is false, we cant skip anything yet
+                Arrays.fill(skip, false);
+                for (int i = 0; i < k; i++)
                 {
-                    Vec[] deltas = localDeltas.get();
-                    final boolean[] skip = new boolean[k];
-                    for (int q = from; q < to; q++)
+                    if (skip[i])
+                        continue;
+                    double d = dm.dist(q, means.get(i), meanQIs.get(i), dataSet, distAccelCache);
+                    lowerBound[q][i] = d;
+
+                    if (d < minDistance)
                     {
-                        Vec v = dataSet.get(q);
-                        double minDistance = Double.MAX_VALUE;
-                        int index = -1;
-                        //Default value is false, we cant skip anything yet
-                        Arrays.fill(skip, false);
-                        for (int i = 0; i < k; i++)
-                        {
-                            if (skip[i])
-                                continue;
-                            double d = dm.dist(q, means.get(i), meanQIs.get(i), dataSet, distAccelCache);
-                            lowerBound[q][i] = d;
-
-                            if (d < minDistance)
-                            {
-                                minDistance = upperBound[q] = d;
-                                index = i;
-                                //We now have some information, use lemma 1 to see if we can skip anything
-                                for (int z = i + 1; z < k; z++)
-                                    if (centroidSelfDistances[i][z] >= 2 * d)
-                                        skip[z] = true;
-                            }
-                        }
-
-                        assignment[q] = index;
-                        final double weight = W.get(q);
-                        meanCount.addAndGet(index, weight);
-                        deltas[index].mutableAdd(weight, v);
+                        minDistance = upperBound[q] = d;
+                        index = i;
+                        //We now have some information, use lemma 1 to see if we can skip anything
+                        for (int z = i + 1; z < k; z++)
+                            if (centroidSelfDistances[i][z] >= 2 * d)
+                                skip[z] = true;
                     }
-                    for (int i = 0; i < deltas.length; i++)
-                    {
-                        synchronized (meanSums[i])
-                        {
-                            meanSums[i].mutableAdd(deltas[i]);
-                        }
-                        deltas[i].zeroOut();
-                    }
-
-                    latch.countDown();
                 }
-            });
-        }
-        while(pos++ < SystemInfo.LogicalCores)
-            latch.countDown();
-        try
-        {
-            latch.await();
-        }
-        catch (InterruptedException ex)
-        {
-            Logger.getLogger(ElkanKMeans.class.getName()).log(Level.SEVERE, null, ex);
-        }
+
+                assignment[q] = index;
+                final double weight = W.get(q);
+                meanCount.addAndGet(index, weight);
+                deltas[index].mutableAdd(weight, v);
+            }
+            for (int i = 0; i < deltas.length; i++)
+            {
+                synchronized (meanSums[i])
+                {
+                    meanSums[i].mutableAdd(deltas[i]);
+                }
+                deltas[i].zeroOut();
+            }
+        });
     }
 
     private void step4UpdateCentroids(Vec[] meanSums, ThreadLocal<Vec[]> localDeltas)
@@ -461,111 +335,41 @@ public class ElkanKMeans extends KMeans
 
     private void step5_6_distanceMovedBoundsUpdate(final int k, final Vec[] oldMeans, final List<Vec> means, final Vec[] meanSums, 
             final AtomicDoubleArray meanCount, final int N, final double[][] lowerBound, final double[] upperBound, 
-            final int[] assignment, final boolean[] r, final List<List<Double>> meanQIs, ExecutorService threadpool)
+            final int[] assignment, final boolean[] r, final List<List<Double>> meanQIs, boolean parallel)
     {
         final double[] distancesMoved = new double[k];
         
-        if(threadpool != null)
+        ParallelUtils.run(parallel, k, (i)->
         {
-            try
-            {
-                final CountDownLatch latch1 = new CountDownLatch(k);
-                
-                //Step 5
-                for (int i = 0; i < k; i++)
-                {
-                    final int c = i;
-                    threadpool.submit(new Runnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            means.get(c).copyTo(oldMeans[c]);
-                            
-                            meanSums[c].copyTo(means.get(c));
-                            double count = meanCount.get(c);
-                            if (count <= 1e-14)
-                                means.get(c).zeroOut();
-                            else
-                                means.get(c).mutableDivide(meanCount.get(c));
-                            
-                            distancesMoved[c] = dm.dist(oldMeans[c], means.get(c));
-                            
-                            if(dm.supportsAcceleration())
-                                meanQIs.set(c, dm.getQueryInfo(means.get(c)));
-                            
-                            for (int q = 0; q < N; q++)
-                                lowerBound[q][c] = Math.max(lowerBound[q][c] - distancesMoved[c], 0);
-                            latch1.countDown();
-                        }
-                    });
-                }
-                latch1.await();
-                
-                //Step 6
-                final CountDownLatch latch2 = new CountDownLatch(SystemInfo.LogicalCores);
-                final int blockSize = N/SystemInfo.LogicalCores;
-                for(int id = 0; id < SystemInfo.LogicalCores; id++)
-                {
-                    final int start = id*blockSize;
-                    final int end = (id == SystemInfo.LogicalCores-1 ? N : start+blockSize);
-                    threadpool.submit(new Runnable() 
-                    {
-                        @Override
-                        public void run()
-                        {
-                            for(int q = start; q < end; q++)
-                            {
-                                upperBound[q] +=  distancesMoved[assignment[q]];
-                                r[q] = true; 
-                            }
-                            latch2.countDown();
-                        }
-                    });
-                }
-                latch2.await();
-                return;
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(ElkanKMeans.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        
-        //Re compute centroids
-        for (int i = 0; i < k; i++)
+            //Re compute centroids
             means.get(i).copyTo(oldMeans[i]);
 
-        //normalize 
-        for (int i = 0; i < k; i++)
-        {
+            //normalize 
             meanSums[i].copyTo(means.get(i));
             double count = meanCount.get(i);
             if (count <= 1e-14)
                 means.get(i).zeroOut();
             else
                 means.get(i).mutableDivide(meanCount.get(i));
-        }
 
-        for (int i = 0; i < k; i++)
-        {
             distancesMoved[i] = dm.dist(oldMeans[i], means.get(i));
 
-            if (dm.supportsAcceleration())
+            if(dm.supportsAcceleration())
                 meanQIs.set(i, dm.getQueryInfo(means.get(i)));
-        }
 
-        //Step 5
-        for(int c = 0; c < k; c++)
-            for(int q = 0; q < N; q++)
-                lowerBound[q][c] = Math.max(lowerBound[q][c] - distancesMoved[c], 0);
-
+            //Step 5
+            for (int q = 0; q < N; q++)
+                lowerBound[q][i] = Math.max(lowerBound[q][i] - distancesMoved[i], 0);
+        });
         //Step 6
-        for(int q = 0; q < N; q++)
+        ParallelUtils.run(parallel, N, (start, end) ->
         {
-            upperBound[q] +=  distancesMoved[assignment[q]];
-            r[q] = true; 
-        }
+            for(int q = start; q < end; q++)
+            {
+                upperBound[q] +=  distancesMoved[assignment[q]];
+                r[q] = true;
+            }
+        });
     }
 
     private void step3aBoundsUpdate(List<Vec> X, boolean[] r, int q, Vec v, final List<Vec> means, final int[] assignment, double[] upperBound, double[][] lowerBound, double[] meanSummaryConsts, List<Double> distAccelCache, List<List<Double>> meanQIs)
@@ -617,54 +421,20 @@ public class ElkanKMeans extends KMeans
         }
     }
 
-    private void calculateCentroidDistances(final int k, final double[][] centroidSelfDistances, final List<Vec> means, final double[] sC, final double[] meanSummaryConsts, ExecutorService threadpool)
+    private void calculateCentroidDistances(final int k, final double[][] centroidSelfDistances, final List<Vec> means, final double[] sC, final double[] meanSummaryConsts, boolean parallel)
     {
         final List<Double> meanAccelCache = dm.supportsAcceleration() ? dm.getAccelerationCache(means) : null;
         
-        if(threadpool != null)
+        //TODO can improve parallel performance for when k ~<= # cores
+        ParallelUtils.run(parallel, k, (i)->
         {
-            //# of items in the upper triangle of a matrix excluding diagonal is (1+k)*k/2-k
-            int jobs = (1+k)*k/2-k;
-            final CountDownLatch latch = new CountDownLatch(jobs);
-            for (int i = 0; i < k; i++)
-            {
-                final int ii = i;
-                for (int z = i + 1; z < k; z++)
-                {
-                    final int zz = z;
-                    threadpool.submit(new Runnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            centroidSelfDistances[ii][zz] = dm.dist(ii, zz, means, meanAccelCache);
-                            if (meanSummaryConsts != null)
-                                meanSummaryConsts[ii] = dmds.getVectorConstant(means.get(ii));
-                            latch.countDown();
-                        }
-                    });
-                }
-            }
-            try
-            {
-                latch.await();
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(ElkanKMeans.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        else
-        {
-            for (int i = 0; i < k; i++)
-            {
-                for (int z = i + 1; z < k; z++)
-                    centroidSelfDistances[z][i] = centroidSelfDistances[i][z] = dm.dist(i, z, means, meanAccelCache);;
+            for (int z = i + 1; z < k; z++)
+                centroidSelfDistances[z][i] = centroidSelfDistances[i][z] = dm.dist(i, z, means, meanAccelCache);;
 
-                if (meanSummaryConsts != null)
-                    meanSummaryConsts[i] = dmds.getVectorConstant(means.get(i));
-            }
-        }
+            if (meanSummaryConsts != null)
+                meanSummaryConsts[i] = dmds.getVectorConstant(means.get(i));
+        });
+        
         //final step quickly figure out sCmin
         for (int i = 0; i < k; i++)
         {

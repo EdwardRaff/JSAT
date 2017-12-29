@@ -26,8 +26,8 @@ import jsat.utils.concurrent.ParallelUtils;
 public class WeightedEuclideanDistance implements DistanceMetric
 {
 
-	private static final long serialVersionUID = 2959997330647828673L;
-	private Vec w;
+    private static final long serialVersionUID = 2959997330647828673L;
+    private Vec w;
 
     /**
      * Creates a new weighted Euclidean distance metric using the 
@@ -112,16 +112,21 @@ public class WeightedEuclideanDistance implements DistanceMetric
     {
         return true;
     }
-
+    
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs, boolean parallel)
     {
-        DoubleList cache = new DoubleList(vecs.size());
-        
-        for(Vec v : vecs)
-            cache.add(VecOps.weightedDot(w, v, v));
-        
-        return cache;
+        //Store the pnorms in the cache
+        double[] cache = new double[vecs.size()];
+        ParallelUtils.run(parallel, vecs.size(), (start, end) ->
+        {
+            for(int i = start; i < end; i++)
+            {
+                Vec v = vecs.get(i);
+                cache[i] = VecOps.weightedDot(w, v, v);
+            }
+        });
+        return DoubleList.view(cache, vecs.size());
     }
     
     @Override

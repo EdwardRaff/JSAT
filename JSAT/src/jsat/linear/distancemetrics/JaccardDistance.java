@@ -99,7 +99,7 @@ public class JaccardDistance implements DistanceMetric, KernelTrick
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs, boolean parallel)
     {
         return null;
     }
@@ -250,5 +250,11 @@ public class JaccardDistance implements DistanceMetric, KernelTrick
     public boolean normalized()
     {
         return true;
+    }
+
+    @Override
+    public List<Double> getAccelerationCache(List<? extends Vec> trainingSet)
+    {
+        return null;
     }
 }

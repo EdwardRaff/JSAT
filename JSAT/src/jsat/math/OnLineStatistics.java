@@ -2,6 +2,7 @@
 package jsat.math;
 
 import java.io.Serializable;
+import java.util.function.BinaryOperator;
 
 /**
  *
@@ -15,13 +16,14 @@ import java.io.Serializable;
  * 
  * @author Edward Raff
  */
-public class OnLineStatistics implements Serializable, Cloneable
+public class OnLineStatistics implements Serializable, Cloneable, BinaryOperator<OnLineStatistics>
 {
-	private static final long serialVersionUID = -4286295481362462983L;
-/**
+
+    private static final long serialVersionUID = -4286295481362462983L;
+    /**
      * The current mean
      */
-   private double mean;
+    private double mean;
    /**
     * The current number of samples seen
     */
@@ -366,5 +368,16 @@ public class OnLineStatistics implements Serializable, Cloneable
    {
        return max;
    }
+
+    @Override
+    public OnLineStatistics apply(OnLineStatistics t, OnLineStatistics u)
+    {
+        if(t == null)
+            return u;
+        else if( u == null)
+            return t;
+        //else, boh are non-null
+        return OnLineStatistics.add(t, u);
+    }
    
 }

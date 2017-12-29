@@ -32,7 +32,6 @@ public class OPTICSTest
     static private OPTICS optics;
     static private EnumSet<OPTICS.ExtractionMethod> toTest = EnumSet.of(OPTICS.ExtractionMethod.THRESHHOLD, OPTICS.ExtractionMethod.THRESHHOLD);
     static private SimpleDataSet easyData10;
-    static private ExecutorService ex;
 
     @BeforeClass
     public static void setUpClass() throws Exception
@@ -40,13 +39,11 @@ public class OPTICSTest
         optics = new OPTICS();
         GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2, 5);
         easyData10 = gdg.generateData(100);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception
     {
-        ex.shutdown();
     }
     
     @Before
@@ -83,7 +80,7 @@ public class OPTICSTest
         {
             optics.setExtractionMethod(method);
             System.out.println("cluster(dataset, ExecutorService)");
-            List<List<DataPoint>> clusters = optics.cluster(easyData10, ex);
+            List<List<DataPoint>> clusters = optics.cluster(easyData10, true);
             assertEquals(10, clusters.size());
             Set<Integer> seenBefore = new IntSet();
             for(List<DataPoint> cluster :  clusters)

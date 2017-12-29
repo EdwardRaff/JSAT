@@ -4,8 +4,6 @@ package jsat.clustering.kmeans;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.clustering.ClusterFailureException;
 import jsat.distributions.kernels.KernelTrick;
@@ -96,84 +94,55 @@ public class ElkanKernelKMeans extends KernelKMeans
      * cluster center looked like
      * @param new_assignments the new assignment of data points to cluster
      * centers
-     * @param ex source of threads for parallel computation. May be null.
+     * @param parallel source of threads for parallel computation. May be null.
      */
-    private void update_centroid_pair_dots(final int[] prev_assignments, final int[] new_assignments, ExecutorService ex)
+    private void update_centroid_pair_dots(final int[] prev_assignments, final int[] new_assignments, boolean parallel)
     {
         final int N = X.size();
         
-        final int cores_to_use;
-        if(ex == null || ex instanceof FakeExecutor)
+        //TODO might need an update for alocation
+        ParallelUtils.run(parallel, N, (start, end) ->
         {
-            ex = new FakeExecutor();
-            cores_to_use = 1;
-        }
-        else
-             cores_to_use = SystemInfo.LogicalCores;
+            double[][] localChanges = new double[centroidPairDots.length][centroidPairDots.length];
 
-        List<Future<double[][]>> futurePairDotChanges = new ArrayList<Future<double[][]>>(cores_to_use);
-        for(int id = 0; id < cores_to_use; id++)
-        {
-            final int ID = id;
-            Future<double[][]> future = ex.submit(new Callable<double[][]>()
+            for(int i = start; i < end; i++)
             {
-                @Override
-                public double[][] call() throws Exception
+                final double w_i = W.get(i);
+                int old_c_i = prev_assignments[i];
+                int new_c_i = new_assignments[i];
+
+                for(int j = i; j < N; j++)
                 {
-                    double[][] localChanges = new double[centroidPairDots.length][centroidPairDots.length];
-                    
-                    for(int i = ID; i < N; i+=cores_to_use)
+                    int old_c_j = prev_assignments[j];
+                    int new_c_j = new_assignments[j];
+
+                    if(old_c_i == new_c_i && old_c_j == new_c_j)//no class changes
+                        continue;//so we can skip it
+
+                    final double w_j = W.get(j);
+                    double K_ij = w_i * w_j * kernel.eval(i, j, X, accel);
+
+                    if(old_c_i >= 0 && old_c_j >= 0)
                     {
-                        final double w_i = W.get(i);
-                        int old_c_i = prev_assignments[i];
-                        int new_c_i = new_assignments[i];
-
-                        for(int j = i; j < N; j++)
-                        {
-                            int old_c_j = prev_assignments[j];
-                            int new_c_j = new_assignments[j];
-
-                            if(old_c_i == new_c_i && old_c_j == new_c_j)//no class changes
-                                continue;//so we can skip it
-
-                            final double w_j = W.get(j);
-                            double K_ij = w_i * w_j * kernel.eval(i, j, X, accel);
-
-                            if(old_c_i >= 0 && old_c_j >= 0)
-                            {
-                                localChanges[old_c_i][old_c_j] -= K_ij;
-                                localChanges[old_c_j][old_c_i] -= K_ij;
-                            }
-
-                            localChanges[new_c_i][new_c_j] += K_ij;
-                            localChanges[new_c_j][new_c_i] += K_ij;
-                        }
+                        localChanges[old_c_i][old_c_j] -= K_ij;
+                        localChanges[old_c_j][old_c_i] -= K_ij;
                     }
-                    
-                    return localChanges;
+
+                    localChanges[new_c_i][new_c_j] += K_ij;
+                    localChanges[new_c_j][new_c_i] += K_ij;
                 }
-            });
-            futurePairDotChanges.add(future);
-        }
-        
-        for(Future<double[][]> f : futurePairDotChanges)
-        {
-            try
-            {
-                double[][] changes = f.get();
-                for(int i = 0; i < changes.length; i++)
-                    for(int j = 0; j < changes[i].length; j++)
-                        centroidPairDots[i][j] += changes[i][j];
             }
-            catch (InterruptedException ex1)
+            
+            for(int i = 0; i < localChanges.length; i++)
             {
-                throw new FailedToFitException(ex1);
+                double[] centroidPairDots_i = centroidPairDots[i];
+                synchronized(centroidPairDots_i)
+                {
+                    for(int j = 0; j < localChanges[i].length; j++)
+                        centroidPairDots_i[j] += localChanges[i][j];
+                }
             }
-            catch (ExecutionException ex1)
-            {
-                throw new FailedToFitException(ex1);
-            }
-        }
+        });
     }
     
     /**
@@ -190,10 +159,10 @@ public class ElkanKernelKMeans extends KernelKMeans
      * will be computed. If true, extra work will be done to compute the exact 
      * distance from each data point to its cluster. If false, an upper bound 
      * approximation will be used. 
-     * @param threadpool the source of threads for parallel computation. If <tt>null</tt>, single threaded execution will occur
+     * @param parallel the source of threads for parallel computation. If <tt>null</tt>, single threaded execution will occur
      * @return the sum of squares distances from each data point to its closest cluster
      */
-    protected double cluster(final DataSet dataSet, final int k, final int[] assignment, boolean exactTotal, ExecutorService threadpool)
+    protected double cluster(final DataSet dataSet, final int k, final int[] assignment, boolean exactTotal, boolean parallel)
     {
         try
         {
@@ -216,18 +185,14 @@ public class ElkanKernelKMeans extends KernelKMeans
             centroidSelfDistances = new double[k][k];
             centroidPairDots = new double[k][k];
             final double[] sC = new double[k];
-            calculateCentroidDistances(k, centroidSelfDistances, sC, assignment, null, threadpool);
+            calculateCentroidDistances(k, centroidSelfDistances, sC, assignment, null, parallel);
             final int[] prev_assignment = new int[N];
                     
             int atLeast = 2;//Used to performan an extra round (first round does not assign)
             final AtomicBoolean changeOccurred = new AtomicBoolean(true);
             final boolean[] r = new boolean[N];//Default value of a boolean is false, which is what we want
 
-            
-            if (threadpool == null)
-                initialClusterSetUp(k, N, lowerBound, upperBound, centroidSelfDistances, assignment);
-            else
-                initialClusterSetUp(k, N, lowerBound, upperBound, centroidSelfDistances, assignment, threadpool);
+            initialClusterSetUp(k, N, lowerBound, upperBound, centroidSelfDistances, assignment, parallel);
 
             int iterLimit = maximumIterations;
             while ((changeOccurred.get() || atLeast > 0) && iterLimit-- >= 0)
@@ -236,7 +201,7 @@ public class ElkanKernelKMeans extends KernelKMeans
                 changeOccurred.set(false);
                 //Step 1 
                 if(iterLimit < maximumIterations-1)//we already did this on before iteration
-                    calculateCentroidDistances(k, centroidSelfDistances, sC, assignment, prev_assignment, threadpool);
+                    calculateCentroidDistances(k, centroidSelfDistances, sC, assignment, prev_assignment, parallel);
                 
                 //Save current assignent for update next iteration
                 System.arraycopy(assignment, 0, prev_assignment, 0, assignment.length);
@@ -244,66 +209,21 @@ public class ElkanKernelKMeans extends KernelKMeans
                 final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
 
                 //Step 2 / 3
-                if (threadpool == null)
+                ParallelUtils.run(parallel, N, (q) ->
                 {
-                    for (int q = 0; q < N; q++)
-                    {
-                        //Step 2, skip those that u(v) < s(c(v))
-                        if (upperBound[q] <= sC[assignment[q]])
-                            continue;
+                    //Step 2, skip those that u(v) < s(c(v))
+                    if (upperBound[q] <= sC[assignment[q]])
+                        return;
 
-                        for (int c = 0; c < k; c++)
-                            if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
-                            {
-                                step3aBoundsUpdate(r, q, assignment, upperBound, lowerBound);
-                                step3bUpdate(upperBound, q, lowerBound, c, centroidSelfDistances, assignment, changeOccurred);
-                            }
-                    }
-                }
-                else
-                {
-                    for(int id = 0; id < SystemInfo.LogicalCores; id++)
-                    {
-                        final int ID = id;
-                        threadpool.submit(new Runnable() 
+                    for (int c = 0; c < k; c++)
+                        if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
                         {
-
-                            @Override
-                            public void run()
-                            {
-                                for (int q = ID; q < N; q += SystemInfo.LogicalCores)
-                                {
-                                    //Step 2, skip those that u(v) < s(c(v))
-                                    if (upperBound[q] <= sC[assignment[q]])
-                                        continue;
-
-                                    for (int c = 0; c < k; c++)
-                                        if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
-                                        {
-                                            step3aBoundsUpdate(r, q, assignment, upperBound, lowerBound);
-                                            step3bUpdate(upperBound, q, lowerBound, c, centroidSelfDistances, assignment, changeOccurred);
-                                        }
-                                }
-
-                                latch.countDown();
-                            }
-                        });
-                    }
-                }
-              
-                if (threadpool != null)
-                {
-                    try
-                    {
-                        latch.await();
-                    }
-                    catch (InterruptedException ex)
-                    {
-                        throw new ClusterFailureException("Clustering failed");
-                    }
-                }
+                            step3aBoundsUpdate(r, q, assignment, upperBound, lowerBound);
+                            step3bUpdate(upperBound, q, lowerBound, c, centroidSelfDistances, assignment, changeOccurred);
+                        }
+                });
                 
-                int moved = step4_5_6_distanceMovedBoundsUpdate(k, N, lowerBound, upperBound, assignment, r, threadpool);
+                int moved = step4_5_6_distanceMovedBoundsUpdate(k, N, lowerBound, upperBound, assignment, r, parallel);
             }
 
             double totalDistance = 0.0;
@@ -320,236 +240,96 @@ public class ElkanKernelKMeans extends KernelKMeans
         }
         catch (Exception ex)
         {
-            Logger.getLogger(ElkanKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+            throw new FailedToFitException(ex);
         }
-        return Double.MAX_VALUE;
     }
 
     private void initialClusterSetUp(final int k, final int N, final double[][] lowerBound, 
-            final double[] upperBound, final double[][] centroidSelfDistances, final int[] assignment)
+            final double[] upperBound, final double[][] centroidSelfDistances, final int[] assignment, boolean parallel)
     {
-        //Skip markers
-        final boolean[] skip = new boolean[k];
-        for (int q = 0; q < N; q++)
+        ParallelUtils.run(parallel, N, (start, end) -> 
         {
-            double minDistance = Double.MAX_VALUE;
-            int index = -1;
-            //Default value is false, we cant skip anything yet
-            Arrays.fill(skip, false);
-            for (int i = 0; i < k; i++)
+            //Skip markers
+            final boolean[] skip = new boolean[k];
+            for (int q = start; q < end; q++)
             {
-                if (skip[i])
-                    continue;
-                double d = distance(q, i, assignment);
-                lowerBound[q][i] = d;
-
-                if (d < minDistance)
+                double minDistance = Double.MAX_VALUE;
+                int index = -1;
+                //Default value is false, we cant skip anything yet
+                Arrays.fill(skip, false);
+                for (int i = 0; i < k; i++)
                 {
-                    minDistance = upperBound[q] = d;
-                    index = i;
-                    //We now have some information, use lemma 1 to see if we can skip anything
-                    for (int z = i + 1; z < k; z++)
-                        if (centroidSelfDistances[i][z] >= 2 * d)
-                            skip[z] = true;
-                }
-            }
+                    if (skip[i])
+                        continue;
+                    double d = distance(q, i, assignment);
+                    lowerBound[q][i] = d;
 
-            newDesignations[q] = index;
-        }
-    }
-    
-    private void initialClusterSetUp(final int k, final int N, final double[][] lowerBound, 
-            final double[] upperBound, final double[][] centroidSelfDistances, final int[] assignment,
-            ExecutorService threadpool)
-    {
-        final int blockSize = N / SystemInfo.LogicalCores;
-        int extra = N % SystemInfo.LogicalCores;
-        int pos = 0;
-        final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-        while (pos < N)
-        {
-            final int from = pos;
-            final int to = pos + blockSize + (extra-- > 0 ? 1 : 0);
-            pos = to;
-
-            threadpool.submit(new Runnable()
-            {
-
-                @Override
-                public void run()
-                {
-                    final boolean[] skip = new boolean[k];
-                    
-                    for (int q = from; q < to; q++)
+                    if (d < minDistance)
                     {
-                        double minDistance = Double.MAX_VALUE;
-                        int index = -1;
-                        //Default value is false, we cant skip anything yet
-                        Arrays.fill(skip, false);
-                        for (int i = 0; i < k; i++)
-                        {
-                            if (skip[i])
-                                continue;
-                            double d = distance(q, i, assignment);
-                            lowerBound[q][i] = d;
-
-                            if (d < minDistance)
-                            {
-                                minDistance = upperBound[q] = d;
-                                index = i;
-                                //We now have some information, use lemma 1 to see if we can skip anything
-                                for (int z = i + 1; z < k; z++)
-                                    if (centroidSelfDistances[i][z] >= 2 * d)
-                                        skip[z] = true;
-                            }
-                        }
-
-                        newDesignations[q] = index;
+                        minDistance = upperBound[q] = d;
+                        index = i;
+                        //We now have some information, use lemma 1 to see if we can skip anything
+                        for (int z = i + 1; z < k; z++)
+                            if (centroidSelfDistances[i][z] >= 2 * d)
+                                skip[z] = true;
                     }
-                    latch.countDown();
                 }
-            });
-        }
-        while(pos++ < SystemInfo.LogicalCores)
-            latch.countDown();
-        try
-        {
-            latch.await();
-        }
-        catch (InterruptedException ex)
-        {
-            Logger.getLogger(ElkanKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
-        }
+
+                newDesignations[q] = index;
+            }
+        });
     }
 
     private int step4_5_6_distanceMovedBoundsUpdate(final int k, final int N, 
             final double[][] lowerBound, final double[] upperBound, 
-            final int[] assignment, final boolean[] r, ExecutorService threadpool)
+            final int[] assignment, final boolean[] r, boolean parallel)
     {
         final double[] distancesMoved = new double[k];
         //copy the originonal sqrd norms b/c we need them to compute the distance means moved
         final double[] oldSqrdNorms = new double[meanSqrdNorms.length];
         for(int i = 0; i < meanSqrdNorms.length; i++)
             oldSqrdNorms[i] = meanSqrdNorms[i]*normConsts[i];
-        int moved = 0;
-        if(threadpool != null)
+        
+        //first we need to do assignment movement updated, otherwise the sqrdNorms will be wrong and we will get incorrect values for cluster movemnt
+        int moved = ParallelUtils.run(parallel, N, (start, end)->
         {
-            try
+            double[] sqrdChange = new double[k];
+            double[] ownerChange = new double[k];
+            int localChange = 0;
+            for(int q = start; q < end; q++)
+                localChange += updateMeansFromChange(q, assignment, sqrdChange, ownerChange);
+            synchronized(assignment)
             {
-                //first we need to do assignment movement updated, otherwise the sqrdNorms will be wrong and we will get incorrect values for cluster movemnt
-                List<Future<Integer>> futureChanges = new ArrayList<Future<Integer>>(SystemInfo.LogicalCores);
-                for(int id = 0; id < SystemInfo.LogicalCores; id++)
-                {
-                    final int start = ParallelUtils.getStartBlock(N, id, SystemInfo.LogicalCores);
-                    final int end = ParallelUtils.getEndBlock(N, id, SystemInfo.LogicalCores);
-                    futureChanges.add(threadpool.submit(new Callable<Integer>()
-                    {
-                        @Override
-                        public Integer call()
-                        {
-                            double[] sqrdChange = new double[k];
-                            double[] ownerChange = new double[k];
-                            int localChange = 0;
-                            for(int q = start; q < end; q++)
-                                localChange += updateMeansFromChange(q, assignment, sqrdChange, ownerChange);
-                            synchronized(assignment)
-                            {
-                                applyMeanUpdates(sqrdChange, ownerChange);
-                            }
-                            return localChange;
-                        }
-                    }));
-                }
-                
-                try
-                {
-                    for (Future<Integer> f : futureChanges)
-                        moved += f.get();
-                }
-                catch (ExecutionException ex)
-                {
-                    Logger.getLogger(ElkanKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                updateNormConsts();
-                
-                //now do cluster movement
-                final CountDownLatch latch2 = new CountDownLatch(k);
-                //Step 5
-                for (int i = 0; i < k; i++)
-                    distancesMoved[i] = meanToMeanDistance(i, i, newDesignations, assignment, oldSqrdNorms[i], threadpool);
-                for (int i = 0; i < k; i++)
-                {
-                    final int c = i;
-                    threadpool.submit(new Runnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            for (int q = 0; q < N; q++)
-                                lowerBound[q][c] = Math.max(lowerBound[q][c] - distancesMoved[c], 0);
-                            latch2.countDown();
-                        }
-                    });
-                }
-                latch2.await();
-                //now we can move the assignments over
-                System.arraycopy(newDesignations, 0, assignment, 0, N);
-                
-                //Step 6
-                final CountDownLatch latch3 = new CountDownLatch(SystemInfo.LogicalCores);
-                for(int id = 0; id < SystemInfo.LogicalCores; id++)
-                {
-                    final int start = ParallelUtils.getStartBlock(N, id, SystemInfo.LogicalCores);
-                    final int end = ParallelUtils.getEndBlock(N, id, SystemInfo.LogicalCores);
-                    threadpool.submit(new Runnable() 
-                    {
-                        @Override
-                        public void run()
-                        {
-                            
-                            for(int q = start; q < end; q++)
-                            {
-                                upperBound[q] +=  distancesMoved[assignment[q]];
-                                r[q] = true; 
-                            }
-                            latch3.countDown();
-                        }
-                    });
-                }
-                latch3.await();
-                
-                return moved;
+                applyMeanUpdates(sqrdChange, ownerChange);
             }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(ElkanKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        //else, single threaded case
-        
-        //Re compute centroids. Hold off on copying newDesignations into assignment until after we do needed movement calculations
-        for (int i = 0; i < N; i++)
-            moved += updateMeansFromChange(i, assignment);
+            return localChange;
+        },
+        (t, u) -> t+u);
+
         updateNormConsts();
-        
-        //compute how far each cluster moved
-        for (int i = 0; i < k; i++)
-            distancesMoved[i] = meanToMeanDistance(i, i, newDesignations, assignment, oldSqrdNorms[i]);
+        //now do cluster movement
+        //Step 5
+        ParallelUtils.run(parallel, k, (i)->
+        {
+            distancesMoved[i] = meanToMeanDistance(i, i, newDesignations, assignment, oldSqrdNorms[i], parallel);
+        });
+        ParallelUtils.run(parallel, k, (c) ->
+        {
+            for (int q = 0; q < N; q++)
+                lowerBound[q][c] = Math.max(lowerBound[q][c] - distancesMoved[c], 0);
+        });
         //now we can move the assignments over
         System.arraycopy(newDesignations, 0, assignment, 0, N);
-
-        //Step 5
-        for(int c = 0; c < k; c++)
-            for(int q = 0; q < N; q++)
-                lowerBound[q][c] = Math.max(lowerBound[q][c] - distancesMoved[c], 0);
-
         //Step 6
-        for(int q = 0; q < N; q++)
+        ParallelUtils.run(parallel, N, (start, end) ->
         {
-            upperBound[q] += distancesMoved[assignment[q]];
-            r[q] = true; 
-        }
-        
+            for(int q = start; q < end; q++)
+            {
+                upperBound[q] +=  distancesMoved[assignment[q]];
+                r[q] = true;
+            }
+        });
         return moved;
     }
 
@@ -581,12 +361,12 @@ public class ElkanKernelKMeans extends KernelKMeans
                 
                 upperBound[q] = d;
                 
-                changeOccurred.set(true);
+                changeOccurred.lazySet(true);
             }
         }
     }
 
-    private void calculateCentroidDistances(final int k, final double[][] centroidSelfDistances, final double[] sC, final int[] curAssignments, int[] prev_assignments, final ExecutorService threadpool)
+    private void calculateCentroidDistances(final int k, final double[][] centroidSelfDistances, final double[] sC, final int[] curAssignments, int[] prev_assignments, final boolean parallel)
     {
         if(prev_assignments == null)
         {
@@ -596,7 +376,7 @@ public class ElkanKernelKMeans extends KernelKMeans
         final int[] prev_assing = prev_assignments;
         
         //compute self dot-products
-        update_centroid_pair_dots(prev_assing, curAssignments, threadpool);
+        update_centroid_pair_dots(prev_assing, curAssignments, parallel);
         
         
         double[] weight_per_cluster = new double[k];
@@ -625,27 +405,14 @@ public class ElkanKernelKMeans extends KernelKMeans
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, int clusters, boolean parallel, int[] designations)
     {
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
         if(dataSet.getSampleSize() < clusters)
             throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         
-        cluster(dataSet, clusters, designations, false, threadpool);
-        return designations;
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
-    {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
-        if(dataSet.getSampleSize() < clusters)
-            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
-
-        cluster(dataSet, clusters, designations, false, null);
-        
+        cluster(dataSet, clusters, designations, false, parallel);
         return designations;
     }
 

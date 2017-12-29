@@ -1,14 +1,10 @@
 
 package jsat.clustering.kmeans;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
-import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * An implementation of the naive algorithm for performing kernel k-means. 
@@ -39,7 +35,7 @@ public class LloydKernelKMeans extends KernelKMeans
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, final int K, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, final int K, boolean parallel, int[] designations)
     {
         if(K < 2)
             throw new FailedToFitException("Clustering requires at least 2 clusters");
@@ -59,86 +55,43 @@ public class LloydKernelKMeans extends KernelKMeans
         {
             changed = 0;
             //find new closest center
-            final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-            for(int id = 0; id < SystemInfo.LogicalCores; id++)
+            ParallelUtils.run(parallel, N, (start, end)->
             {
-                final int ID = id;
-                threadpool.submit(new Runnable()
+                for (int i = start; i < end; i++)
                 {
-                    @Override
-                    public void run()
+                    double minDist = Double.POSITIVE_INFINITY;
+                    int min_indx = 0;
+                    for (int k = 0; k < K; k++)
                     {
-                        for (int i = ID; i < N; i+=SystemInfo.LogicalCores)
+                        double dist_k = distance(i, k, assignments);
+                        if (dist_k < minDist)
                         {
-                            double minDist = Double.POSITIVE_INFINITY;
-                            int min_indx = 0;
-                            for (int k = 0; k < K; k++)
-                            {
-                                double dist_k = distance(i, k, assignments);
-                                if (dist_k < minDist)
-                                {
-                                    minDist = dist_k;
-                                    min_indx = k;
-                                }
-                            }
-                            
-                            newDesignations[i] = min_indx;
+                            minDist = dist_k;
+                            min_indx = k;
                         }
-                        
-                        latch.countDown();
                     }
-                });
-            }
-            
-            try
-            {
-                latch.await();
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(LloydKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            //now we have all the new assignments, we can compute the changes
-            List<Future<Integer>> futureChanges = new ArrayList<Future<Integer>>(SystemInfo.LogicalCores);
-            for(int id = 0; id < SystemInfo.LogicalCores; id++)
-            {
-                final int ID = id;
-                futureChanges.add(threadpool.submit(new Callable<Integer>()
-                {
 
-                    @Override
-                    public Integer call() throws Exception
-                    {
-                        double[] sqrdChange = new double[K];
-                        double[] ownerChange = new double[K];
-                        
-                        int localChagne = 0;
-                        for (int i = ID; i < N; i+=SystemInfo.LogicalCores)
-                            localChagne += updateMeansFromChange(i, assignments, sqrdChange, ownerChange);
-                        
-                        synchronized(assignments)
-                        {
-                            applyMeanUpdates(sqrdChange, ownerChange);
-                        }
-                        return localChagne;
-                    }
-                }));
-            }
+                    newDesignations[i] = min_indx;
+                }
+            });
             
-            
-            try
+            //now we have all the new assignments, we can compute the changes
+            changed = ParallelUtils.run(parallel, N, (start, end) -> 
             {
-                for (Future<Integer> f : futureChanges)
-                    changed += f.get();
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(LloydKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            catch (ExecutionException ex)
-            {
-                Logger.getLogger(LloydKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
-            }
+                double[] sqrdChange = new double[K];
+                double[] ownerChange = new double[K];
+
+                int localChagne = 0;
+                for (int i = start; i < end; i++)
+                    localChagne += updateMeansFromChange(i, assignments, sqrdChange, ownerChange);
+
+                synchronized(assignments)
+                {
+                    applyMeanUpdates(sqrdChange, ownerChange);
+                }
+                return localChagne;
+            }, 
+            (t, u) -> t+u);
 
             //update constatns 
             updateNormConsts();
@@ -203,7 +156,7 @@ public class LloydKernelKMeans extends KernelKMeans
     }
 
     @Override
-    public KernelKMeans clone()
+    public LloydKernelKMeans clone()
     {
         return new LloydKernelKMeans(this);
     }

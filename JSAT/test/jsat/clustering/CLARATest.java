@@ -31,23 +31,20 @@ public class CLARATest
     static private CLARA algo;
     static private SimpleDataSet easyData10;
     static private SimpleDataSet easyData2;
-    static private ExecutorService ex;
 
     @BeforeClass
     public static void setUpClass() throws Exception
     {
         algo = new CLARA();
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.05, 0.05), new XORWOW(12), 2, 5);
+        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.005, 0.005), new XORWOW(12), 2, 3);
         easyData10 = gdg.generateData(40);
-        gdg = new GridDataGenerator(new Uniform(-0.05, 0.05), new XORWOW(12), 2, 1);
+        gdg = new GridDataGenerator(new Uniform(-0.005, 0.005), new XORWOW(12), 2, 1);
         easyData2 = gdg.generateData(40);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception
     {
-        ex.shutdown();
     }
     
     @Before
@@ -62,8 +59,8 @@ public class CLARATest
         System.out.println("cluster(dataset, int)");
         CLARA toUse = algo.clone();
         toUse.setSampleSize(easyData10.getSampleSize()/2);
-        List<List<DataPoint>> clusters = toUse.cluster(easyData10, 10);
-        assertEquals(10, clusters.size());
+        List<List<DataPoint>> clusters = toUse.cluster(easyData10, 6);
+        assertEquals(6, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
         {
@@ -79,10 +76,10 @@ public class CLARATest
     {
         System.out.println("cluster(dataset, int, ExecutorService)");
         CLARA toUse = algo.clone();
-        toUse.setSampleCount(10);
+        toUse.setSampleCount(6);
         toUse.setSampleSize(easyData10.getSampleSize()/2);
-        List<List<DataPoint>> clusters = toUse.cluster(easyData10, 10, ex);
-        assertEquals(10, clusters.size());
+        List<List<DataPoint>> clusters = toUse.cluster(easyData10, 6, true);
+        assertEquals(6, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
         {
@@ -98,7 +95,7 @@ public class CLARATest
     {
         System.out.println("cluster(dataset, int, ExecutorService)");
         CLARA toUse = algo.clone();
-        List<List<DataPoint>> clusters = toUse.cluster(easyData2, ex);
+        List<List<DataPoint>> clusters = toUse.cluster(easyData2, true);
         assertEquals(2, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)

@@ -1,7 +1,6 @@
 package jsat.clustering.kmeans;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.linear.Vec;
 
@@ -73,24 +72,18 @@ public class KMeansPDN extends KMeans
     {
         return fKs;
     }
-    
+
     @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
+    public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, null, designations);
+        return cluster(dataSet, 1, (int) Math.min(Math.max(Math.sqrt(dataSet.getSampleSize()), 10), 100), parallel, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
-    {
-        return cluster(dataSet, 1, (int) Math.min(Math.max(Math.sqrt(dataSet.getSampleSize()), 10), 100), threadpool, designations);
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, int lowK, int highK, boolean parallel, int[] designations)
     {
         if(highK == lowK)
-            return cluster(dataSet, lowK, threadpool, designations);
+            return cluster(dataSet, lowK, parallel, designations);
         else if(highK < lowK)
             throw new IllegalArgumentException("low value of k (" + lowK + ") must be higher than the high value of k(" + highK + ")");
         final int N = dataSet.getSampleSize();
@@ -108,16 +101,16 @@ public class KMeansPDN extends KMeans
         double alphaKprev = 0, S_k_prev = 0;
         
         //re used every iteration
-        List<Vec> curMeans = new ArrayList<Vec>(highK);
-        means = new ArrayList<Vec>();//the best set of means
+        List<Vec> curMeans = new ArrayList<>(highK);
+        means = new ArrayList<>();//the best set of means
         //pre-compute cache instead of re-computing every time
-        List<Double> accelCache = dm.getAccelerationCache(dataSet.getDataVectors(), threadpool);
+        List<Double> accelCache = dm.getAccelerationCache(dataSet.getDataVectors(), parallel);
         
         for(int k = 2; k < highK; k++)
         {
             curMeans.clear();
             //kmeans objective function result is the same as S_k
-            double S_k = cluster(dataSet, accelCache, k, curMeans, designations, true, threadpool, true, null);//TODO could add a flag to make approximate S_k an option. Though it dosn't seem to work great on toy problems, might be fine on more realistic data
+            double S_k = cluster(dataSet, accelCache, k, curMeans, designations, true, parallel, true, null);//TODO could add a flag to make approximate S_k an option. Though it dosn't seem to work great on toy problems, might be fine on more realistic data
 
 
             double alpha_k;
@@ -151,13 +144,7 @@ public class KMeansPDN extends KMeans
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
-    {
-        return cluster(dataSet, lowK, highK, null, designations);
-    }
-
-    @Override
-    protected double cluster(DataSet dataSet, List<Double> accelCache, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError, Vec dataPointWeights)
+    protected double cluster(DataSet dataSet, List<Double> accelCache, int k, List<Vec> means, int[] assignment, boolean exactTotal, boolean threadpool, boolean returnError, Vec dataPointWeights)
     {
         return kmeans.cluster(dataSet, accelCache, k, means, assignment, exactTotal, threadpool, returnError, null);
     }

@@ -6,8 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
@@ -92,12 +92,10 @@ public class NaiveKMeans extends KMeans
     }
 
     @Override
-    protected double cluster(final DataSet dataSet, List<Double> accelCacheInit, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, ExecutorService threadpool, boolean returnError, Vec dataPointWeights)
+    protected double cluster(final DataSet dataSet, List<Double> accelCacheInit, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, boolean parallel, boolean returnError, Vec dataPointWeights)
     {
-        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
-        
-        if(threadpool == null)
-            threadpool = new FakeExecutor();
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
+
         /**
          * Weights for each data point
          */
@@ -111,22 +109,17 @@ public class NaiveKMeans extends KMeans
         //done a wonky way b/c we want this as a final object for convinence, otherwise we may be stuck with null accel when we dont need to be
         final List<Double> accelCache;
         if (accelCacheInit == null)
-        {
-            if (threadpool instanceof FakeExecutor)
-                accelCache = dm.getAccelerationCache(X);
-            else
-                accelCache = dm.getAccelerationCache(X, threadpool);
-        }
+            accelCache = dm.getAccelerationCache(X, parallel);
         else
             accelCache = accelCacheInit;
         
         if (means.size() != k)
         {
             means.clear();
-            means.addAll(selectIntialPoints(dataSet, k, dm, accelCache, rand, seedSelection, threadpool));
+            means.addAll(selectIntialPoints(dataSet, k, dm, accelCache, rand, seedSelection, parallel));
         }
         
-        final List<List<Double>> meanQIs = new ArrayList<List<Double>>(k);
+        final List<List<Double>> meanQIs = new ArrayList<>(k);
         
         //Use dense mean objects
         for(int i = 0; i < means.size(); i++)
@@ -140,11 +133,11 @@ public class NaiveKMeans extends KMeans
                 means.set(i, new DenseVector(means.get(i)));
         }
         
-        final List<Vec> meanSum = new ArrayList<Vec>(means.size());
+        final List<Vec> meanSum = new ArrayList<>(means.size());
         final AtomicDoubleArray meanCounts = new AtomicDoubleArray(means.size());
         for(int i = 0; i < k; i++)
             meanSum.add(new DenseVector(means.get(0).length()));
-        final AtomicInteger changes = new AtomicInteger();
+        final LongAdder changes = new LongAdder();
         
         //used to store local changes to the means and accumulated at the end
         final ThreadLocal<Vec[]> localMeanDeltas = new ThreadLocal<Vec[]>()
@@ -163,98 +156,83 @@ public class NaiveKMeans extends KMeans
         Arrays.fill(assignment, -1);
         do
         {
-            changes.set(0);
-            final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+            changes.reset();
             
-            for(int id = 0; id < SystemInfo.LogicalCores; id++)
+            ParallelUtils.run(parallel, N, (start, end) ->
             {
-                final int s = ParallelUtils.getStartBlock(N, id);
-                final int end = ParallelUtils.getEndBlock(N, id);
-                threadpool.submit(new Runnable()
+                Vec[] deltas = localMeanDeltas.get();
+                double tmp;
+                for (int i = start; i < end; i++)
                 {
-                    @Override
-                    public void run()
+                    final Vec x = X.get(i);
+                    double minDist = Double.POSITIVE_INFINITY;
+                    int min = -1;
+                    for (int j = 0; j < means.size(); j++)
                     {
-                        Vec[] deltas = localMeanDeltas.get();
-                        double tmp;
-                        for (int i = s; i < end; i++)
+                        tmp = dm.dist(i, means.get(j), meanQIs.get(j), X, accelCache);
+                        if (tmp < minDist)
                         {
-                            final Vec x = X.get(i);
-                            double minDist = Double.POSITIVE_INFINITY;
-                            int min = -1;
-                            for (int j = 0; j < means.size(); j++)
-                            {
-                                tmp = dm.dist(i, means.get(j), meanQIs.get(j), X, accelCache);
-                                if (tmp < minDist)
-                                {
-                                    minDist = tmp;
-                                    min = j;
-                                }
-                            }
-                            if(assignment[i] == min)
-                                continue;
-                            final double w = W.get(i);
-                            //add change
-                            deltas[min].mutableAdd(w, x);
-                            meanCounts.addAndGet(min, w);
-                            //remove from prev owner
-                            if(assignment[i] >= 0)
-                            {
-                                deltas[assignment[i]].mutableSubtract(w, x);
-                                meanCounts.getAndAdd(assignment[i], -w);
-                            }
-                            assignment[i] = min;
-                            changes.incrementAndGet();
+                            minDist = tmp;
+                            min = j;
                         }
-                        
-                        //accumulate deltas into globals
-                        for(int i = 0; i < deltas.length; i++)
-                            synchronized(meanSum.get(i))
-                            {
-                                meanSum.get(i).mutableAdd(deltas[i]);
-                                deltas[i].zeroOut();
-                            }
-                        
-                        latch.countDown();
                     }
-                });
-            }
-            
-            try
-            {
-                latch.await();
-                if(changes.get() == 0)
-                    break;
-                for(int i = 0; i < k; i++)
-                {
-                    meanSum.get(i).copyTo(means.get(i));
-                    means.get(i).mutableDivide(meanCounts.get(i));
-                    if(dm.supportsAcceleration())
-                        meanQIs.set(i, dm.getQueryInfo(means.get(i)));
+                    if(assignment[i] == min)
+                        continue;
+                    final double w = W.get(i);
+                    //add change
+                    deltas[min].mutableAdd(w, x);
+                    meanCounts.addAndGet(min, w);
+                    //remove from prev owner
+                    if(assignment[i] >= 0)
+                    {
+                        deltas[assignment[i]].mutableSubtract(w, x);
+                        meanCounts.getAndAdd(assignment[i], -w);
+                    }
+                    assignment[i] = min;
+                    changes.increment();
                 }
-            }
-            catch (InterruptedException ex)
+
+                //accumulate deltas into globals
+                for(int i = 0; i < deltas.length; i++)
+                    synchronized(meanSum.get(i))
+                    {
+                        meanSum.get(i).mutableAdd(deltas[i]);
+                        deltas[i].zeroOut();
+                    }
+            });
+            
+            if(changes.longValue() == 0)
+                break;
+            for(int i = 0; i < k; i++)
             {
-                Logger.getLogger(NaiveKMeans.class.getName()).log(Level.SEVERE, null, ex);
+                meanSum.get(i).copyTo(means.get(i));
+                means.get(i).mutableDivide(meanCounts.get(i));
+                if(dm.supportsAcceleration())
+                    meanQIs.set(i, dm.getQueryInfo(means.get(i)));
             }
         }
-        while(changes.get() > 0);
+        while(changes.longValue() > 0);
 
         if (returnError)
         {
-            double totalDistance = 0;
             if (saveCentroidDistance)
                 nearestCentroidDist = new double[X.size()];
             else
                 nearestCentroidDist = null;
             
-            for (int i = 0; i < dataSet.getSampleSize(); i++)
+            
+            double totalDistance = ParallelUtils.run(parallel, N, (start, end) -> 
             {
-                double dist = dm.dist(i, means.get(assignment[i]), meanQIs.get(assignment[i]), X, accelCache);
-                totalDistance += Math.pow(dist, 2);
-                if(saveCentroidDistance)
-                    nearestCentroidDist[i] = dist;
-            }
+                double totalDistLocal = 0;
+                for(int i = start; i < end; i++)
+                {
+                    double dist = dm.dist(i, means.get(assignment[i]), meanQIs.get(assignment[i]), X, accelCache);
+                    totalDistLocal += Math.pow(dist, 2);
+                    if(saveCentroidDistance)
+                        nearestCentroidDist[i] = dist;
+                }
+                return totalDistLocal;
+            }, (t, u) -> t+u);
 
             return totalDistance;
         }

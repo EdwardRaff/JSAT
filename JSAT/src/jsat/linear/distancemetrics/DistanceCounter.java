@@ -112,9 +112,9 @@ public class DistanceCounter implements DistanceMetric
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs, boolean parallel)
     {
-        return base.getAccelerationCache(vecs);
+        return base.getAccelerationCache(vecs, parallel);
     }
 
     @Override

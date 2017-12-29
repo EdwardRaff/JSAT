@@ -5,14 +5,18 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import jsat.NormalClampedSample;
 
 import jsat.SimpleDataSet;
+import static jsat.TestTools.checkClusteringByCat;
 import jsat.classifiers.DataPoint;
+import jsat.clustering.kmeans.HamerlyKMeans;
 import jsat.distributions.Normal;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
 import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.RandomUtil;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -29,7 +33,6 @@ import static org.junit.Assert.*;
 public class EMGaussianMixtureTest
 {
     static private SimpleDataSet easyData;
-    static private ExecutorService ex;
     
     public EMGaussianMixtureTest()
     {
@@ -39,17 +42,11 @@ public class EMGaussianMixtureTest
     @BeforeClass
     public static void setUpClass()
     {
-        //use normal distribution to match the Gausian assumption, uniform can cause weidness
-        //unfirm for kMeans used 0.15, 3 sntd devs of 0.05 = 0.15
-        GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2, 2);
-        easyData = gdg.generateData(50);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -62,41 +59,31 @@ public class EMGaussianMixtureTest
     {
     }
     
-    
-    @Test
-    public void testCluster_DataSet_int()
-    {
-        System.out.println("cluster(dataset, int)");
-        EMGaussianMixture em = new EMGaussianMixture(SeedSelectionMethods.SeedSelection.KPP);
-        List<List<DataPoint>> clusters = em.cluster(easyData, 4);
-        assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
-        {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
-            assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster)
-                assertEquals(thisClass, dp.getCategoricalValue(0));
-        }
-    }
-
-
  
     @Test
     public void testCluster_3args_2()
     {
         System.out.println("cluster(dataset, int, threadpool)");
-        EMGaussianMixture em = new EMGaussianMixture(SeedSelectionMethods.SeedSelection.KPP);
-        List<List<DataPoint>> clusters = em.cluster(easyData, 4, ex);
-        assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        
+        boolean good = false;
+        int count = 0;
+        do
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
-            assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster)
-                assertEquals(thisClass, dp.getCategoricalValue(0));
+            GridDataGenerator gdg = new GridDataGenerator(new NormalClampedSample(0, 0.05), RandomUtil.getRandom(), 2, 2);
+            easyData = gdg.generateData(50);
+
+            good = true;
+            for (boolean parallel : new boolean[]{true, false})
+            {
+                EMGaussianMixture em = new EMGaussianMixture(SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
+
+                List<List<DataPoint>> clusters = em.cluster(easyData, 4, parallel);
+                assertEquals(4, clusters.size());
+                good = good & checkClusteringByCat(clusters);
+            }
         }
+        while (!good && count++ < 3);
+        assertTrue(good);
     }
 
 }

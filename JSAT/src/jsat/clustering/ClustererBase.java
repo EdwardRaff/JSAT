@@ -23,21 +23,6 @@ public abstract class ClustererBase implements Clusterer
 
     private static final long serialVersionUID = 4359554809306681680L;
 
-    @Override
-    public List<List<DataPoint>> cluster(DataSet dataSet)
-    {
-        int[] assignments = cluster(dataSet, (int[]) null);
-        
-        return createClusterListFromAssignmentArray(assignments, dataSet);
-    }
-
-    @Override
-    public List<List<DataPoint>> cluster(DataSet dataSet, ExecutorService threadpool)
-    {
-        int[] assignments = cluster(dataSet, threadpool, (int[]) null);
-        return createClusterListFromAssignmentArray(assignments, dataSet);
-    }
-
     /**
      * Convenient helper method. A list of lists to represent a cluster may be desirable. In 
      * such a case, this method will take in an array of cluster assignments, and return a 
@@ -49,12 +34,12 @@ public abstract class ClustererBase implements Clusterer
      */
     public static List<List<DataPoint>> createClusterListFromAssignmentArray(int[] assignments, DataSet dataSet)
     {
-        List<List<DataPoint>> clusterings = new ArrayList<List<DataPoint>>();
+        List<List<DataPoint>> clusterings = new ArrayList<>();
         
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
             while(clusterings.size() <= assignments[i])
-                clusterings.add(new ArrayList<DataPoint>());
+                clusterings.add(new ArrayList<>());
             if(assignments[i] >= 0)
                 clusterings.get(assignments[i]).add(dataSet.getDataPoint(i));
         }
@@ -75,7 +60,7 @@ public abstract class ClustererBase implements Clusterer
      */
     public static List<DataPoint> getDatapointsFromCluster(int c, int[] assignments, DataSet dataSet, int[] indexFrom)
     {
-        List<DataPoint> list = new ArrayList<DataPoint>();
+        List<DataPoint> list = new ArrayList<>();
         int pos = 0;
         for(int i = 0; i < dataSet.getSampleSize(); i++)
             if(assignments[i] == c)
@@ -85,12 +70,6 @@ public abstract class ClustererBase implements Clusterer
                     indexFrom[pos++] = i;
             }
         return list;
-    }
-
-    @Override
-    public boolean supportsWeightedData()
-    {
-        return false;
     }
 
     @Override

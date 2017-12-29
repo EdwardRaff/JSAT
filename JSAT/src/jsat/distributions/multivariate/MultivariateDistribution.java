@@ -111,12 +111,13 @@ public interface MultivariateDistribution extends Cloneable, Serializable
      * The {@link DataPoint#getWeight()  weights} of the data points will be used.
      * 
      * @param dataPoints the list of data points to use
-     * @param threadpool the source of threads for computation
+     * @param threadpool {@code true} if the training should be done using
+     * multiple-cores, {@code false} for single threaded.
      * @return <tt>true</tt> if the distribution was fit to the data, or <tt>false</tt> 
      * if the distribution could not be fit to the data set. 
      */
     public boolean setUsingDataList(List<DataPoint> dataPoints, ExecutorService threadpool);
-    
+        
     /**
      * Sets the parameters of the distribution to attempt to fit the given list of data points. 
      * The {@link DataPoint#getWeight()  weights} of the data points will be used.
@@ -135,8 +136,25 @@ public interface MultivariateDistribution extends Cloneable, Serializable
      * @param threadpool the source of threads for computation
      * @return <tt>true</tt> if the distribution was fit to the data, or <tt>false</tt> 
      * if the distribution could not be fit to the data set. 
+     * @deprecated Will be deleted soon
      */
     public boolean setUsingData(DataSet dataSet, ExecutorService threadpool);
+
+    /**
+     * Sets the parameters of the distribution to attempt to fit the given list
+     * of data points. The {@link DataPoint#getWeight()  weights} of the data
+     * points will be used.
+     *
+     * @param dataSet the data set to use
+     * @param parallel the source of threads for computation
+     * @return <tt>true</tt> if the distribution was fit to the data, or
+     * <tt>false</tt>
+     * if the distribution could not be fit to the data set.
+     */
+    default public boolean setUsingData(DataSet dataSet, boolean parallel)
+    {
+        return setUsingData(dataSet, ParallelUtils.CACHED_THREAD_POOL);
+    }
 
     public MultivariateDistribution clone();
     

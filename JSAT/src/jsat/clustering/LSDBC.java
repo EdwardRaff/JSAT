@@ -27,10 +27,12 @@ import jsat.utils.*;
 public class LSDBC extends ClustererBase implements Parameterized
 {
 
-	private static final long serialVersionUID = 6626217924334267681L;
-	/**
-     * {@value #DEFAULT_NEIGHBORS} is the default number of neighbors used when performing clustering
-     * @see #setNeighbors(int) 
+    private static final long serialVersionUID = 6626217924334267681L;
+    /**
+     * {@value #DEFAULT_NEIGHBORS} is the default number of neighbors used when
+     * performing clustering
+     *
+     * @see #setNeighbors(int)
      */
     public static final int DEFAULT_NEIGHBORS = 15;
     /**
@@ -41,7 +43,7 @@ public class LSDBC extends ClustererBase implements Parameterized
     private static final int UNCLASSIFIED = -1;
     private DistanceMetric dm;
     
-    private VectorCollectionFactory<VecPaired<Vec, Integer>> vectorCollectionFactory = new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>();
+    private VectorCollectionFactory<VecPaired<Vec, Integer>> vectorCollectionFactory = new DefaultVectorCollectionFactory<>();
     
     /**
      * The weight parameter for forming new clusters
@@ -185,42 +187,25 @@ public class LSDBC extends ClustererBase implements Parameterized
         return alpha;
     }
     
-    
     @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
-    {
-        return cluster(dataSet, null, designations);
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
      
         //Compute all k-NN 
         final VectorCollection<VecPaired<Vec, Integer>> vc;
-        List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> knnVecList =
-                new ArrayList<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>>(dataSet.getSampleSize());
+        List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> knnVecList;
 
         //Set up
-        List<VecPaired<Vec, Integer>> vecs = new ArrayList<VecPaired<Vec, Integer>>(dataSet.getSampleSize());
+        List<VecPaired<Vec, Integer>> vecs = new ArrayList<>(dataSet.getSampleSize());
 
         for (int i = 0; i < dataSet.getSampleSize(); i++)
-            vecs.add(new VecPaired<Vec, Integer>(dataSet.getDataPoint(i).getNumericalValues(), i));
+            vecs.add(new VecPaired<>(dataSet.getDataPoint(i).getNumericalValues(), i));
 
-        if (threadpool == null || threadpool instanceof FakeExecutor)
-        {
-            TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
-            vc = vectorCollectionFactory.getVectorCollection(vecs, dm);
-            knnVecList = VectorCollectionUtils.allNearestNeighbors(vc, vecs, k+1);
-        }
-        else
-        {
-            TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
-            vc = vectorCollectionFactory.getVectorCollection(vecs, dm, threadpool);
-            knnVecList = VectorCollectionUtils.allNearestNeighbors(vc, vecs, k+1, threadpool);
-        }
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
+        vc = vectorCollectionFactory.getVectorCollection(vecs, dm, parallel);
+        knnVecList = VectorCollectionUtils.allNearestNeighbors(vc, vecs, k+1, parallel);
 
         //Sort
         IndexTable indexTable = new IndexTable(knnVecList, new Comparator()
@@ -311,7 +296,7 @@ public class LSDBC extends ClustererBase implements Parameterized
         designations[p] = clusterID;
         double pointEps;
         int n;
-        Stack<Integer> seeds = new Stack<Integer>();
+        Stack<Integer> seeds = new Stack<>();
         {
             List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = knnVecList.get(p);
             for (int i = 1; i < neighbors.size(); i++)

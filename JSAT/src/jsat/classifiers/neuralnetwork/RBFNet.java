@@ -5,15 +5,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicIntegerArray;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.IntStream;
 
 import jsat.DataSet;
 import jsat.classifiers.CategoricalResults;
@@ -35,20 +29,14 @@ import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.MahalanobisDistance;
 import jsat.math.OnLineStatistics;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
-import jsat.utils.FakeExecutor;
-import jsat.utils.IntList;
 import jsat.utils.IntSet;
-import jsat.utils.ListUtils;
-import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 
 /**
  * This provides a highly configurable implementation of a Radial Basis Function
@@ -285,10 +273,10 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         RANDOM
         {
             @Override
-            protected List<Vec> getCentroids(DataSet data, int centroids, DistanceMetric dm, ExecutorService ex)
+            protected List<Vec> getCentroids(DataSet data, int centroids, DistanceMetric dm, boolean parallel)
             {
                 Random rand = RandomUtil.getRandom();
-                List<Vec> toRet = new ArrayList<Vec>();
+                List<Vec> toRet = new ArrayList<>();
                 Set<Integer> points = new IntSet();
                 
                 while (points.size() < centroids)
@@ -306,14 +294,11 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         K_MEANS
         {
             @Override
-            protected List<Vec> getCentroids(DataSet data, int centroids, DistanceMetric dm, ExecutorService ex)
+            protected List<Vec> getCentroids(DataSet data, int centroids, DistanceMetric dm, boolean parallel)
             {
                 HamerlyKMeans kmeans = new HamerlyKMeans(dm, SeedSelectionMethods.SeedSelection.KPP);
                 
-                if(ex == null || ex instanceof FakeExecutor)
-                    kmeans.cluster(data, centroids);
-                else
-                    kmeans.cluster(data, centroids, ex);
+                kmeans.cluster(data, centroids, parallel);
                 
                 return kmeans.getMeans();
             }
@@ -324,10 +309,10 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
          * @param data the data set to get the centroids for
          * @param centroids the number of centroids to obtain
          * @param dm the distance metric that is being used
-         * @param ex the source of threads for parallel computation
-         * @return a list of the centroid vectors
+         * @param parallel the source of threads for parallel computation
+         * @return the java.util.List<jsat.linear.Vec>
          */
-        abstract protected List<Vec> getCentroids(DataSet data, int centroids, DistanceMetric dm, ExecutorService ex);
+        abstract protected List<Vec> getCentroids(DataSet data, int centroids, DistanceMetric dm, boolean parallel);
     }
     
     /**
@@ -728,8 +713,8 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
 
         ExecutorService threadPool = ParallelUtils.getNewExecutor(parallel);
         //Learn Centroids
-        centroids = p1l.getCentroids(dataSet, numCentroids, dm, threadPool);
-        centroidDistCache = dm.getAccelerationCache(centroids, threadPool);
+        centroids = p1l.getCentroids(dataSet, numCentroids, dm, parallel);
+        centroidDistCache = dm.getAccelerationCache(centroids, parallel);
         
         //Learn Parameter Values
         bandwidths = p2l.estimateBandwidths(alpha, p, dataSet, centroids, centroidDistCache, dm, threadPool);
@@ -777,8 +762,8 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         
         ExecutorService threadPool = ParallelUtils.getNewExecutor(parallel);
         //Learn Centroids
-        centroids = p1l.getCentroids(dataSet, numCentroids, dm, threadPool);
-        centroidDistCache = dm.getAccelerationCache(centroids, threadPool);
+        centroids = p1l.getCentroids(dataSet, numCentroids, dm, parallel);
+        centroidDistCache = dm.getAccelerationCache(centroids, parallel);
         
         //Learn Parameter Values
         bandwidths = p2l.estimateBandwidths(alpha, p, dataSet, centroids, centroidDistCache, dm, threadPool);

@@ -27,7 +27,6 @@ public class DivisiveLocalClustererTest
 
     static private DivisiveLocalClusterer dlc;
     static private SimpleDataSet easyData;
-    static private ExecutorService ex;
 
     public DivisiveLocalClustererTest() {
     }
@@ -39,7 +38,6 @@ public class DivisiveLocalClustererTest
         dlc = new DivisiveLocalClusterer(new ElkanKMeans(dm), new DaviesBouldinIndex(dm));
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 2);
         easyData = gdg.generateData(100);
-        ex = Executors.newFixedThreadPool(10);
     }
 
     @AfterClass
@@ -77,7 +75,7 @@ public class DivisiveLocalClustererTest
     public void testCluster_DataSet_int_ExecutorService()
     {
         System.out.println("cluster(dataset, int, ExecutorService)");
-        List<List<DataPoint>> clusters = dlc.cluster(easyData, 10, ex);
+        List<List<DataPoint>> clusters = dlc.cluster(easyData, 10, true);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)

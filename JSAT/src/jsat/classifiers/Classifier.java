@@ -29,7 +29,9 @@ public interface Classifier extends Cloneable, Serializable
      * block until the training has completed.
      * 
      * @param dataSet the data set to train on
-     * @param parallel the source of threads to use. 
+     * @param parallel {@code true} if multiple threads should be used to train
+     * the model. {@code false} if it should be done in a single threaded
+     * manner.
      * @throws FailedToFitException if the model is unable to be constructed for some reason
      */
     public void train(ClassificationDataSet dataSet, boolean parallel);

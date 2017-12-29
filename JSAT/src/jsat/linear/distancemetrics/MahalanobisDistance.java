@@ -202,7 +202,7 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs, boolean parallel)
     {
         return null;
     }

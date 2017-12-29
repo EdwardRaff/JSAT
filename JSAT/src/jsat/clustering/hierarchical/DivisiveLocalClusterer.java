@@ -31,8 +31,8 @@ import jsat.clustering.evaluation.ClusterEvaluation;
 public class DivisiveLocalClusterer extends KClustererBase
 {
 
-	private static final long serialVersionUID = 8616401472810067778L;
-	private KClusterer baseClusterer;
+    private static final long serialVersionUID = 8616401472810067778L;
+    private KClusterer baseClusterer;
     private ClusterEvaluation clusterEvaluation;
 
     public DivisiveLocalClusterer(KClusterer baseClusterer, ClusterEvaluation clusterEvaluation) 
@@ -57,13 +57,13 @@ public class DivisiveLocalClusterer extends KClustererBase
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()), threadpool, designations);
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()), parallel, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations) 
+    public int[] cluster(DataSet dataSet, int clusters, boolean parallel, int[] designations) 
     {
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
@@ -84,31 +84,23 @@ public class DivisiveLocalClusterer extends KClustererBase
          */
         final double[] splitEvaluation = new double[clusters];
         
-        PriorityQueue<Integer> clusterToSplit = new PriorityQueue<Integer>(clusters, new Comparator<Integer>() {
-
-            @Override
-            public int compare(Integer t, Integer t1) 
-            {
-                return Double.compare(splitEvaluation[t], splitEvaluation[t1]);
-            }
-        });
+        PriorityQueue<Integer> clusterToSplit = new PriorityQueue<>(clusters, 
+                (Integer t, Integer t1) -> Double.compare(splitEvaluation[t], splitEvaluation[t1])
+        );
         clusterToSplit.add(0);//We must start out spliting the one cluster of everyone!
         
         Arrays.fill(designations, 0);
         
         
         //Create initial split we will start from
-        if(threadpool == null)
-            baseClusterer.cluster(dataSet, 2, designations);
-        else
-            baseClusterer.cluster(dataSet, 2, threadpool, designations);
+        baseClusterer.cluster(dataSet, 2, parallel, designations);
         subDesignation[0] = Arrays.copyOf(designations, designations.length);
         for(int i = 0; i < originalPositions[0].length; i++)
             originalPositions[0][i] = i;
         
         
-        List<DataPoint> dpSubC1 = new ArrayList<DataPoint>();
-        List<DataPoint> dpSubC2 = new ArrayList<DataPoint>();
+        List<DataPoint> dpSubC1 = new ArrayList<>();
+        List<DataPoint> dpSubC2 = new ArrayList<>();
         
         /*
          * TODO it could be updated to use the split value to do a search range 
@@ -142,11 +134,11 @@ public class DivisiveLocalClusterer extends KClustererBase
 
             computeSubClusterSplit(subDesignation, useSplit, dpSubC1, 
                     dataSet, designations, originalPositions, 
-                    splitEvaluation, clusterToSplit, threadpool);
+                    splitEvaluation, clusterToSplit, parallel);
 
             computeSubClusterSplit(subDesignation, newClusterID, dpSubC2, 
                     dataSet, designations, originalPositions, 
-                    splitEvaluation, clusterToSplit, threadpool);   
+                    splitEvaluation, clusterToSplit, parallel);   
         }
         
         return designations;
@@ -177,7 +169,7 @@ public class DivisiveLocalClusterer extends KClustererBase
             int originalCluster, List<DataPoint> listOfDataPointsInCluster, DataSet fullDataSet,
             int[] fullDesignations, final int[][] originalPositions, 
             final double[] splitEvaluation, 
-            PriorityQueue<Integer> clusterToSplit, ExecutorService threadpool) 
+            PriorityQueue<Integer> clusterToSplit, boolean parallel) 
     {
         subDesignation[originalCluster] = new int[listOfDataPointsInCluster.size()];
         int pos = 0;
@@ -191,10 +183,7 @@ public class DivisiveLocalClusterer extends KClustererBase
         SimpleDataSet dpSubC1DataSet = new SimpleDataSet(listOfDataPointsInCluster);
         try
         {
-            if (threadpool == null)
-                baseClusterer.cluster(dpSubC1DataSet, 2, subDesignation[originalCluster]);
-            else
-                baseClusterer.cluster(dpSubC1DataSet, 2, threadpool, subDesignation[originalCluster]);
+            baseClusterer.cluster(dpSubC1DataSet, 2, parallel, subDesignation[originalCluster]);
             splitEvaluation[originalCluster] = clusterEvaluation.evaluate(subDesignation[originalCluster], dpSubC1DataSet);
             clusterToSplit.add(originalCluster);
         }
@@ -207,21 +196,9 @@ public class DivisiveLocalClusterer extends KClustererBase
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
+    public int[] cluster(DataSet dataSet, int lowK, int highK, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, clusters, null, designations);
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
-    {
-        return cluster(dataSet, lowK, threadpool, designations);
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
-    {
-        return cluster(dataSet, lowK, highK, null, designations);
+        return cluster(dataSet, lowK, parallel, designations);
     }
 
     @Override

@@ -42,7 +42,6 @@ public class PAMTest
     //Like KMeans the cluster number detection isnt stable enough yet that we can test that it getst he right result. 
     static private PAM pam;
     static private SimpleDataSet easyData10;
-    static private ExecutorService ex;
     
     public PAMTest()
     {
@@ -51,17 +50,15 @@ public class PAMTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        pam = new PAM(new EuclideanDistance(), RandomUtil.getRandom(), SeedSelection.KPP);
+        pam = new PAM(new EuclideanDistance(), RandomUtil.getRandom(), SeedSelection.FARTHEST_FIRST);
         pam.setMaxIterations(1000);
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.05, 0.05), RandomUtil.getRandom(), 2, 5);
         easyData10 = gdg.generateData(100);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception
     {
-        ex.shutdown();
     }
     
     @Before
@@ -80,7 +77,7 @@ public class PAMTest
         int count = 0;
         do
         {
-            List<List<DataPoint>> clusters = pam.cluster(easyData10, 10, ex);
+            List<List<DataPoint>> clusters = pam.cluster(easyData10, 10, true);
             assertEquals(10, clusters.size());
             good = checkClusteringByCat(clusters);
         }

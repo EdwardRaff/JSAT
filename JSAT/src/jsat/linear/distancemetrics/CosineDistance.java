@@ -89,13 +89,16 @@ public class CosineDistance implements DistanceMetric
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs, boolean parallel)
     {
         //Store the pnorms in the cache
-        DoubleList cache = new DoubleList(vecs.size());
-        for(Vec v : vecs)
-            cache.add(v.pNorm(2));
-        return cache;
+        double[] cache = new double[vecs.size()];
+        ParallelUtils.run(parallel, vecs.size(), (start, end) ->
+        {
+            for(int i = start; i < end; i++)
+                cache[i] = vecs.get(i).pNorm(2);
+        });
+        return DoubleList.view(cache, vecs.size());
     }
     
     @Override
