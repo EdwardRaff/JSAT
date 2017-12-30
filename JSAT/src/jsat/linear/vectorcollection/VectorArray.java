@@ -3,15 +3,13 @@ package jsat.linear.vectorcollection;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
-import jsat.linear.VecPaired;
-import jsat.linear.VecPairedComparable;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
+import jsat.utils.IndexTable;
 import jsat.utils.ProbailityMatch;
 
 /**
@@ -98,53 +96,51 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements Incremen
         distCache = null;
         return super.remove(index); //To change body of generated methods, choose Tools | Templates.
     }
-    
 
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, double range)
+    public void search(Vec query, double range, List<Integer> neighbors, List<Double> distances)
     {
-        List<VecPairedComparable<V, Double>> list = new ArrayList<VecPairedComparable<V, Double>>();
-        
         List<Double> qi = distanceMetric.getQueryInfo(query);
         
         for(int i = 0; i < size(); i++)
         {
-            double distance = distanceMetric.dist(i, query, qi, this, distCache);
-            if(distance <= range)
-                list.add(new VecPairedComparable<V, Double>(get(i), distance));
+            double dist = distanceMetric.dist(i, query, qi, this, distCache);
+            if(dist <= range)
+            {
+                neighbors.add(i);
+                distances.add(dist);
+            }
         }
-        Collections.sort(list);
-        return list;
+        
+        IndexTable it = new IndexTable(distances);
+        it.apply(neighbors);
+        it.apply(distances);
     }
 
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
+    public void search(Vec query, int numNeighbors, List<Integer> neighbors, List<Double> distances)
     {
-        BoundedSortedList<ProbailityMatch<V>> knns = new BoundedSortedList<ProbailityMatch<V>>(neighbors);
+        BoundedSortedList<ProbailityMatch<Integer>> knns = new BoundedSortedList<>(numNeighbors);
         
         List<Double> qi = distanceMetric.getQueryInfo(query);
         
         for(int i = 0; i < size(); i++)
         {
             double distance = distanceMetric.dist(i, query, qi, this, distCache);
-            knns.add(new ProbailityMatch<V>(distance, get(i)));
+            knns.add(new ProbailityMatch<>(distance, i));
         }
         
-        List<VecPaired<V, Double>> knnsList = new ArrayList<VecPaired<V, Double>>(knns.size());
         for(int i = 0; i < knns.size(); i++)
         {
-            ProbailityMatch<V> pm = knns.get(i);
-            knnsList.add(new VecPaired<V, Double>(pm.getMatch(), pm.getProbability()));
+            neighbors.add(knns.get(i).getMatch());
+            distances.add(knns.get(i).getProbability());
         }
-                
-        return knnsList;
-        
     }
 
     @Override
     public VectorArray<V> clone()
     {
-        VectorArray<V> clone = new VectorArray<V>(distanceMetric, this);
+        VectorArray<V> clone = new VectorArray<>(distanceMetric, this);
         
         return clone;
     }
@@ -156,7 +152,7 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements Incremen
         @Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
         {
-            return new VectorArray<V>(distanceMetric, source);
+            return new VectorArray<>(distanceMetric, source);
         }
 
         @Override
@@ -168,7 +164,7 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements Incremen
         @Override
         public VectorArrayFactory<V> clone()
         {
-            return new VectorArrayFactory<V>();
+            return new VectorArrayFactory<>();
         }
     }
     

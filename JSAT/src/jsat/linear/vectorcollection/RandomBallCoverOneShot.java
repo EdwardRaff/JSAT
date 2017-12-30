@@ -13,6 +13,7 @@ import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
+import jsat.utils.IndexTable;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 import jsat.utils.ProbailityMatch;
@@ -40,8 +41,8 @@ import jsat.utils.ProbailityMatch;
 public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V>
 {
 
-	private static final long serialVersionUID = -2562499883847452797L;
-	private DistanceMetric dm;
+    private static final long serialVersionUID = -2562499883847452797L;
+    private DistanceMetric dm;
     private List<List<Integer>> ownedVecs;
     private List<Integer> R;
     private List<V> allVecs;
@@ -190,9 +191,10 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
     }
 
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, double range)
+    public void search(Vec query, double range, List<Integer> neighbors, List<Double> distances)
     {
-        List<VecPairedComparable<V, Double>> knn = new ArrayList<VecPairedComparable<V, Double>>();
+        neighbors.clear();
+        distances.clear();
 
         List<Double> qi = dm.getQueryInfo(query);
         //Find the best representative r_q
@@ -200,27 +202,40 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
         double bestDist = Double.POSITIVE_INFINITY;
         int bestRep = 0;
         for (int i = 0; i < R.size(); i++)
+        {
             if ((tmp = dm.dist(R.get(i), query, qi, allVecs, distCache)  ) < bestDist)
             {
                 bestRep = i;
                 bestDist = tmp;
             }
-        if(bestDist <= range)
-            knn.add(new VecPairedComparable<V, Double>(allVecs.get(R.get(bestRep)), bestDist));
-
+            
+            if(tmp <= range)
+            {
+                neighbors.add(R.get(i));
+                distances.add(tmp);
+            }
+        }
+        
         for (int v : ownedVecs.get(bestRep))
             if((tmp = dm.dist(v, query, qi, allVecs, distCache) ) <= range)
-            knn.add(new VecPairedComparable<V, Double>(allVecs.get(v), tmp));
-
-        Collections.sort(knn);
-        return knn;
+            {
+                neighbors.add(v);
+                distances.add(tmp);
+            }
+        
+        IndexTable it = new IndexTable(distances);
+        it.apply(neighbors);
+        it.apply(distances);
     }
 
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
+    public void search(Vec query, int numNeighbors, List<Integer> neighbors, List<Double> distances)
     {
-        BoundedSortedList<VecPairedComparable<V,Double>> knn =
-                new BoundedSortedList<VecPairedComparable<V,Double>>(neighbors);
+        neighbors.clear();
+        distances.clear();
+        
+        BoundedSortedList<ProbailityMatch<Integer>> knn =
+                new BoundedSortedList<>(numNeighbors);
 
         List<Double> qi = dm.getQueryInfo(query);
         //Find the best representative r_q
@@ -233,13 +248,16 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
                 bestRep = i;
                 bestDist = tmp;
             }
-        knn.add(new VecPairedComparable<V, Double>(allVecs.get(R.get(bestRep)), bestDist));
+        knn.add(new ProbailityMatch<>(bestDist, R.get(bestRep)));
 
         for (int v : ownedVecs.get(bestRep))
-            knn.add(new VecPairedComparable<V, Double>(allVecs.get(v), dm.dist(v, query, qi, allVecs, distCache)));
+            knn.add(new ProbailityMatch<>(dm.dist(v, query, qi, allVecs, distCache), v));
 
-
-        return knn;
+        for(ProbailityMatch<Integer> v : knn)
+        {
+            neighbors.add(v.getMatch());
+            distances.add(v.getProbability());
+        }
     }
 
     @Override
@@ -249,35 +267,38 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
     }
 
     @Override
+    public V get(int indx)
+    {
+        return allVecs.get(indx);
+    }
+
+    @Override
     public RandomBallCoverOneShot<V> clone()
     {
-        return new RandomBallCoverOneShot<V>(this);
+        return new RandomBallCoverOneShot<>(this);
     }
     
     public static class RandomBallCoverOneShotFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
 
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 7658115337969827371L;
+        private static final long serialVersionUID = 7658115337969827371L;
 
-		@Override
+        @Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
         {
-            return new RandomBallCoverOneShot<V>(source, distanceMetric);
+            return new RandomBallCoverOneShot<>(source, distanceMetric);
         }
 
         @Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
         {
-            return new RandomBallCoverOneShot<V>(source, distanceMetric, threadpool);
+            return new RandomBallCoverOneShot<>(source, distanceMetric, threadpool);
         }
 
         @Override
         public VectorCollectionFactory<V> clone()
         {
-            return new RandomBallCoverOneShotFactory<V>();
+            return new RandomBallCoverOneShotFactory<>();
         }
     }
 }

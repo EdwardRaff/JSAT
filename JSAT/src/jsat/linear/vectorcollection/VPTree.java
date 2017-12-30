@@ -17,6 +17,7 @@ import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
+import jsat.utils.IndexTable;
 import jsat.utils.IntList;
 import jsat.utils.ModifiableCountDownLatch;
 import jsat.utils.Pair;
@@ -82,9 +83,9 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         else
             distCache = dm.getAccelerationCache(allVecs, threadpool);
         //Use simple list so both halves can be modified simultaniously
-        List<Pair<Double, Integer>> tmpList = new SimpleList<Pair<Double, Integer>>(list.size());
+        List<Pair<Double, Integer>> tmpList = new SimpleList<>(list.size());
         for(int i = 0; i < allVecs.size(); i++)
-            tmpList.add(new Pair<Double, Integer>(-1.0, i));
+            tmpList.add(new Pair<>(-1.0, i));
         if(threadpool == null)
             this.root = makeVPTree(tmpList);
         else
@@ -102,7 +103,7 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
                 System.err.println("Falling back to single threaded VPTree constructor");
                 tmpList.clear();
                 for(int i = 0; i < list.size(); i++)
-                    tmpList.add(new Pair<Double, Integer>(-1.0, i));
+                    tmpList.add(new Pair<>(-1.0, i));
                 this.root = makeVPTree(tmpList);
             }
         }
@@ -138,7 +139,7 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         this.searchIterations = 40;
         this.size = 0;
         this.vpSelection = VPSelection.Random;
-        this.allVecs = new ArrayList<V>();
+        this.allVecs = new ArrayList<>();
         if(dm.supportsAcceleration())
             this.distCache = new DoubleList();
     }
@@ -158,7 +159,7 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         this.size = toClone.size;
         this.maxLeafSize = toClone.maxLeafSize;
         if(toClone.allVecs != null)
-            this.allVecs = new ArrayList<V>(toClone.allVecs);
+            this.allVecs = new ArrayList<>(toClone.allVecs);
         if(toClone.distCache != null)
             this.distCache = new DoubleList(toClone.distCache);
     }
@@ -189,6 +190,12 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
     }
 
     @Override
+    public V get(int indx)
+    {
+        return allVecs.get(indx);
+    }
+
+    @Override
     public void insert(V x)
     {
         int indx = size++;
@@ -199,8 +206,8 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         
         if(root == null)
         {
-            ArrayList<Pair<Double, Integer>> list = new ArrayList<Pair<Double, Integer>>();
-            list.add(new Pair<Double, Integer>(Double.MAX_VALUE, indx));
+            ArrayList<Pair<Double, Integer>> list = new ArrayList<>();
+            list.add(new Pair<>(Double.MAX_VALUE, indx));
             root = new VPLeaf(list);
             return;
         }
@@ -214,44 +221,40 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
                 //hacky, but works
                 int orig_leaf_isze = maxLeafSize;
                 maxLeafSize = maxLeafSize*maxLeafSize;//call normal construct with adjusted leaf size to stop expansion
-                ArrayList<Pair<Double, Integer>> S = new ArrayList<Pair<Double, Integer>>();
+                ArrayList<Pair<Double, Integer>> S = new ArrayList<>();
                 for(int i = 0; i < leaf.points.size(); i++)
-                    S.add(new Pair<Double, Integer>(Double.MAX_VALUE, leaf.points.getI(i)));
+                    S.add(new Pair<>(Double.MAX_VALUE, leaf.points.getI(i)));
                 root = makeVPTree(S);
                 maxLeafSize = orig_leaf_isze;//restor
             }
         }
         //else, normal non-leaf root insert handles expansion when needed
     }
-        
+
     @Override
-    @SuppressWarnings("unchecked")
-    public List<? extends VecPaired<V, Double>> search(Vec query, double range)
+    public void search(Vec query, double range, List<Integer> neighbors, List<Double> distances)
     {
-        if(range <= 0)
-            throw new RuntimeException("Range must be a positive number");
-        List<VecPairedComparable<V, Double>> returnList = new ArrayList<VecPairedComparable<V, Double>>();
-        
         List<Double> qi = dm.getQueryInfo(query);
-        root.searchRange(VecPaired.extractTrueVec(query), range, (List)returnList, 0.0, qi);
+        root.searchRange(VecPaired.extractTrueVec(query), range, neighbors, distances, 0.0, qi);
         
-        Collections.sort(returnList);
-        
-        return returnList;
+        IndexTable it = new IndexTable(distances);
+        it.apply(neighbors);
+        it.apply(distances);
     }
-    
+
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
+    public void search(Vec query, int numNeighbors, List<Integer> neighbors, List<Double> distances)
     {
-        BoundedSortedList<ProbailityMatch<V>> boundedList= new BoundedSortedList<ProbailityMatch<V>>(neighbors, neighbors);
+        BoundedSortedList<ProbailityMatch<Integer>> boundedList= new BoundedSortedList<>(numNeighbors, numNeighbors);
 
         List<Double> qi = dm.getQueryInfo(query);
-        root.searchKNN(VecPaired.extractTrueVec(query), neighbors, boundedList, 0.0, qi);
+        root.searchKNN(VecPaired.extractTrueVec(query), numNeighbors, boundedList, 0.0, qi);
         
-        List<VecPaired<V, Double>> list = new ArrayList<VecPaired<V, Double>>(boundedList.size());
-        for(ProbailityMatch<V> pm : boundedList)
-            list.add(new VecPaired<V, Double>(pm.getMatch(), pm.getProbability()));
-        return list;
+        for(ProbailityMatch<Integer> pm : boundedList)
+        {
+            neighbors.add(pm.getMatch());
+            distances.add(pm.getProbability());
+        }
     }
     
     /**
@@ -266,14 +269,7 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
     {
         for (Pair<Double, Integer> S1 : S)
             S1.setFirstItem(dm.dist(node.p, S1.getSecondItem(), allVecs, distCache)); //Each point gets its distance to the vantage point
-        Collections.sort(S, new Comparator<Pair<Double, Integer>>() 
-        {
-            @Override
-            public int compare(Pair<Double, Integer> o1, Pair<Double, Integer> o2)
-            {
-                return Double.compare(o1.getFirstItem(), o2.getFirstItem());
-            }
-        });
+        Collections.sort(S, (Pair<Double, Integer> o1, Pair<Double, Integer> o2) -> Double.compare(o1.getFirstItem(), o2.getFirstItem()));
         int splitIndex = splitListIndex(S); 
         node.left_low = S.get(0).getFirstItem();
         node.left_high = S.get(splitIndex).getFirstItem();
@@ -375,14 +371,10 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         final List<Pair<Double, Integer>> rightS = S.subList(splitIndex+1, S.size());
         final List<Pair<Double, Integer>> leftS = S.subList(1, splitIndex+1);
         
-        threadpool.submit(new Runnable() 
+        threadpool.submit(() -> 
         {
-            @Override
-            public void run()
-            {
-                node.right = makeVPTree(rightS, threadpool, mcdl);
-                mcdl.countDown();
-            }
+            node.right = makeVPTree(rightS, threadpool, mcdl);
+            mcdl.countDown();
         });
         node.left  = makeVPTree(leftS, threadpool, mcdl);
 
@@ -451,7 +443,7 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
     @Override
     public VPTree<V> clone()
     {
-        return new VPTree<V>(this);
+        return new VPTree<>(this);
     }
     
     private abstract class TreeNode implements Cloneable, Serializable
@@ -477,21 +469,25 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
          * @param qi the value of qi
          */
         
-        public abstract void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<V>> list, double x, List<Double> qi);
+        public abstract void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<Integer>> list, double x, List<Double> qi);
         
         /**
          * Performs a range query on this node
          * 
          * @param query the query vector
-         * @param range the maximal distance a point can be from the query point to be added to the return list
-         * @param list the storage location on the data points within the range of the query vector
-         * @param x the distance between this node's parent vantage point to the query vector.
-         * Though not all nodes will use this value, the leaf nodes will - so it should always be given.
-         * Initial calls from the root node may choose to us zero. 
+         * @param range the maximal distance a point can be from the query point
+         * to be added to the return list
+         * @param neighbors the storage location on the data points within the
+         * range of the query vector
+         * @param distances the value of distances to each neighbor
+         * @param x the distance between this node's parent vantage point to the
+         * query vector. Though not all nodes will use this value, the leaf
+         * nodes will - so it should always be given. Initial calls from the
+         * root node may choose to us zero.
          * @param qi the value of qi
          */
         
-        public abstract void searchRange(Vec query, double range, List<VecPaired<V, Double>> list, double x, List<Double> qi);
+        public abstract void searchRange(Vec query, double range, List<Integer> neighbors, List<Double> distances, double x, List<Double> qi);
         
         @Override
         public abstract TreeNode clone();
@@ -590,11 +586,11 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         }
         
         @Override
-        public void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<V>> list, double x, List<Double> qi)
+        public void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<Integer>> list, double x, List<Double> qi)
         {
             x = dm.dist(p, query, qi, allVecs, distCache);
             if(list.size() < k || x < list.get(k-1).getProbability())
-                list.add(new ProbailityMatch<V>(x, allVecs.get(this.p)));
+                list.add(new ProbailityMatch<>(x, this.p));
             double tau = list.get(list.size()-1).getProbability();
             double middle = (this.left_high+this.right_low)*0.5;
 
@@ -617,16 +613,19 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         }
 
         @Override
-        public void searchRange(Vec query, double range, List<VecPaired<V, Double>> list, double x, List<Double> qi)
+        public void searchRange(Vec query, double range, List<Integer> neighbors, List<Double> distances, double x, List<Double> qi)
         {
             x = dm.dist(this.p, query, qi, allVecs, distCache);
             if(x <= range)
-                list.add(new VecPairedComparable<V, Double>(allVecs.get(this.p), x));
+            {
+                neighbors.add(this.p);
+                distances.add(x);
+            }
 
             if (searchInLeft(x, range))
-                this.left.searchRange(query, range, list, x, qi);
+                this.left.searchRange(query, range, neighbors, distances, x, qi);
             if (searchInRight(x, range))
-                this.right.searchRange(query, range, list, x, qi);
+                this.right.searchRange(query, range, neighbors, distances, x, qi);
         }
 
         @Override
@@ -672,12 +671,12 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         }
 
         @Override
-        public void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<V>> list, double x, List<Double> qi)
+        public void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<Integer>> list, double x, List<Double> qi)
         {
             double dist = -1;
             
             //The zero check, for the case that the leaf is the ONLY node, x will be passed as 0.0 <= Max value will be true 
-            double tau = list.size() == 0 ? Double.MAX_VALUE : list.get(list.size()-1).getProbability();
+            double tau = list.isEmpty() ? Double.MAX_VALUE : list.get(list.size()-1).getProbability();
             for (int i = 0; i < points.size(); i++)
             {
                 int point_i = points.getI(i);
@@ -685,20 +684,20 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
                 if (list.size() < k)
                 {
                     
-                    list.add(new ProbailityMatch<V>(dm.dist(point_i, query, qi, allVecs, distCache), allVecs.get(point_i)));
+                    list.add(new ProbailityMatch<>(dm.dist(point_i, query, qi, allVecs, distCache), point_i));
                     tau = list.get(list.size() - 1).getProbability();
                 }
                 else if (bound_i - tau <= x && x <= bound_i + tau)//Bound check agains the distance to our parrent node, provided by x
                     if ((dist = dm.dist(point_i, query, qi, allVecs, distCache)) < tau)
                     {
-                        list.add(new ProbailityMatch<V>(dist, allVecs.get(point_i)));
+                        list.add(new ProbailityMatch<>(dist, point_i));
                         tau = list.get(list.size() - 1).getProbability();
                     }
             }
         }
 
         @Override
-        public void searchRange(Vec query, double range, List<VecPaired<V, Double>> list, double x, List<Double> qi)
+        public void searchRange(Vec query, double range, List<Integer> neighbors, List<Double> distances, double x, List<Double> qi)
         {
             double dist = Double.MAX_VALUE;
             
@@ -708,7 +707,10 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
                 double bound_i = bounds.getD(i);
                 if (bound_i - range <= x && x <= bound_i + range)//Bound check agains the distance to our parrent node, provided by x
                     if ((dist = dm.dist(point_i, query, qi, allVecs, distCache)) < range)
-                        list.add(new VecPairedComparable<V, Double>(allVecs.get(point_i), dist));
+                    {
+                        neighbors.add(point_i);
+                        distances.add(dist);
+                    }
             }
         }
 

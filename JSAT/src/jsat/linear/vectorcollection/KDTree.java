@@ -80,7 +80,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         this.distanceMetric = distanceMetric;
         this.pvSelection = pvSelection;
         this.size = vecs.size();
-        allVecs = vecs = new ArrayList<V>(vecs);//copy to avoid altering the input set
+        allVecs = vecs = new ArrayList<>(vecs);//copy to avoid altering the input set
         if(threadpool == null || threadpool instanceof FakeExecutor)
             distCache = distanceMetric.getAccelerationCache(allVecs);
         else
@@ -218,7 +218,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
             return new KDNode(this);
         }
         
-        protected void searchK(int k, BoundedSortedList<ProbailityMatch<V>> knn, Vec target, List<Double> qi)
+        protected void searchK(int k, BoundedSortedList<ProbailityMatch<Integer>> knn, Vec target, List<Double> qi)
         {
             double pivot_s = this.pivot_s;
             //Cut hr in to two sub-hyperrectangles left-hr and right-hr
@@ -261,7 +261,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
                 farKD.searchK(k, knn, target, qi);
         }
         
-        protected void searchR(double radius, List<VecPairedComparable<V, Double>> rnn, Vec target, List<Double> qi)
+        protected void searchR(double radius, List<Integer> vecsInRage, List<Double> distVecsInRange, Vec target, List<Double> qi)
         {
             double pivot_s = this.pivot_s;
             //Cut hr in to two sub-hyperrectangles left-hr and right-hr
@@ -273,10 +273,10 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
             double target_s = target.get(axis);
 
             if(radius > target_s-pivot_s)
-                left.searchR(radius, rnn, target, qi);
+                left.searchR(radius, vecsInRage, distVecsInRange, target, qi);
             
             if(radius > pivot_s-target_s)
-                right.searchR(radius, rnn, target, qi);
+                right.searchR(radius, vecsInRage, distVecsInRange, target, qi);
         }
     }
     
@@ -297,23 +297,26 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         }
 
         @Override
-        protected void searchK(int k, BoundedSortedList<ProbailityMatch<V>> knn, Vec target, List<Double> qi)
+        protected void searchK(int k, BoundedSortedList<ProbailityMatch<Integer>> knn, Vec target, List<Double> qi)
         {
             for(int i : owned)
             {
                 double dist = distanceMetric.dist(i, target, qi, allVecs, distCache);
-                knn.add(new ProbailityMatch<V>(dist, allVecs.get(i)));
+                knn.add(new ProbailityMatch<>(dist, i));
             }
         }
         
         @Override
-        protected void searchR(double radius, List<VecPairedComparable<V, Double>> rnn, Vec target, List<Double> qi)
+        protected void searchR(double radius, List<Integer> vecsInRage, List<Double> distVecsInRange, Vec target, List<Double> qi)
         {
             for(int i : owned)
             {
                 double dist = distanceMetric.dist(i, target, qi, allVecs, distCache);
                 if(dist <= radius)
-                    rnn.add(new VecPairedComparable<V, Double>(allVecs.get(i), dist));
+                {
+                    vecsInRage.add(i);
+                    distVecsInRange.add(dist);
+                }
             }
         }
 
@@ -456,26 +459,26 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
             medianIndex++;
         return medianIndex;
     }
-    
+
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
+    public void search(Vec query, int numNeighbors, List<Integer> neighbors, List<Double> distances)
     {
-        if(neighbors < 1)
+        if (numNeighbors < 1)
             throw new RuntimeException("Invalid number of neighbors to search for");
-        
-        BoundedSortedList<ProbailityMatch<V>> knns = new BoundedSortedList<ProbailityMatch<V>>(neighbors);
-        
+
+        BoundedSortedList<ProbailityMatch<Integer>> knns = new BoundedSortedList<>(numNeighbors);
+
 //        knnKDSearch(query, knns);
-        root.searchK(neighbors, knns, query, distanceMetric.getQueryInfo(query));
-        
-        List<VecPaired<V, Double>> knnsList = new ArrayList<VecPaired<V, Double>>(knns.size());
-        for(int i = 0; i < knns.size(); i++)
+        root.searchK(numNeighbors, knns, query, distanceMetric.getQueryInfo(query));
+
+        neighbors.clear();
+        distances.clear();
+        for (int i = 0; i < knns.size(); i++)
         {
-            ProbailityMatch<V> pm = knns.get(i);
-            knnsList.add(new VecPaired<V, Double>(pm.getMatch(), pm.getProbability()));
+            ProbailityMatch<Integer> pm = knns.get(i);
+            neighbors.add(pm.getMatch());
+            distances.add(pm.getProbability());
         }
-        
-        return knnsList;
     }
     
     @Override
@@ -483,32 +486,40 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     {
         return size;
     }
-    
+
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, double range)
+    public V get(int indx)
     {
-        if(range <= 0)
-            throw new RuntimeException("Range must be a positive number");
-        ArrayList<VecPairedComparable<V, Double>> vecs = new ArrayList<VecPairedComparable<V, Double>>();
-        
-        List<Double> qi = distanceMetric.getQueryInfo(query);
-        
-        root.searchR(range, vecs, query, qi);
-        
-        Collections.sort(vecs);
-        
-        return vecs;
-        
+        return allVecs.get(indx);
     }
 
     @Override
+    public void search(Vec query, double range, List<Integer> neighbors, List<Double> distances)
+    {
+        if (range <= 0)
+            throw new RuntimeException("Range must be a positive number");
+        neighbors.clear();
+        distances.clear();
+
+        
+        List<Double> qi = distanceMetric.getQueryInfo(query);
+
+        root.searchR(range, neighbors, distances, query, qi);
+
+        IndexTable it = new IndexTable(distances);
+        it.apply(neighbors);
+        it.apply(distances);
+    }
+    
+    
+    @Override
     public KDTree<V> clone()
     {
-        KDTree<V> clone = new KDTree<V>(distanceMetric, pvSelection);
+        KDTree<V> clone = new KDTree<>(distanceMetric, pvSelection);
         if(this.distCache != null)
             clone.distCache = new DoubleList(this.distCache);
         if(this.allVecs != null)
-            clone.allVecs = new ArrayList<V>(this.allVecs);
+            clone.allVecs = new ArrayList<>(this.allVecs);
         clone.size = this.size;
         if(this.root != null)
             clone.root = this.root.clone();

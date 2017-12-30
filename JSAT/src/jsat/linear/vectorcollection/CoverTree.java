@@ -91,7 +91,7 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
     public CoverTree(DistanceMetric dm)
     {
         this.dm = dm;
-        vecs = new ArrayList<V>();
+        vecs = new ArrayList<>();
     }
 
     public CoverTree(List<V> source, DistanceMetric dm)    
@@ -108,7 +108,7 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
     {
         this.dm = dm;
         setLooseBounds(looseBounds);
-        this.vecs = new ArrayList<V>(source);
+        this.vecs = new ArrayList<>(source);
         this.accell_cache = dm.getAccelerationCache(vecs, threadpool);
         //Cover Tree is sensative to insertion order, so lets make sure its random
         IntList order = new IntList(this.vecs.size());
@@ -151,35 +151,49 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
     {
         this.looseBounds = looseBounds;
     }
-    
+
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, double range)
+    public void search(Vec query, double range, List<Integer> neighbors, List<Double> distances)
     {
-        List<VecPairedComparable<V, Double>> knn = new ArrayList<VecPairedComparable<V, Double>>();
-        this.root.findNN(range, query, dm.getQueryInfo(query), knn, -1.0);
-        return knn;
+        neighbors.clear();
+        distances.clear();
+        
+        this.root.findNN(range, query, dm.getQueryInfo(query), neighbors, distances, -1.0);
+        
+        IndexTable it = new IndexTable(distances);
+        it.apply(distances);
+        it.apply(neighbors);
     }
 
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
+    public void search(Vec query, int numNeighbors, List<Integer> neighbors, List<Double> distances)
     {
 //        if(maxDistDirty && ! looseBounds)
 //        {
 //            this.root.invalidateMaxDist();
 //            maxDistDirty = false;
 //        }
-        BoundedSortedList<ProbailityMatch<V>> bsl = new BoundedSortedList<ProbailityMatch<V>>(neighbors);
-        this.root.findNN(neighbors, query, dm.getQueryInfo(query), bsl, -1);
-        List<VecPaired<V, Double>> results = new ArrayList<VecPaired<V, Double>>();
-        for(ProbailityMatch<V> v : bsl)
-            results.add(new VecPaired<V, Double>(v.getMatch(), v.getProbability()));
-        return results;
+        BoundedSortedList<ProbailityMatch<Integer>> bsl = new BoundedSortedList<>(numNeighbors);
+        this.root.findNN(numNeighbors, query, dm.getQueryInfo(query), bsl, -1);
+        neighbors.clear();
+        distances.clear();
+        for(ProbailityMatch<Integer> a : bsl)
+        {
+            neighbors.add(a.getMatch());
+            distances.add(a.getProbability());
+        }
     }
-
+    
     @Override
     public int size()
     {
         return vecs.size();
+    }
+
+    @Override
+    public V get(int indx)
+    {
+        return vecs.get(indx);
     }
 
     @Override
@@ -376,7 +390,7 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
                 this.parent.invalParentMaxdist();
         }
         
-        public void findNN(int k, Vec x, List<Double> x_qi, BoundedSortedList<ProbailityMatch<V>> knn, double my_dist_to_x)
+        public void findNN(int k, Vec x, List<Double> x_qi, BoundedSortedList<ProbailityMatch<Integer>> knn, double my_dist_to_x)
         {
             TreeNode p = this;
             
@@ -388,7 +402,7 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
             }
             else
                 p_x_dist = my_dist_to_x;
-            knn.add(new ProbailityMatch<V>(p_x_dist, vecs.get(p.vec_indx)));
+            knn.add(new ProbailityMatch<>(p_x_dist, p.vec_indx));
             //1: if d(p,x)<d(y,x) then, handled implicitly by knn object
 //            if(knn.size() < k || p_x_dist < knn.last().getProbability())
 //            knn.add(new ProbailityMatch<V>(p_x_dist, vecs.get(p.vec_indx)));//2: y <= p
@@ -412,7 +426,6 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
                 TreeNode q = p.getChild(i);
 //                knn.add(new ProbailityMatch<V>(q_x_dist[i], vecs.get(q.vec_indx)));
                 //4:  if d(y,x)>d(y,q)−maxdist(q) then
-                Vec y_vec = knn.last().getMatch();
 //                if(knn.size() < k || knn.last().getProbability() > q.dist(y_vec, dm.getQueryInfo(y_vec)) - q.maxdist())
                 if(knn.size() < k || knn.last().getProbability() > q_x_dist[i] - q.maxdist())
                     q.findNN(k, x, x_qi, knn, q_x_dist[i]);//Line 5:
@@ -423,7 +436,7 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
             }
         }
         
-        public void findNN(double radius, Vec x, List<Double> x_qi, List<VecPairedComparable<V, Double>> knn, double my_dist_to_x)
+        public void findNN(double radius, Vec x, List<Double> x_qi, List<Integer> neighbors, List<Double> distances, double my_dist_to_x)
         {
             TreeNode p = this;
             
@@ -435,7 +448,10 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
             else
                 p_x_dist = my_dist_to_x;
             if(p_x_dist <= radius)
-                knn.add(new VecPairedComparable<V, Double>(vecs.get(p.vec_indx), p_x_dist));
+            {
+                neighbors.add(p.vec_indx);
+                distances.add(p_x_dist);
+            }
             //3: for each child q of p , no need to sort b/c radius search
             double[] q_x_dist = new double[p.numChildren()];
             for(int q_indx = 0; q_indx < p.numChildren(); q_indx++)//compute dists and add to knn while we are at it
@@ -450,7 +466,7 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
                 TreeNode q = p.getChild(i);
                 //4:  if d(y,x)>d(y,q)−maxdist(q) then
                 if(radius > q_x_dist[i] - q.maxdist())
-                    q.findNN(radius, x, x_qi, knn, q_x_dist[i]);//Line 5:
+                    q.findNN(radius, x, x_qi, neighbors, distances, q_x_dist[i]);//Line 5:
             }
         }
         
