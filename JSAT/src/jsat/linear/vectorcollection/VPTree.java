@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -12,7 +11,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
-import jsat.linear.VecPairedComparable;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
@@ -21,7 +19,6 @@ import jsat.utils.IndexTable;
 import jsat.utils.IntList;
 import jsat.utils.ModifiableCountDownLatch;
 import jsat.utils.Pair;
-import jsat.utils.ProbailityMatch;
 import jsat.utils.SimpleList;
 import jsat.utils.random.RandomUtil;
 
@@ -245,15 +242,15 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
     @Override
     public void search(Vec query, int numNeighbors, List<Integer> neighbors, List<Double> distances)
     {
-        BoundedSortedList<ProbailityMatch<Integer>> boundedList= new BoundedSortedList<>(numNeighbors, numNeighbors);
+        BoundedSortedList<IndexDistPair> boundedList= new BoundedSortedList<>(numNeighbors, numNeighbors);
 
         List<Double> qi = dm.getQueryInfo(query);
         root.searchKNN(VecPaired.extractTrueVec(query), numNeighbors, boundedList, 0.0, qi);
         
-        for(ProbailityMatch<Integer> pm : boundedList)
+        for(IndexDistPair pm : boundedList)
         {
-            neighbors.add(pm.getMatch());
-            distances.add(pm.getProbability());
+            neighbors.add(pm.getIndex());
+            distances.add(pm.getDist());
         }
     }
     
@@ -469,7 +466,7 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
          * @param qi the value of qi
          */
         
-        public abstract void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<Integer>> list, double x, List<Double> qi);
+        public abstract void searchKNN(Vec query, int k, BoundedSortedList<IndexDistPair> list, double x, List<Double> qi);
         
         /**
          * Performs a range query on this node
@@ -552,9 +549,9 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
                 IntList childs_children = ((VPLeaf) child).points;
                 if(childs_children.size() <= maxLeafSize*maxLeafSize)
                     return child;
-                List<Pair<Double, Integer>> S = new ArrayList<Pair<Double, Integer>>(childs_children.size());
+                List<Pair<Double, Integer>> S = new ArrayList<>(childs_children.size());
                 for(int indx : childs_children)
-                    S.add(new Pair<Double, Integer>(Double.MAX_VALUE, indx));//double value will be set apprioatly later
+                    S.add(new Pair<>(Double.MAX_VALUE, indx));//double value will be set apprioatly later
                 int vpIndex = selectVantagePointIndex(S);
                 
                 final VPNode node = new VPNode(S.get(vpIndex).getSecondItem());
@@ -586,19 +583,19 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         }
         
         @Override
-        public void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<Integer>> list, double x, List<Double> qi)
+        public void searchKNN(Vec query, int k, BoundedSortedList<IndexDistPair> list, double x, List<Double> qi)
         {
             x = dm.dist(p, query, qi, allVecs, distCache);
-            if(list.size() < k || x < list.get(k-1).getProbability())
-                list.add(new ProbailityMatch<>(x, this.p));
-            double tau = list.get(list.size()-1).getProbability();
+            if(list.size() < k || x < list.get(k-1).getDist())
+                list.add(new IndexDistPair(this.p, x));
+            double tau = list.get(list.size()-1).getDist();
             double middle = (this.left_high+this.right_low)*0.5;
 
             if( x < middle)
             {
                 if(searchInLeft(x, tau) || list.size() < k)
                     this.left.searchKNN(query, k, list, x, qi);
-                tau = list.get(list.size()-1).getProbability();
+                tau = list.get(list.size()-1).getDist();
                 if(searchInRight(x, tau) || list.size() < k)
                     this.right.searchKNN(query, k, list, x, qi);
             }
@@ -606,7 +603,7 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
             {
                 if(searchInRight(x, tau) || list.size() < k)
                     this.right.searchKNN(query, k, list, x, qi);
-                tau = list.get(list.size()-1).getProbability();
+                tau = list.get(list.size()-1).getDist();
                 if(searchInLeft(x, tau) || list.size() < k)
                     this.left.searchKNN(query, k, list, x, qi);
             }
@@ -671,12 +668,12 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         }
 
         @Override
-        public void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<Integer>> list, double x, List<Double> qi)
+        public void searchKNN(Vec query, int k, BoundedSortedList<IndexDistPair> list, double x, List<Double> qi)
         {
             double dist = -1;
             
             //The zero check, for the case that the leaf is the ONLY node, x will be passed as 0.0 <= Max value will be true 
-            double tau = list.isEmpty() ? Double.MAX_VALUE : list.get(list.size()-1).getProbability();
+            double tau = list.isEmpty() ? Double.MAX_VALUE : list.get(list.size()-1).getDist();
             for (int i = 0; i < points.size(); i++)
             {
                 int point_i = points.getI(i);
@@ -684,14 +681,14 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
                 if (list.size() < k)
                 {
                     
-                    list.add(new ProbailityMatch<>(dm.dist(point_i, query, qi, allVecs, distCache), point_i));
-                    tau = list.get(list.size() - 1).getProbability();
+                    list.add(new IndexDistPair(point_i, dm.dist(point_i, query, qi, allVecs, distCache)));
+                    tau = list.get(list.size() - 1).getDist();
                 }
                 else if (bound_i - tau <= x && x <= bound_i + tau)//Bound check agains the distance to our parrent node, provided by x
                     if ((dist = dm.dist(point_i, query, qi, allVecs, distCache)) < tau)
                     {
-                        list.add(new ProbailityMatch<>(dist, point_i));
-                        tau = list.get(list.size() - 1).getProbability();
+                        list.add(new IndexDistPair(point_i, dist));
+                        tau = list.get(list.size() - 1).getDist();
                     }
             }
         }
@@ -740,19 +737,19 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         @Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
         {
-            return new VPTree<V>(source, distanceMetric, vpSelectionMethod);
+            return new VPTree<>(source, distanceMetric, vpSelectionMethod);
         }
 
         @Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
         {
-            return new VPTree<V>(source, distanceMetric, vpSelectionMethod, new Random(10), 80, 40, threadpool);
+            return new VPTree<>(source, distanceMetric, vpSelectionMethod, new Random(10), 80, 40, threadpool);
         }
 
         @Override
         public VectorCollectionFactory<V> clone()
         {
-            return new VPTreeFactory<V>(vpSelectionMethod);
+            return new VPTreeFactory<>(vpSelectionMethod);
         }
     }
 }

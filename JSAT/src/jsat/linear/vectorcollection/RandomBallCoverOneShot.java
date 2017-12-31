@@ -8,7 +8,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
-import jsat.linear.VecPairedComparable;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
@@ -16,7 +15,7 @@ import jsat.utils.FakeExecutor;
 import jsat.utils.IndexTable;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
-import jsat.utils.ProbailityMatch;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * An implementation of the on shot search for the Random Ball Cover algorithm. 
@@ -132,7 +131,7 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
     private RandomBallCoverOneShot(RandomBallCoverOneShot<V> other)
     {
         this.dm = other.dm.clone();
-        this.ownedVecs = new ArrayList<List<Integer>>(other.ownedVecs.size());
+        this.ownedVecs = new ArrayList<>(other.ownedVecs.size());
         for(int i = 0; i < other.ownedVecs.size(); i++)
         {
             this.ownedVecs.add(new IntList(other.ownedVecs.get(i)));
@@ -143,18 +142,18 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
         if(other.distCache != null)
             this.distCache = new DoubleList(other.distCache);
         if(other.allVecs != null)
-            this.allVecs = new ArrayList<V>(other.allVecs);
+            this.allVecs = new ArrayList<>(other.allVecs);
     }
 
     private void setUp(List<Integer> allIndices, ExecutorService execServ) throws InterruptedException
     {
-        int repCount = (int) Math.max(1, Math.sqrt(allIndices.size()));;
+        int repCount = (int) Math.max(1, Math.sqrt(allIndices.size()));
         Collections.shuffle(allIndices);
         
         R = allIndices.subList(0, repCount);
         repRadius = new double[R.size()];
         final List<Integer> allRemainingVecs = allIndices.subList(repCount, allIndices.size());
-        ownedVecs = new ArrayList<List<Integer>>(repCount);
+        ownedVecs = new ArrayList<>(repCount);
         
 
         for (int i = 0; i < repCount; i++)
@@ -162,32 +161,18 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
             ownedVecs.add(new IntList(s));
         }
 
-        final CountDownLatch latch = new CountDownLatch(R.size());
-        for (int i = 0; i < R.size(); i++)
+        ParallelUtils.run(true, R.size(), (i)->
         {
             final int Ri = R.get(i);
             final List<Integer> ROwned = ownedVecs.get(i);
-            execServ.submit(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    BoundedSortedList<ProbailityMatch<VecPaired<V, Integer>>> nearest =
-                            new BoundedSortedList<ProbailityMatch<VecPaired<V, Integer>>>(s, s);
-                    for(int v : allRemainingVecs)
-                        nearest.add(new ProbailityMatch<VecPaired<V, Integer>>(dm.dist(v, Ri, allVecs, distCache), new VecPaired<V, Integer>(allVecs.get(v), v)));
-                    
-                    for(ProbailityMatch<VecPaired<V, Integer>> pmv : nearest)
-                        ROwned.add(pmv.getMatch().getPair());
-
-                    latch.countDown();
-                }
-            });
-        }
-
-        latch.await();
-
-
+            BoundedSortedList<IndexDistPair> nearest = new BoundedSortedList<>(s);
+            for(int v : allRemainingVecs)
+                nearest.add(new IndexDistPair(v, dm.dist(v, Ri, allVecs, distCache)));
+            for(IndexDistPair pmv : nearest)
+                ROwned.add(pmv.getIndex());
+            
+        }, execServ);
+        
     }
 
     @Override
@@ -234,7 +219,7 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
         neighbors.clear();
         distances.clear();
         
-        BoundedSortedList<ProbailityMatch<Integer>> knn =
+        BoundedSortedList<IndexDistPair> knn =
                 new BoundedSortedList<>(numNeighbors);
 
         List<Double> qi = dm.getQueryInfo(query);
@@ -248,15 +233,15 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
                 bestRep = i;
                 bestDist = tmp;
             }
-        knn.add(new ProbailityMatch<>(bestDist, R.get(bestRep)));
+        knn.add(new IndexDistPair(R.get(bestRep), bestDist));
 
         for (int v : ownedVecs.get(bestRep))
-            knn.add(new ProbailityMatch<>(dm.dist(v, query, qi, allVecs, distCache), v));
+            knn.add(new IndexDistPair(v, dm.dist(v, query, qi, allVecs, distCache)));
 
-        for(ProbailityMatch<Integer> v : knn)
+        for(IndexDistPair v : knn)
         {
-            neighbors.add(v.getMatch());
-            distances.add(v.getProbability());
+            neighbors.add(v.getIndex());
+            distances.add(v.getDist());
         }
     }
 

@@ -6,8 +6,6 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 import jsat.linear.Vec;
-import jsat.linear.VecPaired;
-import jsat.linear.VecPairedComparable;
 import jsat.linear.distancemetrics.*;
 import jsat.math.OnLineStatistics;
 import jsat.utils.*;
@@ -218,7 +216,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
             return new KDNode(this);
         }
         
-        protected void searchK(int k, BoundedSortedList<ProbailityMatch<Integer>> knn, Vec target, List<Double> qi)
+        protected void searchK(int k, BoundedSortedList<IndexDistPair> knn, Vec target, List<Double> qi)
         {
             double pivot_s = this.pivot_s;
             //Cut hr in to two sub-hyperrectangles left-hr and right-hr
@@ -256,7 +254,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
             
             double maxDistSoFar = Double.MAX_VALUE;
             if(knn.size() >= k)
-                maxDistSoFar = knn.get(k-1).getProbability();
+                maxDistSoFar = knn.get(k-1).getDist();
             if(maxDistSoFar > Math.abs(target_s-pivot_s))
                 farKD.searchK(k, knn, target, qi);
         }
@@ -297,12 +295,12 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         }
 
         @Override
-        protected void searchK(int k, BoundedSortedList<ProbailityMatch<Integer>> knn, Vec target, List<Double> qi)
+        protected void searchK(int k, BoundedSortedList<IndexDistPair> knn, Vec target, List<Double> qi)
         {
             for(int i : owned)
             {
                 double dist = distanceMetric.dist(i, target, qi, allVecs, distCache);
-                knn.add(new ProbailityMatch<>(dist, i));
+                knn.add(new IndexDistPair(i, dist));
             }
         }
         
@@ -466,7 +464,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         if (numNeighbors < 1)
             throw new RuntimeException("Invalid number of neighbors to search for");
 
-        BoundedSortedList<ProbailityMatch<Integer>> knns = new BoundedSortedList<>(numNeighbors);
+        BoundedSortedList<IndexDistPair> knns = new BoundedSortedList<>(numNeighbors);
 
 //        knnKDSearch(query, knns);
         root.searchK(numNeighbors, knns, query, distanceMetric.getQueryInfo(query));
@@ -475,9 +473,9 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         distances.clear();
         for (int i = 0; i < knns.size(); i++)
         {
-            ProbailityMatch<Integer> pm = knns.get(i);
-            neighbors.add(pm.getMatch());
-            distances.add(pm.getProbability());
+            IndexDistPair pm = knns.get(i);
+            neighbors.add(pm.getIndex());
+            distances.add(pm.getDist());
         }
     }
     

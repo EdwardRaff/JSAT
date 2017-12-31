@@ -19,17 +19,11 @@ package jsat.linear.vectorcollection;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
-import jsat.exceptions.FailedToFitException;
 import jsat.linear.Vec;
-import jsat.linear.VecPaired;
-import jsat.linear.VecPairedComparable;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.math.FastMath;
 import jsat.utils.BoundedSortedList;
@@ -38,7 +32,6 @@ import jsat.utils.FakeExecutor;
 import jsat.utils.IndexTable;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
-import jsat.utils.ProbailityMatch;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -173,14 +166,14 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
 //            this.root.invalidateMaxDist();
 //            maxDistDirty = false;
 //        }
-        BoundedSortedList<ProbailityMatch<Integer>> bsl = new BoundedSortedList<>(numNeighbors);
+        BoundedSortedList<IndexDistPair> bsl = new BoundedSortedList<>(numNeighbors);
         this.root.findNN(numNeighbors, query, dm.getQueryInfo(query), bsl, -1);
         neighbors.clear();
         distances.clear();
-        for(ProbailityMatch<Integer> a : bsl)
+        for(IndexDistPair a : bsl)
         {
-            neighbors.add(a.getMatch());
-            distances.add(a.getProbability());
+            neighbors.add(a.getIndex());
+            distances.add(a.getDist());
         }
     }
     
@@ -390,7 +383,7 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
                 this.parent.invalParentMaxdist();
         }
         
-        public void findNN(int k, Vec x, List<Double> x_qi, BoundedSortedList<ProbailityMatch<Integer>> knn, double my_dist_to_x)
+        public void findNN(int k, Vec x, List<Double> x_qi, BoundedSortedList<IndexDistPair> knn, double my_dist_to_x)
         {
             TreeNode p = this;
             
@@ -402,9 +395,9 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
             }
             else
                 p_x_dist = my_dist_to_x;
-            knn.add(new ProbailityMatch<>(p_x_dist, p.vec_indx));
+            knn.add(new IndexDistPair(p.vec_indx, p_x_dist));
             //1: if d(p,x)<d(y,x) then, handled implicitly by knn object
-//            if(knn.size() < k || p_x_dist < knn.last().getProbability())
+//            if(knn.size() < k || p_x_dist < knn.last().getDist())
 //            knn.add(new ProbailityMatch<V>(p_x_dist, vecs.get(p.vec_indx)));//2: y <= p
             //3: for each child q of p sorted by *distance to x* do
             double[] q_x_dist = new double[p.numChildren()];
@@ -426,8 +419,8 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
                 TreeNode q = p.getChild(i);
 //                knn.add(new ProbailityMatch<V>(q_x_dist[i], vecs.get(q.vec_indx)));
                 //4:  if d(y,x)>d(y,q)−maxdist(q) then
-//                if(knn.size() < k || knn.last().getProbability() > q.dist(y_vec, dm.getQueryInfo(y_vec)) - q.maxdist())
-                if(knn.size() < k || knn.last().getProbability() > q_x_dist[i] - q.maxdist())
+//                if(knn.size() < k || knn.last().getDist() > q.dist(y_vec, dm.getQueryInfo(y_vec)) - q.maxdist())
+                if(knn.size() < k || knn.last().getDist() > q_x_dist[i] - q.maxdist())
                     q.findNN(k, x, x_qi, knn, q_x_dist[i]);//Line 5:
 //                else if(q.isLeaf())
 //                {

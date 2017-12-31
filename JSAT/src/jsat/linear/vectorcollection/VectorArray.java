@@ -10,7 +10,6 @@ import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
 import jsat.utils.IndexTable;
-import jsat.utils.ProbailityMatch;
 
 /**
  * This is the naive implementation of a Vector collection. Construction time is 
@@ -120,20 +119,20 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements Incremen
     @Override
     public void search(Vec query, int numNeighbors, List<Integer> neighbors, List<Double> distances)
     {
-        BoundedSortedList<ProbailityMatch<Integer>> knns = new BoundedSortedList<>(numNeighbors);
+        BoundedSortedList<IndexDistPair> knns = new BoundedSortedList<>(numNeighbors);
         
         List<Double> qi = distanceMetric.getQueryInfo(query);
         
         for(int i = 0; i < size(); i++)
         {
             double distance = distanceMetric.dist(i, query, qi, this, distCache);
-            knns.add(new ProbailityMatch<>(distance, i));
+            knns.add(new IndexDistPair(i, distance));
         }
         
         for(int i = 0; i < knns.size(); i++)
         {
-            neighbors.add(knns.get(i).getMatch());
-            distances.add(knns.get(i).getProbability());
+            neighbors.add(knns.get(i).getIndex());
+            distances.add(knns.get(i).getDist());
         }
     }
 

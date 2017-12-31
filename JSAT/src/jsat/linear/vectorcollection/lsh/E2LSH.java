@@ -17,7 +17,6 @@ import jsat.linear.distancemetrics.ManhattanDistance;
 import jsat.utils.IntList;
 import jsat.utils.IntSet;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 
 /**
  * This is an implementation of Locality Sensitive Hashing for the 

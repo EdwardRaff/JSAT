@@ -7,12 +7,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.Vec;
-import jsat.linear.VecPaired;
-import jsat.linear.VecPairedComparable;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.utils.*;
 import static jsat.utils.SystemInfo.LogicalCores;
@@ -258,7 +254,7 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
     @Override
     public void search(Vec query, int numNeighbors, List<Integer> neighbors, List<Double> distances)
     {
-        BoundedSortedList<ProbailityMatch<Integer>> knn = new BoundedSortedList<>(numNeighbors);
+        BoundedSortedList<IndexDistPair> knn = new BoundedSortedList<>(numNeighbors);
         
         neighbors.clear();
         distances.clear();
@@ -268,7 +264,7 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
         if(repRadius == null)//brute force search b/c small collection
         {
             for(int i = 0; i < allVecs.size(); i++)
-                knn.add(new ProbailityMatch<>(dm.dist(i, query, qi, allVecs, distCache), i));
+                knn.add(new IndexDistPair(i, dm.dist(i, query, qi, allVecs, distCache)));
         }
         else
         {
@@ -280,7 +276,7 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
                 if ((queryRDists[i] = dm.dist(R.get(i), query, qi, allVecs, distCache)) < queryRDists[bestRep])
                     bestRep = i;
             //Other cluster reps R will get a chance to be added to the list later
-            knn.add(new ProbailityMatch<>(queryRDists[bestRep], R.get(bestRep)));
+            knn.add(new IndexDistPair(R.get(bestRep), queryRDists[bestRep]));
 
             //need k'th nearest representative R for bounds check
             IndexTable it = new IndexTable(queryRDists);
@@ -291,7 +287,7 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
                 kth_best_rept = -1;//if somone uses this we will get an IndexOutOfBound, telling us about the bug! 
 
             for (int v : ownedVecs.get(bestRep))
-                knn.add(new ProbailityMatch<>(dm.dist(v, query, qi, allVecs, distCache), v));
+                knn.add(new IndexDistPair(v, dm.dist(v, query, qi, allVecs, distCache)));
 
             //k-nn search through the rest of the data set
             for (int sorted_order = 1; sorted_order < R.size(); sorted_order++)
@@ -301,7 +297,7 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
                 if(knn.size() == numNeighbors)//no prunnig until we reach k-nns
                 {
                     //Prune out representatives that are just too far
-                    if (queryRDists[i] > knn.last().getProbability() + repRadius[i])
+                    if (queryRDists[i] > knn.last().getDist() + repRadius[i])
                         continue;
                     //check to make sure we can use this bound before attempting
                     else if (kth_best_rept >= 0 && queryRDists[i] > 3 * queryRDists[kth_best_rept])
@@ -310,27 +306,27 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
 
                 //Add any new nn imediatly, hopefully shrinking the bound before
                 //the next representative is tested
-                knn.add(new ProbailityMatch<>(queryRDists[i], R.get(i)));
+                knn.add(new IndexDistPair(R.get(i), queryRDists[i]));
                 final List<Integer> L_i_index = ownedVecs.get(i);
                 final DoubleList L_i_radius = ownedRDists.get(i);
                 for (int j = 0; j < ownedVecs.get(i).size(); j++)
                 {
                     double rDist = L_i_radius.getD(j);
                     //Check the first inequality on a per point basis
-                    if (knn.size() == numNeighbors && queryRDists[i] > knn.last().getProbability() + rDist)
+                    if (knn.size() == numNeighbors && queryRDists[i] > knn.last().getDist() + rDist)
                         continue;
                     int indx = L_i_index.get(j);
                     V v = allVecs.get(indx);
 
-                    knn.add(new ProbailityMatch<>(dm.dist(indx, query, qi, allVecs, distCache), indx));
+                    knn.add(new IndexDistPair(indx, dm.dist(indx, query, qi, allVecs, distCache)));
                 }
             }
         }
         
-        for(ProbailityMatch<Integer> v : knn)
+        for(IndexDistPair v : knn)
         {
-            neighbors.add(v.getMatch());
-            distances.add(v.getProbability());
+            neighbors.add(v.getIndex());
+            distances.add(v.getDist());
         }
     }
     
