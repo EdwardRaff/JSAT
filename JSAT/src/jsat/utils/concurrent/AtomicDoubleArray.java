@@ -3,6 +3,8 @@ package jsat.utils.concurrent;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLongArray;
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleUnaryOperator;
 
 /**
  * Provides a double array that can have individual values updated 
@@ -14,8 +16,8 @@ import java.util.concurrent.atomic.AtomicLongArray;
 public class AtomicDoubleArray implements Serializable
 {
 
-	private static final long serialVersionUID = -8799170460903375842L;
-	private AtomicLongArray larray;
+    private static final long serialVersionUID = -8799170460903375842L;
+    private AtomicLongArray larray;
 
     /**
      * Creates a new AtomicDoubleArray of the given length, with all values 
@@ -171,6 +173,102 @@ public class AtomicDoubleArray implements Serializable
         long expectedL = Double.doubleToRawLongBits(expected);
         long updateL = Double.doubleToRawLongBits(update);
         return larray.weakCompareAndSet(i, expectedL, updateL);
+    }
+    
+    /**
+     * Atomically updates the element at index {@code i} with the results
+     * of applying the given function, returning the updated value. The
+     * function should be side-effect-free, since it may be re-applied
+     * when attempted updates fail due to contention among threads.
+     *
+     * @param i the index
+     * @param updateFunction a side-effect-free function
+     * @return the updated value
+     */
+    public final double updateAndGet(int i, DoubleUnaryOperator updateFunction)
+    {
+        double prev, next;
+        do
+        {
+            prev = get(i);
+            next = updateFunction.applyAsDouble(prev);
+        }
+        while (!compareAndSet(i, prev, next));
+        return next;
+    }
+    
+    /**
+     * Atomically updates the element at index {@code i} with the results
+     * of applying the given function, returning the previous value. The
+     * function should be side-effect-free, since it may be re-applied
+     * when attempted updates fail due to contention among threads.
+     *
+     * @param i the index
+     * @param updateFunction a side-effect-free function
+     * @return the previous value
+     */
+    public final double getAndUpdate(int i, DoubleUnaryOperator updateFunction)
+    {
+        double prev, next;
+        do
+        {
+            prev = get(i);
+            next = updateFunction.applyAsDouble(prev);
+        }
+        while (!compareAndSet(i, prev, next));
+        return prev;
+    }
+
+    /**
+     * Atomically updates the element at index {@code i} with the
+     * results of applying the given function to the current and
+     * given values, returning the previous value. The function should
+     * be side-effect-free, since it may be re-applied when attempted
+     * updates fail due to contention among threads.  The function is
+     * applied with the current value at index {@code i} as its first
+     * argument, and the given update as the second argument.
+     *
+     * @param i the index
+     * @param x the update value
+     * @param accumulatorFunction a side-effect-free function of two arguments
+     * @return the previous value
+     */
+    public final double getAndAccumulate(int i, long x, DoubleBinaryOperator accumulatorFunction)
+    {
+        double prev, next;
+        do
+        {
+            prev = get(i);
+            next = accumulatorFunction.applyAsDouble(prev, x);
+        }
+        while (!compareAndSet(i, prev, next));
+        return prev;
+    }
+    
+    /**
+     * Atomically updates the element at index {@code i} with the
+     * results of applying the given function to the current and
+     * given values, returning the updated value. The function should
+     * be side-effect-free, since it may be re-applied when attempted
+     * updates fail due to contention among threads.  The function is
+     * applied with the current value at index {@code i} as its first
+     * argument, and the given update as the second argument.
+     *
+     * @param i the index
+     * @param x the update value
+     * @param accumulatorFunction a side-effect-free function of two arguments
+     * @return the updated value
+     */
+    public final double accumulateAndGet(int i, long x, DoubleBinaryOperator accumulatorFunction)
+    {
+        double prev, next;
+        do
+        {
+            prev = get(i);
+            next = accumulatorFunction.applyAsDouble(prev, x);
+        }
+        while (!compareAndSet(i, prev, next));
+        return next;
     }
     
     /**
