@@ -29,7 +29,6 @@ public class PAM implements KClusterer
     protected DistanceMetric dm;
     protected Random rand;
     protected SeedSelection seedSelection;
-    protected int repeats = 1;
     protected int iterLimit = 100;
     
     protected int[] medoids;
@@ -74,6 +73,26 @@ public class PAM implements KClusterer
     {
         return iterLimit;
     }
+
+    /**
+     * Sets the distance metric used by this clustering algorithm
+     * @param dm the distance metric to use
+     */
+    public void setDistanceMetric(DistanceMetric dm)
+    {
+        this.dm = dm;
+    }
+
+    /**
+     * 
+     * @return the distance metric to be used by this algorithm
+     */
+    public DistanceMetric getDistanceMetric()
+    {
+        return dm;
+    }
+    
+    
     
 
     /**
@@ -89,7 +108,6 @@ public class PAM implements KClusterer
             this.medoids = Arrays.copyOf(toCopy.medoids, toCopy.medoids.length);
         this.storeMedoids = toCopy.storeMedoids;
         this.iterLimit = toCopy.iterLimit;
-        this.repeats = toCopy.repeats;
     }
     
     /**
@@ -158,7 +176,7 @@ public class PAM implements KClusterer
         {
             TrainableDistanceMetric.trainIfNeeded(dm, data);
             accel = dm.getAccelerationCache(X);
-            selectIntialPoints(data, medoids, dm, accel, rand, seedSelection);
+            selectIntialPoints(data, medioids, dm, accel, rand, seedSelection);
         }
         else
             accel = cacheAccel;

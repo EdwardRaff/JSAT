@@ -72,6 +72,15 @@ public interface DistanceMetric extends Cloneable, Serializable
     public boolean isIndiscemible();
     
     /**
+     * Returns true if this distance method obeys all the rules required to be a valid metric. 
+     * @return true if this distance method obeys all the rules required to be a valid metric. 
+     */
+    default public boolean isValidMetric()
+    {
+        return isSymmetric() && isSubadditive() && isIndiscemible();
+    }
+    
+    /**
      * All metrics must return values greater than or equal to 0. 
      * The upper bound on the value returned is different for 
      * different metrics. This method returns the theoretical 
