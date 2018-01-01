@@ -17,9 +17,13 @@
 
 package jsat.clustering;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.DoubleStream;
 import jsat.DataSet;
@@ -27,8 +31,9 @@ import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
-import jsat.utils.IntSet;
-import jsat.utils.concurrent.ParallelUtils;
+import jsat.utils.concurrent.AtomicDoubleArray;
+import static jsat.utils.concurrent.ParallelUtils.*;
+import static java.lang.Math.*;
 
 /**
  * This class implements the TRIKMEDS algorithm for PAM clustering. It returns
@@ -94,9 +99,9 @@ public class TRIKMEDS extends PAM
         final int K = medioids.length;
         //medioids = m
         //m(k) : index of current medoid of cluster k,m(k) ∈ {1, . . . ,N}
-        final int[] m = medioids;
+        final AtomicIntegerArray m = new AtomicIntegerArray(K);
         //c(k) : current medoid of cluster k, that is c(k) = x(m(k))
-        final int[] c = new int[K];
+        final int[] c = medioids;
         //n_1(i) : cluster index of centroid nearest to x(i)
         
         //a(i) : cluster to which x(i) is currently assigned
@@ -106,7 +111,7 @@ public class TRIKMEDS extends PAM
         final double[] d = new double[N];
         final double[] d_tilde = new double[N];
         //v(k) : number of samples assigned to cluster k
-        final double[] v = new double[K];
+        final AtomicDoubleArray v = new AtomicDoubleArray(K);
         //V (k) : number of samples assigned to a cluster of index less than k +1
         //We don't use V in this implementation. Paper uses it as a weird way of simplifying algorithm description. But not needed
         
@@ -114,28 +119,28 @@ public class TRIKMEDS extends PAM
         double[][] lc = new double[N][K];
         
         //ls(i) : lowerbound on
-        double[] ls = new double[N];
+        AtomicDoubleArray ls = new AtomicDoubleArray(N);
         
         //p(k) : distance moved (teleported) by m(k) in last update
         double[] p = new double[K];
         
         //s(k) : sum of distances of samples in cluster k to medoid k
-        double[] s = new double[K];
-        
+        AtomicDoubleArray s = new AtomicDoubleArray(K);
 
-        IntSet[] ownedBy = new IntSet[K];
+        List<Set<Integer>> ownedBy = new ArrayList<>(K);
         for(int i = 0; i < K; i++)
-            ownedBy[i] = new IntSet();
+            ownedBy.add(new ConcurrentSkipListSet<>());
         
         //Working sets used in updates
-        double[] delta_n_in = new double[K];
-        double[] delta_n_out = new double[K];
-        double[] delta_s_in = new double[K];
-        double[] delta_s_out = new double[K];
+        final AtomicDoubleArray delta_n_in = new AtomicDoubleArray(K);
+        final AtomicDoubleArray delta_n_out = new AtomicDoubleArray(K);
+        final AtomicDoubleArray delta_s_in = new AtomicDoubleArray(K);
+        final AtomicDoubleArray delta_s_out = new AtomicDoubleArray(K);
         
         // initialise //
-        System.arraycopy(m, 0, c, 0, K);
-        ParallelUtils.run(parallel, N, (start, end) -> 
+        for(int k = 0; k < K; k++)
+            m.set(k, c[k]);
+        run(parallel, N, (start, end) -> 
         {
             for(int i = start; i < end; i++)
             {
@@ -144,7 +149,7 @@ public class TRIKMEDS extends PAM
                 for(int k = 0; k < K; k++)
                 {
                     //Tightly initialise lower bounds on data-to-medoid distances
-                    lc[i][k] = dm.dist(i, m[k], X, accel);
+                    lc[i][k] = dm.dist(i, m.get(k), X, accel);
                     if(lc[i][k] <= a_min_val)
                     {
                         a_min_val = lc[i][k];
@@ -155,17 +160,17 @@ public class TRIKMEDS extends PAM
                 a[i] = a_min_k;
                 d[i] = a_min_val;
                 //Update cluster count
-                v[a[i]]++;
-                ownedBy[a_min_k].add(i);
+                v.getAndAdd(a[i], 1);
+                ownedBy.get(a_min_k).add(i);
                 //Update sum of distances to medoid
-                s[a[i]] += d[i];
+                s.addAndGet(a[i], d[i]);
                 //Initialise lower bound on sum of in-cluster distances to x(i) to zero
-                ls[i] = 0;
+                ls.set(i, 0.0);
             }
         });
         
         for(int k = 0; k < K; k++)
-            ls[m[k]] = s[k];
+            ls.set(m.get(k), s.get(k));
         //end initialization
         
         int iter = 0;
@@ -174,50 +179,72 @@ public class TRIKMEDS extends PAM
             changes.reset();
             
             ///// update-medoids() //////
-            for(int k = 0; k < K; k++)
+            boolean[] medioid_changed = new boolean[K];
+            Arrays.fill(medioid_changed, false);
+            run(parallel, N, (i)->
             {
-                boolean medoid_k_changed = false;
-                for(int i : ownedBy[k])
+                for(int k = 0; k < K; k++)
                 {
                     // If the bound test cannot exclude i asm(k)
-                    if(ls[i] < s[k])
+                    if(ls.get(i) < s.get(k))
                     {
                         // Make ls(i) tight by computing and cumulating all in-cluster distances to x(i),
-                        ls[i] = 0;
-                        for(int j : ownedBy[k])
+                        double ls_i_new = 0;
+                        for(int j : ownedBy.get(k))
                         {
                             d_tilde[j] = dm.dist(i, j, X, accel);
-                            ls[i] += d_tilde[j];
+                            ls_i_new += d_tilde[j];
                         }
+                        ls.set(i, ls_i_new);
                         //// Re-perform the test for i as candidate for m(k), now with exact sums. 
                         //If i is the new best candidate, update some cluster information
-                        if(ls[i] < s[k])
+                        
+                        if(ls_i_new < s.get(k))
                         {
-                            s[k] = ls[i];
-                            m[k] = i;
-                            medoid_k_changed = true;
-                            for(int j : ownedBy[k])
-                                d[j] = d_tilde[j];
+                            /* Normally we would just check once. But if we are 
+                             * doing this in parallel, we need to make the 
+                             * switch out safe. So syncrhonize and re-peat the 
+                             * check to avoid any race condition. We do the
+                             * check twice b/c the check may happen often, but 
+                             * only return true a few times. So lets avoid 
+                             * contention and just do a re-check after we found 
+                             * out we needed to do an update. */
+                            synchronized (s)
+                            {
+                                if (ls_i_new < s.get(k))
+                                {
+                                    s.set(k, ls_i_new);
+                                    m.set(k, i);
+                                    medioid_changed[k] = true;
+                                    for(int j : ownedBy.get(k))
+                                        d[j] = d_tilde[j];
+                                }
+                            }
                         }
                         //Use computed distances to i to improve lower bounds on sums for all samples in cluster k (see Figure X)
-                        for(int j : ownedBy[k])
-                            ls[j] = Math.max(ls[j], Math.abs(d_tilde[j]*v[k]-ls[i]));
-                        
+                        for(int j : ownedBy.get(k))
+                            ls.accumulateAndGet(j, d[j]*v.get(k), (ls_j, d_jXv_k) -> max(ls_j, abs(d_jXv_k-ls_j)));
                     }
                 }
-                // If the medoid of cluster k has changed, update cluster information
-                if(medoid_k_changed)
+            });
+            
+            // If the medoid of cluster k has changed, update cluster information
+            run(parallel, K, (k)->
+            {
+                if(medioid_changed[k])
                 {
-                    p[k] = dm.dist(c[k], m[k], X, accel);
-                    c[k] = m[k];
+                    p[k] = dm.dist(c[k], m.get(k), X, accel);
+                    c[k] = m.get(k);
                 }
-            }
+                
+                //lets sneak in zero-ing out the delta arrays for the next stwp while are are doing a parallel loop
+                delta_n_in.set(k, 0.0);
+                delta_n_out.set(k, 0.0);
+                delta_s_in.set(k, 0.0);
+                delta_s_out.set(k, 0.0);
+            });
             ///// assign-to-clusters()  //////
-            Arrays.fill(delta_n_in, 0);
-            Arrays.fill(delta_n_out, 0);
-            Arrays.fill(delta_s_in, 0);
-            Arrays.fill(delta_s_out, 0);
-            for(int i = 0; i < N; i++)
+            run(parallel, N, (i)->
             {
                 // Update lower bounds on distances to medoids based on distances moved by medoids
                 for(int k = 0; k < K; k++)
@@ -241,32 +268,43 @@ public class TRIKMEDS extends PAM
                 // If the assignment has changed, update statistics
                 if(a_old != a[i])
                 {
-                    v[a_old]--;
-                    v[a[i]]++;
+                    v.getAndDecrement(a_old);
+                    v.getAndIncrement(a[i]);
                     changes.increment();
-                    ownedBy[a_old].remove(i);
-                    ownedBy[a[i]].add(i);
-                    ls[i] = 0;
-                    delta_n_in[a[i]]++;
-                    delta_n_out[a_old]++;
-                    delta_s_in[a[i]] += d[i];
-                    delta_s_out[a_old] += d_old;
+                    ownedBy.get(a_old).remove(i);
+                    ownedBy.get(a[i]).add(i);
+                    ls.set(i, 0.0);
+                    delta_n_in.getAndIncrement(a[i]);
+                    delta_n_out.getAndIncrement(a_old);
+                    delta_s_in.getAndAdd(a[i], d[i]);
+                    delta_s_in.getAndAdd(a_old, d_old);
                 }
-            }
+            });
             ///// update-sum-bounds() ///////
+            double[] J_abs_s = new double[K];
+            double[] J_net_s = new double[K];
+            double[] J_abs_n = new double[K];
+            double[] J_net_n = new double[K];
             for(int k = 0; k < K; k++)
             {
-                double J_abs_s = delta_s_in[k] + delta_s_out[k];
-                double J_net_s = delta_s_in[k] - delta_s_out[k];
-                double J_abs_n = delta_n_in[k] + delta_n_out[k];
-                double J_net_n = delta_n_in[k] - delta_n_out[k];
-                
-                for(int i : ownedBy[k])
-                    ls[i] -= Math.min(J_abs_s-J_net_n*d[i], J_abs_n*d[i] - J_net_s);
+                J_abs_s[k] = delta_s_in.get(k) + delta_s_out.get(k);
+                J_net_s[k] = delta_s_in.get(k) - delta_s_out.get(k);
+                J_abs_n[k] = delta_n_in.get(k) + delta_n_out.get(k);
+                J_net_n[k] = delta_n_in.get(k) - delta_n_out.get(k);
             }
+            run(parallel, N, (start, end)->
+            {
+                for(int i = start; i < end; i++)
+                {
+                    double ls_i_delta = 0;
+                    for(int k = 0; k < K; k++)
+                        ls_i_delta -= min(J_abs_s[k]-J_net_n[k]*d[i], J_abs_n[k]*d[i] - J_net_s[k]);
+                    ls.getAndAdd(i, ls_i_delta);
+                }
+            });
         }
         while( changes.sum() > 0 && iter++ < iterLimit);
         
-        return DoubleStream.of(d).map(x->x*x).sum();
+        return streamP(DoubleStream.of(d), parallel).map(x->x*x).sum();
     }
 }

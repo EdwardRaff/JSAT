@@ -10,6 +10,7 @@ import java.util.concurrent.Future;
 import java.util.function.BinaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import jsat.utils.FakeExecutor;
@@ -235,6 +236,14 @@ public class ParallelUtils
     }
     
     public static IntStream streamP(IntStream source, boolean parallel)
+    {
+        if(parallel)
+            return source.parallel();
+        else
+            return source;
+    }
+    
+    public static DoubleStream streamP(DoubleStream source, boolean parallel)
     {
         if(parallel)
             return source.parallel();
