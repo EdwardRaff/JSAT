@@ -19,6 +19,7 @@ import java.util.stream.IntStream;
 import static jsat.TestTools.checkClusteringByCat;
 
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
+import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceCounter;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.random.RandomUtil;
@@ -128,5 +129,20 @@ public class TRIKMEDSTest
         Set<Integer> oldMedioids = IntStream.of(newMethod.getMedoids()).boxed().collect(Collectors.toSet());
         for(int i : newMedioids)
             assertTrue(oldMedioids.contains(i));
+    }
+    
+    
+    @Test
+    public void test_medoid()
+    {
+        System.out.println("cluster(dataset, int)");
+        //Use a deterministic seed initialization. Lets see that the new method does LESS distance computations
+        DistanceCounter dm = new DistanceCounter(new EuclideanDistance());
+        
+        List<Vec> X = easyData10.getDataVectors();
+        for(boolean parallel : new boolean[]{true, false})
+        {
+            assertEquals(PAM.medoid(parallel, X, dm), TRIKMEDS.medoid(parallel, X, dm));
+        }
     }
 }

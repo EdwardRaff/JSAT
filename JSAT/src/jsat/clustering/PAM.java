@@ -4,6 +4,7 @@ package jsat.clustering;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.DoubleAdder;
@@ -15,6 +16,8 @@ import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.math.OnLineStatistics;
 import static jsat.clustering.SeedSelectionMethods.*;
+import jsat.utils.IntList;
+import jsat.utils.ListUtils;
 import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
@@ -306,5 +309,53 @@ public class PAM implements KClusterer
             maxChangeK = lowK;
         
         return cluster(dataSet, maxChangeK, parallel, designations);
+    }
+    
+    /**
+     * Computes the medoid of the data 
+     * @param parallel whether or not the computation should be done using multiple cores
+     * @param X the list of all data
+     * @param dm the distance metric to get the medoid with respect to
+     * @return the index of the point in <tt>X</tt> that is the medoid
+     */
+    public static int medoid(boolean parallel, List<Vec> X, DistanceMetric dm)
+    {
+        IntList order = new IntList(X.size());
+        ListUtils.addRange(order, 0, X.size(), 1);
+        List<Double> accel = dm.getAccelerationCache(X, parallel);
+        return medoid(parallel, order, X, dm, accel);
+    }
+    
+    /**
+     * Computes the medoid of a sub-set of data
+     * @param parallel whether or not the computation should be done using multiple cores
+     * @param indecies the indexes of the points to get the medoid of 
+     * @param X the list of all data
+     * @param dm the distance metric to get the medoid with respect to
+     * @param accel the acceleration cache for the distance metric
+     * @return the index value contained within indecies that is the medoid 
+     */
+    public static int medoid(boolean parallel, Collection<Integer> indecies, List<Vec> X, DistanceMetric dm, List<Double> accel)
+    {
+        double bestDist = Double.POSITIVE_INFINITY;
+        int bestIndex = -1;
+        for (int i : indecies)
+        {
+            double thisCandidateDistance;
+            final int medCandadate = i;
+
+            thisCandidateDistance = ParallelUtils.range(indecies.size(), parallel)
+                    .filter(j -> j != i)
+                    .mapToDouble(j -> dm.dist(medCandadate, j, X, accel))
+                    .sum();
+
+            if (thisCandidateDistance < bestDist)
+            {
+                bestIndex = i;
+                bestDist = thisCandidateDistance;
+            }
+        }
+        
+        return bestIndex;
     }
 }

@@ -34,6 +34,12 @@ import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.utils.concurrent.AtomicDoubleArray;
 import static jsat.utils.concurrent.ParallelUtils.*;
 import static java.lang.Math.*;
+import java.util.*;
+import jsat.utils.IntList;
+import jsat.utils.ListUtils;
+import jsat.utils.concurrent.AtomicDouble;
+import jsat.utils.concurrent.ParallelUtils;
+import jsat.utils.random.RandomUtil;
 
 /**
  * This class implements the TRIKMEDS algorithm for PAM clustering. It returns
@@ -306,5 +312,67 @@ public class TRIKMEDS extends PAM
         while( changes.sum() > 0 && iter++ < iterLimit);
         
         return streamP(DoubleStream.of(d), parallel).map(x->x*x).sum();
+    }
+    
+    /**
+     * Computes the medoid of the data 
+     * @param parallel whether or not the computation should be done using multiple cores
+     * @param X the list of all data
+     * @param dm the distance metric to get the medoid with respect to
+     * @return the index of the point in <tt>X</tt> that is the medoid
+     */
+    public static int medoid(boolean parallel, List<Vec> X, DistanceMetric dm)
+    {
+        IntList order = new IntList(X.size());
+        ListUtils.addRange(order, 0, X.size(), 1);
+        List<Double> accel = dm.getAccelerationCache(X, parallel);
+        return medoid(parallel, order, X, dm, accel);
+    }
+    
+    /**
+     * Computes the medoid of a sub-set of data
+     * @param parallel whether or not the computation should be done using multiple cores
+     * @param indecies the indexes of the points to get the medoid of 
+     * @param X the list of all data
+     * @param dm the distance metric to get the medoid with respect to
+     * @param accel the acceleration cache for the distance metric
+     * @return the index value contained within indecies that is the medoid 
+     */
+    public static int medoid(boolean parallel, Collection<Integer> indecies, List<Vec> X, DistanceMetric dm, List<Double> accel)
+    {
+        final int N = X.size();
+        AtomicDoubleArray l = new AtomicDoubleArray(N);
+        
+        AtomicDouble e_cl = new AtomicDouble(Double.POSITIVE_INFINITY);
+        
+        IntList rand_order = new IntList(indecies);
+        Collections.shuffle(rand_order, RandomUtil.getRandom());
+        ThreadLocal<double[]> d_local = ThreadLocal.withInitial(() -> new double[N]);
+        ParallelUtils.streamP(rand_order.streamInts(), parallel).forEach(i ->
+        {
+            double[] d = d_local.get();
+            double d_avg = 0;
+            if (l.get(i) < e_cl.get())
+            {
+                for (int j : indecies)
+                    d_avg += (d[j] = dm.dist(i, j, X, accel));
+                d_avg /= indecies.size() - 1;
+                final double l_i = d_avg;
+                // set l(i) to to be tight, that is l(i) = E(i)
+                l.set(i, l_i);
+                if (l_i < e_cl.get())//We might be the best?
+                    e_cl.getAndUpdate(val -> min(val, l_i));//atomic set to maximum
+                //l(j)←max(l(j), |l(i)−d(j)|) // using ||x(i)−x(j)|| to possibly improve bound.
+                for (int j : indecies)
+                    l.getAndUpdate(j, (l_j) -> max(l_j, abs(l_i - d[j]) ) );
+            }
+        });
+        
+        //OK, who had the lowest energy? Thats our median. 
+        for(int i : indecies)
+            if(l.get(i) == e_cl.get())//THIS IS SAFE, we explicily set l and e_cl to the same exact values in the algorithm. So we can do a hard equality check on the doubles
+                return i;
+
+        return -1;//Some error occred
     }
 }
