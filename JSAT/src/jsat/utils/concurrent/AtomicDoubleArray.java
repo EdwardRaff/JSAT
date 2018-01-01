@@ -233,7 +233,7 @@ public class AtomicDoubleArray implements Serializable
      * @param accumulatorFunction a side-effect-free function of two arguments
      * @return the previous value
      */
-    public final double getAndAccumulate(int i, long x, DoubleBinaryOperator accumulatorFunction)
+    public final double getAndAccumulate(int i, double x, DoubleBinaryOperator accumulatorFunction)
     {
         double prev, next;
         do
@@ -259,7 +259,7 @@ public class AtomicDoubleArray implements Serializable
      * @param accumulatorFunction a side-effect-free function of two arguments
      * @return the updated value
      */
-    public final double accumulateAndGet(int i, long x, DoubleBinaryOperator accumulatorFunction)
+    public final double accumulateAndGet(int i, double x, DoubleBinaryOperator accumulatorFunction)
     {
         double prev, next;
         do

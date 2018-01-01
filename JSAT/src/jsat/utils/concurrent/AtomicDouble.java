@@ -115,7 +115,7 @@ final public class AtomicDouble
      * @param accumulatorFunction a side-effect-free function of two arguments
      * @return the previous value
      */
-    public final double getAndAccumulate(long x, DoubleBinaryOperator accumulatorFunction)
+    public final double getAndAccumulate(double x, DoubleBinaryOperator accumulatorFunction)
     {
         double prev, next;
         do
@@ -140,7 +140,7 @@ final public class AtomicDouble
      * @param accumulatorFunction a side-effect-free function of two arguments
      * @return the updated value
      */
-    public final double accumulateAndGet(long x, DoubleBinaryOperator accumulatorFunction)
+    public final double accumulateAndGet(double x, DoubleBinaryOperator accumulatorFunction)
     {
         double prev, next;
         do
