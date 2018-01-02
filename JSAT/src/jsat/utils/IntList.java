@@ -233,4 +233,41 @@ public class IntList extends AbstractList<Integer> implements Serializable
         return IntStream.of(array).limit(end);
     }
     
+    /**
+     * Returns a new IntList containing values in the given range
+     * @param start the starting value (inclusive)
+     * @param end the ending value (exclusive)
+     * @param step the step size
+     * @return a new IntList populated by integer values as if having run through a  for loop
+     */
+    public static IntList range(int start, int end, int step)
+    {
+        IntList l = new IntList((end-start)/step +1);
+        for(int i = start; i < end; i++)
+            l.add(i);
+        return l;
+    }
+    
+    /**
+     * Returns a new IntList containing values in the given range
+     * @param start the starting value (inclusive)
+     * @param end the ending value (exclusive)
+     * @return a new IntList populated by integer values as if having run through a  for loop
+     */
+    public static IntList range(int start, int end)
+    {
+        return range(start, end, 1);
+    }
+    
+    /**
+     * Returns a new IntList containing values in the  range [0, <tt>end</tt>)
+     *
+     * @param end the ending value (exclusive)
+     * @return a new IntList populated by integer values as if having run
+     * through a for loop
+     */
+    public static IntList range(int end)
+    {
+        return range(0, end);
+    }
 }

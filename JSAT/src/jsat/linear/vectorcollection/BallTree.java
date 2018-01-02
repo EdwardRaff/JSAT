@@ -23,6 +23,7 @@ import java.util.List;
 import jsat.clustering.PAM;
 import jsat.clustering.TRIKMEDS;
 import jsat.linear.DenseVector;
+import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
@@ -30,6 +31,7 @@ import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
 import jsat.utils.IndexTable;
 import jsat.utils.IntList;
+import jsat.utils.concurrent.AtomicDoubleArray;
 import jsat.utils.concurrent.ParallelUtils;
 
 /**
@@ -56,14 +58,26 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
          * initial prototypes. The left child has a prototype selected as the
          * point farthest from the pivot, and the right child the point farthest
          * from the left's. The points are split based on which prototype thye
-         * are closest too. The process continues recursively. See Moore, A. W.
-         * (2000). The Anchors Hierarchy: Using the Triangle Inequality to
-         * Survive High Dimensional Data. In Proceedings of the Sixteenth
-         * Conference on Uncertainty in Artificial Intelligence (pp. 397–405).
-         * San Francisco, CA, USA: Morgan Kaufmann Publishers Inc. Retrieved
-         * from http://dl.acm.org/citation.cfm?id=2073946.2073993 for details.
+         * are closest too. The process continues recursively. <br>
+         *
+         * See: Moore, A. W. (2000). The Anchors Hierarchy: Using the Triangle
+         * Inequality to Survive High Dimensional Data. In Proceedings of the
+         * Sixteenth Conference on Uncertainty in Artificial Intelligence (pp.
+         * 397–405). San Francisco, CA, USA: Morgan Kaufmann Publishers Inc.
+         * Retrieved from http://dl.acm.org/citation.cfm?id=2073946.2073993 for
+         * details.
          */
-        TOP_DOWN_FARTHEST;
+        TOP_DOWN_FARTHEST,
+        /**
+         * This represents a top-down construction approach similar to a
+         * KD-tree's construction. It requires a metric where it has access to
+         * meaningful feature values. At each node, the dimension with the
+         * largest spread in values is selected. Then the split is made based on
+         * sorting the found feature into two even halves.<br>
+         * See: Omohundro, S. M. (1989). Five Balltree Construction Algorithms
+         * (No. TR-89-063).
+         */
+        KD_STYLE;
     }
     
     public enum PivotSelection
@@ -185,7 +199,92 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
     
     private Node build_far_top_down(List<Integer> points, boolean parallel)
     {
+        Branch branch = new Branch();
+        branch.setPivot(points);
+        branch.setRadius(points);
+
+        //Use point farthest from parent pivot for left child
+        int f1 = ParallelUtils.streamP(points.stream(), parallel)
+                .map(i->new IndexDistPair(i, dm.dist(i, branch.pivot, branch.pivot_qi, allVecs, cache)))
+                .max(IndexDistPair::compareTo).orElse(new IndexDistPair(0, 0.0)).indx;
+        //use point farhter from f1 for right child
+        int f2 = ParallelUtils.streamP(points.stream(), parallel)
+                .map(i->new IndexDistPair(i, dm.dist(i, f1, allVecs, cache)))
+                .max(IndexDistPair::compareTo).orElse(new IndexDistPair(1, 0.0)).indx;
+
+        //Now split children based on who is closes to f1 and f2
+        IntList left_children = new IntList();
+        IntList right_children = new IntList();
+        for(int p : points)
+        {
+            double d_f1 = dm.dist(p, f1, allVecs, cache);
+            double d_f2 = dm.dist(p, f2, allVecs, cache);
+            if(d_f1 < d_f2)
+                left_children.add(p);
+            else
+                right_children.add(p);
+        }
+
+        //everyone has been assigned, now creat children objects
+        branch.left_child = build(left_children, parallel);
+        branch.right_child = build(right_children, parallel);
+
+        return branch;
+    }
+    
+    private Node build_kd(List<Integer> points, boolean parallel)
+    {
+        //Lets find the dimension with the maximum spread
+        int D = allVecs.get(0).length();
+        AtomicDoubleArray mins = new AtomicDoubleArray(D);
+        mins.fill(Double.POSITIVE_INFINITY);
+        AtomicDoubleArray maxs = new AtomicDoubleArray(D);
+        maxs.fill(Double.NEGATIVE_INFINITY);
+        ParallelUtils.streamP(points.stream(), parallel).forEach(i->{
+            for(IndexValue iv : get(i))
+            {
+                int d = iv.getIndex();
+                mins.updateAndGet(d, (m_d)->Math.min(m_d, iv.getValue()));
+                maxs.updateAndGet(d, (m_d)->Math.max(m_d, iv.getValue()));
+            }
+        });
         
+        IndexDistPair maxSpread = ParallelUtils.range(D, parallel)
+                .mapToObj(d->new IndexDistPair(d, maxs.get(d)-mins.get(d)))
+                .max(IndexDistPair::compareTo).get();
+
+        
+        if(maxSpread.dist == 0)//all the data is the same? Return a leaf
+        {
+            Leaf leaf = new Leaf(new IntList(points));
+            leaf.setPivot(points);
+            leaf.setRadius(points);
+            return leaf;
+        }
+        
+        //We found it! Lets sort points by this new value
+        final int d = maxSpread.indx;
+        points.sort((Integer o1, Integer o2) -> Double.compare(get(o1).get(d), get(o2).get(d)));
+        int midPoint = points.size()/2;
+        //Lets check that we don't have identical values, and adjust as needed
+        while(midPoint > 1 && get(midPoint-1).get(d) == get(midPoint).get(d))
+            midPoint--;
+        List<Integer> left_children = points.subList(0, midPoint);
+        List<Integer> right_children = points.subList(midPoint, points.size());
+        
+        Branch branch = new Branch();
+        branch.setPivot(points);
+        branch.setRadius(points);
+        //everyone has been assigned, now creat children objects
+        branch.left_child = build(left_children, parallel);
+        branch.right_child = build(right_children, parallel);
+        
+        return branch;
+    }
+    
+    private Node build(List<Integer> points, boolean parallel)
+    {
+        //universal base case
         if(points.size() <= leaf_size)
         {
             Leaf leaf = new Leaf(new IntList(points));
@@ -193,48 +292,14 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
             leaf.setRadius(points);
             return leaf;
         }
-        else
-        {
-            Branch branch = new Branch();
-            branch.setPivot(points);
-            branch.setRadius(points);
-            
-            //Use point farthest from parent pivot for left child
-            int f1 = ParallelUtils.streamP(points.stream(), parallel)
-                    .map(i->new IndexDistPair(i, dm.dist(i, branch.pivot, branch.pivot_qi, allVecs, cache)))
-                    .max(IndexDistPair::compareTo).orElse(new IndexDistPair(0, 0.0)).indx;
-            //use point farhter from f1 for right child
-            int f2 = ParallelUtils.streamP(points.stream(), parallel)
-                    .map(i->new IndexDistPair(i, dm.dist(i, f1, allVecs, cache)))
-                    .max(IndexDistPair::compareTo).orElse(new IndexDistPair(1, 0.0)).indx;
-            
-            //Now split children based on who is closes to f1 and f2
-            IntList left_children = new IntList();
-            IntList right_children = new IntList();
-            for(int p : points)
-            {
-                double d_f1 = dm.dist(p, f1, allVecs, cache);
-                double d_f2 = dm.dist(p, f2, allVecs, cache);
-                if(d_f1 < d_f2)
-                    left_children.add(p);
-                else
-                    right_children.add(p);
-            }
-            
-            //everyone has been assigned, now creat children objects
-            branch.left_child = build_far_top_down(left_children, parallel);
-            branch.right_child = build_far_top_down(right_children, parallel);
-            
-            return branch;
-        }
-    }
-    
-    private Node build(List<Integer> points, boolean parallel)
-    {
+        
         switch(construction_method)
         {
+            case KD_STYLE:
+                return build_kd(points, parallel);
             case TOP_DOWN_FARTHEST:
                 return build_far_top_down(points, parallel);
+                
         }
         return new Leaf(new IntList(0));
     }

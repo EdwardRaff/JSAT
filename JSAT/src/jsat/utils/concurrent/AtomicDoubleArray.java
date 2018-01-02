@@ -292,4 +292,14 @@ public class AtomicDoubleArray implements Serializable
         return larray.length();
     }
     
+    /**
+     * This is a convenience method to set every value in this array to a specified value
+     * @param value the value fill with
+     */
+    public void fill(double value)
+    {
+        for(int i = 0; i < length(); i++)
+            set(i, value);
+    }
+    
 }
