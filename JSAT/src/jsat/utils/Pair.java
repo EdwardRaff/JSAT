@@ -1,5 +1,7 @@
 package jsat.utils;
 
+import java.util.Objects;
+
 /**
  * A simple object to hold a pair of values
  * @author Edward Raff
@@ -40,4 +42,32 @@ public class Pair<X, Y>
     {
         return "(" + firstItem + ", " + secondItem + ")";
     }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final Pair<?, ?> other = (Pair<?, ?>) obj;
+        if (!Objects.equals(this.firstItem, other.firstItem))
+            return false;
+        if (!Objects.equals(this.secondItem, other.secondItem))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int hash = 3;
+        hash = 41 * hash + Objects.hashCode(this.firstItem);
+        hash = 41 * hash + Objects.hashCode(this.secondItem);
+        return hash;
+    }
+    
+    
 }

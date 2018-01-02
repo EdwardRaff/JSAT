@@ -19,7 +19,16 @@ package jsat.linear.vectorcollection;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Random;
+import java.util.stream.IntStream;
 import jsat.clustering.PAM;
 import jsat.clustering.TRIKMEDS;
 import jsat.linear.DenseVector;
@@ -31,8 +40,10 @@ import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
 import jsat.utils.IndexTable;
 import jsat.utils.IntList;
+import jsat.utils.Pair;
 import jsat.utils.concurrent.AtomicDoubleArray;
 import jsat.utils.concurrent.ParallelUtils;
+import jsat.utils.random.RandomUtil;
 
 /**
  *
@@ -77,7 +88,19 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
          * See: Omohundro, S. M. (1989). Five Balltree Construction Algorithms
          * (No. TR-89-063).
          */
-        KD_STYLE;
+        KD_STYLE,
+        /**
+         * This represents a "middle-out" construction approach. Computational
+         * is works best when the {@link PivotSelection#CENTROID centroid} pivot
+         * selection method can be used.<br>
+         * See: Moore, A. W. (2000). The Anchors Hierarchy: Using the Triangle
+         * Inequality to Survive High Dimensional Data. In Proceedings of the
+         * Sixteenth Conference on Uncertainty in Artificial Intelligence (pp.
+         * 397–405). San Francisco, CA, USA: Morgan Kaufmann Publishers Inc.
+         * Retrieved from http://dl.acm.org/citation.cfm?id=2073946.2073993 for
+         * details.
+         */
+        ANCHORS_HIERARCHY;
     }
     
     public enum PivotSelection
@@ -282,6 +305,259 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
         return branch;
     }
     
+    private Node build_anchors(List<Integer> points, boolean parallel)
+    {
+        //Ceiling to avoid issues with points rounding down to k=1, causing an infinite recusion 
+        int K = (int) Math.ceil(Math.sqrt(points.size()));
+        
+        int[] anchor_point_index = new int[K];
+        int[] anchor_index = new int[K];
+        IntList[] owned = new IntList[K];
+        //anchor paper says sort from hight dist to low, we do reverse for convience and removal efficiancy 
+        DoubleList[] ownedDist = new DoubleList[K];
+        for(int k = 1; k < K; k++)
+        {
+            owned[k] = new IntList();
+            ownedDist[k] = new DoubleList();
+        }
+        
+        Random rand = RandomUtil.getRandom();
+        
+        //First case is special, select anchor at random and create list
+        anchor_point_index[0] =rand.nextInt(points.size());
+        anchor_index[0] = points.get(anchor_point_index[0]);
+        owned[0] = IntList.range(points.size());
+        ownedDist[0] = DoubleList.view(ParallelUtils.streamP(owned[0].streamInts(), parallel)
+                .mapToDouble(i->dm.dist(anchor_index[0], points.get(i), allVecs, cache))
+                .toArray(),
+                    points.size());
+
+        IndexTable it = new IndexTable(ownedDist[0]);
+        it.apply(owned[0]);
+        it.apply(ownedDist[0]);
+        
+        //Now lets create the other anchors
+        for(int k = 1; k < K; k++)
+        {
+            /*
+             * How is the new anchor a^new chosen? We simply find the current 
+             * anchor a^maxrad with the largest radius, and choose the pivot of 
+             * a^new to be the point owned by a^maxrad that is furthest from 
+             * a^maxrad
+             */
+            int max_radius_anch = IntStream.range(0, k).mapToObj(z-> new IndexDistPair(z, ownedDist[z].get(ownedDist[z].size()-1)))
+                    .max(IndexDistPair::compareTo)
+                    .get().indx;
+            anchor_point_index[k] = owned[max_radius_anch].getI(owned[max_radius_anch].size()-1);
+            anchor_index[k] = points.get(anchor_point_index[k]);
+            owned[max_radius_anch].remove(owned[max_radius_anch].size()-1);
+            ownedDist[max_radius_anch].remove(ownedDist[max_radius_anch].size()-1);
+            owned[k].add(anchor_point_index[k]);
+            ownedDist[k].add(0.0);
+            
+            //lets go through other anchors and see what we can steal
+            for(int j = 0; j < k; j++)
+            {
+                double dist_ak_aj = dm.dist(anchor_index[j], anchor_index[k], allVecs, cache);
+                
+                ListIterator<Integer> ownedIter = owned[j].listIterator(owned[j].size());
+                ListIterator<Double> ownedDistIter = ownedDist[j].listIterator(ownedDist[j].size());
+                while(ownedIter.hasPrevious())
+                {
+                    int point_indx = ownedIter.previous();
+                    double dist_aj_x = ownedDistIter.previous();
+                    double dist_ak_x = dm.dist(anchor_index[k], points.get(point_indx), allVecs, cache);
+                    if(dist_ak_x < dist_aj_x)//we can steal this point! 
+                    {
+                        owned[k].add(point_indx);
+                        ownedDist[k].add(dist_ak_x);
+                        ownedIter.remove();
+                        ownedDistIter.remove();
+                    }
+                    else if(dist_ak_x < dist_ak_aj/2)
+                    {
+                        //"we can deduce that the remainder of the points in ai's list cannot possibly be stolen"
+                        break;
+                    }
+                }
+            }
+            //now sort our new children
+            it = new IndexTable(ownedDist[k]);
+            it.apply(owned[k]);
+            it.apply(ownedDist[k]);
+        }
+        
+        //Now we have sqrt(R) anchors. Lets do the middle-down first, creating Nodes for each anchor
+        List<Node> anchor_nodes = new ArrayList<>();
+        for (int k = 0; k < K; k++)
+        {
+            Node n_k = build(IntList.view(owned[k].streamInts().map(i->points.get(i)).toArray()), parallel);
+            n_k.pivot = get(anchor_index[k]);
+            n_k.radius = ownedDist[k].getD(ownedDist[k].size()-1);
+            anchor_nodes.add(n_k);
+        }
+        
+        //TODO below code is ugly... needs improvement
+        
+        //Ok, now lets go middle-up to finish the tree
+        //We will store the costs of merging any pair of anchor_nodes in this map
+        Map<Pair<Integer, Integer>, Double> mergeCost = new HashMap<>();
+        Map<Pair<Integer, Integer>, Vec> pivotCache = new HashMap<>();
+        //use a priority queue to pop of workers, and use values from mergeCost to sort
+        List<PriorityQueue<Pair<Integer, Integer>>> mergeQs = new ArrayList<>();
+        PriorityQueue<Integer> QQ = new PriorityQueue<>((q1, q2)-> 
+        {
+            double v1 = mergeCost.get(mergeQs.get(q1).peek());
+            double v2 = mergeCost.get(mergeQs.get(q2).peek());
+            return Double.compare(v1, v2);
+        });
+        
+        ///Initial population of Qs and costs
+        for(int k = 0; k < K; k++)
+        {
+            PriorityQueue<Pair<Integer, Integer>> mergeQ_k = new PriorityQueue<>((Pair<Integer, Integer> o1, Pair<Integer, Integer> o2) ->
+                Double.compare(mergeCost.get(o1), mergeCost.get(o2)));
+            mergeQs.add(mergeQ_k);
+            Node n_k = anchor_nodes.get(k);
+            IntList owned_nk = new IntList();
+            for(int i : n_k)
+                owned_nk.add(i);
+            int size_k = owned_nk.size();
+            for(int z = k+1; z < K; z++)
+            {
+                Node n_z = anchor_nodes.get(z);
+                Pair<Integer, Integer> p = new Pair<>(k, z);
+                
+                
+                IntList owned_nkz = new IntList(owned_nk);
+                int size_z, size_nk;
+                
+                for(int i : n_z)
+                    owned_nkz.add(i);
+                size_nk = owned_nkz.size();
+                size_z = size_nk-size_k;
+                
+                Vec pivot_candidate;
+                if(pivot_method == PivotSelection.CENTROID)
+                {
+                    //we can directly compute the would-be pivot
+                    pivot_candidate = n_k.pivot.clone();
+                    pivot_candidate.mutableMultiply(size_k/(double)size_nk);
+                    pivot_candidate.mutableAdd(size_z/(double)size_nk, n_z.pivot);
+                }
+                else//we need to compute the pivot
+                    pivot_candidate = pivot_method.getPivot(parallel, owned_nkz, allVecs, dm, cache);
+                
+                List<Double> pivor_candidate_qi = dm.getQueryInfo(pivot_candidate);
+                //what would the radius be?
+                double radius_kz = 0;
+                for(int i : owned_nkz)
+                    radius_kz = Math.max(radius_kz, dm.dist(i, pivot_candidate, pivor_candidate_qi, allVecs, cache));
+                mergeCost.put(p, radius_kz);
+                pivotCache.put(p, pivot_candidate);
+
+                mergeQ_k.add(p);
+            }
+            
+            if(!mergeQ_k.isEmpty())
+                QQ.add(k);
+        }
+        
+        //Now lets start merging! 
+        Branch toReturn = null;
+        while(!QQ.isEmpty())
+        {
+            int winningQ = QQ.poll();
+            Pair<Integer, Integer> toMerge = mergeQs.get(winningQ).poll();
+            int other = toMerge.getSecondItem();
+            if(anchor_nodes.get(winningQ) == null)//leftover, its gone
+                continue;
+            else if(anchor_nodes.get(other) == null)
+            {
+                if(!mergeQs.get(winningQ).isEmpty())//stale, lets fix
+                    QQ.add(winningQ);
+                continue;
+            }
+            Branch merged = toReturn = new Branch();
+            merged.pivot = pivotCache.get(toMerge);
+            merged.pivot_qi = dm.getQueryInfo(merged.pivot);
+            merged.radius = mergeCost.get(toMerge);
+            merged.left_child = anchor_nodes.get(winningQ);
+            merged.right_child = anchor_nodes.get(other);
+            anchor_nodes.set(winningQ, merged);
+            anchor_nodes.set(other, null);
+            
+            //OK, we have merged two points. Now book keeping. Remove all Qs 
+            PriorityQueue<Pair<Integer, Integer>> mergeQ_k = new PriorityQueue<>((Pair<Integer, Integer> o1, Pair<Integer, Integer> o2) ->
+                Double.compare(mergeCost.get(o1), mergeCost.get(o2)));
+            mergeQs.set(winningQ, mergeQ_k);
+            
+            Node n_k = merged;
+            IntList owned_nk = new IntList();
+            for(int i : n_k)
+                owned_nk.add(i);
+            int size_k = owned_nk.size();
+            for(int z = 0; z < anchor_nodes.size(); z++)
+            {
+                if(z == winningQ)
+                    continue;
+                if(anchor_nodes.get(z) == null)
+                    continue;
+                Node n_z = anchor_nodes.get(z);
+                Pair<Integer, Integer> p;
+                if(winningQ < z)
+                    p = new Pair<>(winningQ, z);
+                else
+                    p = new Pair<>(z, winningQ);
+                
+                
+                IntList owned_nkz = new IntList(owned_nk);
+                int size_z, size_nk;
+                
+                for(int i : n_z)
+                    owned_nkz.add(i);
+                size_nk = owned_nkz.size();
+                size_z = size_nk-size_k;
+                
+                Vec pivot_candidate;
+                if(pivot_method == PivotSelection.CENTROID)
+                {
+                    //we can directly compute the would-be pivot
+                    pivot_candidate = n_k.pivot.clone();
+                    pivot_candidate.mutableMultiply(size_k/(double)size_nk);
+                    pivot_candidate.mutableAdd(size_z/(double)size_nk, n_z.pivot);
+                }
+                else//we need to compute the pivot
+                    pivot_candidate = pivot_method.getPivot(parallel, owned_nkz, allVecs, dm, cache);
+                
+                List<Double> pivor_candidate_qi = dm.getQueryInfo(pivot_candidate);
+                //what would the radius be?
+                double radius_kz = 0;
+                for(int i : owned_nkz)
+                    radius_kz = Math.max(radius_kz, dm.dist(i, pivot_candidate, pivor_candidate_qi, allVecs, cache));
+                
+                pivotCache.put(p, pivot_candidate);
+
+                if(winningQ < z)
+                {
+                    mergeCost.put(p, radius_kz);
+                    mergeQ_k.add(p);
+                }
+                else
+                {
+                    mergeQs.get(z).remove(p);
+                    mergeCost.put(p, radius_kz);
+                    mergeQs.get(z).add(p);
+                }
+            }
+            
+            if(!mergeQ_k.isEmpty())
+                QQ.add(winningQ);
+        }
+        
+        return toReturn;
+    }
+    
     private Node build(List<Integer> points, boolean parallel)
     {
         //universal base case
@@ -295,6 +571,8 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
         
         switch(construction_method)
         {
+            case ANCHORS_HIERARCHY:
+                return build_anchors(points, parallel);
             case KD_STYLE:
                 return build_kd(points, parallel);
             case TOP_DOWN_FARTHEST:
@@ -423,7 +701,7 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
         return allVecs.size();
     }
 
-    private abstract class Node implements Cloneable, Serializable
+    private abstract class Node implements Cloneable, Serializable, Iterable<Integer>
     {
         Vec pivot;
         List<Double> pivot_qi;
@@ -498,6 +776,12 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
             for(int indx : children)
                 knn.add(new IndexDistPair(indx, dm.dist(indx, query, qi, allVecs, cache)));
         }
+
+        @Override
+        public Iterator<Integer> iterator()
+        {
+            return children.iterator();
+        }
         
     }
     
@@ -551,6 +835,32 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
             
             close_child.search(query, qi, numNeighbors, knn, close_child_dist);
             far_child.search(query, qi, numNeighbors, knn, far_child_dist);
+        }
+
+        @Override
+        public Iterator<Integer> iterator()
+        {
+            Iterator<Integer> iter_left = left_child.iterator();
+            if(right_child == null)
+                System.out.println("AWD?");
+            Iterator<Integer> iter_right = right_child.iterator();
+            return new Iterator<Integer>()
+            {
+                @Override
+                public boolean hasNext()
+                {
+                    return iter_left.hasNext() || iter_right.hasNext();
+                }
+
+                @Override
+                public Integer next()
+                {
+                    if(iter_left.hasNext())
+                        return iter_left.next();
+                    else
+                        return iter_right.next();
+                }
+            };
         }
         
     }

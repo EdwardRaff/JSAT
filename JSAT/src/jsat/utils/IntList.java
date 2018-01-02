@@ -223,6 +223,23 @@ public class IntList extends AbstractList<Integer> implements Serializable
             throw new IllegalArgumentException("length must be non-negative and no more than the size of the array("+array.length+"), not " + length);
         return new IntList(array, length);
     }
+    
+    /**
+     * Creates and returns a view of the given int array that requires only
+     * a small object allocation. Changes to the list will be reflected in the 
+     * array up to a point. If the modification would require increasing the 
+     * capacity of the array, a new array will be allocated - at which point 
+     * operations will no longer be reflected in the original array. 
+     * 
+     * @param array the array to wrap by an IntList object
+     * @return an IntList backed by the given array, unless modified to the 
+     * point of requiring the allocation of a new array
+     */
+    public static IntList view(int[] array)
+    {
+        return view(array, array.length);
+    }
+
 
     /**
      * 
