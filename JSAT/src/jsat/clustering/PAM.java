@@ -318,7 +318,7 @@ public class PAM implements KClusterer
      * @param dm the distance metric to get the medoid with respect to
      * @return the index of the point in <tt>X</tt> that is the medoid
      */
-    public static int medoid(boolean parallel, List<Vec> X, DistanceMetric dm)
+    public static int medoid(boolean parallel, List<? extends Vec> X, DistanceMetric dm)
     {
         IntList order = new IntList(X.size());
         ListUtils.addRange(order, 0, X.size(), 1);
@@ -335,7 +335,7 @@ public class PAM implements KClusterer
      * @param accel the acceleration cache for the distance metric
      * @return the index value contained within indecies that is the medoid 
      */
-    public static int medoid(boolean parallel, Collection<Integer> indecies, List<Vec> X, DistanceMetric dm, List<Double> accel)
+    public static int medoid(boolean parallel, Collection<Integer> indecies, List<? extends Vec> X, DistanceMetric dm, List<Double> accel)
     {
         double bestDist = Double.POSITIVE_INFINITY;
         int bestIndex = -1;
