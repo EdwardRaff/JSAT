@@ -19,8 +19,6 @@ package jsat.linear.vectorcollection;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -46,6 +44,28 @@ import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
 /**
+ * This class implements the Ball Tree algorithm for accelerating nearest
+ * neighbor queries. Contained within this class are multiple methods of
+ * building Ball Trees. Options for changing construction can alter the method
+ * of {@link ConstructionMethod construction} of the hierarchy is made, or how
+ * {@link PivotSelection  pivot} is selected. <br>
+ * The default method of construction and pivot selection for ball trees will
+ * work for most cases, but is not appicable for all distance metrics. If you
+ * are using an exotic distance metric the
+ * {@link BallTree.ConstructionMethod#TOP_DOWN_FARTHEST} and
+ * {@link PivotSelection#MEDOID} will work for any dataset, but may be
+ * slower.<br>
+ * <br>
+ * See:
+ * <ul>
+ * <li>Omohundro, S. M. (1989). Five Balltree Construction Algorithms (No.
+ * TR-89-063).</li>
+ * <li>Moore, A. W. (2000). The Anchors Hierarchy: Using the Triangle Inequality
+ * to Survive High Dimensional Data. In Proceedings of the Sixteenth Conference
+ * on Uncertainty in Artificial Intelligence (pp. 397–405). San Francisco, CA,
+ * USA: Morgan Kaufmann Publishers Inc. Retrieved from
+ * <a href="http://dl.acm.org/citation.cfm?id=2073946.2073993">here</a></li>
+ * </ul>
  *
  * @author Edward Raff
  * @param <V>
@@ -152,7 +172,7 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
 
     public BallTree()
     {
-        this(new EuclideanDistance(), ConstructionMethod.TOP_DOWN_FARTHEST, PivotSelection.CENTROID);
+        this(new EuclideanDistance(), ConstructionMethod.KD_STYLE, PivotSelection.CENTROID);
     }
 
     public BallTree(DistanceMetric dm, ConstructionMethod method, PivotSelection pivot_method)
