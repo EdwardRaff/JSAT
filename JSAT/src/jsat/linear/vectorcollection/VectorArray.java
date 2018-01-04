@@ -4,9 +4,9 @@ package jsat.linear.vectorcollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
 import jsat.utils.IndexTable;
@@ -25,6 +25,11 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements Incremen
     private static final long serialVersionUID = 5365949686370986234L;
     private DistanceMetric distanceMetric;
     private List<Double> distCache;
+
+    public VectorArray()
+    {
+        this(new EuclideanDistance(), 20);
+    }
 
     public VectorArray(DistanceMetric distanceMetric, int initialCapacity)
     {
@@ -50,13 +55,17 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements Incremen
             distCache = new DoubleList();
     }
 
+    @Override
     public DistanceMetric getDistanceMetric()
     {
         return distanceMetric;
     }
 
+    @Override
     public void setDistanceMetric(DistanceMetric distanceMetric)
     {
+        if(this.distanceMetric == distanceMetric)
+            return;//avoid recomputing neadlessly
         this.distanceMetric = distanceMetric;
         if(distanceMetric.supportsAcceleration())
             this.distCache = distanceMetric.getAccelerationCache(this);
@@ -94,6 +103,13 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements Incremen
     {
         distCache = null;
         return super.remove(index); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void clear()
+    {
+        super.clear(); 
+        this.distCache = distanceMetric.getAccelerationCache(this);
     }
 
     @Override
@@ -144,27 +160,11 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements Incremen
         return clone;
     }
 
-    public static class VectorArrayFactory<V extends Vec> implements VectorCollectionFactory<V>
+    @Override
+    public void build(boolean parallel, List<V> collection, DistanceMetric dm)
     {
-        private static final long serialVersionUID = -7470849503958877157L;
-
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
-        {
-            return new VectorArray<>(distanceMetric, source);
-        }
-
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
-        {
-            return getVectorCollection(source, distanceMetric);
-        }
-
-        @Override
-        public VectorArrayFactory<V> clone()
-        {
-            return new VectorArrayFactory<>();
-        }
+        clear();
+        setDistanceMetric(distanceMetric);
+        addAll(collection);
     }
-    
 }

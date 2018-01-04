@@ -4,13 +4,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
 import jsat.linear.*;
 import jsat.linear.distancemetrics.CosineDistance;
 import jsat.linear.distancemetrics.CosineDistanceNormalized;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.vectorcollection.VectorCollection;
-import jsat.linear.vectorcollection.VectorCollectionFactory;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.IndexTable;
 import jsat.utils.ProbailityMatch;
@@ -77,7 +75,7 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
             dense.mutableAdd(randProjMatrix);
             randProjMatrix = dense;
         }
-        setUpVecs(vecs);
+        build(true, vecs, new CosineDistance());
     }
 
     /**
@@ -94,7 +92,7 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
     public RandomProjectionLSH(List<V> vecs, int ints, int poolSize)
     {
         randProjMatrix = new NormalMatrix(ints*Integer.SIZE, vecs.get(0).length(), poolSize);
-        setUpVecs(vecs);
+        build(true, vecs, new CosineDistance());
     }
     
     /**
@@ -119,9 +117,11 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
         };
     }
 
-    private void setUpVecs(final List<V> vecs)
+    @Override
+    public void build(boolean parallel, List<V> collection, DistanceMetric dm)
     {
-        this.vecs = vecs;
+        setDistanceMetric(dm);
+        this.vecs = new ArrayList<>(collection);
         tempVecs = ThreadLocal.withInitial(()->new DenseVector(randProjMatrix.rows()));
                 
         slotsPerEntry = randProjMatrix.rows()/Integer.SIZE;
@@ -327,79 +327,17 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
     {
         return randProjMatrix.rows()*Math.acos(cos)/Math.PI;
     }
-    
-    public static class RandomProjectionLSHFactory<V extends Vec> implements VectorCollectionFactory<V>
+
+    @Override
+    public void setDistanceMetric(DistanceMetric dm)
     {
-        private static final long serialVersionUID = 1805047681811290699L;
-        private int intsToUse;
-        private boolean inMemory;
-        private int poolSize = -1;
-
-
-        /**
-         * Creates a new Random Projection LSH factory that uses a full matrix of 
-         * normally distributed values.
-         * 
-         * @param intsToUse the number of integers to use for the encoding
-         * @param inMemory {@code true} to construct the full matrix in memory, or 
-         * {@code false} to construct the needed values on demand. This reduces 
-         */
-        public RandomProjectionLSHFactory(int intsToUse, boolean inMemory)
-        {
-            this.intsToUse = intsToUse;
-            this.inMemory = inMemory;
-        }
-        
-        /**
-         * Creates a new Random Projection LSH factory that uses a pool of 
-         * normally distributed values to approximate a full matrix with 
-         * considerably less memory storage.
-         * 
-         * @param intsToUse the number of integers to use for the encoding
-         * @param poolSize the number of normally distributed random variables to 
-         * store. Matrix values will be pulled on demand from an index in the pool
-         * of values. 
-         */
-        public RandomProjectionLSHFactory(int intsToUse, int poolSize)
-        {
-            this.intsToUse = intsToUse;
-            this.poolSize = poolSize;
-        }
-
-        /**
-         * Copy constructor
-         * @param toCopy the object to copy
-         */
-        protected RandomProjectionLSHFactory(RandomProjectionLSHFactory<V> toCopy)
-        {
-            this.inMemory = toCopy.inMemory;
-            this.intsToUse = toCopy.intsToUse;
-            this.poolSize = toCopy.poolSize;
-        }
-
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
-        {
-            if(!(distanceMetric instanceof CosineDistance || distanceMetric instanceof CosineDistanceNormalized))
+        if(!(dm instanceof CosineDistance || dm instanceof CosineDistanceNormalized))
                 throw new IllegalArgumentException("RandomProjectionLSH is only compatible with the Cosine Distance metric");
-            
-            if(poolSize > 0)
-                return new RandomProjectionLSH<>(source, intsToUse, poolSize);
-            else
-                return new RandomProjectionLSH<>(source, intsToUse, inMemory);
-        }
+    }
 
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
-        {
-            return getVectorCollection(source, distanceMetric);
-        }
-
-        @Override
-        public VectorCollectionFactory<V> clone()
-        {
-            return new RandomProjectionLSHFactory<>(this);
-        }
-        
+    @Override
+    public DistanceMetric getDistanceMetric()
+    {
+        return new CosineDistance();
     }
 }

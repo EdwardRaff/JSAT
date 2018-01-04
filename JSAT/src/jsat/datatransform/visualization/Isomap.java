@@ -28,9 +28,8 @@ import jsat.SimpleDataSet;
 import jsat.linear.*;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.linear.vectorcollection.DefaultVectorCollectionFactory;
+import jsat.linear.vectorcollection.DefaultVectorCollection;
 import jsat.linear.vectorcollection.VectorCollection;
-import jsat.linear.vectorcollection.VectorCollectionFactory;
 import jsat.utils.FakeExecutor;
 import jsat.utils.FibHeap;
 import jsat.utils.SystemInfo;
@@ -67,7 +66,7 @@ import jsat.utils.SystemInfo;
 public class Isomap implements VisualizationTransform
 {
     private DistanceMetric dm = new EuclideanDistance();
-    private VectorCollectionFactory<VecPaired<Vec, Integer>> vcf = new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>();
+    private VectorCollection<VecPaired<Vec, Integer>> vc = new DefaultVectorCollection<>();
     private int searchNeighbors = 15;
     private MDS mds = new MDS();
     private boolean c_isomap = false;
@@ -163,16 +162,16 @@ public class Isomap implements VisualizationTransform
                     delta.set(i, j, Double.MAX_VALUE);
 
         
-        final List<VecPaired<Vec, Integer>> vecs = new ArrayList<VecPaired<Vec, Integer>>(N);
+        final List<VecPaired<Vec, Integer>> vecs = new ArrayList<>(N);
         for(int i = 0; i < N; i++)
-            vecs.add(new VecPaired<Vec, Integer>(d.getDataPoint(i).getNumericalValues(), i));
-        final VectorCollection<VecPaired<Vec, Integer>> vc = vcf.getVectorCollection(vecs, dm, ex);
+            vecs.add(new VecPaired<>(d.getDataPoint(i).getNumericalValues(), i));
+        vc.build(ex != null, vecs, dm);
         final List<Double> cache = dm.getAccelerationCache(vecs, ex);
                 
         final int knn = searchNeighbors+1;//+1 b/c we are closest to ourselves
         
         //bleh, ugly generics...
-        final List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> neighborGraph = new ArrayList<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>>();
+        final List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> neighborGraph = new ArrayList<>();
         for (int i = 0; i < N; i++)
             neighborGraph.add(null);
             

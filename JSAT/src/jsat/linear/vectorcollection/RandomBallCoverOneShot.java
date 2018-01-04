@@ -4,11 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
-import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
@@ -62,45 +61,25 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
      * @param vecs the vectors to place into the RBC
      * @param dm the distance metric to use
      * @param s the number of points to be claimed by each representative. 
-     * @param execServ the source of threads for parallel construction
+     * @param parallel {@code true} if construction should be done in parallel,
+     * {@code false} for single threaded.
      */
-    public RandomBallCoverOneShot(List<V> vecs, DistanceMetric dm, int s, ExecutorService execServ)
+    public RandomBallCoverOneShot(List<V> vecs, DistanceMetric dm, int s, boolean parallel)
     {
-        this.dm = dm;
         this.s = s;
-        this.allVecs = new ArrayList<V>(vecs);
-        if(execServ instanceof FakeExecutor)
-            distCache = dm.getAccelerationCache(allVecs);
-        else
-            distCache = dm.getAccelerationCache(vecs, execServ);
-        IntList allIndices = new IntList(allVecs.size());
-        ListUtils.addRange(allIndices, 0, allVecs.size(), 1);
-        try
-        {
-            setUp(allIndices, execServ);
-        }
-        catch (InterruptedException ex)
-        {
-            try
-            {
-                setUp(allIndices, new FakeExecutor());
-            }
-            catch (InterruptedException ex1)
-            {
-                //Wont happen with a fake executor, nothing to through the interupted exception in that case
-            }
-        }
+        build(parallel, vecs, dm);
     }
     
     /**
      * Creates a new one-shot version of the Random Cover Ball. 
      * @param vecs the vectors to place into the RBC
      * @param dm the distance metric to use
-     * @param execServ the source of threads for parallel construction
+     * @param parallel {@code true} if construction should be done in parallel,
+     * {@code false} for single threaded.
      */
-    public RandomBallCoverOneShot(List<V> vecs, DistanceMetric dm, ExecutorService execServ)
+    public RandomBallCoverOneShot(List<V> vecs, DistanceMetric dm, boolean parallel)
     {
-        this(vecs, dm, (int)Math.sqrt(vecs.size()), execServ);
+        this(vecs, dm, (int)Math.sqrt(vecs.size()), parallel);
     }
     
     /**
@@ -111,7 +90,7 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
      */
     public RandomBallCoverOneShot(List<V> vecs, DistanceMetric dm, int s)
     {
-        this(vecs, dm, s, new FakeExecutor());
+        this(vecs, dm, s, false);
     }
     
     /**
@@ -122,6 +101,12 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
     public RandomBallCoverOneShot(List<V> vecs, DistanceMetric dm)
     {
         this(vecs, dm, (int)Math.sqrt(vecs.size()));
+    }
+
+    public RandomBallCoverOneShot()
+    {
+        this.dm = new EuclideanDistance();
+        this.s = -1;
     }
 
     /**
@@ -145,7 +130,20 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
             this.allVecs = new ArrayList<>(other.allVecs);
     }
 
-    private void setUp(List<Integer> allIndices, ExecutorService execServ) throws InterruptedException
+    @Override
+    public void build(boolean parallel, List<V> collection, DistanceMetric dm)
+    {
+        this.allVecs = new ArrayList<>(collection);
+        distCache = dm.getAccelerationCache(collection, parallel);
+        IntList allIndices = new IntList(allVecs.size());
+        ListUtils.addRange(allIndices, 0, allVecs.size(), 1);
+        if(s < 0)
+            s = (int) Math.sqrt(allVecs.size());
+        
+        setUp(allIndices, parallel);
+    }
+
+    private void setUp(List<Integer> allIndices, boolean parallel) 
     {
         int repCount = (int) Math.max(1, Math.sqrt(allIndices.size()));
         Collections.shuffle(allIndices);
@@ -161,7 +159,7 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
             ownedVecs.add(new IntList(s));
         }
 
-        ParallelUtils.run(true, R.size(), (i)->
+        ParallelUtils.run(parallel, R.size(), (i)->
         {
             final int Ri = R.get(i);
             final List<Integer> ROwned = ownedVecs.get(i);
@@ -171,7 +169,7 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
             for(IndexDistPair pmv : nearest)
                 ROwned.add(pmv.getIndex());
             
-        }, execServ);
+        });
         
     }
 
@@ -262,28 +260,16 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
     {
         return new RandomBallCoverOneShot<>(this);
     }
-    
-    public static class RandomBallCoverOneShotFactory<V extends Vec> implements VectorCollectionFactory<V>
+
+    @Override
+    public void setDistanceMetric(DistanceMetric dm)
     {
+        this.dm = dm;
+    }
 
-        private static final long serialVersionUID = 7658115337969827371L;
-
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
-        {
-            return new RandomBallCoverOneShot<>(source, distanceMetric);
-        }
-
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
-        {
-            return new RandomBallCoverOneShot<>(source, distanceMetric, threadpool);
-        }
-
-        @Override
-        public VectorCollectionFactory<V> clone()
-        {
-            return new RandomBallCoverOneShotFactory<>();
-        }
+    @Override
+    public DistanceMetric getDistanceMetric()
+    {
+        return dm;
     }
 }

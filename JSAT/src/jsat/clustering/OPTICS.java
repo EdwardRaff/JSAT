@@ -1,7 +1,6 @@
 package jsat.clustering;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 
 import jsat.DataSet;
 import jsat.linear.Vec;
@@ -55,7 +54,6 @@ public class OPTICS extends ClustererBase implements Parameterized
     
     private DistanceMetric dm;
     
-    private VectorCollectionFactory<VecPaired<Vec, Integer>> vcf = new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>();
     private VectorCollection<VecPaired<Vec, Integer>> vc;
     private double radius = 1;
     private int minPts;
@@ -286,14 +284,14 @@ public class OPTICS extends ClustererBase implements Parameterized
     }
 
     /**
-     * Sets the {@link VectorCollectionFactory} used to produce acceleration 
+     * Sets the {@link VectorCollection} used to produce acceleration 
      * structures for the OPTICS computation. 
      * 
-     * @param vcf the vector collection factory to use
+     * @param vc the vector collection  to use
      */
-    public void setVCF(VectorCollectionFactory<VecPaired<Vec, Integer>> vcf)
+    public void setVCF(VectorCollection<VecPaired<Vec, Integer>> vc)
     {
-        this.vcf = vcf;
+        this.vc = vc;
     }
     
     
@@ -522,26 +520,19 @@ public class OPTICS extends ClustererBase implements Parameterized
             designations = new int[n];
         
         Arrays.fill(designations, NOISE);
-        orderdSeeds = new PriorityQueue<Integer>(n, new Comparator<Integer>() {
-
-            @Override
-            public int compare(Integer o1, Integer o2)
-            {
-                return Double.compare(reach_d[o1], reach_d[o2]);
-            }
-        });
+        orderdSeeds = new PriorityQueue<>(n, (Integer o1, Integer o2) -> Double.compare(reach_d[o1], reach_d[o2]));
         core_distance = new double[n];
         reach_d = new double[n];
         Arrays.fill(reach_d, UNDEFINED);
         processed = new boolean[n];
         allVecs = new Vec[n];
-        List<VecPaired<Vec, Integer>> pairedVecs = new ArrayList<VecPaired<Vec, Integer>>(n);
+        List<VecPaired<Vec, Integer>> pairedVecs = new ArrayList<>(n);
         for(int i = 0; i < allVecs.length; i++)
         {
             allVecs[i] = dataSet.getDataPoint(i).getNumericalValues();
-            pairedVecs.add(new VecPaired<Vec, Integer>(allVecs[i], i));
+            pairedVecs.add(new VecPaired<>(allVecs[i], i));
         }
-        vc = vcf.getVectorCollection(pairedVecs, dm);
+        vc.build(false, pairedVecs, dm);
 
         //Estimate radius value
 
@@ -612,7 +603,7 @@ public class OPTICS extends ClustererBase implements Parameterized
     private void expandClusterOrder(int curIndex, Vec vec, List<Integer> orderedFile)
     {
         List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = vc.search(vec, radius);
-        VecPaired<Vec, Integer> object = new VecPaired<Vec, Integer>(vec, curIndex);
+        VecPaired<Vec, Integer> object = new VecPaired<>(vec, curIndex);
         
         reach_d[curIndex] = UNDEFINED;//NaN used for undefined
         processed[curIndex] = true;

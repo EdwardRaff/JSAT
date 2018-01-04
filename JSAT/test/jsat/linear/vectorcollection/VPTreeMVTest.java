@@ -41,7 +41,7 @@ import static org.junit.Assert.*;
  */
 public class VPTreeMVTest
 {
-    static List<VectorCollectionFactory<Vec>> collectionFactories;
+    static List<VectorCollection<Vec>> collectionFactories;
     
     public VPTreeMVTest()
     {
@@ -50,9 +50,9 @@ public class VPTreeMVTest
     @BeforeClass
     public static void setUpClass()
     {
-        collectionFactories = new ArrayList<VectorCollectionFactory<Vec>>();
+        collectionFactories = new ArrayList<VectorCollection<Vec>>();
         for(VPTree.VPSelection samplingStrat : VPTree.VPSelection.values())
-            collectionFactories.add(new VPTreeMV.VPTreeMVFactory<Vec>(samplingStrat));
+            collectionFactories.add(new VPTreeMV<Vec>(new EuclideanDistance(), samplingStrat));
     }
     
     @AfterClass
@@ -82,12 +82,14 @@ public class VPTreeMVTest
         
         
 
-        for(VectorCollectionFactory<Vec> factory : collectionFactories)
+        for(VectorCollection<Vec> factory : collectionFactories)
         {
             ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
             
-            VectorCollection<Vec> collection0 = factory.getVectorCollection(vecCol, new EuclideanDistance());
-            VectorCollection<Vec> collection1 = factory.getVectorCollection(vecCol, new EuclideanDistance(), ex);
+            VectorCollection<Vec> collection0 = factory.clone();
+            collection0.build(vecCol, new EuclideanDistance());
+            VectorCollection<Vec> collection1 = factory.clone();
+            collection1.build(true, vecCol, new EuclideanDistance());
             
             ex.shutdownNow();
             
@@ -134,12 +136,14 @@ public class VPTreeMVTest
         for(int i = 0; i < 250; i++)
             vecCol.add(DenseVector.random(3, rand));
         
-        for(VectorCollectionFactory<Vec> factory : collectionFactories)
+        for(VectorCollection<Vec> factory : collectionFactories)
         {
             ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
             
-            VectorCollection<Vec> collection0 = factory.getVectorCollection(vecCol, new EuclideanDistance());
-            VectorCollection<Vec> collection1 = factory.getVectorCollection(vecCol, new EuclideanDistance(), ex);
+            VectorCollection<Vec> collection0 = factory.clone();
+            collection0.build(vecCol, new EuclideanDistance());
+            VectorCollection<Vec> collection1 = factory.clone();
+            collection1.build(true, vecCol, new EuclideanDistance());
             
             collection0 = collection0.clone();
             collection1 = collection1.clone();

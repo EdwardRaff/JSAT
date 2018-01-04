@@ -5,7 +5,6 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 
 import jsat.classifiers.*;
 import jsat.clustering.SeedSelectionMethods;
@@ -14,12 +13,10 @@ import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
-import jsat.linear.vectorcollection.DefaultVectorCollectionFactory;
+import jsat.linear.vectorcollection.DefaultVectorCollection;
 import jsat.linear.vectorcollection.VectorCollection;
-import jsat.linear.vectorcollection.VectorCollectionFactory;
 import jsat.math.decayrates.*;
 import jsat.parameters.*;
-import jsat.utils.FakeExecutor;
 import jsat.utils.random.RandomUtil;
 
 /**
@@ -103,8 +100,6 @@ public class LVQ implements Classifier, Parameterized
      * Contains the Learning vectors paired with their index in the weights array
      */
     protected VectorCollection<VecPaired<Vec, Integer>> vc;
-    
-    private VectorCollectionFactory<VecPaired<Vec, Integer>> vcf;
 
     /**
      * Creates a new LVQ instance 
@@ -152,7 +147,7 @@ public class LVQ implements Classifier, Parameterized
         setEpsilonDistance(DEFAULT_EPS);
         setMScale(DEFAULT_MSCALE);
         setSeedSelection(DEFAULT_SEED_SELECTION);
-        setVecCollectionFactory(new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>());
+        setVecCollection(new DefaultVectorCollection<>());
         setRepresentativesPerClass(representativesPerClass);
     }
     
@@ -179,7 +174,7 @@ public class LVQ implements Classifier, Parameterized
         setSeedSelection(toCopy.getSeedSelection());
         if(toCopy.vc != null)
             this.vc = toCopy.vc.clone();
-        setVecCollectionFactory(toCopy.vcf.clone());
+        setVecCollection(toCopy.vc.clone());
         
     }
 
@@ -433,9 +428,9 @@ public class LVQ implements Classifier, Parameterized
      * Sets the vector collection factory to use when storing the final learning vectors
      * @param vcf the vector collection factory to use
      */
-    public void setVecCollectionFactory(VectorCollectionFactory<VecPaired<Vec, Integer>> vcf)
+    public void setVecCollection(VectorCollection<VecPaired<Vec, Integer>> vcf)
     {
-        this.vcf = vcf;
+        this.vc = vcf;
     }
     
     @Override
@@ -605,7 +600,7 @@ public class LVQ implements Classifier, Parameterized
                 continue;
             else
                 finalLVs.add(new VecPaired<Vec, Integer>(weights[i], i));
-        vc = vcf.getVectorCollection(finalLVs, dm, parallel);
+        vc.build(parallel, finalLVs, dm);
     }
     
     @Override

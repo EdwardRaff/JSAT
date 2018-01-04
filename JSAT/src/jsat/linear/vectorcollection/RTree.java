@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Stack;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import jsat.linear.DenseVector;
@@ -25,7 +24,7 @@ import jsat.utils.IntList;
  * @author Edward Raff
  * @param <V>
  */
-public class RTree<V extends Vec> implements VectorCollection<V>
+public class RTree<V extends Vec> implements IncrementalCollection<V>
 {
 
     private static final long serialVersionUID = -7067110612346062800L;
@@ -151,9 +150,17 @@ public class RTree<V extends Vec> implements VectorCollection<V>
     }
 
     @Override
-    public VectorCollection<V> clone()
+    public RTree<V> clone()
     {
         return new RTree<>(this);
+    }
+    
+    private RNode cloneChangeContext(RNode toClone)
+    {
+        if (toClone != null)
+            if (toClone instanceof jsat.linear.vectorcollection.RTree.RNode)
+                return new RNode((RNode) toClone);
+        return null;
     }
     
     private class RNode<V extends Vec> implements Comparable<RNode<V>>, Cloneable
@@ -172,6 +179,22 @@ public class RTree<V extends Vec> implements VectorCollection<V>
             this.points = new IntList(points); 
             children = new ArrayList<>();
             bound = Rectangle.contains(points.stream().map(i->get(i)).collect(Collectors.toList()));
+        }
+
+        public RNode(RNode<V> toCopy)
+        {
+            this();
+            for(RNode<V> child : toCopy.children)
+            {
+                RNode<V> cloneChild = cloneChangeContext(child);
+                cloneChild.parent = this;
+                this.children.add(cloneChild);
+            }
+            if (toCopy.points != null)
+                for (int v : toCopy.points)
+                    this.points.add(v);
+            if(toCopy.bound != null)
+                this.bound = toCopy.bound.clone();
         }
 
         public RNode()
@@ -259,19 +282,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         @Override
         protected RNode<V> clone()
         {
-            RNode<V> clone = new RNode<>();
-            for(RNode<V> child : this.children)
-            {
-                RNode<V> cloneChild = child.clone();
-                cloneChild.parent = clone;
-                clone.children.add(cloneChild);
-            }
-            for(int v : points)
-                clone.points.add(v);
-            if(this.bound != null)
-                clone.bound = this.bound.clone();
-            
-            return clone;
+            return new RNode<>(this);
         }
     }
     
@@ -513,22 +524,22 @@ public class RTree<V extends Vec> implements VectorCollection<V>
     
     private List<V> allVecs;
 
-    public RTree(int dimensions)
+    public RTree()
     {
-        this(dimensions, new EuclideanDistance());
+        this(new EuclideanDistance());
     }
     
-    public RTree(int dimensions, DistanceMetric dm)
+    public RTree(DistanceMetric dm)
     {
-        this(dimensions, dm, 5);
+        this(dm, 5);
     }
     
-    public RTree(int dimensions, DistanceMetric dm, int max)
+    public RTree(DistanceMetric dm, int max)
     {
-        this(dimensions, dm, max, (int)(max*0.4));
+        this(dm, max, (int)(max*0.4));
     }
 
-    public RTree(int dimensions, DistanceMetric dm, int max, int min)
+    public RTree(DistanceMetric dm, int max, int min)
     {
         this.root = new RNode();
         if(max < 2)
@@ -537,9 +548,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
             throw new RuntimeException("Invalid minumum, min must be in the range[1, " + max/2 + "]");
         this.M = max;
         this.m = min;
-        this.dim = dimensions;
-        this.dcScratch = new DenseVector(dim);
-        this.dm = dm;
+        setDistanceMetric(dm);
         this.allVecs = new ArrayList<>();
     }
 
@@ -549,12 +558,32 @@ public class RTree<V extends Vec> implements VectorCollection<V>
      */
     public RTree(RTree<V> toCopy)
     {
-        this(toCopy.dim, toCopy.dm.clone(), toCopy.M, toCopy.m);
+        this(toCopy.dm.clone(), toCopy.M, toCopy.m);
         this.size = toCopy.size;
         if(toCopy.root != null)
-            this.root = toCopy.root;
+            this.root = cloneChangeContext(toCopy.root);
         for(V v : toCopy.allVecs)
             this.allVecs.add(v);
+    }
+
+    @Override
+    public void build(boolean parallel, List<V> collection, DistanceMetric dm)
+    {
+        setDistanceMetric(dm);
+        for(V v : collection)
+            insert(v);
+    }
+
+    @Override
+    public void setDistanceMetric(DistanceMetric dm)
+    {
+        this.dm = dm;
+    }
+
+    @Override
+    public DistanceMetric getDistanceMetric()
+    {
+        return dm;
     }
     
     
@@ -859,9 +888,15 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         return allVecs.get(indx);
     }
     
-    public synchronized void add(V v)
+    @Override
+    public synchronized void insert(V v)
     {
         int indx = allVecs.size();
+        if(indx == 0)
+        {
+            this.dim = v.length();
+            this.dcScratch = new DenseVector(dim);
+        }
         allVecs.add(v);
         /*
          * I1 [Find position for new record ]
@@ -991,32 +1026,4 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         return dm.dist(p, dcScratch);
     }
     
-    public static class RTreeFactory<V extends Vec> implements VectorCollectionFactory<V>
-    {
-
-        private static final long serialVersionUID = 5690819734453191098L;
-
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
-        {
-            
-            RTree<V> newTree = new RTree<V>(source.get(0).length(), distanceMetric, 50);
-            
-            for(V v : source)
-                newTree.add(v);
-            return newTree;
-        }
-
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
-        {
-            return getVectorCollection(source, distanceMetric);
-        }
-
-        @Override
-        public RTreeFactory<V> clone()
-        {
-            return new RTreeFactory<V>();
-        }
-    }
 }

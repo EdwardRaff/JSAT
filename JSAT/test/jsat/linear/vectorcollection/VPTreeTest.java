@@ -41,7 +41,7 @@ import static org.junit.Assert.*;
  */
 public class VPTreeTest
 {
-    static List<VectorCollectionFactory<Vec>> collectionFactories;
+    static List<VectorCollection<Vec>> collectionFactories;
     
     public VPTreeTest()
     {
@@ -50,9 +50,9 @@ public class VPTreeTest
     @BeforeClass
     public static void setUpClass()
     {
-        collectionFactories = new ArrayList<VectorCollectionFactory<Vec>>();
+        collectionFactories = new ArrayList<>();
         for(VPTree.VPSelection samplingStrat : VPTree.VPSelection.values())
-            collectionFactories.add(new VPTree.VPTreeFactory<Vec>(samplingStrat));
+            collectionFactories.add(new VPTree<>(new EuclideanDistance(), samplingStrat));
     }
     
     @AfterClass
@@ -80,12 +80,14 @@ public class VPTreeTest
         for(int i = 0; i < 250; i++)
             vecCol.add(DenseVector.random(3, rand));
         
-        for(VectorCollectionFactory<Vec> factory : collectionFactories)
+        for(VectorCollection<Vec> factory : collectionFactories)
         {
             ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
             
-            VectorCollection<Vec> collection0 = factory.getVectorCollection(vecCol, new EuclideanDistance());
-            VectorCollection<Vec> collection1 = factory.getVectorCollection(vecCol, new EuclideanDistance(), ex);
+            VectorCollection<Vec> collection0 = factory.clone();
+            collection0.build(vecCol, new EuclideanDistance());
+            VectorCollection<Vec> collection1 = factory.clone();
+            collection1.build(true, vecCol, new EuclideanDistance());
             
             collection0 = collection0.clone();
             collection1 = collection1.clone();
@@ -133,12 +135,14 @@ public class VPTreeTest
         for(int i = 0; i < 250; i++)
             vecCol.add(DenseVector.random(3, rand));
         
-        for(VectorCollectionFactory<Vec> factory : collectionFactories)
+        for(VectorCollection<Vec> factory : collectionFactories)
         {
             ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
             
-            VectorCollection<Vec> collection0 = factory.getVectorCollection(vecCol, new EuclideanDistance());
-            VectorCollection<Vec> collection1 = factory.getVectorCollection(vecCol, new EuclideanDistance(), ex);
+            VectorCollection<Vec> collection0 = factory.clone();
+            collection0.build(vecCol, new EuclideanDistance());
+            VectorCollection<Vec> collection1 = factory.clone();
+            collection1.build(true, vecCol, new EuclideanDistance());
             
             ex.shutdownNow();
             

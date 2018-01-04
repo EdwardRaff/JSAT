@@ -17,7 +17,6 @@
 package jsat.clustering;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
@@ -27,7 +26,6 @@ import jsat.linear.vectorcollection.*;
 import jsat.utils.FibHeap;
 import static java.lang.Math.max;
 import jsat.exceptions.FailedToFitException;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.*;
 
@@ -60,7 +58,7 @@ public class HDBSCAN implements Clusterer, Parameterized
      */
     private int m_pts;
     private int m_clSize;
-    private VectorCollectionFactory<Vec> vcf;
+    private VectorCollection<Vec> vc;
     
     /**
      * Creates a new HDBSCAN object using a threshold of 15 points to form a
@@ -93,7 +91,7 @@ public class HDBSCAN implements Clusterer, Parameterized
      */
     public HDBSCAN(DistanceMetric dm, int m_pts)
     {
-        this(dm, m_pts, m_pts, new VPTreeMV.VPTreeMVFactory<Vec>());
+        this(dm, m_pts, m_pts, new DefaultVectorCollection<>());
     }
 
     /**
@@ -106,7 +104,7 @@ public class HDBSCAN implements Clusterer, Parameterized
      * @param vcf the vector collection to use for accelerating nearest neighbor
      * queries
      */
-    public HDBSCAN(DistanceMetric dm, int m_pts, VectorCollectionFactory<Vec> vcf)
+    public HDBSCAN(DistanceMetric dm, int m_pts, VectorCollection<Vec> vcf)
     {
         this(dm, m_pts, m_pts, vcf);
     }
@@ -121,15 +119,15 @@ public class HDBSCAN implements Clusterer, Parameterized
      * over the density estimate
      * @param m_clSize the minimum number of data points needed to form a
      * cluster
-     * @param vcf the vector collection to use for accelerating nearest neighbor
+     * @param vc the vector collection to use for accelerating nearest neighbor
      * queries
      */
-    public HDBSCAN(DistanceMetric dm, int m_pts, int m_clSize, VectorCollectionFactory<Vec> vcf)
+    public HDBSCAN(DistanceMetric dm, int m_pts, int m_clSize, VectorCollection<Vec> vc)
     {
         this.dm = dm;
         this.m_pts = m_pts;
         this.m_clSize = m_clSize;
-        this.vcf = vcf;
+        this.vc = vc;
     }
     
     /**
@@ -141,7 +139,7 @@ public class HDBSCAN implements Clusterer, Parameterized
         this.dm = dm.clone();
         this.m_pts = toCopy.m_pts;
         this.m_clSize = toCopy.m_clSize;
-        this.vcf = toCopy.vcf.clone();
+        this.vc = toCopy.vc.clone();
     }
 
     /**
@@ -219,7 +217,8 @@ public class HDBSCAN implements Clusterer, Parameterized
         final List<Vec> X = dataSet.getDataVectors();
         final int N = X.size();
         List<Double> cache = dm.getAccelerationCache(X, parallel);
-        VectorCollection<Vec> X_vc = vcf.getVectorCollection(X, dm, parallel);
+        VectorCollection<Vec> X_vc = vc.clone();
+        X_vc.build(parallel, X, dm);
         //1. Compute the core distance w.r.t. m_pts for all data objects in X.
         /*
          * (Core Distance): The core distance of an object x_p ∈ X w.r.t. m_pts, 

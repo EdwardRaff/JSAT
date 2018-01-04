@@ -1,23 +1,17 @@
 package jsat.clustering;
 
 import java.util.*;
-import java.util.concurrent.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
-import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
-import jsat.linear.vectorcollection.DefaultVectorCollectionFactory;
+import jsat.linear.vectorcollection.DefaultVectorCollection;
 import jsat.linear.vectorcollection.VectorCollection;
-import jsat.linear.vectorcollection.VectorCollectionFactory;
 import jsat.linear.vectorcollection.VectorCollectionUtils;
 import jsat.math.OnLineStatistics;
-import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.ParallelUtils;
 
 /**
@@ -47,14 +41,14 @@ public class DBSCAN extends ClustererBase
      * Factory used to create a vector space of the inputs. 
      * The paired Integer is the vector's index in the original dataset
      */
-    private VectorCollectionFactory<VecPaired<Vec, Integer> > vecFactory;
+    private VectorCollection<VecPaired<Vec, Integer> > vc;
     private DistanceMetric dm;
     private double stndDevs = 2.0;
 
-    public DBSCAN(DistanceMetric dm, VectorCollectionFactory<VecPaired<Vec, Integer>> vecFactory)
+    public DBSCAN(DistanceMetric dm, VectorCollection<VecPaired<Vec, Integer>> vc)
     {
         this.dm = dm;
-        this.vecFactory = vecFactory;
+        this.vc = vc;
     }
 
     public DBSCAN()
@@ -64,7 +58,7 @@ public class DBSCAN extends ClustererBase
     
     public DBSCAN(DistanceMetric dm)
     {
-        this(dm ,new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>());
+        this(dm ,new DefaultVectorCollection<VecPaired<Vec, Integer>>());
     }
 
     /**
@@ -73,7 +67,7 @@ public class DBSCAN extends ClustererBase
      */
     public DBSCAN(DBSCAN toCopy)
     {
-        this.vecFactory = toCopy.vecFactory.clone();
+        this.vc = toCopy.vc.clone();
         this.dm = toCopy.dm.clone();
         this.stndDevs = toCopy.stndDevs;
     }
@@ -109,7 +103,7 @@ public class DBSCAN extends ClustererBase
     public int[] cluster(DataSet dataSet, int minPts, boolean parallel, int[] designations)
     {
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
-        VectorCollection<VecPaired<Vec, Integer>> vc = vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm, parallel);
+        vc.build(parallel, getVecIndexPairs(dataSet), dm);
         
         
         OnLineStatistics stats = ParallelUtils.run(parallel, dataSet.getSampleSize(), (start, end)->
@@ -144,7 +138,7 @@ public class DBSCAN extends ClustererBase
     public int[] cluster(DataSet dataSet, double eps, int minPts, int[] designations)
     {
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
-        return cluster(dataSet, eps, minPts, vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm), false, designations);
+        return cluster(dataSet, eps, minPts, vc, false, designations);
     }
     
     public List<List<DataPoint>> cluster(DataSet dataSet, double eps, int minPts, boolean parallel)
@@ -155,7 +149,7 @@ public class DBSCAN extends ClustererBase
     public int[] cluster(DataSet dataSet, double eps, int minPts, boolean parallel, int[] designations)
     {
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
-        return cluster(dataSet, eps, minPts, vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm), parallel, designations);
+        return cluster(dataSet, eps, minPts, vc, parallel, designations);
     }
     
     private int[] cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, boolean parallel, int[] pointCats)
@@ -164,6 +158,7 @@ public class DBSCAN extends ClustererBase
             pointCats = new int[dataSet.getSampleSize()];
         Arrays.fill(pointCats, UNCLASSIFIED);
         
+        vc.build(parallel, getVecIndexPairs(dataSet), dm);
         List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> allNearestNeighbor = VectorCollectionUtils.allEpsNeighbors(vc, dataSet.getDataVectors(), eps, parallel);
         
         int curClusterID = 0;

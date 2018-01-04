@@ -12,12 +12,10 @@ import jsat.distributions.discrete.UniformDiscrete;
 import jsat.linear.*;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.MahalanobisDistance;
-import jsat.linear.vectorcollection.DefaultVectorCollectionFactory;
+import jsat.linear.vectorcollection.DefaultVectorCollection;
 import jsat.linear.vectorcollection.VectorCollection;
-import jsat.linear.vectorcollection.VectorCollectionFactory;
 import jsat.parameters.Parameterized;
 import jsat.utils.BoundedSortedList;
-import jsat.utils.FakeExecutor;
 
 /**
  * DANN is an implementation of Discriminant Adaptive Nearest Neighbor. DANN has
@@ -67,8 +65,6 @@ public class DANN implements Classifier, Parameterized
     private int maxIterations;
     private double eps;
     
-    private VectorCollectionFactory<VecPaired<Vec, Integer>> vcf;
-    
     private CategoricalData predicting;
     
     /**
@@ -103,7 +99,7 @@ public class DANN implements Classifier, Parameterized
      */
     public DANN(int kn, int k, double eps)
     {
-        this(kn, k, eps, new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>());
+        this(kn, k, eps, new DefaultVectorCollection<VecPaired<Vec, Integer>>());
     }
 
     /**
@@ -114,7 +110,7 @@ public class DANN implements Classifier, Parameterized
      * @param vcf the default vector collection that will be used for initial 
      * neighbor search
      */
-    public DANN(int kn, int k, double eps, VectorCollectionFactory<VecPaired<Vec, Integer>> vcf)
+    public DANN(int kn, int k, double eps, VectorCollection<VecPaired<Vec, Integer>> vcf)
     {
         this(kn, k, eps, DEFAULT_ITERATIONS, vcf);
     }
@@ -129,13 +125,13 @@ public class DANN implements Classifier, Parameterized
      * @param vcf the default vector collection that will be used for initial 
      * neighbor search
      */
-    public DANN(int kn, int k, double eps, int maxIterations, VectorCollectionFactory<VecPaired<Vec, Integer>> vcf)
+    public DANN(int kn, int k, double eps, int maxIterations, VectorCollection<VecPaired<Vec, Integer>> vcf)
     {
         setK(k);
         setKn(kn);
         setEpsilon(eps);
         setMaxIterations(maxIterations);
-        this.vcf = vcf;
+        this.vc = vcf;
     }
 
     /**
@@ -361,10 +357,10 @@ public class DANN implements Classifier, Parameterized
     public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         predicting = dataSet.getPredicting();
-        vecList = new ArrayList<VecPaired<Vec, Integer>>(dataSet.getSampleSize());
+        vecList = new ArrayList<>(dataSet.getSampleSize());
         for(int i = 0; i < dataSet.getSampleSize(); i++)
-            vecList.add(new VecPaired<Vec, Integer>(dataSet.getDataPoint(i).getNumericalValues(), dataSet.getDataPointCategory(i)));
-        vc = vcf.getVectorCollection(vecList, new EuclideanDistance(), parallel);
+            vecList.add(new VecPaired<>(dataSet.getDataPoint(i).getNumericalValues(), dataSet.getDataPointCategory(i)));
+        vc.build(parallel, vecList, new EuclideanDistance());
     }
 
     @Override
@@ -376,14 +372,14 @@ public class DANN implements Classifier, Parameterized
     @Override
     public Classifier clone()
     {
-        DANN clone = new DANN(kn, k, maxIterations, vcf.clone());
+        DANN clone = new DANN(kn, k, maxIterations, vc.clone());
                 
         if(this.predicting != null)
             clone.predicting = this.predicting.clone();
         if(this.vc != null)
             clone.vc = this.vc.clone();
         if(this.vecList != null)
-            clone.vecList = new ArrayList<VecPaired<Vec, Integer>>(this.vecList);
+            clone.vecList = new ArrayList<>(this.vecList);
         
         return clone;
     }
@@ -404,12 +400,12 @@ public class DANN implements Classifier, Parameterized
         Vec scartch0 = new DenseVector(query.length());
         Vec scartch1 = new DenseVector(query.length());
         BoundedSortedList<VecPairedComparable<VecPaired<Vec, Integer>, Double>> 
-                knn = new BoundedSortedList<VecPairedComparable<VecPaired<Vec, Integer>, Double>>(num, num);
+                knn = new BoundedSortedList<>(num, num);
         
         for(VecPaired<Vec, Integer> v : vecList)
         {
             double d = dist(sigma, query, v, scartch0, scartch1);
-            knn.add(new VecPairedComparable<VecPaired<Vec, Integer>, Double>(v, d));
+            knn.add(new VecPairedComparable<>(v, d));
         }
         
         return (List<VecPaired<VecPaired<Vec, Integer>, Double>>) (Object) knn;

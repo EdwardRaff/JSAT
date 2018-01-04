@@ -32,7 +32,7 @@ import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.linear.vectorcollection.DefaultVectorCollectionFactory;
+import jsat.linear.vectorcollection.DefaultVectorCollection;
 import jsat.linear.vectorcollection.VectorCollection;
 import jsat.linear.vectorcollection.VectorCollectionUtils;
 import jsat.parameters.Parameter.ParameterHolder;
@@ -269,7 +269,7 @@ public class SMOTE implements Classifier, Parameterized
             final List<Vec> V_id = new ArrayList<>();
             for(int i : classIndex[classID])
                 V_id.add(vAll.get(i));
-            VectorCollection<Vec> VC_id = new DefaultVectorCollectionFactory<>().getVectorCollection(V_id, dm, threadPool);
+            VectorCollection<Vec> VC_id = new DefaultVectorCollection<>(dm, V_id, parallel);
             //find all the nearest neighbors for each point so we know who to interpolate with
             final List<List<? extends VecPaired<Vec, Double>>> nns_id = VectorCollectionUtils.allNearestNeighbors(VC_id, V_id, smoteNeighbors+1, threadPool);
             

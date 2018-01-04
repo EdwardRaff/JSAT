@@ -1,7 +1,6 @@
 package jsat.classifiers.knn;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.classifiers.bayesian.NaiveBayesUpdateable;
@@ -54,7 +53,6 @@ public class LWL implements Classifier, Regressor, Parameterized
     private int k;
     private DistanceMetric dm;
     private KernelFunction kf;
-    private VectorCollectionFactory<VecPaired<Vec, Double>> vcf;
     private VectorCollection<VecPaired<Vec, Double>> vc;
 
     /**
@@ -72,7 +70,6 @@ public class LWL implements Classifier, Regressor, Parameterized
         setNeighbors(toCopy.k);
         setDistanceMetric(toCopy.dm.clone());
         setKernelFunction(toCopy.kf);
-        this.vcf = toCopy.vcf;
         if(toCopy.vc != null)
             this.vc = toCopy.vc.clone();
     }
@@ -97,7 +94,7 @@ public class LWL implements Classifier, Regressor, Parameterized
      */
     public LWL(Classifier classifier, int k, DistanceMetric dm, KernelFunction kf)
     {
-        this(classifier, k, dm, kf, new DefaultVectorCollectionFactory<VecPaired<Vec, Double>>());
+        this(classifier, k, dm, kf, new DefaultVectorCollection<VecPaired<Vec, Double>>());
     }
     
     /**
@@ -108,13 +105,13 @@ public class LWL implements Classifier, Regressor, Parameterized
      * @param kf the kernel function used to weight the local points
      * @param vcf the factory to create vector collections for storing the points
      */
-    public LWL(Classifier classifier, int k, DistanceMetric dm, KernelFunction kf, VectorCollectionFactory<VecPaired<Vec, Double>> vcf)
+    public LWL(Classifier classifier, int k, DistanceMetric dm, KernelFunction kf, VectorCollection<VecPaired<Vec, Double>> vcf)
     {
         setClassifier(classifier);
         setNeighbors(k);
         setDistanceMetric(dm);
         setKernelFunction(kf);
-        this.vcf = vcf;
+        this.vc = vcf;
     }
     
     /**
@@ -137,7 +134,7 @@ public class LWL implements Classifier, Regressor, Parameterized
      */
     public LWL(Regressor regressor, int k, DistanceMetric dm, KernelFunction kf)
     {
-        this(regressor, k, dm, kf, new DefaultVectorCollectionFactory<VecPaired<Vec, Double>>());
+        this(regressor, k, dm, kf, new DefaultVectorCollection<VecPaired<Vec, Double>>());
     }
     /**
      * Creates a new LWL Regressor
@@ -147,13 +144,13 @@ public class LWL implements Classifier, Regressor, Parameterized
      * @param kf the kernel function used to weight the local points
      * @param vcf the factory to create vector collections for storing the points
      */
-    public LWL(Regressor regressor, int k, DistanceMetric dm, KernelFunction kf, VectorCollectionFactory<VecPaired<Vec, Double>> vcf)
+    public LWL(Regressor regressor, int k, DistanceMetric dm, KernelFunction kf, VectorCollection<VecPaired<Vec, Double>> vcf)
     {
         setRegressor(regressor);
         setNeighbors(k);
         setDistanceMetric(dm);
         setKernelFunction(kf);
-        this.vcf = vcf;
+        this.vc = vcf;
     }
     
     
@@ -193,17 +190,7 @@ public class LWL implements Classifier, Regressor, Parameterized
         List<VecPaired<Vec, Double>> trainList = getVecList(dataSet);
         
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
-        vc = vcf.getVectorCollection(trainList, dm, parallel);
-        predicting = dataSet.getPredicting();
-    }
-
-    @Override
-    public void train(ClassificationDataSet dataSet)
-    {
-        List<VecPaired<Vec, Double>> trainList = getVecList(dataSet);
-        
-        TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
-        vc = vcf.getVectorCollection(trainList, dm);
+        vc.build(parallel, trainList, dm);
         predicting = dataSet.getPredicting();
     }
 
@@ -246,16 +233,7 @@ public class LWL implements Classifier, Regressor, Parameterized
         List<VecPaired<Vec, Double>> trainList = getVecList(dataSet);
         
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
-        vc = vcf.getVectorCollection(trainList, dm, parallel);
-    }
-
-    @Override
-    public void train(RegressionDataSet dataSet)
-    {
-        List<VecPaired<Vec, Double>> trainList = getVecList(dataSet);
-        
-        TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
-        vc = vcf.getVectorCollection(trainList, dm);
+        vc.build(parallel, trainList, dm);
     }
 
     @Override
@@ -267,9 +245,9 @@ public class LWL implements Classifier, Regressor, Parameterized
     private List<VecPaired<Vec, Double>> getVecList(ClassificationDataSet dataSet)
     {
         List<VecPaired<Vec, Double>> trainList = 
-                new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
+                new ArrayList<>(dataSet.getSampleSize());
         for(int i = 0; i < dataSet.getSampleSize(); i++)
-            trainList.add(new VecPaired<Vec, Double>(
+            trainList.add(new VecPaired<>(
                     dataSet.getDataPoint(i).getNumericalValues(), 
                     new Double(dataSet.getDataPointCategory(i))));
         return trainList;
@@ -278,9 +256,9 @@ public class LWL implements Classifier, Regressor, Parameterized
     private List<VecPaired<Vec, Double>> getVecList(RegressionDataSet dataSet)
     {
         List<VecPaired<Vec, Double>> trainList = 
-                new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
+                new ArrayList<>(dataSet.getSampleSize());
         for(int i = 0; i < dataSet.getSampleSize(); i++)
-            trainList.add(new VecPaired<Vec, Double>(
+            trainList.add(new VecPaired<>(
                     dataSet.getDataPoint(i).getNumericalValues(), 
                     dataSet.getTargetValue(i)));
         return trainList;

@@ -22,13 +22,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
-import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.math.FastMath;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
-import jsat.utils.FakeExecutor;
 import jsat.utils.IndexTable;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
@@ -89,20 +87,38 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
 
     public CoverTree(List<V> source, DistanceMetric dm)    
     {
-        this(source, dm, new FakeExecutor());
+        this(source, dm, false);
     }
     
-    public CoverTree(List<V> source, DistanceMetric dm, ExecutorService threadpool)
+    public CoverTree(List<V> source, DistanceMetric dm, boolean parallel)
     {
-        this(source, dm, threadpool, false);
+        this(source, dm, parallel, false);
     }
     
-    public CoverTree(List<V> source, DistanceMetric dm, ExecutorService threadpool, boolean looseBounds)
+    public CoverTree(List<V> source, DistanceMetric dm, boolean parallel, boolean looseBounds)
+    {
+        setLooseBounds(looseBounds);
+        build(parallel, source, dm);
+    }
+
+    public CoverTree(CoverTree<V> toCopy)
+    {
+        this.dm = toCopy.dm.clone();
+        this.looseBounds = toCopy.looseBounds;
+        this.vecs = new ArrayList<>(toCopy.vecs);
+        if(toCopy.accell_cache != null)
+            this.accell_cache = new DoubleList(toCopy.accell_cache);
+        if(toCopy.root != null)
+            this.root = new TreeNode(toCopy.root);
+    }
+
+    @Override
+    public void build(boolean parallel, List<V> collection, DistanceMetric dm)
     {
         this.dm = dm;
         setLooseBounds(looseBounds);
-        this.vecs = new ArrayList<>(source);
-        this.accell_cache = dm.getAccelerationCache(vecs, threadpool);
+        this.vecs = new ArrayList<>(collection);
+        this.accell_cache = dm.getAccelerationCache(vecs, parallel);
         //Cover Tree is sensative to insertion order, so lets make sure its random
         IntList order = new IntList(this.vecs.size());
         ListUtils.addRange(order, 0, this.vecs.size(), 1);
@@ -127,17 +143,17 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
             }
         }
     }
-
-    public CoverTree(CoverTree<V> toCopy)
+    
+    @Override
+    public void setDistanceMetric(DistanceMetric dm)
     {
-        this.dm = toCopy.dm.clone();
-        this.looseBounds = toCopy.looseBounds;
-        this.vecs = new ArrayList<V>(toCopy.vecs);
-//        this.nearest_ancestor = toCopy.nearest_ancestor;
-        if(toCopy.accell_cache != null)
-            this.accell_cache = new DoubleList(toCopy.accell_cache);
-        if(toCopy.root != null)
-            this.root = new TreeNode(toCopy.root);
+        this.dm = dm;
+    }
+
+    @Override
+    public DistanceMetric getDistanceMetric()
+    {
+        return dm;
     }
 
     public void setLooseBounds(boolean looseBounds)
@@ -192,7 +208,7 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
     @Override
     public CoverTree<V> clone()
     {
-        return new CoverTree<V>(this);
+        return new CoverTree<>(this);
     }
     
     protected void simpleInsert(V x)
@@ -676,30 +692,5 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
             };
             return iter;
         }
-    }
-    
-    public static class CoverTreeFactory<V extends Vec> implements VectorCollectionFactory<V>
-    {
-
-        private static final long serialVersionUID = 2707446304590604519L;
-
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
-        {
-            return new CoverTree<V>(source, distanceMetric);
-        }
-
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
-        {
-            return new CoverTree<V>(source, distanceMetric, threadpool);
-        }
-
-        @Override
-        public CoverTreeFactory<V> clone()
-        {
-            return new CoverTreeFactory<V>();
-        }
-        
     }
 }

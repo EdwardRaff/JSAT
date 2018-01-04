@@ -28,8 +28,10 @@ import jsat.distributions.Normal;
 import jsat.linear.*;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.linear.vectorcollection.DefaultVectorCollection;
 import jsat.linear.vectorcollection.VPTree;
 import jsat.linear.vectorcollection.VPTreeMV;
+import jsat.linear.vectorcollection.VectorCollection;
 import jsat.math.FastMath;
 import jsat.math.optimization.stochastic.*;
 import jsat.math.rootfinding.Zeroin;
@@ -350,9 +352,10 @@ public class TSNE implements VisualizationTransform
         final List<Double> accelCache = dm.getAccelerationCache(vecs, ex);
         final int N = vecs.size();
         
-        final VPTreeMV<Vec> vp = new VPTreeMV<Vec>(vecs, dm, VPTree.VPSelection.Random, rand, 2, 1, ex);
+        final VectorCollection<Vec> vc = new DefaultVectorCollection<>();
+        vc.build(ex != null, vecs, dm);
         
-        final List<List<? extends VecPaired<Vec, Double>>> neighbors = new ArrayList<List<? extends VecPaired<Vec, Double>>>(N);
+        final List<List<? extends VecPaired<Vec, Double>>> neighbors = new ArrayList<>(N);
         for(int i = 0; i < N; i++)
             neighbors.add(null);
         
@@ -361,7 +364,7 @@ public class TSNE implements VisualizationTransform
         //new scope b/c I don't want to leark the silly vecIndex thing
         {
             //Used to map vecs back to their index so we can store only the ones we need in nearMe
-            final IdentityHashMap<Vec, Integer> vecIndex = new IdentityHashMap<Vec, Integer>(N);
+            final IdentityHashMap<Vec, Integer> vecIndex = new IdentityHashMap<>(N);
             for(int i = 0; i < N; i++)
                 vecIndex.put(vecs.get(i), i);
 
@@ -378,7 +381,7 @@ public class TSNE implements VisualizationTransform
                         for (int i = ID; i < N; i += SystemInfo.LogicalCores)//lets pre-compute the 3u nearesst neighbors used in eq(1)
                         {
                             Vec x_i = vecs.get(i);
-                            List<? extends VecPaired<Vec, Double>> closest = vp.search(x_i, knn+1);//+1 b/c self is closest
+                            List<? extends VecPaired<Vec, Double>> closest = vc.search(x_i, knn+1);//+1 b/c self is closest
                             neighbors.set(i, closest);
                             for (int j = 1; j < closest.size(); j++)
                             {

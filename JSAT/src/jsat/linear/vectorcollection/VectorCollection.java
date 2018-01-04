@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
+import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.utils.DoubleList;
 import jsat.utils.IntList;
 
@@ -22,6 +23,65 @@ import jsat.utils.IntList;
 public interface VectorCollection<V extends Vec> extends Cloneable, Serializable
 {
 
+    /**
+     * Builds this metric index from the given collection of points using
+     * whatever distance metric is currently set for the metric index.
+     *
+     * @param collection the list of vectors to put into the index
+     */
+    default public void build(List<V> collection)
+    {
+        build(false, collection);
+    }
+
+    /**
+     * Builds this metric index from the given collection of points using the
+     * given distance metric.
+     *
+     * @param collection the list of vectors to put into the index
+     * @param dm the distance metric to build the index using.
+     */
+    default public void build(List<V> collection, DistanceMetric dm)
+    {
+        build(false, collection, dm);
+    }
+
+    /**
+     * Builds this metric index from the given collection of points using
+     * whatever distance metric is currently set for the metric index.
+     *
+     * @param parallel {@code true} if the index should be built in parallel, or
+     * {@code false} if it should be done in a single thread.
+     * @param collection the list of vectors to put into the index
+     */
+    default public void build(boolean parallel, List<V> collection)
+    {
+        build(parallel, collection, getDistanceMetric());
+    }
+
+    /**
+     * Builds this metric index from the given collection of points using the
+     * given distance metric.
+     *
+     * @param parallel {@code true} if the index should be built in parallel, or
+     * {@code false} if it should be done in a single thread.
+     * @param collection the list of vectors to put into the index
+     * @param dm the distance metric to build the index using.
+     */
+    public void build(boolean parallel, List<V> collection, DistanceMetric dm);
+
+    /**
+     * Sets the distance metric used for this collection. 
+     * @param dm the distance metric to use
+     */
+    public void setDistanceMetric(DistanceMetric dm);
+
+    /**
+     * 
+     * @return the distance metric to use
+     */
+    public DistanceMetric getDistanceMetric();
+    
     /**
      * Searches the space for all vectors that are within  a given range of the query vector. 
      * @param query the vector we want to find others near

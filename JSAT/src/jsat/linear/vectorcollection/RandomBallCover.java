@@ -5,14 +5,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import jsat.exceptions.FailedToFitException;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.utils.*;
-import static jsat.utils.SystemInfo.LogicalCores;
 import static java.lang.Math.*;
+import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * An implementation of the exact search for the Random Ball Cover algorithm. 
@@ -55,41 +53,19 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
     /**
      * Distance from representative i to its farthest neighbor it owns
      */
-    double[] repRadius;
+    private double[] repRadius;
 
     /**
      * Creates a new Random Ball Cover
      * @param vecs the vectors to place into the RBC
      * @param dm the distance metric to use
-     * @param execServ the source of threads for parallel construction
+     * @param parallel {@code true} if construction should be done in parallel,
+     * {@code false} for single threaded.
      */
-    public RandomBallCover(List<V> vecs, DistanceMetric dm, ExecutorService execServ)
+    public RandomBallCover(List<V> vecs, DistanceMetric dm, boolean parallel)
     {
         this.dm = dm;
-        this.size = vecs.size();
-        this.allVecs = new ArrayList<>(vecs);
-        if(execServ instanceof FakeExecutor)
-            this.distCache = dm.getAccelerationCache(allVecs);
-        else
-            this.distCache = dm.getAccelerationCache(allVecs, execServ);
-        IntList allIndices = new IntList(vecs.size());
-        ListUtils.addRange(allIndices, 0, size, 1);
-        try
-        {
-            setUp(allIndices, execServ);
-        }
-        catch (InterruptedException ex)
-        {
-            try
-            {
-                setUp(allIndices, new FakeExecutor());
-            }
-            catch (InterruptedException ex1)
-            {
-                //Wont happen with a fake executor, nothing to through the interupted exception in that case
-                throw new FailedToFitException(ex1);
-            }
-        }
+        build(parallel, vecs, dm);
     }
     
     /**
@@ -99,7 +75,7 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
      */
     public RandomBallCover(List<V> vecs, DistanceMetric dm)
     {
-        this(vecs, dm, new FakeExecutor());
+        this(vecs, dm, false);
     }
     
     public RandomBallCover(DistanceMetric dm)
@@ -110,6 +86,11 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
         if(dm.supportsAcceleration())
             this.distCache = new DoubleList();
         this.R = new IntList();
+    }
+
+    public RandomBallCover()
+    {
+        this(new EuclideanDistance());
     }
 
     /**
@@ -139,7 +120,19 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
             this.repRadius = Arrays.copyOf(other.repRadius, other.repRadius.length);
     }
 
-    private void setUp(List<Integer> vecIndices, ExecutorService execServ) throws InterruptedException
+    @Override
+    public void build(boolean parallel, List<V> collection, DistanceMetric dm)
+    {
+        setDistanceMetric(dm);
+        this.size = collection.size();
+        this.allVecs = new ArrayList<>(collection);
+        this.distCache = dm.getAccelerationCache(allVecs, parallel);
+        IntList allIndices = new IntList(allVecs.size());
+        ListUtils.addRange(allIndices, 0, size, 1);
+        setUp(allIndices, parallel);
+    }
+
+    private void setUp(List<Integer> vecIndices, boolean parallel)
     {
         int repCount = (int) Math.max(1, Math.sqrt(vecIndices.size()));
         Collections.shuffle(vecIndices);
@@ -147,7 +140,7 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
         R = new IntList(vecIndices.subList(0, repCount));
         repRadius = new double[R.size()];
         ownedRDists = new ArrayList<>(repRadius.length);
-        vecIndices = new IntList(vecIndices.subList(repCount, vecIndices.size()));
+        IntList vecIndicesSub = new IntList(vecIndices.subList(repCount, vecIndices.size()));
         ownedVecs = new ArrayList<>(repCount);
 
         for (int i = 0; i < repCount; i++)
@@ -156,36 +149,28 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
             ownedRDists.add(new DoubleList(repCount));
         }
 
-        final CountDownLatch latch = new CountDownLatch(LogicalCores);
-        for (final List<Integer> subSet : ListUtils.splitList(vecIndices, LogicalCores))
-            execServ.submit(() ->
+        ParallelUtils.run(parallel, vecIndicesSub.size(), (start, end)->
+        {
+            double tmp;
+            for (int v : vecIndicesSub.subList(start, end))
             {
-                double tmp;
-                for (int v : subSet)
-                {
-                    int bestRep = 0;
-                    double bestDist = dm.dist(v, R.get(0), allVecs, distCache);
-                    for (int potentialRep = 1; potentialRep < R.size(); potentialRep++)
-                        if ((tmp = dm.dist(v, R.get(potentialRep), allVecs, distCache)) < bestDist)
-                        {
-                            bestDist = tmp;
-                            bestRep = potentialRep;
-                        }
-
-                    synchronized (ownedVecs.get(bestRep))
+                int bestRep = 0;
+                double bestDist = dm.dist(v, R.get(0), allVecs, distCache);
+                for (int potentialRep = 1; potentialRep < R.size(); potentialRep++)
+                    if ((tmp = dm.dist(v, R.get(potentialRep), allVecs, distCache)) < bestDist)
                     {
-                        ownedVecs.get(bestRep).add(v);
-                        ownedRDists.get(bestRep).add(bestDist);
-                        repRadius[bestRep] = Math.max(repRadius[bestRep], bestDist);
+                        bestDist = tmp;
+                        bestRep = potentialRep;
                     }
+
+                synchronized (ownedVecs.get(bestRep))
+                {
+                    ownedVecs.get(bestRep).add(v);
+                    ownedRDists.get(bestRep).add(bestDist);
+                    repRadius[bestRep] = Math.max(repRadius[bestRep], bestDist);
                 }
-
-                latch.countDown();
-            });
-
-        latch.await();
-
-
+            }
+        });
     }
 
     @Override
@@ -346,15 +331,8 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
         }
         else if(repRadius == null)//initial normal build
         {
-            try
-            {
-                R.add(new_indx);
-                setUp(new IntList(R), new FakeExecutor());
-            }
-            catch (InterruptedException ex)
-            {
-                throw new FailedToFitException(ex);
-            }
+            R.add(new_indx);
+            setUp(new IntList(R), false);
             return;
         }
         //else, normal addition
@@ -493,28 +471,15 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
         return new RandomBallCover<>(this);
     }
 
-    public static class RandomBallCoverFactory<V extends Vec> implements VectorCollectionFactory<V>
+    @Override
+    public void setDistanceMetric(DistanceMetric dm)
     {
+        this.dm = dm;
+    }
 
-        private static final long serialVersionUID = 2707446304590604519L;
-
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
-        {
-            return new RandomBallCover<>(source, distanceMetric);
-        }
-
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
-        {
-            return new RandomBallCover<>(source, distanceMetric, threadpool);
-        }
-
-        @Override
-        public VectorCollectionFactory<V> clone()
-        {
-            return new RandomBallCoverFactory<>();
-        }
-        
+    @Override
+    public DistanceMetric getDistanceMetric()
+    {
+        return dm;
     }
 }

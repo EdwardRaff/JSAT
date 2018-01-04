@@ -3,7 +3,6 @@ package jsat.linear.vectorcollection;
 
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.math.OnLineStatistics;
@@ -24,9 +23,9 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
 
     private static final long serialVersionUID = 6668184445206226077L;
 
-    public VPTreeMV(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations, ExecutorService threadpool)
+    public VPTreeMV(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations, boolean parallel)
     {
-        super(list, dm, vpSelection, rand, sampleSize, searchIterations, threadpool);
+        super(list, dm, vpSelection, rand, sampleSize, searchIterations, parallel);
     }
 
     public VPTreeMV(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations)
@@ -44,14 +43,24 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
         super(list, dm);
     }
 
-    public VPTreeMV(List<V> list, DistanceMetric dm, ExecutorService threadpool)
+    public VPTreeMV(List<V> list, DistanceMetric dm, boolean parallel)
     {
-        super(list, dm, threadpool);
+        super(list, dm, parallel);
     }
 
     public VPTreeMV(DistanceMetric dm)
     {
         super(dm);
+    }
+    
+    public VPTreeMV(DistanceMetric dm, VPSelection sampling)
+    {
+        super(dm, sampling);
+    }
+
+    public VPTreeMV()
+    {
+        super();
     }
 
     @Override
@@ -88,40 +97,5 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
         }
         
         return splitIndex;
-    }
-    
-    public static class VPTreeMVFactory<V extends Vec> implements VectorCollectionFactory<V>
-    {
-
-        private static final long serialVersionUID = 4265451324896792148L;
-        private VPSelection vpSelectionMethod;
-
-        public VPTreeMVFactory(VPSelection vpSelectionMethod)
-        {
-            this.vpSelectionMethod = vpSelectionMethod;
-        }
-
-        public VPTreeMVFactory()
-        {
-            this(VPSelection.Random);
-        }
-        
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
-        {
-            return new VPTreeMV<V>(source, distanceMetric, vpSelectionMethod);
-        }
-
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
-        {
-            return new VPTreeMV<V>(source, distanceMetric, vpSelectionMethod, new Random(10), 80, 40, threadpool);
-        }
-
-        @Override
-        public VectorCollectionFactory<V> clone()
-        {
-            return new VPTreeMVFactory<V>(vpSelectionMethod);
-        }
     }
 }

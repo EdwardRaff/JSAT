@@ -1,7 +1,6 @@
 package jsat.clustering;
 
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.concurrent.atomic.DoubleAdder;
 
 import jsat.DataSet;
@@ -10,18 +9,12 @@ import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
-import jsat.linear.vectorcollection.DefaultVectorCollectionFactory;
+import jsat.linear.vectorcollection.DefaultVectorCollection;
 import jsat.linear.vectorcollection.VectorCollection;
-import jsat.linear.vectorcollection.VectorCollectionFactory;
 import jsat.linear.vectorcollection.VectorCollectionUtils;
 import jsat.math.OnLineStatistics;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
-import jsat.utils.FakeExecutor;
 import jsat.utils.IntSet;
-import jsat.utils.SystemInfo;
-import jsat.utils.concurrent.AtomicDouble;
-import jsat.utils.concurrent.AtomicDoubleArray;
 import jsat.utils.concurrent.ParallelUtils;
 
 /**
@@ -44,7 +37,7 @@ public class FLAME extends ClustererBase implements Parameterized
     private DistanceMetric dm;
     private int k;
     private int maxIterations;
-    private VectorCollectionFactory<VecPaired<Vec, Integer>> vectorCollectionFactory = new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>();
+    private VectorCollection<VecPaired<Vec, Integer>> vc = new DefaultVectorCollection<>();
     private double stndDevs = 2.5;
     private double eps = 1e-6;
 
@@ -69,7 +62,7 @@ public class FLAME extends ClustererBase implements Parameterized
     {
         this.dm = toCopy.dm.clone();
         this.maxIterations = toCopy.maxIterations;
-        this.vectorCollectionFactory = toCopy.vectorCollectionFactory;
+        this.vc = toCopy.vc.clone();
         this.k = toCopy.k;
         this.stndDevs = toCopy.stndDevs;
         this.eps = toCopy.eps;
@@ -182,16 +175,16 @@ public class FLAME extends ClustererBase implements Parameterized
     }
 
     /**
-     * Sets the vector collection factory used to accelerate the nearest 
+     * Sets the vector collection  used to accelerate the nearest 
      * neighbor search. The nearest neighbor only needs to be done once for each
      * point, so the collection should be faster than the naive method when 
      * considering both construction and search time. 
      * 
-     * @param vectorCollectionFactory 
+     * @param vc the vector collection to use
      */
-    public void setVectorCollectionFactory(VectorCollectionFactory<VecPaired<Vec, Integer>> vectorCollectionFactory)
+    public void setVectorCollectionFactory(VectorCollection<VecPaired<Vec, Integer>> vc)
     {
-        this.vectorCollectionFactory = vectorCollectionFactory;
+        this.vc = vc;
     }
 
     @Override
@@ -206,9 +199,8 @@ public class FLAME extends ClustererBase implements Parameterized
         for (int i = 0; i < dataSet.getSampleSize(); i++)
             vecs.add(new VecPaired<>(dataSet.getDataPoint(i).getNumericalValues(), i));
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
-        VectorCollection<VecPaired<Vec, Integer>> vc;
         final List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> allNNs;
-        vc = vectorCollectionFactory.getVectorCollection(vecs, dm, parallel);
+        vc.build(parallel, vecs, dm);
         allNNs = VectorCollectionUtils.allNearestNeighbors(vc, vecs, k + 1, parallel);
         //NOTE: Density is done in reverse, so large values indicate low density, small values indiciate high density.
         //mark density as the sum of distances

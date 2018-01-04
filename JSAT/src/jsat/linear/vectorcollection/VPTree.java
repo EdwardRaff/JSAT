@@ -12,14 +12,15 @@ import java.util.logging.Logger;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
-import jsat.utils.FakeExecutor;
 import jsat.utils.IndexTable;
 import jsat.utils.IntList;
 import jsat.utils.ModifiableCountDownLatch;
 import jsat.utils.Pair;
 import jsat.utils.SimpleList;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
 /**
@@ -64,51 +65,14 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         Random
     }
 
-    public VPTree(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations, ExecutorService threadpool)
+    public VPTree(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations, boolean parallel)
     {
-        this.dm = dm;
-        if(!dm.isSubadditive())
-            throw new RuntimeException("VPTree only supports metrics that support the triangle inequality");
-        this.rand = rand;
-        this.sampleSize = sampleSize;
-        this.searchIterations = searchIterations;
-        this.size = list.size();
-        this.vpSelection = vpSelection;
-        this.allVecs = list;
-        if(threadpool == null || threadpool instanceof FakeExecutor)
-            distCache = dm.getAccelerationCache(allVecs);
-        else
-            distCache = dm.getAccelerationCache(allVecs, threadpool);
-        //Use simple list so both halves can be modified simultaniously
-        List<Pair<Double, Integer>> tmpList = new SimpleList<>(list.size());
-        for(int i = 0; i < allVecs.size(); i++)
-            tmpList.add(new Pair<>(-1.0, i));
-        if(threadpool == null)
-            this.root = makeVPTree(tmpList);
-        else
-        {
-            ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
-            this.root = makeVPTree(tmpList, threadpool, mcdl);
-            mcdl.countDown();
-            try
-            {
-                mcdl.await();
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(VPTree.class.getName()).log(Level.SEVERE, null, ex);
-                System.err.println("Falling back to single threaded VPTree constructor");
-                tmpList.clear();
-                for(int i = 0; i < list.size(); i++)
-                    tmpList.add(new Pair<>(-1.0, i));
-                this.root = makeVPTree(tmpList);
-            }
-        }
+        build(parallel, list, dm);
     }
     
     public VPTree(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations)
     {
-        this(list, dm, vpSelection, rand, sampleSize, searchIterations, null);
+        this(list, dm, vpSelection, rand, sampleSize, searchIterations, false);
     }
 
     public VPTree(List<V> list, DistanceMetric dm, VPSelection vpSelection)
@@ -116,9 +80,9 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         this(list, dm, vpSelection, RandomUtil.getRandom(), 80, 40);
     }
     
-    public VPTree(List<V> list, DistanceMetric dm, ExecutorService threadpool)
+    public VPTree(List<V> list, DistanceMetric dm, boolean parallel)
     {
-        this(list, dm, VPSelection.Random, RandomUtil.getRandom(), 80, 40, threadpool);
+        this(list, dm, VPSelection.Random, RandomUtil.getRandom(), 80, 40, parallel);
     }
     
     public VPTree(List<V> list, DistanceMetric dm)
@@ -126,7 +90,17 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         this(list, dm, VPSelection.Random);
     }
     
+    public VPTree()
+    {
+        this(new EuclideanDistance());
+    }
+    
     public VPTree(DistanceMetric dm)
+    {
+        this(dm, VPSelection.Random);
+    }
+    
+    public VPTree(DistanceMetric dm, VPSelection sampling)
     {
         this.dm = dm;
         if(!dm.isSubadditive())
@@ -135,7 +109,7 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         this.sampleSize = 80;
         this.searchIterations = 40;
         this.size = 0;
-        this.vpSelection = VPSelection.Random;
+        this.vpSelection = sampling;
         this.allVecs = new ArrayList<>();
         if(dm.supportsAcceleration())
             this.distCache = new DoubleList();
@@ -160,6 +134,61 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         if(toClone.distCache != null)
             this.distCache = new DoubleList(toClone.distCache);
     }
+    
+    @Override
+    public void build(boolean parallel, List<V> list, DistanceMetric dm)
+    {
+        setDistanceMetric(dm);
+        if(!dm.isSubadditive())
+            throw new RuntimeException("VPTree only supports metrics that support the triangle inequality");
+        this.rand = rand;
+
+        this.size = list.size();
+        this.allVecs = list;
+        distCache = dm.getAccelerationCache(allVecs, parallel);
+        //Use simple list so both halves can be modified simultaniously
+        List<Pair<Double, Integer>> tmpList = new SimpleList<>(list.size());
+        for(int i = 0; i < allVecs.size(); i++)
+            tmpList.add(new Pair<>(-1.0, i));
+        if(!parallel)
+            this.root = makeVPTree(tmpList);
+        else
+        {
+            ExecutorService threadpool = ParallelUtils.getNewExecutor(parallel);
+            ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
+            this.root = makeVPTree(tmpList, threadpool, mcdl);
+            mcdl.countDown();
+            try
+            {
+                mcdl.await();
+            }
+            catch (InterruptedException ex)
+            {
+                Logger.getLogger(VPTree.class.getName()).log(Level.SEVERE, null, ex);
+                System.err.println("Falling back to single threaded VPTree constructor");
+                tmpList.clear();
+                for(int i = 0; i < list.size(); i++)
+                    tmpList.add(new Pair<>(-1.0, i));
+                this.root = makeVPTree(tmpList);
+            }
+            finally
+            {
+                threadpool.shutdownNow();
+            }
+        }
+    }
+
+    @Override
+    public void setDistanceMetric(DistanceMetric dm)
+    {
+        this.dm = dm;
+    }
+
+    @Override
+    public DistanceMetric getDistanceMetric()
+    {
+        return dm;
+    }
 
     private TreeNode cloneChangeContext(TreeNode toClone)
     {
@@ -170,15 +199,6 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
                 return new VPNode((VPNode) toClone);
         return null;
     }
-
-    /**
-     * no-arg constructor for serialization
-     */
-    protected VPTree()
-    {
-    }
-     
-    
     
     @Override
     public int size()
@@ -715,41 +735,6 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         public TreeNode clone()
         {
             return new VPLeaf(this);
-        }
-    }
-    
-    public static class VPTreeFactory<V extends Vec> implements VectorCollectionFactory<V>
-    {
-
-        private static final long serialVersionUID = -2739851193676265510L;
-        private VPSelection vpSelectionMethod;
-
-        public VPTreeFactory(VPSelection vpSelectionMethod)
-        {
-            this.vpSelectionMethod = vpSelectionMethod;
-        }
-
-        public VPTreeFactory()
-        {
-            this(VPSelection.Random);
-        }
-        
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
-        {
-            return new VPTree<>(source, distanceMetric, vpSelectionMethod);
-        }
-
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
-        {
-            return new VPTree<>(source, distanceMetric, vpSelectionMethod, new Random(10), 80, 40, threadpool);
-        }
-
-        @Override
-        public VectorCollectionFactory<V> clone()
-        {
-            return new VPTreeFactory<>(vpSelectionMethod);
         }
     }
 }

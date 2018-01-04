@@ -198,11 +198,13 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
         this.leaf_size = toCopy.leaf_size;
     }
     
+    @Override
     public void setDistanceMetric(DistanceMetric dm)
     {
         this.dm = dm;
     }
-
+    
+    @Override
     public DistanceMetric getDistanceMetric()
     {
         return dm;
@@ -602,9 +604,11 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
         return new Leaf(new IntList(0));
     }
     
-    public void build(boolean parallel, List<V> collection)
+    @Override
+    public void build(boolean parallel, List<V> collection, DistanceMetric dm)
     {
         this.allVecs = new ArrayList<>(collection);
+        setDistanceMetric(dm);
         this.cache = dm.getAccelerationCache(allVecs, parallel);
         this.root = build(IntList.range(collection.size()), parallel);
     }

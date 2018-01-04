@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
-import jsat.datatransform.DataTransformBase;
 import jsat.datatransform.RemoveAttributeTransform;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
@@ -23,9 +22,8 @@ import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
-import jsat.linear.vectorcollection.DefaultVectorCollectionFactory;
+import jsat.linear.vectorcollection.DefaultVectorCollection;
 import jsat.linear.vectorcollection.VectorCollection;
-import jsat.linear.vectorcollection.VectorCollectionFactory;
 import jsat.utils.FakeExecutor;
 import jsat.utils.IndexTable;
 import jsat.utils.IntSet;
@@ -57,7 +55,7 @@ public class ReliefF extends RemoveAttributeTransform
     private int iterations;
     private int neighbors;
     private DistanceMetric dm;
-    private VectorCollectionFactory<Vec> vcf = new DefaultVectorCollectionFactory<Vec>();
+    private VectorCollection<Vec> vc = new DefaultVectorCollection<>();
     
     /**
      * Creates a new ReliefF object to measure the importance of the variables
@@ -69,7 +67,7 @@ public class ReliefF extends RemoveAttributeTransform
      */
     public ReliefF(int featureCount)
     {
-        this(featureCount, 100, 15, new EuclideanDistance(), new DefaultVectorCollectionFactory<Vec>());
+        this(featureCount, 100, 15, new EuclideanDistance(), new DefaultVectorCollection<Vec>());
     }
     
     /**
@@ -84,7 +82,7 @@ public class ReliefF extends RemoveAttributeTransform
      */
     public ReliefF(int featureCount, final int m, final int n, final DistanceMetric dm)
     {
-        this(featureCount, m, n, dm, new DefaultVectorCollectionFactory<Vec>());
+        this(featureCount, m, n, dm, new DefaultVectorCollection<Vec>());
     }
     
     /**
@@ -100,7 +98,7 @@ public class ReliefF extends RemoveAttributeTransform
      */
     public ReliefF(final ClassificationDataSet cds, int featureCount, final int m, final int n, final DistanceMetric dm)
     {
-        this(cds, featureCount, m, n, dm, new DefaultVectorCollectionFactory<Vec>());
+        this(cds, featureCount, m, n, dm, new DefaultVectorCollection<Vec>());
     }
     
     /**
@@ -117,7 +115,7 @@ public class ReliefF extends RemoveAttributeTransform
      */
     public ReliefF(final ClassificationDataSet cds, int featureCount, final int m, final int n, final DistanceMetric dm, ExecutorService threadPool)
     {
-        this(cds, featureCount, m, n, dm, new DefaultVectorCollectionFactory<Vec>(), threadPool);
+        this(cds, featureCount, m, n, dm, new DefaultVectorCollection<Vec>(), threadPool);
     }
     
     /**
@@ -130,11 +128,11 @@ public class ReliefF extends RemoveAttributeTransform
      * @param m the number of learning iterations to perform
      * @param n the number of neighbors to measure importance from
      * @param dm the distance metric to use
-     * @param vcf the factor to create accelerating structures for nearest neighbor
+     * @param vc the vector collection to create accelerating structures for nearest neighbor
      */
-    public ReliefF(final ClassificationDataSet cds, int featureCount, final int m, final int n, final DistanceMetric dm, VectorCollectionFactory<Vec> vcf)
+    public ReliefF(final ClassificationDataSet cds, int featureCount, final int m, final int n, final DistanceMetric dm, VectorCollection<Vec> vc)
     {
-        this(cds, featureCount, m, n, dm, vcf, null);
+        this(cds, featureCount, m, n, dm, vc, null);
     }
 
     /**
@@ -150,7 +148,7 @@ public class ReliefF extends RemoveAttributeTransform
         this.featureCount = toCopy.featureCount;
         this.iterations = toCopy.iterations;
         this.neighbors = toCopy.neighbors;
-        this.vcf = toCopy.vcf.clone();
+        this.vc = toCopy.vc.clone();
     }
     
     /**
@@ -163,17 +161,16 @@ public class ReliefF extends RemoveAttributeTransform
      * @param m the number of learning iterations to perform
      * @param n the number of neighbors to measure importance from
      * @param dm the distance metric to use
-     * @param vcf the factor to create accelerating structures for nearest neighbor
-     * @param threadPool the source of threads to use for the computation
+     * @param vc the factor to create accelerating structures for nearest neighbor
      */
-    public ReliefF(int featureCount, final int m, final int n, final DistanceMetric dm, VectorCollectionFactory<Vec> vcf)
+    public ReliefF(int featureCount, final int m, final int n, final DistanceMetric dm, VectorCollection<Vec> vc)
     {
         super();
         setFeatureCount(featureCount);
         setIterations(m);
         setNeighbors(n);
         setDistanceMetric(dm);
-        this.vcf = vcf;
+        this.vc = vc;
     }
     
     /**
@@ -189,7 +186,7 @@ public class ReliefF extends RemoveAttributeTransform
      * @param vcf the factor to create accelerating structures for nearest neighbor
      * @param threadPool the source of threads to use for the computation
      */
-    public ReliefF(final ClassificationDataSet cds, int featureCount, final int m, final int n, final DistanceMetric dm, VectorCollectionFactory<Vec> vcf, ExecutorService threadPool)
+    public ReliefF(final ClassificationDataSet cds, int featureCount, final int m, final int n, final DistanceMetric dm, VectorCollection<Vec> vcf, ExecutorService threadPool)
     {
         this(featureCount, m, n, dm, vcf);
         fit(cds, threadPool);
@@ -223,7 +220,7 @@ public class ReliefF extends RemoveAttributeTransform
         for(int i = 0; i < normalizer.length; i++)
             normalizer[i] -= minVals[i];
 
-        final List<VectorCollection< Vec>> classVC = new ArrayList<VectorCollection< Vec>>(priors.length);
+        final List<VectorCollection< Vec>> classVC = new ArrayList<>(priors.length);
         
         
         TrainableDistanceMetric.trainIfNeeded(dm, cds, threadPool);
@@ -233,10 +230,8 @@ public class ReliefF extends RemoveAttributeTransform
         for (int i = 0; i < priors.length; i++)
         {
             int classCount = cds.classSampleCount(i);
-            if(threadPool == null)
-                classVC.add(vcf.getVectorCollection(allVecs.subList(curStart, curStart+classCount), dm));
-            else
-                classVC.add(vcf.getVectorCollection(allVecs.subList(curStart, curStart+classCount), dm, threadPool));
+            classVC.add(vc.clone());
+            classVC.get(i).build(threadPool != null, allVecs, dm);
             curStart += classCount;
         }
         final int m = iterations;

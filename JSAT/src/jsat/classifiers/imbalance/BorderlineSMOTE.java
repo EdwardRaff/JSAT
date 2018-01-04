@@ -19,10 +19,7 @@ package jsat.classifiers.imbalance;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
@@ -33,13 +30,11 @@ import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.linear.vectorcollection.DefaultVectorCollectionFactory;
+import jsat.linear.vectorcollection.DefaultVectorCollection;
 import jsat.linear.vectorcollection.VectorCollection;
 import jsat.linear.vectorcollection.VectorCollectionUtils;
-import jsat.utils.FakeExecutor;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
-import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
@@ -213,7 +208,7 @@ public class BorderlineSMOTE extends SMOTE
         List<VecPaired<Vec, Integer>> allVecsWithClass = new ArrayList<>(vAll.size());
         for(int i = 0; i < vAll.size(); i++)
             allVecsWithClass.add(new VecPaired<>(vAll.get(i), dataSet.getDataPointCategory(i)));
-        VectorCollection<VecPaired<Vec, Integer>> VC_all = new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>().getVectorCollection(allVecsWithClass, dm, threadPool);
+        VectorCollection<VecPaired<Vec, Integer>> VC_all = new DefaultVectorCollection<>(dm, allVecsWithClass, parallel);
         
         //Go through and perform oversampling of each class
         for(final int classID : ListUtils.range(0, dataSet.getClassSize()))
@@ -227,7 +222,7 @@ public class BorderlineSMOTE extends SMOTE
                 V_id.add(vAll.get(i));
             
             
-            VectorCollection<Vec> VC_id = new DefaultVectorCollectionFactory<>().getVectorCollection(V_id, dm, threadPool);
+            VectorCollection<Vec> VC_id = new DefaultVectorCollection<>(dm, V_id, parallel);
             //Step 1. For every p ii =( 1,2,..., pnum) in the minority class P, 
             //we calculate its m nearest neighbors from the whole training set T
             List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> all_nns_ID = VectorCollectionUtils.allNearestNeighbors(VC_all, V_id, smoteNeighbors+1, threadPool);

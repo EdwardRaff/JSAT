@@ -18,10 +18,8 @@ import jsat.SimpleDataSet;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-import jsat.linear.Vec;
-import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.linear.vectorcollection.VectorArray.VectorArrayFactory;
+import jsat.linear.vectorcollection.VectorArray;
 import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
 
@@ -48,7 +46,7 @@ public class DBSCANTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        dbscan = new DBSCAN(new EuclideanDistance(), new VectorArrayFactory<>());
+        dbscan = new DBSCAN(new EuclideanDistance(), new VectorArray<>());
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 5);
         easyData10 = gdg.generateData(40);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);

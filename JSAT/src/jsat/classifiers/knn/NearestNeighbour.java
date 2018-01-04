@@ -2,7 +2,6 @@
 package jsat.classifiers.knn;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.distributions.Distribution;
@@ -14,7 +13,6 @@ import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.*;
 import jsat.linear.vectorcollection.*;
 import jsat.math.MathTricks;
-import jsat.math.SpecialMath;
 import jsat.parameters.*;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
@@ -33,7 +31,6 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     private DistanceMetric distanceMetric;
     private CategoricalData predicting;
     
-    private VectorCollectionFactory<VecPaired<Vec, Double>> vcf;
     private VectorCollection<VecPaired<Vec, Double>> vecCollection;
 
     /**
@@ -93,7 +90,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
      * @param k the number of neighbors to use
      * @param vcf the vector collection factory to use for storing and querying 
      */
-    public NearestNeighbour(int k, VectorCollectionFactory<VecPaired<Vec, Double>> vcf)
+    public NearestNeighbour(int k, VectorCollection<VecPaired<Vec, Double>> vcf)
     {
         this(k, false, new EuclideanDistance(), vcf);
     }
@@ -116,7 +113,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
      */
     public NearestNeighbour(int k, boolean weighted, DistanceMetric distanceMetric )
     {
-        this(k, weighted, distanceMetric, new DefaultVectorCollectionFactory<VecPaired<Vec, Double>>());
+        this(k, weighted, distanceMetric, new DefaultVectorCollection<VecPaired<Vec, Double>>());
     }
     
     /**
@@ -126,10 +123,10 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
      * @param distanceMetric the method of computing distance between two vectors. 
      * @param vcf the vector collection factory to use for storing and querying 
      */
-    public NearestNeighbour(int k, boolean weighted, DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Vec, Double>> vcf )
+    public NearestNeighbour(int k, boolean weighted, DistanceMetric distanceMetric, VectorCollection<VecPaired<Vec, Double>> vcf )
     {
         this.mode = null;
-        this.vcf = vcf;
+        this.vecCollection = vcf;
         this.k = k;
         this.weighted = weighted;
         this.distanceMetric = distanceMetric;
@@ -207,7 +204,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
         
         TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, parallel);
         
-        vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric, parallel);
+        vecCollection.build(parallel, dataPoints, distanceMetric);
     }
     
     @Override
@@ -266,13 +263,13 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
         
         TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, parallel);
 
-        vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric, parallel);
+        vecCollection.build(parallel, dataPoints, distanceMetric);
     }
     
     @Override
     public NearestNeighbour clone()
     {
-        NearestNeighbour clone = new NearestNeighbour(k, weighted, distanceMetric.clone(), vcf.clone());
+        NearestNeighbour clone = new NearestNeighbour(k, weighted, distanceMetric.clone(), vecCollection.clone());
         
         if(this.predicting != null)
             clone.predicting = this.predicting.clone();

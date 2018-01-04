@@ -42,7 +42,7 @@ import static org.junit.Assert.*;
  */
 public class KDTreeTest
 {
-    static List<VectorCollectionFactory<Vec>> collectionFactories;
+    static List<VectorCollection<Vec>> collectionFactories;
     
     public KDTreeTest()
     {
@@ -51,9 +51,9 @@ public class KDTreeTest
     @BeforeClass
     public static void setUpClass()
     {
-        collectionFactories = new ArrayList<VectorCollectionFactory<Vec>>();
+        collectionFactories = new ArrayList<VectorCollection<Vec>>();
         for(KDTree.PivotSelection pivot : KDTree.PivotSelection.values())
-            collectionFactories.add(new KDTree.KDTreeFactory<Vec>(pivot));
+            collectionFactories.add(new KDTree<>(pivot));
     }
     
     @AfterClass
@@ -77,16 +77,18 @@ public class KDTreeTest
         System.out.println("search");
         Random rand = RandomUtil.getRandom();
         
-        VectorArray<Vec> vecCol = new VectorArray<Vec>(new EuclideanDistance());
+        VectorArray<Vec> vecCol = new VectorArray<>(new EuclideanDistance());
         for(int i = 0; i < 2050; i++)
             vecCol.add(DenseVector.random(3, rand));
         
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        for(VectorCollectionFactory<Vec> factory : collectionFactories)
+        for(VectorCollection<Vec> factory : collectionFactories)
         {
-            VectorCollection<Vec> collection0 = factory.getVectorCollection(vecCol, new EuclideanDistance());
-            VectorCollection<Vec> collection1 = factory.getVectorCollection(vecCol, new EuclideanDistance(), ex);
+            VectorCollection<Vec> collection0 = factory.clone();
+            collection0.build(vecCol, new EuclideanDistance());
+            VectorCollection<Vec> collection1 = factory.clone();
+            collection1.build(true, vecCol, new EuclideanDistance());
             
             collection0 = collection0.clone();
             collection1 = collection1.clone();
@@ -100,7 +102,7 @@ public class KDTreeTest
                     List<? extends VecPaired<Vec, Double>> foundTest0 = collection0.search(vecCol.get(randIndex), range);
                     List<? extends VecPaired<Vec, Double>> foundTest1 = collection1.search(vecCol.get(randIndex), range);
                     
-                    VectorArray<VecPaired<Vec, Double>>  testSearch0 = new VectorArray<VecPaired<Vec, Double>>(new EuclideanDistance(), foundTest0);
+                    VectorArray<VecPaired<Vec, Double>>  testSearch0 = new VectorArray<>(new EuclideanDistance(), foundTest0);
                     assertEquals(factory.getClass().getName() + " failed", foundTrue.size(), foundTest0.size());
                     for(Vec v : foundTrue)
                     {
@@ -110,7 +112,7 @@ public class KDTreeTest
                     
                     
                     
-                    VectorArray<VecPaired<Vec, Double>>  testSearch1 = new VectorArray<VecPaired<Vec, Double>>(new EuclideanDistance(), foundTest1);
+                    VectorArray<VecPaired<Vec, Double>>  testSearch1 = new VectorArray<>(new EuclideanDistance(), foundTest1);
                     assertEquals(factory.getClass().getName() + " failed", foundTrue.size(), foundTest1.size());
                     for(Vec v : foundTrue)
                     {
@@ -135,12 +137,14 @@ public class KDTreeTest
         for(int i = 0; i < 2050; i++)
             vecCol.add(DenseVector.random(3, rand));
         
-        for(VectorCollectionFactory<Vec> factory : collectionFactories)
+        for(VectorCollection<Vec> factory : collectionFactories)
         {
             ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
             
-            VectorCollection<Vec> collection0 = factory.getVectorCollection(vecCol, new EuclideanDistance());
-            VectorCollection<Vec> collection1 = factory.getVectorCollection(vecCol, new EuclideanDistance(), ex);
+            VectorCollection<Vec> collection0 = factory.clone();
+            collection0.build(vecCol, new EuclideanDistance());
+            VectorCollection<Vec> collection1 = factory.clone();
+            collection1.build(true, vecCol, new EuclideanDistance());
             
             collection0 = collection0.clone();
             collection1 = collection1.clone();

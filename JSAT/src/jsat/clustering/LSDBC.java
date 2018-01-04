@@ -1,9 +1,6 @@
 package jsat.clustering;
 
 import java.util.*;
-import java.util.concurrent.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import jsat.DataSet;
 import jsat.linear.Vec;
@@ -43,7 +40,7 @@ public class LSDBC extends ClustererBase implements Parameterized
     private static final int UNCLASSIFIED = -1;
     private DistanceMetric dm;
     
-    private VectorCollectionFactory<VecPaired<Vec, Integer>> vectorCollectionFactory = new DefaultVectorCollectionFactory<>();
+    private VectorCollection<VecPaired<Vec, Integer>> vc = new DefaultVectorCollection<>();
     
     /**
      * The weight parameter for forming new clusters
@@ -104,16 +101,16 @@ public class LSDBC extends ClustererBase implements Parameterized
         this.alpha = toCopy.alpha;
         this.dm = toCopy.dm.clone();
         this.k = toCopy.k;
-        this.vectorCollectionFactory = toCopy.vectorCollectionFactory.clone();
+        this.vc = toCopy.vc.clone();
     }
 
     /**
      * Sets the vector collection factory used for acceleration of neighbor searches. 
-     * @param vectorCollectionFactory the vector collection factory to use
+     * @param vc the vector collection to use
      */
-    public void setVectorCollectionFactory(VectorCollectionFactory<VecPaired<Vec, Integer>> vectorCollectionFactory)
+    public void setVectorCollectionFactory(VectorCollection<VecPaired<Vec, Integer>> vc)
     {
-        this.vectorCollectionFactory = vectorCollectionFactory;
+        this.vc = vc;
     }
     
     
@@ -194,7 +191,6 @@ public class LSDBC extends ClustererBase implements Parameterized
             designations = new int[dataSet.getSampleSize()];
      
         //Compute all k-NN 
-        final VectorCollection<VecPaired<Vec, Integer>> vc;
         List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> knnVecList;
 
         //Set up
@@ -204,7 +200,7 @@ public class LSDBC extends ClustererBase implements Parameterized
             vecs.add(new VecPaired<>(dataSet.getDataPoint(i).getNumericalValues(), i));
 
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
-        vc = vectorCollectionFactory.getVectorCollection(vecs, dm, parallel);
+        vc.build(parallel, vecs, dm);
         knnVecList = VectorCollectionUtils.allNearestNeighbors(vc, vecs, k+1, parallel);
 
         //Sort

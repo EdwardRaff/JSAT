@@ -9,22 +9,30 @@ import jsat.linear.Vec;
 import jsat.linear.distancemetrics.*;
 import jsat.math.OnLineStatistics;
 import jsat.utils.*;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * Standard KDTree implementation. KDTrees are fast to create with no distance computations needed.
- * Though KDTrees can be constructed in O(n) time, this implementation is O(n log n). KDTrees can be very 
- * fast for low dimensional data queries, but degrade as the dimensions increases. For very high dimensions 
- * or pathologically bad data, O(n<sup>2</sup>) performance worse then {@link VectorArray} can occur. 
+ * Though KDTrees can be constructed in O(n) time, this
+ * implementation is O(n log n). KDTrees can be very fast for low dimensional
+ * data queries, but degrade as the dimensions increases. For very high
+ * dimensions or pathologically bad data, O(n<sup>2</sup>) performance worse
+ * then {@link VectorArray} can occur.
  * <br>
  * <br>
- * Note: KD trees are only usable with Distance Metrics based off of the pNorm between two vectors. The valid distance metrics are 
+ * Note: KD trees are only usable with Distance Metrics based off of the pNorm
+ * between two vectors. The valid distance metrics are
  * {@link EuclideanDistance}, {@link ChebyshevDistance}, {@link ManhattanDistance}, {@link MinkowskiDistance}<br>
  * <br>
  * See:
  * <ul>
- * <li>Bentley, J. L. (1975). Multidimensional Binary Search Trees Used for Associative Searching. Commun. ACM, 18(9), 509–517. http://doi.org/10.1145/361002.361007</li>
- * <li>Moore, A. (1991). A tutorial on kd-trees (No. Technical Report No. 209).</li>
+ * <li>Bentley, J. L. (1975). Multidimensional Binary Search Trees Used for
+ * Associative Searching. Commun. ACM, 18(9), 509–517.
+ * http://doi.org/10.1145/361002.361007</li>
+ * <li>Moore, A. (1991). A tutorial on kd-trees (No. Technical Report No.
+ * 209).</li>
  * </ul>
+ *
  * @author Edward Raff
  * @param <V> The vector type
  */
@@ -70,38 +78,11 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
      * @param threadpool the source of threads to use when constructing. Null is permitted,
      * in which case a serial construction will occur. 
      */
-    public KDTree(List<V> vecs, DistanceMetric distanceMetric, PivotSelection pvSelection, ExecutorService threadpool)
+    public KDTree(List<V> vecs, DistanceMetric distanceMetric, PivotSelection pvSelection, boolean parallel)
     {
-        if(!( distanceMetric instanceof EuclideanDistance || distanceMetric instanceof ChebyshevDistance || 
-              distanceMetric instanceof ManhattanDistance || distanceMetric instanceof MinkowskiDistance) )
-            throw new ArithmeticException("KD Trees are not compatible with the given distance metric.");
         this.distanceMetric = distanceMetric;
         this.pvSelection = pvSelection;
-        this.size = vecs.size();
-        allVecs = vecs = new ArrayList<>(vecs);//copy to avoid altering the input set
-        if(threadpool == null || threadpool instanceof FakeExecutor)
-            distCache = distanceMetric.getAccelerationCache(allVecs);
-        else
-            distCache = distanceMetric.getAccelerationCache(vecs, threadpool);
-        List<Integer> vecIndices = new IntList(size);
-        ListUtils.addRange(vecIndices, 0, size, 1);
-        threadpool = null;
-        if(threadpool == null)
-            this.root = buildTree(vecIndices, 0, null, null);
-        else
-        {
-            ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
-            this.root = buildTree(vecIndices, 0, threadpool, mcdl);
-            try
-            {
-                mcdl.await();
-            }
-            catch (InterruptedException ex)
-            {
-                //Failure, fall back to single threaded version
-                this.root = buildTree(vecIndices, 0, null, null);
-            }
-        }
+        build(parallel, vecs, distanceMetric);
     }
     
     /**
@@ -113,7 +94,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
      */
     public KDTree(List<V> vecs, DistanceMetric distanceMetric, PivotSelection pvSelection)
     {
-        this(vecs, distanceMetric, pvSelection, null);
+        this(vecs, distanceMetric, pvSelection, false);
     }
     
     /**
@@ -129,16 +110,61 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     
     private KDTree(DistanceMetric distanceMetric, PivotSelection pvSelection)
     {
-        this.distanceMetric = distanceMetric;
+        setDistanceMetric(distanceMetric);
         this.pvSelection = pvSelection;
     }
 
-    /**
-     * no-arg constructor for serialization
-     */
+    public KDTree(PivotSelection pivotSelection)
+    {
+        this(new EuclideanDistance(), pivotSelection);
+    }
+    
     public KDTree()
     {
-        this(new EuclideanDistance(), PivotSelection.Variance);
+        this( PivotSelection.Variance);
+    }
+
+    @Override
+    public void setDistanceMetric(DistanceMetric dm)
+    {
+        if(!( dm instanceof EuclideanDistance || dm instanceof ChebyshevDistance || 
+              dm instanceof ManhattanDistance || dm instanceof MinkowskiDistance) )
+            throw new ArithmeticException("KD Trees are not compatible with the given distance metric.");
+        this.distanceMetric = dm;
+    }
+
+    @Override
+    public DistanceMetric getDistanceMetric()
+    {
+        return distanceMetric;
+    }
+
+    @Override
+    public void build(boolean parallel, List<V> vecs, DistanceMetric dm)
+    {
+        setDistanceMetric(dm);
+        this.size = vecs.size();
+        allVecs = vecs = new ArrayList<>(vecs);//copy to avoid altering the input set
+        distCache = distanceMetric.getAccelerationCache(vecs, parallel);
+        List<Integer> vecIndices = new IntList(size);
+        ListUtils.addRange(vecIndices, 0, size, 1);
+        
+        if(!parallel)
+            this.root = buildTree(vecIndices, 0, null, null);
+        else
+        {
+            ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
+            this.root = buildTree(vecIndices, 0, ParallelUtils.CACHED_THREAD_POOL, mcdl);
+            try
+            {
+                mcdl.await();
+            }
+            catch (InterruptedException ex)
+            {
+                //Failure, fall back to single threaded version
+                this.root = buildTree(vecIndices, 0, null, null);
+            }
+        }
     }
     
     private class KDNode implements Cloneable, Serializable
@@ -432,18 +458,16 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         else//multi threaded
         {
             mcdl.countUp();
+            IntList data_l = new IntList(data.subList(0, medianIndex+1));
+            IntList data_r = new IntList(data.subList(medianIndex+1, data.size()));
             //Right side first, it will start running on a different core
-            threadpool.submit(new Runnable() {
-
-                @Override
-                public void run()
-                {
-                    node.setRight(buildTree(data.subList(medianIndex+1, data.size()), depth+1, threadpool, mcdl));
-                }
+            threadpool.submit(() ->
+            {
+                node.setRight(buildTree(data_r, depth+1, threadpool, mcdl));
             });
             
             //now do the left here, 
-            node.setLeft(buildTree(data.subList(0, medianIndex), depth+1, threadpool, mcdl));
+            node.setLeft(buildTree(data_l, depth+1, threadpool, mcdl));
         }
         
         return node;
@@ -528,48 +552,4 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         return clone;
     }
     
-    public static class KDTreeFactory<V extends Vec> implements VectorCollectionFactory<V>
-    {
-
-        private static final long serialVersionUID = 3508731608962277804L;
-        private PivotSelection pivotSelectionMethod;
-
-        public KDTreeFactory(PivotSelection pvSelectionMethod)
-        {
-            this.pivotSelectionMethod = pvSelectionMethod;
-        }
-
-        public KDTreeFactory()
-        {
-            this(PivotSelection.Variance);
-        }
-
-        public PivotSelection getPivotSelectionMethod()
-        {
-            return pivotSelectionMethod;
-        }
-
-        public void setPivotSelectionMethod(PivotSelection pivotSelectionMethod)
-        {
-            this.pivotSelectionMethod = pivotSelectionMethod;
-        }
-        
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
-        {
-            return getVectorCollection(source, distanceMetric, null);
-        }
-
-        @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
-        {
-            return new KDTree<V>(source, distanceMetric, pivotSelectionMethod, threadpool);
-        }
-
-        @Override
-        public KDTreeFactory<V> clone() 
-        {
-            return new KDTreeFactory<V>(pivotSelectionMethod);
-        }
-    }
 }
