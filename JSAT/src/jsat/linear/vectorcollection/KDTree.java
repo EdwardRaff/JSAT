@@ -4,9 +4,11 @@ package jsat.linear.vectorcollection;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import jsat.linear.IndexValue;
 
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.*;
+import jsat.math.FastMath;
 import jsat.math.OnLineStatistics;
 import jsat.utils.*;
 import jsat.utils.concurrent.ParallelUtils;
@@ -60,13 +62,21 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
          * The next pivot will be selected by iteratively going through each possible pivot. 
          * This method has no additional overhead. 
          */
-        Incremental, 
+        INCREMENTAL, 
         /**
          * The next pivot will be selected by determining which pivot index contains the most variance. 
          * This method requires an additional O(n d) work per step. Where n is the number of data points
          * being split, and d is the dimension of the data set. 
          */
-        Variance
+        VARIANCE,
+        /**
+         * The next pivot dimension will be selected as the dimension with the
+         * maximum spread, with the value selected as the point closest to the
+         * median value of the spread (i.e., the medoid)
+         * See: Moore, A. (1991). A tutorial on kd-trees (No. Technical Report
+         * No. 209).
+         */
+        SPREAD_MEDOID,
     }
 
     /**
@@ -74,9 +84,10 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
      * 
      * @param vecs the list of vectors to place in this structure
      * @param distanceMetric the metric to use for the space
-     * @param pvSelection the method of selection to use for determining what pivot to use. 
-     * @param threadpool the source of threads to use when constructing. Null is permitted,
-     * in which case a serial construction will occur. 
+     * @param pvSelection the method of selection to use for determining what
+     * pivot to use.
+     * @param parallel {@code true} if multiple threads should be used for
+     * construction, {@code false} otherwise.
      */
     public KDTree(List<V> vecs, DistanceMetric distanceMetric, PivotSelection pvSelection, boolean parallel)
     {
@@ -105,7 +116,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
      */
     public KDTree(List<V> vecs, DistanceMetric distanceMetric)
     {
-        this(vecs, distanceMetric, PivotSelection.Variance);
+        this(vecs, distanceMetric, PivotSelection.SPREAD_MEDOID);
     }
     
     private KDTree(DistanceMetric distanceMetric, PivotSelection pvSelection)
@@ -121,7 +132,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     
     public KDTree()
     {
-        this( PivotSelection.Variance);
+        this(PivotSelection.SPREAD_MEDOID);
     }
 
     @Override
@@ -169,25 +180,23 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     
     private class KDNode implements Cloneable, Serializable
     {
-        /**
-         * Also called the "dom-elt"
-         */
-        protected int locatin;
         protected int axis;
+        /**
+         * The splitting value along the axis
+         */
         protected double pivot_s;
         
         protected KDNode left;
         protected KDNode right;
         
-        public KDNode(int locatin, int axis)
+        public KDNode(int axis)
         {
-            this.locatin = locatin;
             this.axis = axis;
         }
 
         public KDNode(KDNode toCopy)
         {
-            this(toCopy.locatin, toCopy.axis);
+            this(toCopy.axis);
             this.pivot_s = toCopy.pivot_s;
             if(toCopy.left != null)
                 this.left = toCopy.left.clone();
@@ -205,11 +214,6 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         {
             this.left = left;
         }
-        @SuppressWarnings("unused")
-        public void setLocatin(int locatin)
-        {
-            this.locatin = locatin;
-        }
 
         public void setRight(KDNode right)
         {
@@ -225,11 +229,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         {
             return left;
         }
-        @SuppressWarnings("unused")
-        public int getLocatin()
-        {
-            return locatin;
-        }
+        
         @SuppressWarnings("unused")
         public KDNode getRight()
         {
@@ -308,9 +308,9 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     {
         protected IntList owned;
         
-        public KDLeaf(int locatin, int axis, List<Integer> toOwn)
+        public KDLeaf(int axis, List<Integer> toOwn)
         {
-            super(locatin, axis);
+            super(axis);
             this.owned = new IntList(toOwn);
         }
 
@@ -404,62 +404,130 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
             if(threadpool != null)
                 mcdl.countDown();
 //            return new KDNode(data.get(0), depth % mod);
-            return new KDLeaf(-1, depth % mod, data);
+            return new KDLeaf(depth % mod, data);
         }
         
         int pivot = -1;
-        if(pvSelection == PivotSelection.Incremental)
-            pivot = depth % mod;
-        else//Variance 
+        //Some pivot methods will select the value they want, and so overwrite NaN. Otherwise, use NaN to flag that a median search is needed
+        double pivot_val = Double.NaN;
+        switch (pvSelection)
         {
-            OnLineStatistics[] allStats = new OnLineStatistics[mod];
-            for(int j = 0; j < allStats.length; j++)
-                allStats[j] = new OnLineStatistics();
-            
-            for(int i = 0; i < data.size(); i++)//For each data point
-            {
-                V vec = allVecs.get(data.get(i));
-                for(int j = 0; j < allStats.length; j++)//For each dimension 
-                    allStats[j].add(vec.get(j));
-            }
-            
-            double maxVariance = -1;
-            for(int j = 0; j < allStats.length; j++)
-            {
-                if(allStats[j].getVarance() > maxVariance)
+            case VARIANCE:
+                OnLineStatistics[] allStats = new OnLineStatistics[mod];
+                for (int j = 0; j < allStats.length; j++)
+                    allStats[j] = new OnLineStatistics();
+                for (int i : data)//For each data point
                 {
-                    
-                    maxVariance = allStats[j].getVarance();
-                    pivot = j;
+                    V vec = get(i);
+                    for (int j = 0; j < allStats.length; j++)//For each dimension
+                        allStats[j].add(vec.get(j));
                 }
-            }
-            if(pivot < 0)//All dims had NaN as variance? Fall back to incremental selection
+                double maxVariance = -1;
+                for (int j = 0; j < allStats.length; j++)
+                {
+                    if (allStats[j].getVarance() > maxVariance)
+                    {
+
+                        maxVariance = allStats[j].getVarance();
+                        pivot = j;
+                    }
+                }
+                if (pivot < 0)//All dims had NaN as variance? Fall back to incremental selection
+                    pivot = depth % mod;
+                break;
+            case SPREAD_MEDOID:
+                //Find the spread of each dimension
+                double[] mins = new double[mod];
+                double[] maxs = new double[mod];
+                Arrays.fill(mins, Double.POSITIVE_INFINITY);
+                Arrays.fill(maxs, Double.NEGATIVE_INFINITY);
+                for(int i : data)
+                {
+                    V v = get(i);
+                    for(IndexValue iv : v)
+                    {
+                        int d = iv.getIndex();
+                        double val = iv.getValue();
+                        mins[d] = Math.min(mins[d], val);
+                        maxs[d] = Math.max(maxs[d], val);
+                    }
+                }
+                //find the dimension of maximum spread
+                int maxSpreadDim = 0;
+                double maxSpreadVal = maxs[0] - mins[0];
+                for(int d = 0; d < mod; d++)
+                {
+                    double v = maxs[d]-mins[d];
+                    if(v > maxSpreadVal)
+                    {
+                        maxSpreadDim = d;
+                        maxSpreadVal = v;
+                    }
+                }
+                pivot = maxSpreadDim;
+                //find the value cloesest to the midpoint of the spread
+                double midPoint = (maxs[maxSpreadDim]-mins[maxSpreadDim])/2;
+                double closestVal = maxs[maxSpreadDim];
+                for (int i = 0; i < data.size(); i++)
+                {
+                    V v = get(i);
+                    double val = v.get(maxSpreadDim);
+                    if (Math.abs(midPoint - val) < Math.abs(midPoint - closestVal))
+                        closestVal = val;
+                }
+                pivot_val = closestVal;
+                break;
+            default:
+            case INCREMENTAL:
                 pivot = depth % mod;
+                break;
         }
         
-        Collections.sort(data, new VecIndexComparator(pivot));
+        final KDNode node = new KDNode(pivot);
         
-        final int medianIndex = getSplitIndex(data, pivot);
-        if(medianIndex == data.size()-1)//Everyone has the same value? OK, leaf node then
-            return new KDLeaf(data.get(0), depth % mod, data);
-        //else, continue as planned
-        
-        final KDNode node = new KDNode(data.get(medianIndex), pivot);
-        node.pivot_s = allVecs.get(data.get(medianIndex)).get(pivot);
+        //split index is the point in the array data that splits it into the left and right child branches
+        int splitIndex = -1;
+        //Looks like we have a pivot value? lets check it!
+        if(!Double.isNaN(pivot_val))
+        {
+            //lets go through and push the data around the pivot value
+            int front = 0;
+            for(int i = 0; i < data.size(); i++)
+                if(get(data.get(i)).get(pivot) <= pivot_val)
+                    ListUtils.swap(data, front++, i);
+            if(FastMath.floor_log2(allVecs.size()) >= depth && front < leaf_node_size/3 || data.size()-front < leaf_node_size/3)//too lopsided, fall back to medain spliting!
+                pivot_val = Double.NaN;
+            else
+            {
+                splitIndex = front-1;
+                node.pivot_s = pivot_val;
+            }
+        }
+        //INTENTIONALLY NOT AND ELSE IF
+        //pivot_val might be set to NaN if pivot looked bad
+        if(Double.isNaN(pivot_val))
+        {
+            Collections.sort(data, new VecIndexComparator(pivot));
+
+            splitIndex = getMedianIndex(data, pivot);
+            if(splitIndex == data.size()-1)//Everyone has the same value? OK, leaf node then
+                return new KDLeaf(depth % mod, data);
+            node.pivot_s = pivot_val = get(data.get(splitIndex)).get(pivot);
+        }
         
         //We could save code lines by making only one path threadpool dependent. 
         //But this order has better locality for single threaded, while the 
         //reverse call order workes better for multi core
         if(threadpool == null)
         {
-            node.setLeft(buildTree(data.subList(0, medianIndex+1), depth+1, threadpool, mcdl));
-            node.setRight(buildTree(data.subList(medianIndex+1, data.size()), depth+1, threadpool, mcdl));
+            node.setLeft(buildTree(data.subList(0, splitIndex+1), depth+1, threadpool, mcdl));
+            node.setRight(buildTree(data.subList(splitIndex+1, data.size()), depth+1, threadpool, mcdl));
         }
         else//multi threaded
         {
             mcdl.countUp();
-            IntList data_l = new IntList(data.subList(0, medianIndex+1));
-            IntList data_r = new IntList(data.subList(medianIndex+1, data.size()));
+            IntList data_l = new IntList(data.subList(0, splitIndex+1));
+            IntList data_r = new IntList(data.subList(splitIndex+1, data.size()));
             //Right side first, it will start running on a different core
             threadpool.submit(() ->
             {
@@ -473,7 +541,13 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         return node;
     }
 
-    public int getSplitIndex(final List<Integer> data, int pivot)
+    /**
+     * Returns the index for the median, adjusted incase multiple features have the same value. 
+     * @param data the dataset to get the median index of 
+     * @param pivot the dimension to pivot on, and ensure the median index has a different value on the left side
+     * @return 
+     */
+    public int getMedianIndex(final List<Integer> data, int pivot)
     {
         int medianIndex = data.size()/2;
         //What if more than one point have the samve value? Keep incrementing until that dosn't happen

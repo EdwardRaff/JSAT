@@ -79,6 +79,26 @@ public class FastMath
         return log2m + e;
     }
     
+    /**
+     * Returns the value floor(log<sub>2</sub>(x)) for an integer
+     * @param x the integer to get the floored logarithm of
+     * @return floor(log<sub>2</sub>(x)) 
+     */
+    public static int floor_log2(int x)
+    {
+        return 31 - Integer.numberOfLeadingZeros(x);
+    }
+    
+    /**
+     * Returns the value floor(log<sub>2</sub>(x)) for an integer
+     * @param x the integer to get the floored logarithm of
+     * @return floor(log<sub>2</sub>(x)) 
+     */
+    public static int floor_log2(long x)
+    {
+        return 63 - Long.numberOfLeadingZeros(x);
+    }
+    
     static final double[] log2Cache11 = new double[1 << 11];
     static
     {
