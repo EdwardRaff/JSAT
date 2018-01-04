@@ -38,7 +38,7 @@ import jsat.utils.concurrent.ParallelUtils;
  * @author Edward Raff
  * @param <V> The vector type
  */
-public class KDTree<V extends Vec> implements VectorCollection<V>
+public class KDTree<V extends Vec> implements IncrementalCollection<V>
 {
 
     private static final long serialVersionUID = -7401342201406776463L;
@@ -46,10 +46,9 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     private KDNode root;
     private PivotSelection pvSelection;
     private int size;
-    private int leaf_node_size = 15;
+    private int leaf_node_size = 20;
     private List<V> allVecs;
     private List<Double> distCache;
-    private double[] hr_hi, hr_low;
     
     /**
      * KDTree uses an index of the vector at each stage to use as a pivot, 
@@ -134,6 +133,28 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     {
         this(PivotSelection.SPREAD_MEDOID);
     }
+    
+    /**
+     * Sets the number of points stored within a leaf node of the index. Larger
+     * values avoid search overhead, but reduce opportunities for pruning.
+     *
+     * @param leaf_size the size of a leaf node. Must be at least 2
+     */
+    public void setLeafSize(int leaf_size)
+    {
+        if (leaf_size < 2)
+            throw new IllegalArgumentException("The leaf size must be >= 2 to support all splitting methods");
+        this.leaf_node_size = leaf_size;
+    }
+
+    /**
+     *
+     * @return the number of points to store within a leaf node
+     */
+    public int getLeafSize()
+    {
+        return leaf_node_size;
+    }
 
     @Override
     public void setDistanceMetric(DistanceMetric dm)
@@ -176,6 +197,25 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
                 this.root = buildTree(vecIndices, 0, null, null);
             }
         }
+    }
+
+    @Override
+    public void insert(V x)
+    {
+        if(allVecs == null)//init
+        {
+            allVecs = new ArrayList<>();
+            distCache = distanceMetric.getAccelerationCache(allVecs);
+            this.size = 0;
+            this.root = new KDLeaf(0, new IntList());
+        }
+        int indx = size++;
+        allVecs.add(x);
+        if(distCache != null)
+            distCache.addAll(distanceMetric.getQueryInfo(x));
+
+        if(root.insert(indx))
+            root = buildTree(IntList.range(size), 0, null, null);
     }
     
     private class KDNode implements Cloneable, Serializable
@@ -244,36 +284,20 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         
         protected void searchK(int k, BoundedSortedList<IndexDistPair> knn, Vec target, List<Double> qi)
         {
-            double pivot_s = this.pivot_s;
-            //Cut hr in to two sub-hyperrectangles left-hr and right-hr
-//            double[] left_hi = Arrays.copyOf(hr_hi, hr_hi.length);
-//            left_hi[axis] = pivot_s;
-//            double[] right_low = Arrays.copyOf(hr_low, hr_low.length);
-//            right_low[axis] = pivot_s;
-            
             double target_s = target.get(axis);
             boolean target_in_left = target_s <= pivot_s;
             
             KDNode nearKD, farKD;
-//            double[] near_hr_hi, near_hr_low, far_hr_hi, far_hr_low;
-            
+
             if(target_in_left)
             {
                 nearKD = left;
                 farKD = right;
-//                near_hr_hi = left_hi;
-//                near_hr_low = hr_low;
-//                far_hr_hi = hr_hi;
-//                far_hr_low = right_low;
             }
             else
             {
                 nearKD = right;
                 farKD = left;
-//                near_hr_hi = hr_hi;
-//                near_hr_low = right_low;
-//                far_hr_hi = left_hi;
-//                far_hr_low = hr_low;
             }
             
             nearKD.searchK(k, knn, target, qi);
@@ -287,13 +311,6 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         
         protected void searchR(double radius, List<Integer> vecsInRage, List<Double> distVecsInRange, Vec target, List<Double> qi)
         {
-            double pivot_s = this.pivot_s;
-            //Cut hr in to two sub-hyperrectangles left-hr and right-hr
-//            double[] left_hi = Arrays.copyOf(hr_hi, hr_hi.length);
-//            left_hi[axis] = pivot_s;
-//            double[] right_low = Arrays.copyOf(hr_low, hr_low.length);
-//            right_low[axis] = pivot_s;
-            
             double target_s = target.get(axis);
 
             if(radius > target_s-pivot_s)
@@ -301,6 +318,29 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
             
             if(radius > pivot_s-target_s)
                 right.searchR(radius, vecsInRage, distVecsInRange, target, qi);
+        }
+        
+        /**
+         * 
+         * @param x_indx
+         * @return {@code true} if this node should be replaced using its children after insertion
+         */
+        protected boolean insert(int x_indx)
+        {
+            double target_s = get(x_indx).get(axis);
+            boolean target_in_left = target_s <= pivot_s;
+
+            if (target_in_left)
+            {
+                if (left.insert(x_indx))
+                    left = buildTree(((KDLeaf) left).owned, axis + 1, null, null);
+            }
+            else
+            {
+                if (right.insert(x_indx))
+                    right = buildTree(((KDLeaf) right).owned, axis + 1, null, null);
+            }
+            return false;
         }
     }
     
@@ -345,6 +385,13 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         }
 
         @Override
+        protected boolean insert(int x_indx)
+        {
+            this.owned.add(x_indx);
+            return owned.size() >= leaf_node_size*2;
+        }
+
+        @Override
         protected KDLeaf clone()
         {
             return new KDLeaf(this);
@@ -384,19 +431,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
                 mcdl.countDown();
             return null;
         }
-        else if(depth == 0)
-        {
-            hr_hi = new double[allVecs.get(0).length()];
-            hr_low = new double[allVecs.get(0).length()];
-            Arrays.fill(hr_hi, -Double.MAX_VALUE);
-            Arrays.fill(hr_low, Double.MAX_VALUE);
-            for(Vec v : allVecs)
-                for(int i = 0; i < v.length(); i++)
-                {
-                    hr_hi[i] = Math.max(hr_hi[i], v.get(i));
-                    hr_low[i] = Math.min(hr_low[i], v.get(i));
-                }
-        }
+        
         int mod = allVecs.get(0).length();
         
         if(data.size() <= leaf_node_size)
@@ -619,10 +654,6 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         clone.size = this.size;
         if(this.root != null)
             clone.root = this.root.clone();
-        if(this.hr_hi != null)
-            clone.hr_hi = Arrays.copyOf(hr_hi, hr_hi.length);
-        if(this.hr_low != null)
-            clone.hr_low = Arrays.copyOf(hr_low, hr_low.length);
         return clone;
     }
     
