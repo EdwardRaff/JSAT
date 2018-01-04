@@ -69,6 +69,7 @@ public class DefaultVectorCollection<V extends Vec> implements VectorCollection<
             base = new VectorArray<>();
         else
             base = new VPTreeMV<>();
+        base.build(parallel, collection, dm);
     }
 
     @Override

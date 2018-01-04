@@ -394,7 +394,7 @@ public class DenseVector extends Vec
     }
     
     @Override
-    public Vec clone()
+    public DenseVector clone()
     {
         DenseVector copy = new DenseVector(length());
         

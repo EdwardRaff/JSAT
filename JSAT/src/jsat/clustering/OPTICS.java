@@ -54,7 +54,7 @@ public class OPTICS extends ClustererBase implements Parameterized
     
     private DistanceMetric dm;
     
-    private VectorCollection<VecPaired<Vec, Integer>> vc;
+    private VectorCollection<VecPaired<Vec, Integer>> vc = new DefaultVectorCollection<>();
     private double radius = 1;
     private int minPts;
     private double[] core_distance;

@@ -560,10 +560,13 @@ public class RTree<V extends Vec> implements IncrementalCollection<V>
     {
         this(toCopy.dm.clone(), toCopy.M, toCopy.m);
         this.size = toCopy.size;
+        this.dim = toCopy.dim;
         if(toCopy.root != null)
             this.root = cloneChangeContext(toCopy.root);
         for(V v : toCopy.allVecs)
             this.allVecs.add(v);
+        if(toCopy.dcScratch != null)
+            this.dcScratch = toCopy.dcScratch.clone();
     }
 
     @Override
@@ -939,9 +942,9 @@ public class RTree<V extends Vec> implements IncrementalCollection<V>
         for(int i = 0; i < dim; i++)
         {
             double pi = p.get(i);
-            if(pi <r.lB.get(i))
+            if (pi < r.lB.get(i))
                 dcScratch.set(i, r.lB.get(i));
-            else if(pi > r.uB.get(i))
+            else if (pi > r.uB.get(i))
                 dcScratch.set(i, r.uB.get(i));
             else
                 dcScratch.set(i, pi);
