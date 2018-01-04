@@ -115,6 +115,8 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements Incremen
     @Override
     public void search(Vec query, double range, List<Integer> neighbors, List<Double> distances)
     {
+        neighbors.clear();
+        distances.clear();
         List<Double> qi = distanceMetric.getQueryInfo(query);
         
         for(int i = 0; i < size(); i++)
@@ -135,6 +137,8 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements Incremen
     @Override
     public void search(Vec query, int numNeighbors, List<Integer> neighbors, List<Double> distances)
     {
+        neighbors.clear();
+        distances.clear();
         BoundedSortedList<IndexDistPair> knns = new BoundedSortedList<>(numNeighbors);
         
         List<Double> qi = distanceMetric.getQueryInfo(query);

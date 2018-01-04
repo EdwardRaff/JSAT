@@ -210,18 +210,28 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
         return dm;
     }
 
+    /**
+     * Sets the number of points stored within a leaf node of the index. Larger
+     * values avoid search overhead, but reduce opportunities for pruning.
+     *
+     * @param leaf_size the size of a leaf node. Must be at least 2
+     */
     public void setLeafSize(int leaf_size)
     {
-        if(leaf_size < 2)
+        if (leaf_size < 2)
             throw new IllegalArgumentException("The leaf size must be >= 2 to support all splitting methods");
         this.leaf_size = leaf_size;
     }
 
+    /**
+     *
+     * @return the number of points to store within a leaf node
+     */
     public int getLeafSize()
     {
         return leaf_size;
     }
-    
+
     public void setPivot_method(PivotSelection pivot_method)
     {
         this.pivot_method = pivot_method;
@@ -694,6 +704,8 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
     @Override
     public void search(Vec query, double range, List<Integer> neighbors, List<Double> distances)
     {
+        neighbors.clear();
+        distances.clear();
         root.search(query, dm.getQueryInfo(query), range, neighbors, distances);
         
         IndexTable it = new IndexTable(distances);
@@ -704,6 +716,9 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
     @Override
     public void search(Vec query, int numNeighbors, List<Integer> neighbors, List<Double> distances)
     {
+        neighbors.clear();
+        distances.clear();
+        
         BoundedSortedList<IndexDistPair> knn = new BoundedSortedList<>(numNeighbors);
         root.search(query, dm.getQueryInfo(query), numNeighbors, knn, Double.POSITIVE_INFINITY);
         for(IndexDistPair p : knn)
