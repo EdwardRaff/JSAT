@@ -25,7 +25,10 @@ import java.util.concurrent.Executors;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
+import jsat.linear.distancemetrics.DistanceCounter;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.utils.DoubleList;
+import jsat.utils.IntList;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.RandomUtil;
 import org.junit.After;
@@ -174,5 +177,48 @@ public class CoverTreeTest
                 }
         }
         
+    }
+    
+    @Test
+    public void testSearch_Vec_int_incramental()
+    {
+        System.out.println("search_inc");
+        Random rand = RandomUtil.getRandom();
+        
+        VectorArray<Vec> vecCol = new VectorArray<>(new EuclideanDistance());
+        for(int i = 0; i < 1000; i++)
+            vecCol.add(DenseVector.random(3, rand));
+        
+        CoverTree<Vec> collection0 = new CoverTree(new EuclideanDistance());
+
+        for(Vec v : vecCol)
+            collection0.insert(v);
+
+        IntList trueNN = new IntList();
+        DoubleList trueNN_dists = new DoubleList();
+
+        
+        IntList foundNN = new IntList();
+        DoubleList foundNN_dists = new DoubleList();
+        for(int iters = 0; iters < 10; iters++)
+            for(int neighbours : new int[]{1, 2, 5, 10, 20})
+            {
+                int randIndex=  rand.nextInt(vecCol.size());
+
+                Vec query = vecCol.get(randIndex);
+
+                vecCol.search(query, neighbours, trueNN, trueNN_dists);
+                collection0.search(query, neighbours, foundNN, foundNN_dists);
+                
+                assertEquals(trueNN.size(), foundNN.size());
+                assertEquals(trueNN_dists.size(), foundNN_dists.size());
+
+                for (int i = 0; i < trueNN.size(); i++)
+                {
+                    assertEquals(trueNN.get(i), foundNN.get(i));
+                    assertEquals(trueNN_dists.get(i), trueNN_dists.get(i), 0.0);
+                }
+            }
+                
     }
 }
