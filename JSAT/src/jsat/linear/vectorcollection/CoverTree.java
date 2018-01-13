@@ -21,7 +21,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.math.FastMath;
@@ -29,7 +32,11 @@ import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
 import jsat.utils.IndexTable;
 import jsat.utils.IntList;
+import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
+import jsat.utils.Pair;
+import jsat.utils.concurrent.AtomicDouble;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -123,8 +130,16 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
         IntList order = new IntList(this.vecs.size());
         ListUtils.addRange(order, 0, this.vecs.size(), 1);
         
+//        Set<Integer> S = getSet(parallel);
+//        S.addAll(order);
+//        int p = S.stream().findAny().get();
+//        S.remove(p);
+//        
+//        this.root = new TreeNode(p);
+//        construct(parallel, root, S, getSet(parallel), Integer.MAX_VALUE);
+        
+        
         Collections.shuffle(order, new XORWOW(54321));
-//        for(int i = 0; i < this.vecs.size(); i++)
         int pos = 0;
         for(int i : order)
         {
@@ -142,6 +157,124 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
                 iter.next().maxdist();
             }
         }
+    }
+    
+    /**
+     * 
+     * @param p the point p 
+     * @return 
+     */
+    private Set<Integer> construct(boolean parallel, TreeNode p, Set<Integer> near, Set<Integer> far, int level)
+    {
+        if(near.isEmpty())
+            return far;
+        
+        Set<Integer> workingNearSet;
+        if(level == Integer.MAX_VALUE)//We need to figure out the correct level and do the split at once to avoid duplicate work
+        {
+            int[] points = near.stream().mapToInt(i->i).toArray();
+            double[] dists = new double[points.length];
+            
+            
+            double maxDist = ParallelUtils.run(parallel, points.length, (start, end)->
+            {
+                double max_ = 0;
+                for(int i = start; i < end; i++)
+                {
+                    dists[i] = dm.dist(p.vec_indx, points[i], vecs, accell_cache);
+                    max_ = Math.max(max_, dists[i]);
+                }
+                
+                return max_;
+            }, (a, b) -> Math.max(a, b));
+            
+            
+            level = p.level = (int) Math.ceil(FastMath.log2(maxDist)/log2_base+1e-4);
+            p.maxdist = maxDist;
+            double r_split = pow(p.level-1);
+            
+            near.clear();
+            Set<Integer> newNear = getSet(parallel);
+            Set<Integer> newFar = getSet(parallel);
+            ParallelUtils.run(parallel, points.length, (start, end)->
+            {
+                
+                for(int i = start; i < end; i++)
+                {
+                    double d_i = dists[i];
+                    if(d_i <= r_split)
+                        newNear.add(points[i]);
+                    else if (d_i < 2 * r_split)
+                        newFar.add(points[i]);
+                    else
+                        near.add(points[i]);
+                }
+            });
+            workingNearSet = construct(parallel, p, newNear, newFar, p.level-1);
+        }
+        else
+        {
+            Pair<Set<Integer>, Set<Integer>> pairRet = split(parallel, p.vec_indx, pow(level-1), near);
+            workingNearSet = construct(parallel, p, pairRet.getFirstItem(), pairRet.getSecondItem(), level-1);
+        }
+        
+        while(!workingNearSet.isEmpty())
+        {
+            //(i) pick q in NEAR
+            int q_indx = workingNearSet.stream().findAny().get();
+            workingNearSet.remove(q_indx);
+            TreeNode q = new TreeNode(q_indx, level-1);
+            //(ii) <CHILD, UNUSED> = Construct (q, SPLIT(d(q, ·), 2^(i−1),NEAR,FAR), i−1)
+            Set<Integer> unused = construct(parallel, q, workingNearSet, far, level-1);
+            //(iii) add CHILD to Children(pi) 
+            p.addChild(q);
+            //(iv) let <NEW-NEAR, NEW-FAR> =SPLIT(d(p, ·), 2^i,UNUSED)
+            Pair<Set<Integer>, Set<Integer>> newPiar = split(parallel, p.vec_indx, pow(level), unused);
+            Set<Integer> newNear = newPiar.getFirstItem();
+            Set<Integer> newFar = newPiar.getSecondItem();
+            //(v) add NEW-FAR to FAR, and NEW-NEAR to NEAR.
+            far.addAll(newFar);
+            workingNearSet.addAll(newNear);
+        }
+        
+        return far;
+    }
+    
+    private Pair<Set<Integer>, Set<Integer>> split(boolean parallel, int p, double r, Set<Integer>... S)
+    {
+        Set<Integer> newNear = getSet(parallel);
+        Set<Integer> newFar = getSet(parallel);
+        
+        for(Set<Integer> S_i : S)
+        {
+            int[] toRemove = ParallelUtils.streamP(S_i.stream(), parallel).mapToInt(i->
+            {
+                double d_i = dm.dist(p, i, vecs, accell_cache);
+                
+                if(d_i <= r)
+                    newNear.add(i);
+                else if(d_i < 2*r)
+                    newFar.add(i);
+                else
+                    return -1;//-1 will be 'removed' from the set S_i. but -1 isn't a valid index. So no impact
+                
+                return i;
+            }).distinct().toArray();
+            
+            S_i.removeAll(IntList.view(toRemove));
+        }
+        
+        return new Pair<>(newNear, newFar);
+    }
+
+    private Set<Integer> getSet(boolean parallel)
+    {
+        Set<Integer> newNear;
+        if(parallel)
+            newNear = ConcurrentHashMap.newKeySet();
+        else
+            newNear = new IntSet();
+        return newNear;
     }
     
     @Override
@@ -352,7 +485,7 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
         {
             this.vec_indx = vec_indx;
             this.level = level;
-            children = new ArrayList<TreeNode>();
+            children = new ArrayList<>();
             children_dists = new DoubleList();
         }
 
@@ -366,7 +499,7 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
             this.vec_indx = toCopy.vec_indx;
             if(toCopy.children != null)
             {
-                this.children = new ArrayList<TreeNode>(toCopy.children.size());
+                this.children = new ArrayList<>(toCopy.children.size());
                 this.children_dists = new DoubleList(toCopy.children_dists);
                 for(TreeNode childToCopy : toCopy.children)
                 {
@@ -646,7 +779,7 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
             if (this.maxdist >= 0)
                 return maxdist;
             //else, maxdist = -1, indicating we need to compute it
-            Stack<TreeNode> toGetChildrenFrom = new Stack<TreeNode>();
+            Stack<TreeNode> toGetChildrenFrom = new Stack<>();
             toGetChildrenFrom.add(this);
             
             while(!toGetChildrenFrom.empty())
@@ -666,7 +799,7 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
         
         private Iterator<TreeNode> descendants()
         {
-            final Stack<TreeNode> toIterate = new Stack<TreeNode>();
+            final Stack<TreeNode> toIterate = new Stack<>();
             toIterate.addAll(children);
             Iterator<TreeNode> iter = new Iterator<TreeNode>()
             {
