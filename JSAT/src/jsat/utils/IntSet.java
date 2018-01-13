@@ -105,10 +105,11 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
      * marked as DELETED while searching.
      *
      * @param key they key to search for
+     * @param inserting {@code true} if a value is being inserted into the index, false otherwise
      * @return the mixed long containing the index of the first DELETED position
      * and the position that the key is in or the first EMPTY position found
      */
-    private long getIndex(int key)
+    private long getIndex(int key, boolean inserting)
     {
         long extraInfo = EXTRA_INDEX_INFO;
         //D1 
@@ -133,7 +134,7 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
                 i += keys.length;
             //D5
             satus_i = status[i];
-            if( (keys[i] == key && satus_i != DELETED) || satus_i == EMPTY)
+            if( (keys[i] == key && satus_i != DELETED) || satus_i == EMPTY || (satus_i == DELETED && inserting))
                 return extraInfo | i;
             if(extraInfo == EXTRA_INDEX_INFO && satus_i == DELETED)
                 extraInfo = ((long)i) << 32;
@@ -181,7 +182,7 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
     public boolean add(int e)
     {
         final int key = e;
-        long pair_index = getIndex(key);
+        long pair_index = getIndex(key, true);
         int deletedIndex = (int) (pair_index >>> 32);
         int valOrFreeIndex = (int) (pair_index & INT_MASK);
         
@@ -205,7 +206,7 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
 
     public boolean contains(int o)
     {
-        int index = (int) (getIndex(o) & INT_MASK);
+        int index = (int) (getIndex(o, false) & INT_MASK);
         return status[index] == OCCUPIED;//would be FREE if we didn't have the key
     }
     
@@ -224,7 +225,7 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
      */
     public boolean remove(int key)
     {
-        long pair_index = getIndex(key);
+        long pair_index = getIndex(key, false);
         int valOrFreeIndex = (int) (pair_index & INT_MASK);
         if(status[valOrFreeIndex] == EMPTY)//ret index is always EMPTY or OCCUPIED
             return false;
