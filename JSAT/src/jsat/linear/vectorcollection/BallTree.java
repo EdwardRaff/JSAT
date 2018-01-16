@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.stream.IntStream;
+import jsat.clustering.MEDDIT;
 import jsat.clustering.PAM;
 import jsat.clustering.TRIKMEDS;
 import jsat.linear.DenseVector;
@@ -164,6 +165,44 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
                 else
                     indx = PAM.medoid(parallel, points, data, dm, cache);
                 return data.get(indx);
+            }
+        },
+        /**
+         * This method selects the pivot by searching for an approximate medoid
+         * of the data. This can be used in all circumstances, but may be
+         * slower.
+         */
+        MEDOID_APRX
+        {
+            @Override
+            public Vec getPivot(boolean parallel, List<Integer> points, List<? extends Vec> data,  DistanceMetric dm, List<Double> cache)
+            {
+                if (points.size() == 1)
+                    return data.get(points.get(0)).clone();
+                int indx;
+                //Faster to use exact search
+                if(points.size() < 1000)
+                {
+                    if(dm.isValidMetric())
+                        indx = TRIKMEDS.medoid(parallel, points, data, dm, cache);
+                    else
+                        indx = PAM.medoid(parallel, points, data, dm, cache);
+                }
+                else//Lets do approx search
+                    indx = MEDDIT.medoid(parallel, points, 0.2, data, dm, cache);
+                return data.get(indx);
+            }
+        },
+        /**
+         * A random point will be selected as the pivot for the ball
+         */
+        RANDOM
+        {
+            @Override
+            public Vec getPivot(boolean parallel, List<Integer> points, List<? extends Vec> data,  DistanceMetric dm, List<Double> cache)
+            {
+               int indx = RandomUtil.getLocalRandom().nextInt(points.size());
+               return data.get(indx);
             }
         },;
         
