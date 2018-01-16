@@ -412,7 +412,8 @@ public class MEDDIT extends PAM
                 return localStats;
             }, (a,b) -> OnLineStatistics.add(a, b));
             
-            distanceStats.add(changeInStats);
+            if(!to_pull.isEmpty())//might be empty if everyone went over the threshold
+                distanceStats.add(changeInStats);
             
             //update bounds and re-insert
             double v = distanceStats.getVarance();
