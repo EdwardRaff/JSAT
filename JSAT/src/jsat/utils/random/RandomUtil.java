@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class RandomUtil
 {
+    private static final ThreadLocal<Random> localRandoms = ThreadLocal.withInitial(RandomUtil::getRandom);
 
     private RandomUtil()
     {
@@ -94,5 +95,17 @@ public class RandomUtil
     public static Random getRandom(int seed)
     {
         return new XORWOW(seed);
+    }
+
+    /**
+     * Returns a Random object that is local to a given thread context, allowing
+     * re-usability at lower overhead. Once a Random object is created for a
+     * thread, it will continue to exist.
+     *
+     * @return a Random object for use
+     */
+    public static Random getLocalRandom()
+    {
+        return localRandoms.get();
     }
 }
