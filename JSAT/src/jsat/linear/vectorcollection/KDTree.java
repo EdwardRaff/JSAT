@@ -501,7 +501,7 @@ public class KDTree<V extends Vec> implements IncrementalCollection<V>
                 }
                 pivot = maxSpreadDim;
                 //find the value cloesest to the midpoint of the spread
-                double midPoint = (maxs[maxSpreadDim]-mins[maxSpreadDim])/2;
+                double midPoint = (maxs[maxSpreadDim]-mins[maxSpreadDim])/2 + mins[maxSpreadDim];
                 double closestVal = maxs[maxSpreadDim];
                 for (int i = 0; i < data.size(); i++)
                 {
@@ -530,7 +530,11 @@ public class KDTree<V extends Vec> implements IncrementalCollection<V>
             for(int i = 0; i < data.size(); i++)
                 if(get(data.get(i)).get(pivot) <= pivot_val)
                     ListUtils.swap(data, front++, i);
-            if(FastMath.floor_log2(allVecs.size()) >= depth && front < leaf_node_size/3 || data.size()-front < leaf_node_size/3)//too lopsided, fall back to medain spliting!
+            //How deep would we go if the tree was balanced?
+            int balanced_depth = FastMath.floor_log2(allVecs.size());
+            if(balanced_depth*3/2 < depth 
+                    &&  (front < leaf_node_size/3 || data.size()-front < leaf_node_size/3) 
+                    || balanced_depth*3 < depth)//too lopsided, fall back to medain spliting!
                 pivot_val = Double.NaN;
             else
             {
