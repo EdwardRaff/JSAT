@@ -542,7 +542,11 @@ public class KDTree<V extends Vec> implements IncrementalCollection<V>
                 node.pivot_s = pivot_val;
             }
         }
-        //INTENTIONALLY NOT AND ELSE IF
+        
+        if(splitIndex == 0 || splitIndex >= data.size()-1)//Split turned bad
+            pivot_val = Double.NaN;//Set to NaN so that we fall back to median-based split selection
+        
+        //INTENTIONALLY NOT AN ELSE IF
         //pivot_val might be set to NaN if pivot looked bad
         if(Double.isNaN(pivot_val))
         {
@@ -553,7 +557,7 @@ public class KDTree<V extends Vec> implements IncrementalCollection<V>
                 return new KDLeaf(depth % mod, data);
             node.pivot_s = pivot_val = get(data.get(splitIndex)).get(pivot);
         }
-        
+                
         //We could save code lines by making only one path threadpool dependent. 
         //But this order has better locality for single threaded, while the 
         //reverse call order workes better for multi core
