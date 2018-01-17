@@ -543,7 +543,7 @@ public class KDTree<V extends Vec> implements IncrementalCollection<V>
             }
         }
         
-        if(splitIndex == 0 || splitIndex >= data.size()-1)//Split turned bad
+        if(splitIndex <= 0 || splitIndex >= data.size()-1)//Split turned bad
             pivot_val = Double.NaN;//Set to NaN so that we fall back to median-based split selection
         
         //INTENTIONALLY NOT AN ELSE IF
@@ -556,6 +556,11 @@ public class KDTree<V extends Vec> implements IncrementalCollection<V>
             if(splitIndex == data.size()-1)//Everyone has the same value? OK, leaf node then
                 return new KDLeaf(depth % mod, data);
             node.pivot_s = pivot_val = get(data.get(splitIndex)).get(pivot);
+        }
+        
+        if(splitIndex == 0 || splitIndex >= data.size()-1)
+        {
+            System.out.println("Adsas");
         }
                 
         //We could save code lines by making only one path threadpool dependent. 
