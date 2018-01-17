@@ -35,6 +35,7 @@ import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.math.FastMath;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
 import jsat.utils.IndexTable;
@@ -714,13 +715,28 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
                 double left_dist = dm.dist(indx, b.left_child.pivot, b.left_child.pivot_qi, allVecs, cache);
                 double right_dist = dm.dist(indx, b.right_child.pivot, b.right_child.pivot_qi, allVecs, cache);
                 
-                //which branch will cause the minimum increase in the radius?
-                double left_rad_inc = b.left_child.radius - left_dist;
-                double right_rad_inc = b.right_child.radius - right_dist;
+                boolean goLeftBranch;
+                
+                //Assumption (true for p-norm dists), volume is prop to R^d, where d is the dimension
+                if(x.length() >= 2)//if d >= 2, assume dimensions of feature matter
+                {
+                    double d = x.length();
+                    //which branch will cause the minimum increase in the radius?
+                    double left_rad_inc = Math.max(b.left_child.radius - left_dist, 0);
+                    double right_rad_inc = Math.max(b.right_child.radius - right_dist, 0);
+                
+                    double left_vol_inc = FastMath.pow(b.left_child.radius+left_rad_inc, d)-FastMath.pow(b.left_child.radius, d);
+                    double right_vol_inc = FastMath.pow(b.right_child.radius+right_rad_inc, d)-FastMath.pow(b.right_child.radius, d);
+                    goLeftBranch = left_vol_inc < right_vol_inc;
+                }
+                else//assume we are in a more general metric space, fall back to going to the nearest center
+                {
+                    goLeftBranch = left_dist < right_dist;
+                }
                 
                 //decend tree
                 parentNode = b;
-                if(left_rad_inc < right_rad_inc)
+                if(goLeftBranch)
                 {
                     curNode = b.left_child;
                     dist_to_curNode = left_dist;
