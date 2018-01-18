@@ -319,6 +319,18 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
             else
                 right_children.add(p);
         }
+        
+        if(left_children.isEmpty() || right_children.isEmpty())
+        {
+            //This can happen if all the points have the exact same value, so all distances are zero. 
+            //So we can't branch, return a leaf node instead
+            left_children.addAll(right_children);
+            Leaf leaf = new Leaf(left_children);
+            leaf.pivot = branch.pivot;
+            leaf.pivot_qi = branch.pivot_qi;
+            leaf.radius = 0.0;//Weird, but correct! All dists = 0, so radius = 0
+            return leaf;
+        }
 
         //everyone has been assigned, now creat children objects
         branch.left_child = build(left_children, parallel);
@@ -727,7 +739,10 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
                 
                     double left_vol_inc = FastMath.pow(b.left_child.radius+left_rad_inc, d)-FastMath.pow(b.left_child.radius, d);
                     double right_vol_inc = FastMath.pow(b.right_child.radius+right_rad_inc, d)-FastMath.pow(b.right_child.radius, d);
-                    goLeftBranch = left_vol_inc < right_vol_inc;
+                    if(left_vol_inc == right_vol_inc)//same increase? just go with closes
+                        goLeftBranch = left_dist < right_dist;
+                    else//Else, go with min volume increase
+                        goLeftBranch = left_vol_inc < right_vol_inc;
                 }
                 else//assume we are in a more general metric space, fall back to going to the nearest center
                 {
