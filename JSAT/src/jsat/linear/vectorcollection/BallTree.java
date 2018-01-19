@@ -271,6 +271,21 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
     {
         return leaf_size;
     }
+    
+    /**
+     * Computes the maximum depth of the current tree. A value of zero indicates
+     * that only a root node exists or the tree is empty. Any other value is the
+     * maximum number of children a node contains.
+     *
+     * @return the maximum current depth of this Ball Tree
+     */
+    public int getMaxDepth()
+    {
+        if(root == null)
+            return 0;
+        else 
+            return root.findMaxDepth(0);
+    }
 
     public void setPivot_method(PivotSelection pivot_method)
     {
@@ -729,25 +744,7 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
                 
                 boolean goLeftBranch;
                 
-                //Assumption (true for p-norm dists), volume is prop to R^d, where d is the dimension
-                if(x.length() >= 2)//if d >= 2, assume dimensions of feature matter
-                {
-                    double d = x.length();
-                    //which branch will cause the minimum increase in the radius?
-                    double left_rad_inc = Math.max(b.left_child.radius - left_dist, 0);
-                    double right_rad_inc = Math.max(b.right_child.radius - right_dist, 0);
-                
-                    double left_vol_inc = FastMath.pow(b.left_child.radius+left_rad_inc, d)-FastMath.pow(b.left_child.radius, d);
-                    double right_vol_inc = FastMath.pow(b.right_child.radius+right_rad_inc, d)-FastMath.pow(b.right_child.radius, d);
-                    if(left_vol_inc == right_vol_inc)//same increase? just go with closes
-                        goLeftBranch = left_dist < right_dist;
-                    else//Else, go with min volume increase
-                        goLeftBranch = left_vol_inc < right_vol_inc;
-                }
-                else//assume we are in a more general metric space, fall back to going to the nearest center
-                {
-                    goLeftBranch = left_dist < right_dist;
-                }
+                goLeftBranch = left_dist < right_dist;
                 
                 //decend tree
                 parentNode = b;
@@ -845,6 +842,8 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
                 radius = Math.max(radius, dm.dist(i, pivot, pivot_qi, allVecs, cache));
         }
         
+        abstract public int findMaxDepth(int curDepth);
+        
         abstract public void search(Vec query, List<Double> qi, double range, List<Integer> neighbors, List<Double> distances);
         
         abstract public void search(Vec query, List<Double> qi, int numNeighbors, BoundedSortedList<IndexDistPair> knn, double pivot_to_query);
@@ -891,6 +890,12 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
         {
             return children.iterator();
         }
+
+        @Override
+        public int findMaxDepth(int curDepth)
+        {
+            return curDepth;
+        }
         
     }
     
@@ -901,6 +906,11 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
 
         public Branch()
         {
+        }
+        
+        public int findMaxDepth(int curDepth)
+        {
+            return Math.max(left_child.findMaxDepth(curDepth+1), right_child.findMaxDepth(curDepth+1));
         }
 
         public Branch(Branch toCopy)
