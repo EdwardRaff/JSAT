@@ -62,6 +62,11 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
     {
         super();
     }
+    
+    public VPTreeMV(VPTreeMV toClone)
+    {
+        super(toClone);
+    }
 
     @Override
     protected int splitListIndex(List<Pair<Double, Integer>> S)
@@ -97,5 +102,11 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
         }
         
         return splitIndex;
+    }
+
+    @Override
+    public VPTreeMV<V> clone()
+    {
+        return new VPTreeMV<>(this);
     }
 }
