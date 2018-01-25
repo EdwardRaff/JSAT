@@ -442,6 +442,7 @@ public class KDTree<V extends Vec> implements IncrementalCollection<V>
             return new KDLeaf(depth % mod, data);
         }
         
+        final boolean isSparse = get(data.get(0)).isSparse();
         int pivot = -1;
         //Some pivot methods will select the value they want, and so overwrite NaN. Otherwise, use NaN to flag that a median search is needed
         double pivot_val = Double.NaN;
@@ -476,6 +477,9 @@ public class KDTree<V extends Vec> implements IncrementalCollection<V>
                 double[] maxs = new double[mod];
                 Arrays.fill(mins, Double.POSITIVE_INFINITY);
                 Arrays.fill(maxs, Double.NEGATIVE_INFINITY);
+                //If sparse, keep a set of indexes we HAVE NOT SEEN
+                //these have implicity zeros we need to add back at the end
+                final Set<Integer> neverSeen = isSparse ? new IntSet(ListUtils.range(0, get(0).length())) : Collections.EMPTY_SET;
                 for(int i : data)
                 {
                     V v = get(i);
@@ -485,13 +489,20 @@ public class KDTree<V extends Vec> implements IncrementalCollection<V>
                         double val = iv.getValue();
                         mins[d] = Math.min(mins[d], val);
                         maxs[d] = Math.max(maxs[d], val);
+                        neverSeen.remove(d);
                     }
                 }
                 //find the dimension of maximum spread
                 int maxSpreadDim = 0;
-                double maxSpreadVal = maxs[0] - mins[0];
+                double maxSpreadVal = 0;
+                
                 for(int d = 0; d < mod; d++)
                 {
+                    if(neverSeen != null && neverSeen.contains(d))
+                    {
+                        maxs[d] = Math.max(maxs[d], 0);
+                        mins[d] = Math.min(mins[d], 0);
+                    }
                     double v = maxs[d]-mins[d];
                     if(v > maxSpreadVal)
                     {

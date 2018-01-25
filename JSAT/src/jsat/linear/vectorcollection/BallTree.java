@@ -19,6 +19,7 @@ package jsat.linear.vectorcollection;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -26,6 +27,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.IntStream;
 import jsat.clustering.MEDDIT;
 import jsat.clustering.PAM;
@@ -40,6 +43,8 @@ import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
 import jsat.utils.IndexTable;
 import jsat.utils.IntList;
+import jsat.utils.IntSet;
+import jsat.utils.ListUtils;
 import jsat.utils.Pair;
 import jsat.utils.concurrent.AtomicDoubleArray;
 import jsat.utils.concurrent.ParallelUtils;
@@ -358,21 +363,48 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
     {
         //Lets find the dimension with the maximum spread
         int D = allVecs.get(0).length();
+        final boolean isSparse = allVecs.get(0).isSparse();
+        
+        //If sparse, keep a set of indexes we HAVE NOT SEEN
+        //these have implicity zeros we need to add back at the end
+        final Set<Integer> neverSeen;
+        if (isSparse)
+            if (parallel)
+            {
+                neverSeen = ConcurrentHashMap.newKeySet();
+                ListUtils.addRange(neverSeen, 0, D, 1);
+            }
+            else
+                neverSeen = new IntSet(ListUtils.range(0, D));
+        else
+            neverSeen = Collections.EMPTY_SET;
+        
         AtomicDoubleArray mins = new AtomicDoubleArray(D);
         mins.fill(Double.POSITIVE_INFINITY);
         AtomicDoubleArray maxs = new AtomicDoubleArray(D);
         maxs.fill(Double.NEGATIVE_INFINITY);
-        ParallelUtils.streamP(points.stream(), parallel).forEach(i->{
+        ParallelUtils.streamP(points.stream(), parallel).forEach(i->
+        {
             for(IndexValue iv : get(i))
             {
                 int d = iv.getIndex();
                 mins.updateAndGet(d, (m_d)->Math.min(m_d, iv.getValue()));
                 maxs.updateAndGet(d, (m_d)->Math.max(m_d, iv.getValue()));
+                neverSeen.remove(d);
             }
         });
         
         IndexDistPair maxSpread = ParallelUtils.range(D, parallel)
-                .mapToObj(d->new IndexDistPair(d, maxs.get(d)-mins.get(d)))
+                .mapToObj(d->
+                {
+                    double max_d = maxs.get(d), min_d = mins.get(d);
+                    if(neverSeen != null && neverSeen.contains(d))
+                    {
+                        max_d = Math.max(max_d, 0);
+                        min_d = Math.min(min_d, 0);
+                    }
+                    return new IndexDistPair(d, max_d - min_d);
+                })
                 .max(IndexDistPair::compareTo).get();
 
         
