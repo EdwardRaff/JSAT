@@ -1,11 +1,14 @@
 package jsat.linear.vectorcollection;
 
 import java.io.Serializable;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import java.util.Random;
+import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,6 +16,7 @@ import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.utils.BooleanList;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
 import jsat.utils.IndexTable;
@@ -506,6 +510,8 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         
         public abstract void searchRange(Vec query, double range, List<Integer> neighbors, List<Double> distances, double x, List<Double> qi);
         
+        public abstract boolean isLeaf();
+        
         @Override
         public abstract TreeNode clone();
     }
@@ -531,7 +537,12 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
             this.left = cloneChangeContext(toCopy.left);
             this.right = cloneChangeContext(toCopy.right);
         }
-        
+
+        @Override
+        public boolean isLeaf()
+        {
+            return false;
+        }
         
         @Override
         public void insert(int x_indx, double dist_to_parent)
@@ -605,11 +616,107 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         @Override
         public void searchKNN(Vec query, int k, BoundedSortedList<IndexDistPair> list, double x, List<Double> qi)
         {
+            Deque<VPNode> curNode_stack = new ArrayDeque<VPNode>();
+            
+            DoubleList distToParrent_stack = new DoubleList();
+            BooleanList search_left_stack = new BooleanList();
+            
+            curNode_stack.add(this);
+            
+            while(!curNode_stack.isEmpty())
+            {
+                if(curNode_stack.size() > search_left_stack.size())//we are decending the tree
+                {
+                    VPNode node = curNode_stack.peek();
+                    x = dm.dist(node.p, query, qi, allVecs, distCache);
+                    distToParrent_stack.push(x);
+                    if(list.size() < k || x < list.get(k-1).getDist())
+                        list.add(new IndexDistPair(node.p, x));
+                    double tau = list.get(list.size()-1).getDist();
+                    double middle = (node.left_high+node.right_low)*0.5;
+                    boolean leftFirst =  x < middle;
+
+                    //If we search left now, on pop we need to search right
+                    search_left_stack.add(!leftFirst);
+                    if(leftFirst)
+                    {
+                        if(node.searchInLeft(x, tau) || list.size() < k)
+                        {
+                            if(node.left.isLeaf())
+                                node.left.searchKNN(query, k, list, x, qi);
+                            else
+                            {
+                                curNode_stack.push((VPNode) node.left);
+                                continue;//CurNode will now have a size 1 greater than the search_left_stach
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if(node.searchInRight(x, tau) || list.size() < k)
+                        {
+                            if(node.right.isLeaf())
+                                node.right.searchKNN(query, k, list, x, qi);
+                            else
+                            {
+                                curNode_stack.push((VPNode) node.right);
+                                continue;//CurNode will now have a size 1 greater than the search_left_stach
+                            }
+                        }
+                    }
+                }
+                else//we are poping up the search patch
+                {
+                    VPNode node = curNode_stack.pop();//pop, we are defintly done with this node after
+                    x = distToParrent_stack.pop();
+                    double tau = list.get(list.size()-1).getDist();
+                    Boolean finishLeft = search_left_stack.pop();
+                    
+                    
+                    if(finishLeft)
+                    {
+                        if(node.searchInLeft(x, tau) || list.size() < k)
+                        {
+                            if(node.left.isLeaf())
+                                node.left.searchKNN(query, k, list, x, qi);
+                            else
+                            {
+                                curNode_stack.push((VPNode) node.left);
+                                continue;//CurNode will now have a size 1 greater than the search_left_stach
+                            }
+                        }
+                        //else, branch was pruned. Loop back and keep popping
+                    }
+                    else
+                    {
+                        if(node.searchInRight(x, tau) || list.size() < k)
+                        {
+                            if(node.right.isLeaf())
+                                node.right.searchKNN(query, k, list, x, qi);
+                            else
+                            {
+                                curNode_stack.push((VPNode) node.right);
+                                continue;//CurNode will now have a size 1 greater than the search_left_stach
+                            }
+                        }
+                        //else, branch was pruned. Loop back and keep popping
+                    }
+                }
+                
+            }
+            
+        }
+        
+        public void searchKNN_recurse(Vec query, int k, BoundedSortedList<IndexDistPair> list, double x, List<Double> qi)
+        {
             x = dm.dist(p, query, qi, allVecs, distCache);
             if(list.size() < k || x < list.get(k-1).getDist())
                 list.add(new IndexDistPair(this.p, x));
             double tau = list.get(list.size()-1).getDist();
             double middle = (this.left_high+this.right_low)*0.5;
+            
+//            if(this.left instanceof VPNode && this.right in)
+            
 
             if( x < middle)
             {
@@ -729,6 +836,12 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
                         distances.add(dist);
                     }
             }
+        }
+
+        @Override
+        public boolean isLeaf()
+        {
+            return true;
         }
 
         @Override
