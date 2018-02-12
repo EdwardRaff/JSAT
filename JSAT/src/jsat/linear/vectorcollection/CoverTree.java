@@ -316,7 +316,7 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
 //            maxDistDirty = false;
 //        }
         BoundedSortedList<IndexDistPair> bsl = new BoundedSortedList<>(numNeighbors);
-        this.root.findNN(numNeighbors, query, dm.getQueryInfo(query), bsl, -1);
+        this.root.findNN(numNeighbors, query, dm.getQueryInfo(query), bsl);
         neighbors.clear();
         distances.clear();
         for(IndexDistPair a : bsl)
@@ -532,7 +532,49 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
                 this.parent.invalParentMaxdist();
         }
         
-        public void findNN(int k, Vec x, List<Double> x_qi, BoundedSortedList<IndexDistPair> knn, double my_dist_to_x)
+        public void findNN(int k, Vec query, List<Double> x_qi, BoundedSortedList<IndexDistPair> knn)
+        {
+            Stack<TreeNode> toEval_stack = new Stack<>();
+            DoubleList dist_to_q_stack = new DoubleList();
+            {//Quick, add root info to stack for search & prime search Q
+                double p_x_dist = this.dist(query, x_qi);
+                dist_to_q_stack.push(p_x_dist);
+                toEval_stack.push(this);
+            }
+            
+            //Search loop
+            while(!toEval_stack.isEmpty())
+            {
+                TreeNode p = toEval_stack.pop();
+                double p_to_q_dist = dist_to_q_stack.pop();
+                knn.add(new IndexDistPair(p.vec_indx, p_to_q_dist));
+                
+                double[] child_query_dist = new double[p.numChildren()];
+                for(int child_indx = 0; child_indx < p.numChildren(); child_indx++)//compute dists and add to knn while we are at it
+                {
+                    TreeNode q = p.getChild(child_indx);
+                    child_query_dist[child_indx] = q.dist(query, x_qi);
+                }
+                
+                //get them in sorted order
+                IndexTable it = new IndexTable(child_query_dist);
+                for(int i_oder = it.length()-1; i_oder >= 0; i_oder--)//reverse order so stack goes in sorted order
+                {
+                    final int i = it.index(i_oder);
+                    TreeNode q = p.getChild(i);
+                    
+                    //4:  if d(y,x)>d(y,q)−maxdist(q) then
+                    if(knn.size() < k || knn.last().getDist() > child_query_dist[i] - q.maxdist())
+                    {//Add to the search Q
+                        toEval_stack.push(q);
+                        dist_to_q_stack.push(child_query_dist[i]);
+                    }
+                }
+            }
+        }
+        
+        //This is the old search code, new code (above) avoids recursion and makes explicit stack
+        private void findNN_recurse(int k, Vec x, List<Double> x_qi, BoundedSortedList<IndexDistPair> knn, double my_dist_to_x)
         {
             TreeNode p = this;
             
@@ -570,7 +612,7 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
                 //4:  if d(y,x)>d(y,q)−maxdist(q) then
 //                if(knn.size() < k || knn.last().getDist() > q.dist(y_vec, dm.getQueryInfo(y_vec)) - q.maxdist())
                 if(knn.size() < k || knn.last().getDist() > q_x_dist[i] - q.maxdist())
-                    q.findNN(k, x, x_qi, knn, q_x_dist[i]);//Line 5:
+                    q.findNN_recurse(k, x, x_qi, knn, q_x_dist[i]);//Line 5:
 //                else if(q.isLeaf())
 //                {
 //                    knn.add(new ProbailityMatch<V>(q.dist(x, x_qi), vecs.get(q.vec_indx)));
