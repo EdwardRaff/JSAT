@@ -23,6 +23,13 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
     private float loadFactor;
 
     private int used = 0;
+    /**
+     * Number of indices marked "free". It is possible for used= 0 and free =
+     * 0, if everything was deleted. When nothig is free, we need to re-insert
+     * and clear the index to avoid corner case infinite loop that was not
+     * accounted for in original algo description
+     */
+    private int free = 0;
     private byte[] status;
     private int[] keys;
     
@@ -59,6 +66,7 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
         status = new byte[size];
         keys = new int[size];
         used = 0;
+        free = size;
     }
     
     /**
@@ -143,17 +151,24 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
     
     private void enlargeIfNeeded()
     {
-        if(used < keys.length*loadFactor)
+        if(used < keys.length*loadFactor && free > 0)
             return;
         //enlarge
         final byte[] oldSatus = status;
         final int[] oldKeys = keys;
         
-        int newSize = getNextPow2TwinPrime(status.length*3/2);//it will actually end up doubling in size since we have twin primes spaced that was
+        int newSize;
+        if(used > keys.length*loadFactor)
+            newSize = getNextPow2TwinPrime(status.length*3/2);//it will actually end up doubling in size since we have twin primes spaced that was
+        else//Don't expand, but free = 0, so re-hash to avoild infinite chaning
+        {
+            newSize = oldSatus.length;
+        }
         status = new byte[newSize];
         keys = new int[newSize];
         
         used = 0;
+        free = newSize;
         for(int oldIndex = 0; oldIndex < oldSatus.length; oldIndex++)
             if(oldSatus[oldIndex] == OCCUPIED)
                 add(oldKeys[oldIndex]);
@@ -186,18 +201,24 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
         int deletedIndex = (int) (pair_index >>> 32);
         int valOrFreeIndex = (int) (pair_index & INT_MASK);
         
-        if(status[valOrFreeIndex] == OCCUPIED)//easy case
+        byte origStatus = status[valOrFreeIndex];
+        if(origStatus == OCCUPIED)//easy case
         {
             return false;//we already had this item in the set!
         }
         //else, not present
         int i = valOrFreeIndex;
         if(deletedIndex >= 0)//use occupied spot instead
+        {
             i = deletedIndex;
+            origStatus = status[i];
+        }
         
         status[i] = OCCUPIED;
         keys[i] = key;
         used++;
+        if(origStatus == EMPTY)
+            free--;
         
         enlargeIfNeeded();
         
