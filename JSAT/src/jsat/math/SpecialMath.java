@@ -22,6 +22,7 @@ import static jsat.math.MathTricks.*;
  */
 public class SpecialMath
 {
+    public static final double EULER_MASCHERONI =  0.57721566490153286061;
     
     /*
      * TODO this class needs more documentation. All these methods should have 
@@ -317,6 +318,8 @@ public class SpecialMath
     {
         if(x == 1)
             return Double.NaN;
+        if(x == 0)
+            return -0.5;
         if(x < 0 || abs(1-x) <= 0.2)
         {
             if(x <= 0.2 && x > -2.)
@@ -382,7 +385,9 @@ public class SpecialMath
      */
     public static double zeta(double x, double a)
     {
-        if(a <= 0 || x <= 0)
+        if(x == 0)
+            return 0.5-a;
+        if(a <= 0 || x < 0)
             return Double.NaN;//Results would be complex infinity
         if(x == 1)
             return Double.NaN;//Result would be complex infinity
@@ -417,6 +422,76 @@ public class SpecialMath
         }
         
         return part1 + pow(a+n, 1-x)/(x-1) - 1./(2*pow(a+n, x)) + part2 ;
+    }
+    
+    /**
+     * Computes the n'th harmonic number <i>H<sub>n</sub></i>. <br>
+     * Note that the relative error of this method is less than 10<sup>-6</sup>
+     * for the entire range, and decreases as <i>n</i> increases.
+     *
+     * @param n any non-negative value
+     * @return the value of <i>H<sub>n</sub></i>, of {@link Double#NaN} if <i>n</i> &lt; 0
+     */
+    public static double harmonic(double n)
+    {
+        if(n == 0)
+            return 0;
+        else if(n < 0)
+            return Double.NaN;
+        if(n < 2)//Lets use Economized Rational Approximations 
+        {
+            final double[] era_up_4 = new double[]
+            {
+                0.00067701604350, 5483.1926096, 4283.42774099, 602.59193727 
+            };
+            final double[] era_low_5 = new double[]
+            {
+                3333.39376261, 5039.82176406, 1856.44874041, 140.548664241, -1.000000000000
+            };
+            
+            return hornerPoly(era_up_4, n)/hornerPoly(era_low_5, n);
+        }
+        //else, this 
+        
+        double h_n = log(n) + EULER_MASCHERONI + 1./(2*n);
+        
+        if(n >= 1000000)
+            return h_n;//Close enough with rel error < 5e-15
+        //We are going to add at least two terms then
+        
+        //1/(240 n^8)-1/(252 n^6)+1/(120 n^4)-1/(12 n^2)
+        double nSqrd = n*n;
+        double nQuad = nSqrd*nSqrd;
+        h_n += -1/(12 * nSqrd) + 1/(120 * nQuad);
+        
+        double n8 = nQuad*nQuad;
+        double n6 = nSqrd*nQuad;
+        h_n += +(1/(240*n8))-1/(252*n6);
+        
+        return h_n;
+    }
+    
+    /**
+     * Computes the generalized n'th harmonic number of the m'th order
+     * <i>H<sub>n</sub><sup>(m)</sup></i>. <br>
+     *
+     * @param n  any non-negative value
+     * @param m the harmonic order
+     * @return the value of <i>H<sub>n</sub><sup>(m)</sup></i>
+     */
+    public static double harmonic(double n, double m)
+    {
+        if (n == 0)
+            return 0;
+        else if (n < 0)
+            if (m == 0)
+                return n;
+            else
+                return Double.NaN;//truth is complex infinity
+        else if(m == 1)
+            return harmonic(n);
+
+        return zeta(m)-zeta(m,n+1);
     }
     
     /**
