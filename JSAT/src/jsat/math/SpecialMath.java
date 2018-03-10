@@ -362,6 +362,64 @@ public class SpecialMath
     }
     
     /**
+     * Coefficients used for computing the zeta function involving the coef[k_]:=BernoulliB[2 k]/Factorial[2 k] term 
+     */
+    private static final double[] zetBernCoefs = new double[]
+    {
+        0.0,//FAKE VALUE, Never used
+        0.083333333333333333333,-0.0013888888888888888889,0.000033068783068783068783,
+        -8.2671957671957671958e-7,2.0876756987868098979e-8,-5.2841901386874931848e-10,
+        1.3382536530684678833e-11,-3.3896802963225828668e-13,8.5860620562778445641e-15,
+        -2.1748686985580618730e-16
+    };
+    
+    /**
+     * Implements the Hurwitz zeta function &#950;(x, a), but currently only for values of x &gt; 0. So long as x &gt; 0 , and appropriate approximation will be returned. <br>
+     * The relative error of this implementation is less than 1e-4 for most values of x in [0, 1), and error decreases as x and q increase. 
+     * @param x the first argument of the Hurwitz zeta function, and currently must be positive to return a correct value. 
+     * @param a the second argument, must be positive in all cases. 
+     * @return the value of &#950;(x, a), or {@link Double#NaN} if the result would be a Complex Infinity or if x &lt; 0 
+     */
+    public static double zeta(double x, double a)
+    {
+        if(a <= 0 || x <= 0)
+            return Double.NaN;//Results would be complex infinity
+        if(x == 1)
+            return Double.NaN;//Result would be complex infinity
+        if(a > 1e7)//In the limit this is correct. At 1e6, relative error is <= 10^(-8) for x [1, 10,000[
+        {
+            return (1/(x - 1) + 1/(2*a))*pow(a, 1 - x);
+        }
+        
+        //The error on this seems high... so lets not do that for now
+//        if(x <= -1 && Math.rint(x) == x && x >= Integer.MIN_VALUE)//Use https://dlmf.nist.gov/25.11.E13 
+//        {
+//            int n = (int) -x;
+//            return -exp(reLnBn(n+1)+log(a)-log(n+1));
+//        }
+        
+        //General case, done as outlined here https://math.stackexchange.com/questions/917100/numerical-evaluation-of-hurwitz-zeta-function?rq=1 
+        
+        double part1 = 0;
+        double part2 = 0;
+        final int n = 9;//Constant chosen by recomendation for double precision
+        for(int k = 0; k <= n; k++)
+        {
+            part1 += 1/pow(a+k, x);
+        }
+        
+        //Second summerant term is zetBernCoefs[k] * ( ((a+n)^(-k-x) Gamma[-2+3 k+x])/Gamma[-2+2 k+x] )
+        //simplfy 2nd term with logs as exp( -(k+x) Log[a+n]+Log[Gamma[-2+3 k+x]]-Log[Gamma[-2+2 k+x]] )
+        
+        for(int k = 1; k < zetBernCoefs.length; k++ )
+        {
+            part2 += zetBernCoefs[k] * exp(-(k+x)* log(a+n)+lnGamma(-2+3*k+x)-lnGamma(-2+2*k+x));
+        }
+        
+        return part1 + pow(a+n, 1-x)/(x-1) - 1./(2*pow(a+n, x)) + part2 ;
+    }
+    
+    /**
      * upper polynomial approximation of the zeta function between [-0.20, 0.5]
      */
     private static double[] zeta_p_special = 
