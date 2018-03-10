@@ -377,25 +377,59 @@ public class SpecialMath
     };
     
     /**
-     * Implements the Hurwitz zeta function &#950;(x, a), but currently only for values of x &gt; 0. So long as x &gt; 0 , and appropriate approximation will be returned. <br>
-     * The relative error of this implementation is less than 1e-4 for most values of x in [0, 1), and error decreases as x and q increase. 
-     * @param x the first argument of the Hurwitz zeta function, and currently must be positive to return a correct value. 
-     * @param a the second argument, must be positive in all cases. 
-     * @return the value of &#950;(x, a), or {@link Double#NaN} if the result would be a Complex Infinity or if x &lt; 0 
+     * Implements the Hurwitz zeta function &#950;(x, a) <br>
+     * The relative error of this implementation is less than 1e-4 for most
+     * positive values of x, though is lower for negative values of x. Accuracy
+     * improves as a increases.
+     *
+     * @param x the first argument of the Hurwitz zeta function/
+     * @param a the second argument, must be positive in all cases.
+     * @return the value of &#950;(x, a), or {@link Double#NaN} if the result
+     * would be a Complex Infinity
      */
     public static double zeta(double x, double a)
     {
         if(x == 0)
             return 0.5-a;
-        if(a <= 0 || x < 0)
+        if(a <= 0)
             return Double.NaN;//Results would be complex infinity
         if(x == 1)
             return Double.NaN;//Result would be complex infinity
-        if(a > 1e7)//In the limit this is correct. At 1e6, relative error is <= 10^(-8) for x [1, 10,000[
+        if(a > 1e7 || (x < 0 && x >=-100 && a >= 1e3))
         {
+            //In the limit this is correct. At 1e6, relative error is <= 10^(-8) for x [1, 10,000]
+            //Its also good for  x in [-100, 1] - so use in this case for small q values of 1e3
             return (1/(x - 1) + 1/(2*a))*pow(a, 1 - x);
         }
-        
+        if(x < 0)
+        {
+            if(a <= 1)//Reflection using https://dlmf.nist.gov/25.11#E9
+            {
+                double s = 1-x;
+                double sum = 0;
+                for(int n = 1; n <= 20; n++)
+                    sum += pow(n, -s) * cos(PI*0.5*s-2*n*PI*a);
+                return exp(log(2) + lnGamma(s) - s*log(2*PI))*sum;
+            }
+            else //reduce a using https://dlmf.nist.gov/25.11.E4
+            {
+                double m = Math.floor(a);
+                if(m == a)//a was an integer, so lets adjust m by 1
+                    m--;
+                //Now a_new will be in (0, 1]
+                double a_new = a-m;
+                double sum = 0;
+                for(int n = (int) (m-1); n >= 0; n--)
+                {
+                    double t = pow(n+a_new, -x);
+                    sum += t;
+                    if (t / sum < 1e-6)//eventually our contributions will be tiny, break when it happens
+                        break;
+                }
+                    
+                return zeta(x, a_new) - sum;
+            }
+        }
         //The error on this seems high... so lets not do that for now
 //        if(x <= -1 && Math.rint(x) == x && x >= Integer.MIN_VALUE)//Use https://dlmf.nist.gov/25.11.E13 
 //        {
