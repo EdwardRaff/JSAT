@@ -17,8 +17,6 @@
 package jsat.distributions.discrete;
 
 import jsat.distributions.Distribution;
-import jsat.linear.Vec;
-import jsat.math.Function;
 import jsat.math.Function1D;
 import jsat.math.rootfinding.Zeroin;
 
@@ -73,6 +71,21 @@ abstract public class DiscreteDistribution extends Distribution
     @Override
     public double invCdf(double p)
     {
+        return invCdfRootFinding(p, 1e-6);
+    }
+    
+    /**
+     * Helper method that computes the inverse CDF by performing root-finding on
+     * the CDF of the function. This provides a convenient default method for
+     * any invCdfRootFinding implementation, but may not be as fast or accurate
+     * as possible.
+     *
+     * @param p the probability value
+     * @param tol the search tolerance
+     * @return the value such that the CDF would return p
+     */
+    protected double invCdfRootFinding(double p, double tol)
+    {
         if (p < 0 || p > 1)
             throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
         //two special case checks, as they can cause a failure to get a positive and negative value on the ends, which means we can't do a search for the root
@@ -104,7 +117,7 @@ abstract public class DiscreteDistribution extends Distribution
         double a = Double.isInfinite(min()) ? Integer.MIN_VALUE*.95 : min();
         double b = Double.isInfinite(max()) ? Integer.MAX_VALUE*.95 : max();
         
-        double toRet = Zeroin.root(1e-6, a, b, cdfInterpolated);
+        double toRet = Zeroin.root(tol, a, b, cdfInterpolated);
         return Math.round(toRet);
     }
 

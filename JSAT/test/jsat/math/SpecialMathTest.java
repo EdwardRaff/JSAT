@@ -49,7 +49,7 @@ public class SpecialMathTest
     @Test
     public void testZeta()
     {
-        System.out.println("digamma");
+        System.out.println("zeta");
         
         //Values in this range have crappy accuracy... sad panda
         
