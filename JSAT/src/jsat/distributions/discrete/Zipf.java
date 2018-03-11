@@ -18,7 +18,8 @@ package jsat.distributions.discrete;
 
 import static jsat.math.SpecialMath.*;
 import static java.lang.Math.*;
-import java.util.Random;
+import jsat.math.Function1D;
+import jsat.math.rootfinding.Bisection;
 
 
 /**
@@ -176,7 +177,44 @@ public class Zipf extends DiscreteDistribution
     @Override
     public double invCdf(double p)
     {
-        return super.invCdfRootFinding(p, 1e-13);
+        return invCdfRootFinding(p, Math.max(1/cardinality, 1e-14));
+    }
+
+    @Override
+    protected double invCdfRootFinding(double p, double tol)
+    {
+        if (p < 0 || p > 1)
+            throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
+        //two special case checks, as they can cause a failure to get a positive and negative value on the ends, which means we can't do a search for the root
+        //Special case check, p < min value
+        if(min() >= Integer.MIN_VALUE)
+            if(p <= cdf(min()))
+                return min();
+        //special case check, p >= max value
+        if(max() < Integer.MAX_VALUE)
+            if(p > cdf(max()-1))
+                return max();
+        //stewpwise nature fo discrete can cause problems for search, so we will use a smoothed cdf to pass in
+
+        //Skip default interpolated, compute smooth directly to half cost
+        double cnst = p*denomCache;
+        Function1D cdfInterpolated = (double x) ->
+        {
+            double query = x;
+            //smooth variants of CDF
+            if (Double.isInfinite(cardinality))
+                return harmonic(x, 1 + skew)  - cnst;
+            else
+                return harmonic(x, 1 + skew) - cnst;
+        };
+        
+        
+        double a =  min();
+        double b = Double.isInfinite(max()) ? Integer.MAX_VALUE*.95 : max();
+        
+        //Normally would use Zero-in, but Zipf has bad behavior and it just degrades to bisection + overhead 
+        double toRet = Bisection.root(tol, a, b, cdfInterpolated);
+        return Math.min(Math.round(toRet), cardinality);
     }
 
     @Override

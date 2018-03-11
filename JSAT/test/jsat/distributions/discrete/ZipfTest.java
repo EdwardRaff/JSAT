@@ -272,7 +272,7 @@ public class ZipfTest
             double relErrMean = (zipf.mean()-samples.mean())/zipf.mean();
             assertEquals(0, relErrMean, 0.1);
             double relErrStd = (zipf.standardDeviation()-samples.standardDeviation())/zipf.standardDeviation();
-            assertEquals(0, relErrStd, 0.4);
+            assertEquals(0, relErrStd, 0.5);
         }
     }
     
