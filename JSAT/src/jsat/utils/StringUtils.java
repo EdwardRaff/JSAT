@@ -144,6 +144,8 @@ public class StringUtils
                     }
                     else if(Character.isDigit(c))
                         state = States.MANTISSA_FRAC_PART;
+                    else if(c == 'e' || c == 'E')//could be something like +0.000e0
+                        state = States.MANTISSA_FRAC_PART;//this is where that case is handeled
                     else
                         throw new NumberFormatException();
                     continue;
