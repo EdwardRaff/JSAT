@@ -11,8 +11,8 @@ import static jsat.math.SpecialMath.*;
 public class Beta extends ContinuousDistribution
 {
 
-	private static final long serialVersionUID = 8001402067928143972L;
-	double alpha;
+    private static final long serialVersionUID = 8001402067928143972L;
+    double alpha;
     double beta;
 
     public Beta(double alpha, double beta)
@@ -26,13 +26,21 @@ public class Beta extends ContinuousDistribution
     }
 
     @Override
+    public double logPdf(double x)
+    {
+        if(x <= 0 || x >= 1)
+            return -Double.MAX_VALUE;
+        return (alpha-1)*log(x)+(beta-1)*log(1-x)-lnBeta(alpha, beta);
+    }
+    
+    @Override
     public double pdf(double x)
     {
         if(x <= 0)
             return 0;
         else if(x >= 1)
             return 0;
-        return exp((alpha-1)*log(x)+(beta-1)*log(1-x)-lnBeta(alpha, beta));
+        return exp(logPdf(x));
     }
 
     @Override
