@@ -119,7 +119,7 @@ public class MahalanobisDistanceTest
         dist.train(normal.sample(1000, RandomUtil.getRandom()));
         
         List<Double> cache = dist.getAccelerationCache(vecs);
-        List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
+        List<Double> cache2 = dist.getAccelerationCache(vecs, true);
         if(cache != null)
         {
             assertEquals(cache.size(), cache2.size());
@@ -164,7 +164,7 @@ public class MahalanobisDistanceTest
         dist.train(normal.sample(1000, RandomUtil.getRandom()), true);
         
         List<Double> cache = dist.getAccelerationCache(vecs);
-        List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
+        List<Double> cache2 = dist.getAccelerationCache(vecs, true);
         if(cache != null)
         {
             assertEquals(cache.size(), cache2.size());
