@@ -99,39 +99,9 @@ public class JaccardDistance implements DistanceMetric, KernelTrick
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs, boolean parallel)
-    {
-        return null;
-    }
-
-    @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs, ExecutorService threadpool)
-    {
-        return null;
-    }
-
-    @Override
-    public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
-    {
-        return dist(vecs.get(a), vecs.get(b));
-    }
-
-    @Override
-    public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
-    {
-        return dist(vecs.get(a), b);
-    }
-
-    @Override
     public List<Double> getQueryInfo(Vec q)
     {
         return null;
-    }
-
-    @Override
-    public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
-    {
-        return dist(vecs.get(a), b);
     }
 
     @Override
