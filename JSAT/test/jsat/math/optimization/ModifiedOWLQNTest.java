@@ -190,7 +190,7 @@ public class ModifiedOWLQNTest
         }
 
         @Override
-        public double f(Vec w)
+        public double f(Vec w, boolean parallel)
         {
             double sum = 0;
             double weightSum = 0;
@@ -220,21 +220,7 @@ public class ModifiedOWLQNTest
         }
 
         @Override
-        public Vec f(double... x)
-        {
-            return f(DenseVector.toDenseVec(x));
-        }
-
-        @Override
-        public Vec f(Vec w)
-        {
-            Vec s = w.clone();
-            f(w, s);
-            return s;
-        }
-
-        @Override
-        public Vec f(Vec w, Vec s)
+        public Vec f(Vec w, Vec s, boolean parallel)
         {
             if (s == null)
                 s = w.clone();
@@ -250,12 +236,6 @@ public class ModifiedOWLQNTest
             }
             s.mutableDivide(weightSum);
             return s;
-        }
-
-        @Override
-        public Vec f(Vec x, Vec s, ExecutorService ex)
-        {
-            return f(x, s);
         }
     }
 }

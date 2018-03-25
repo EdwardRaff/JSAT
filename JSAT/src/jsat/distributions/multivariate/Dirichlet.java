@@ -24,12 +24,12 @@ import static jsat.math.SpecialMath.*;
 public class Dirichlet extends MultivariateDistributionSkeleton
 {
 
-	private static final long serialVersionUID = 6229508050763067569L;
-	private Vec alphas;
+    private static final long serialVersionUID = 6229508050763067569L;
+    private Vec alphas;
 
     /**
-     * Creates a new Dirichlet distribution. 
-     * 
+     * Creates a new Dirichlet distribution.
+     *
      * @param alphas the positive alpha values for the distribution. The length of the vector indicates the dimension
      * @throws ArithmeticException if any of the alpha values are not positive
      */
@@ -122,36 +122,25 @@ public class Dirichlet extends MultivariateDistributionSkeleton
     
     public <V extends Vec> boolean setUsingData(final List<V> dataSet)
     {
-        Function logLike = new Function() 
+        Function logLike = (Vec x, boolean parallel) -> 
         {
-
-			private static final long serialVersionUID = -2341982303993570445L;
-
-			public double f(double... x)
+            double constantTerm = lnGamma(x.sum());
+            for(int i = 0; i < x.length(); i++)
+                constantTerm -= lnGamma(x.get(i));
+            
+            double sum = 0.0;
+            for(int i = 0; i < dataSet.size(); i++)
             {
-                return f(DenseVector.toDenseVec(x));
+                Vec s = dataSet.get(i);
+                for(int j = 0; j < x.length(); j++)
+                    sum += log(s.get(j))*(x.get(j)-1.0);
             }
-
-            public double f(Vec x)
-            {
-                double constantTerm = lnGamma(x.sum());
-                for(int i = 0; i < x.length(); i++)
-                    constantTerm -= lnGamma(x.get(i));
-                
-                double sum = 0.0;
-                for(int i = 0; i < dataSet.size(); i++)
-                {
-                    Vec s = dataSet.get(i);
-                    for(int j = 0; j < x.length(); j++)
-                        sum += log(s.get(j))*(x.get(j)-1.0);
-                }
-                
-                return -(sum+constantTerm*dataSet.size());
-            }
+            
+            return -(sum+constantTerm*dataSet.size());
         };
         NelderMead optimize = new NelderMead();
         Vec guess = new DenseVector(dataSet.get(0).length());
-        List<Vec> guesses = new ArrayList<Vec>();
+        List<Vec> guesses = new ArrayList<>();
         guesses.add(guess.add(1.0));
         guesses.add(guess.add(0.1));
         guesses.add(guess.add(10.0));
@@ -160,38 +149,28 @@ public class Dirichlet extends MultivariateDistributionSkeleton
         return true;
     }
 
+    @Override
     public boolean setUsingDataList(final List<DataPoint> dataPoint)
     {
-        Function logLike = new Function() 
+        Function logLike = (Vec x, boolean parallel) -> 
         {
-
-			private static final long serialVersionUID = 1597787004137999603L;
-
-			public double f(double... x)
+            double constantTerm = lnGamma(x.sum());
+            for(int i = 0; i < x.length(); i++)
+                constantTerm -= lnGamma(x.get(i));
+            double weightSum = 0.0;
+            
+            double sum = 0.0;
+            for(int i = 0; i < dataPoint.size(); i++)
             {
-                return f(DenseVector.toDenseVec(x));
-            }
-
-            public double f(Vec x)
-            {
-                double constantTerm = lnGamma(x.sum());
-                for(int i = 0; i < x.length(); i++)
-                    constantTerm -= lnGamma(x.get(i));
-                double weightSum = 0.0;
                 
-                double sum = 0.0;
-                for(int i = 0; i < dataPoint.size(); i++)
-                {
-                    
-                    DataPoint dp = dataPoint.get(i);
-                    Vec s = dp.getNumericalValues();
-                    weightSum += dp.getWeight();
-                    for(int j = 0; j < x.length(); j++)
-                        sum += log(s.get(j))*(x.get(j)-1.0)*dp.getWeight();
-                }
-                
-                return -(sum+constantTerm*weightSum);
+                DataPoint dp = dataPoint.get(i);
+                Vec s = dp.getNumericalValues();
+                weightSum += dp.getWeight();
+                for(int j = 0; j < x.length(); j++)
+                    sum += log(s.get(j))*(x.get(j)-1.0)*dp.getWeight();
             }
+            
+            return -(sum+constantTerm*weightSum);
         };
         NelderMead optimize = new NelderMead();
         Vec guess = new DenseVector(dataPoint.get(0).numNumericalValues());
@@ -204,9 +183,10 @@ public class Dirichlet extends MultivariateDistributionSkeleton
         return true;
     }
     
+    @Override
     public List<Vec> sample(int count, Random rand)
     {
-        List<Vec> samples = new ArrayList<Vec>(count);
+        List<Vec> samples = new ArrayList<>(count);
         
         double[][] gammaSamples = new double[alphas.length()][];
         for(int i = 0; i < gammaSamples.length; i++)

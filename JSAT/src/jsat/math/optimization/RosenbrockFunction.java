@@ -16,17 +16,11 @@ import jsat.math.FunctionVec;
  */
 public class RosenbrockFunction implements Function
 {
+    private static final long serialVersionUID = -5573482950045304948L;
 
-	private static final long serialVersionUID = -5573482950045304948L;
-
-	@Override
-    public double f(double... x)
-    {
-        return f(DenseVector.toDenseVec(x));
-    }
 
     @Override
-    public double f(Vec x)
+    public double f(Vec x, boolean parallel)
     {
         int N = x.length();
         double f = 0.0;
@@ -55,21 +49,7 @@ public class RosenbrockFunction implements Function
     public static final FunctionVec GRADIENT = new FunctionVec()
     {
         @Override
-        public Vec f(double... x)
-        {
-            return f(DenseVector.toDenseVec(x));
-        }
-
-        @Override
-        public Vec f(Vec x)
-        {
-            Vec s = x.clone();
-            f(x, s);
-            return s;
-        }
-
-        @Override
-        public Vec f(Vec x, Vec drv)
+        public Vec f(Vec x, Vec drv, boolean parallel)
         {
             int N = x.length();
 
@@ -90,12 +70,6 @@ public class RosenbrockFunction implements Function
             drv.set(N - 1, 200 * (x.get(N - 1) - pow(x.get(N - 2), 2)));
 
             return drv;
-        }
-
-        @Override
-        public Vec f(Vec x, Vec s, ExecutorService ex)
-        {
-            return f(x, s);
         }
     };
 }

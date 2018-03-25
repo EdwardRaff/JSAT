@@ -4,8 +4,6 @@ import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.FunctionVec;
 import static java.lang.Math.*;
-import java.util.concurrent.ExecutorService;
-import jsat.math.*;
 
 /**
  * An implementation of the Wolfe Line Search algorithm described by Nocedal and
@@ -107,16 +105,10 @@ public class WolfeNWLineSearch implements LineSearch
     }
     
     @Override
-    public double lineSearch(double alpha_max, Vec x_k, Vec x_grad, Vec p_k, Function f, FunctionVec fp, double f_x, double gradP, Vec x_alpha_pk, double[] fxApRet, Vec grad_x_alpha_pk)
-    {
-        return lineSearch(alpha_max, x_k, x_grad, p_k, f, fp, f_x, gradP, x_alpha_pk, fxApRet, grad_x_alpha_pk, null);
-    }
-    
-    @Override
-    public double lineSearch(double alpha_max, Vec x_k, Vec x_grad, Vec p_k, Function f, FunctionVec fp, double f_x, double gradP, Vec x_alpha_pk, double[] fxApRet, Vec grad_x_alpha_pk, ExecutorService ex)
+    public double lineSearch(double alpha_max, Vec x_k, Vec x_grad, Vec p_k, Function f, FunctionVec fp, double f_x, double gradP, Vec x_alpha_pk, double[] fxApRet, Vec grad_x_alpha_pk, boolean parallel)
     {
         if(Double.isNaN(f_x))
-            f_x = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_k, ex): f.f(x_k);
+            f_x = f.f(x_k, parallel);
         if(Double.isNaN(gradP))
             gradP = x_grad.dot(p_k);
         final double phi0 = f_x, phi0P = gradP;
@@ -145,15 +137,15 @@ public class WolfeNWLineSearch implements LineSearch
         {
             //Evaluate φ(αi );
             x_alpha_pk.mutableAdd(alpha_cur-alpha_prev, p_k);
-            double phi_cur = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_alpha_pk, ex): f.f(x_alpha_pk);
+            double phi_cur = f.f(x_alpha_pk, parallel);
             if(fxApRet != null)
                 fxApRet[0] = phi_cur;
-            double phi_curP = (ex != null) ? fp.f(x_alpha_pk, grad_x_alpha_pk, ex).dot(p_k) : fp.f(x_alpha_pk, grad_x_alpha_pk).dot(p_k);//computed early b/c used in interpolation in zoom
+            double phi_curP = fp.f(x_alpha_pk, grad_x_alpha_pk, parallel).dot(p_k);//computed early b/c used in interpolation in zoom
             //if φ(αi)>φ(0)+c1 αi φ'(0) or[φ(αi)≥φ(αi−1) and i >1]
             if(phi_cur > phi0 + c1*alpha_cur*phi0P || (phi_cur >= phi_prev && iter > 1) )
             {
                 //α∗ ←zoom(αi−1,αi) and stop;
-                valToUse = zoom(alpha_prev, alpha_cur, phi_prev, phi_cur, phi_prevP, phi_curP, phi0, phi0P, x_k, x_alpha_pk, p_k, f, fp, fxApRet, grad_x_alpha_pk, ex);
+                valToUse = zoom(alpha_prev, alpha_cur, phi_prev, phi_cur, phi_prevP, phi_curP, phi0, phi0P, x_k, x_alpha_pk, p_k, f, fp, fxApRet, grad_x_alpha_pk, parallel);
                 break;
             }
             //Evaluate φ'(αi );
@@ -168,7 +160,7 @@ public class WolfeNWLineSearch implements LineSearch
             if(phi_curP >= 0)
             {
                 //set α∗ ←zoom(αi,αi−1) and stop;
-                valToUse = zoom(alpha_cur, alpha_prev, phi_cur, phi_prev, phi_curP, phi_prevP, phi0, phi0P, x_k, x_alpha_pk, p_k, f, fp, fxApRet, grad_x_alpha_pk, ex);
+                valToUse = zoom(alpha_cur, alpha_prev, phi_cur, phi_prev, phi_curP, phi_prevP, phi0, phi0P, x_k, x_alpha_pk, p_k, f, fp, fxApRet, grad_x_alpha_pk, parallel);
                 break;
             }
             //Choose αi+1 ∈(αi,αmax);
@@ -211,10 +203,10 @@ public class WolfeNWLineSearch implements LineSearch
      * @param fp the value of fp
      * @param fxApRet the value of fxApRet
      * @param grad_x_alpha_pk the value of grad_x_alpha_pk
-     * @param ex the value of ex
+     * @param parallel 
      * @return the double
      */
-    private double zoom(double alphaLow, double alphaHi, double phi_alphaLow, double phi_alphaHigh, double phi_alphaLowP, double phi_alphaHighP, double phi0, double phi0P, Vec x, Vec x_alpha_p, Vec p, Function f, FunctionVec fp, double[] fxApRet, Vec grad_x_alpha_pk, ExecutorService ex)
+    private double zoom(double alphaLow, double alphaHi, double phi_alphaLow, double phi_alphaHigh, double phi_alphaLowP, double phi_alphaHighP, double phi0, double phi0P, Vec x, Vec x_alpha_p, Vec p, Function f, FunctionVec fp, double[] fxApRet, Vec grad_x_alpha_pk, boolean parallel)
     {
         double alpha_j = alphaLow;
         for(int iter = 0; iter < 10; iter++)
@@ -233,10 +225,10 @@ public class WolfeNWLineSearch implements LineSearch
             x_alpha_p.mutableAdd(alpha_j, p);
             
             //Evaluate φ(αj );
-            double phi_j = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_alpha_p, ex): f.f(x_alpha_p);
+            double phi_j = f.f(x_alpha_p, parallel);
             if(fxApRet != null)
                 fxApRet[0] = phi_j;
-            double phi_jP = (ex != null) ? fp.f(x_alpha_p, grad_x_alpha_pk, ex).dot(p) : fp.f(x_alpha_p, grad_x_alpha_pk).dot(p);//computed early
+            double phi_jP = fp.f(x_alpha_p, grad_x_alpha_pk, parallel).dot(p);//computed early
             //if φ(αj ) > φ(0) + c1αj φ'(0) or φ(αj ) ≥ φ(αlo)
             if(phi_j > phi0 + c1*alpha_j*phi0 || phi_j >= phi_alphaLow)
             {

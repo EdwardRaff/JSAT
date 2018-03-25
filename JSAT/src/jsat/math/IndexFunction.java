@@ -7,12 +7,9 @@ import jsat.linear.Vec;
  *
  * @author Edward Raff
  */
-public abstract class IndexFunction implements Function
+public interface IndexFunction extends Function
 {
-
-	private static final long serialVersionUID = -7306754195712805257L;
-
-	/**
+    /**
      * An index function, meant to be applied to vectors where the 
      * value to be computed may vary based on the position in the 
      * vector of the value. 
@@ -26,12 +23,8 @@ public abstract class IndexFunction implements Function
      */
     abstract public double indexFunc(double value, int index);
 
-    public double f(double... x)
-    {
-        return indexFunc(x[0], (int)x[1]);
-    }
-
-    public double f(Vec x)
+    @Override
+    default public double f(Vec x, boolean parallel)
     {
         return indexFunc(x.get(0), (int)x.get(1));
     }    

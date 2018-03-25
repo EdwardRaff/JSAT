@@ -59,31 +59,11 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         return logit(z);
     }
     
-    final private Function logitFun = new Function() {
-
-        public double f(double... x)
-        {
-            return logitReg(DenseVector.toDenseVec(x));
-        }
-
-        public double f(Vec x)
-        {
-            return logitReg(x);
-        }
-    };
+    final private Function logitFun = (Vec x, boolean parallel) -> logitReg(x);
     
-    final private Function logitFunD = new Function() {
-
-        public double f(double... x)
-        {
-            return logitReg(DenseVector.toDenseVec(x));
-        }
-
-        public double f(Vec x)
-        {
-            double y = logitReg(x);
-            return y*(1-y);
-        }
+    final private Function logitFunD = (Vec x, boolean parallel) -> {
+        double y = logitReg(x);
+        return y*(1-y);
     };
 
     /**

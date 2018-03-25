@@ -12,7 +12,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class WordCount extends WordWeighting
+public class WordCount implements WordWeighting
 {
     private static final long serialVersionUID = 4665749166722300326L;
 

@@ -1,9 +1,7 @@
 package jsat.math.optimization;
 
-import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.math.Function;
-import jsat.math.FunctionP;
 import jsat.math.FunctionVec;
 
 /**
@@ -60,18 +58,12 @@ public class BacktrackingArmijoLineSearch implements LineSearch
     {
         return c1;
     }
-
-    @Override
-    public double lineSearch(double alpha_max, Vec x_k, Vec x_grad, Vec p_k, Function f, FunctionVec fp, double f_x, double gradP, Vec x_alpha_pk, double[] fxApRet, Vec grad_x_alpha_pk)
-    {
-        return lineSearch(alpha_max, x_k, x_grad, p_k, f, fp, f_x, gradP, x_alpha_pk, fxApRet, grad_x_alpha_pk, null);
-    }
     
     @Override
-    public double lineSearch(double alpha_max, Vec x_k, Vec x_grad, Vec p_k, Function f, FunctionVec fp, double f_x, double gradP, Vec x_alpha_pk, double[] fxApRet, Vec grad_x_alpha_pk, ExecutorService ex)
+    public double lineSearch(double alpha_max, Vec x_k, Vec x_grad, Vec p_k, Function f, FunctionVec fp, double f_x, double gradP, Vec x_alpha_pk, double[] fxApRet, Vec grad_x_alpha_pk, boolean parallel)
     {
         if(Double.isNaN(f_x))
-            f_x = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_k, ex): f.f(x_k);
+            f_x = f.f(x_k, parallel);
         if(Double.isNaN(gradP))
             gradP = x_grad.dot(p_k);
         
@@ -81,7 +73,7 @@ public class BacktrackingArmijoLineSearch implements LineSearch
         else
             x_k.copyTo(x_alpha_pk);
         x_alpha_pk.mutableAdd(alpha, p_k);
-        double f_xap = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_alpha_pk, ex): f.f(x_alpha_pk);
+        double f_xap = f.f(x_alpha_pk, parallel);
         if(fxApRet != null)
             fxApRet[0] = f_xap;
         double oldAlpha = 0;
@@ -138,7 +130,7 @@ public class BacktrackingArmijoLineSearch implements LineSearch
                 return oldAlpha;
             x_alpha_pk.mutableSubtract(oldAlpha - alpha, p_k);
             oldF_xap = f_xap;
-            f_xap = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_alpha_pk, ex): f.f(x_alpha_pk);
+            f_xap = f.f(x_alpha_pk, parallel);
             if(fxApRet != null)
                 fxApRet[0] = f_xap;
         }

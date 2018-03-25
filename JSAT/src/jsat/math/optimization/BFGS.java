@@ -1,6 +1,5 @@
 package jsat.math.optimization;
 
-import java.util.concurrent.ExecutorService;
 import jsat.linear.*;
 import jsat.math.*;
 
@@ -41,13 +40,7 @@ public class BFGS implements Optimizer2
     }
     
     @Override
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp)
-    {
-        optimize(tolerance, w, x0, f, fp, fpp, null);
-    }
-    
-    @Override
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp, ExecutorService ex)
+    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp, boolean parallel)
     {
         LineSearch search = lineSearch.clone();
         
@@ -65,8 +58,8 @@ public class BFGS implements Optimizer2
         Vec s_k = x_grad.clone();
         Vec y_k = x_grad.clone();
         
-        f_xVal[0] = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_cur, ex) : f.f(x_cur);
-        x_grad = (ex != null) ? fp.f(x_cur, x_grad, ex) : fp.f(x_cur, x_grad);
+        f_xVal[0] = f.f(x_cur);
+        x_grad = fp.f(x_cur, x_grad);
        
         int iter = 0;
         while(gradConvgHelper(x_grad) > tolerance && iter < maxIterations)
@@ -79,15 +72,12 @@ public class BFGS implements Optimizer2
             x_cur.copyTo(x_prev);
             x_grad.copyTo(x_gradPrev);
             
-            double alpha_k = search.lineSearch(1.0, x_prev, x_gradPrev, p_k, f, fp, f_xVal[0], x_gradPrev.dot(p_k), x_cur, f_xVal, x_grad, ex);
+            double alpha_k = search.lineSearch(1.0, x_prev, x_gradPrev, p_k, f, fp, f_xVal[0], x_gradPrev.dot(p_k), x_cur, f_xVal, x_grad, parallel);
             if(alpha_k < 1e-12 && iter > 5)//if we are making near epsilon steps consider it done
                 break;
 
             if(!search.updatesGrad())
-                if (ex != null)
-                    fp.f(x_cur, x_grad, ex);
-                else
-                    fp.f(x_cur, x_grad);
+                fp.f(x_cur, x_grad, parallel);
             
             //Define s_k =x_k+1 −x_k and y_k = ∇f_k+1 −∇f_k;
             x_cur.copyTo(s_k);

@@ -9,7 +9,7 @@ import jsat.linear.*;
  * 
  * @author EdwardRaff
  */
-public class OkapiBM25 extends WordWeighting
+public class OkapiBM25 implements WordWeighting
 {
 
     private static final long serialVersionUID = 6456657674702490465L;

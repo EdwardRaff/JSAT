@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.DoubleAdder;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
@@ -22,10 +23,9 @@ import jsat.lossfunctions.LossFunc;
 import jsat.lossfunctions.LossMC;
 import jsat.lossfunctions.LossR;
 import jsat.lossfunctions.SoftmaxLoss;
-import jsat.math.FunctionP;
+import jsat.math.Function;
 import jsat.math.FunctionVec;
 import jsat.math.optimization.*;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.*;
 import jsat.utils.ListUtils;
@@ -251,11 +251,10 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
     
    
     @Override
-    public void train(final ClassificationDataSet D, final boolean threadPool)
+    public void train(final ClassificationDataSet D, final boolean parallel)
     {
-        train(D, null, threadPool);
+        train(D, null, parallel);
     }
-
     
     @Override
     public void train(ClassificationDataSet D, Classifier warmSolution, boolean parallel)
@@ -296,10 +295,10 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             {
                 //Special wrapper class that will handle it - tight coupling with the implementation of LossFun and GradFunc
                 Vec w_tmp = new VecWithBias(ws[0], bs);
-                optimizerToUse.optimize(tolerance, w_tmp, w_tmp, new LossFunction(D, loss), new GradFunction(D, loss), null, threadPool);
+                optimizerToUse.optimize(tolerance, w_tmp, w_tmp, new LossFunction(D, loss), new GradFunction(D, loss), null, parallel);
             }
             else
-                optimizerToUse.optimize(tolerance, ws[0], ws[0], new LossFunction(D, loss), new GradFunction(D, loss), null, threadPool);
+                optimizerToUse.optimize(tolerance, ws[0], ws[0], new LossFunction(D, loss), new GradFunction(D, loss), null, parallel);
         }
         else
         {
@@ -307,13 +306,13 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             ConcatenatedVec wAll;
             if(useBiasTerm)//append bias terms and logic in the Loss and Grad functions wil handle it
             {
-                ArrayList<Vec> vecs = new ArrayList<Vec>(Arrays.asList(ws));
+                ArrayList<Vec> vecs = new ArrayList<>(Arrays.asList(ws));
                 vecs.add(DenseVector.toDenseVec(bs));
                 wAll = new ConcatenatedVec(vecs);
             }
             else
                 wAll = new ConcatenatedVec(Arrays.asList(ws));
-            optimizerToUse.optimize(tolerance, wAll, new DenseVector(wAll), new LossMCFunction(D, lossMC), new GradMCFunction(D, lossMC), null, threadPool);
+            optimizerToUse.optimize(tolerance, wAll, new DenseVector(wAll), new LossMCFunction(D, lossMC), new GradMCFunction(D, lossMC), null, parallel);
         }
         
         threadPool.shutdownNow();
@@ -382,10 +381,10 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         if(useBiasTerm)
         {
             Vec w_tmp = new VecWithBias(ws[0], bs);
-            optimizerToUse.optimize(tolerance, w_tmp, w_tmp, new LossFunction(D, loss), new GradFunction(D, loss), null, threadPool);
+            optimizerToUse.optimize(tolerance, w_tmp, w_tmp, new LossFunction(D, loss), new GradFunction(D, loss), null, parallel);
         }
         else
-            optimizerToUse.optimize(tolerance, ws[0], ws[0], new LossFunction(D, loss), new GradFunction(D, loss), null, threadPool);
+            optimizerToUse.optimize(tolerance, ws[0], ws[0], new LossFunction(D, loss), new GradFunction(D, loss), null, parallel);
         
         threadPool.shutdownNow();
     }
@@ -503,7 +502,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
      * Function for using the single weight vector loss functions related to 
      * {@link LossC} and {@link LossR}. 
      */
-    public class LossFunction implements FunctionP
+    public class LossFunction implements Function
     {
         private static final long serialVersionUID = -576682206943283356L;
         private final DataSet D;
@@ -516,80 +515,28 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         }
         
         @Override
-        public double f(Vec w)
+        public double f(Vec w, boolean parallel)
         {
-            double sum = 0;
-            double weightSum = 0;
-            for (int i = 0; i < D.getSampleSize(); i++)
-            {
-                DataPoint dp = D.getDataPoint(i);
-                Vec x = dp.getNumericalValues();
-                double y = getTargetY(D, i);
-                sum += loss.getLoss(w.dot(x), y)*dp.getWeight();
-                weightSum += dp.getWeight();
-            }
-            if(lambda0 > 0)
-                return sum/weightSum + lambda0*w.dot(w);
-            else
-                return sum/weightSum;
-        }
+            DoubleAdder sum = new DoubleAdder();
+            DoubleAdder weightSum = new DoubleAdder();
             
-        @Override
-        public double f(final Vec w, ExecutorService ex)
-        {
-            final int N = D.getSampleSize();
-            final int P = SystemInfo.LogicalCores;
-            final double[] weightSums = new double[P];
-            List<Future<Double>> partialSums = new ArrayList<>(P);
-            for (int p = 0; p < SystemInfo.LogicalCores; p++)
+            ParallelUtils.run(parallel, D.getSampleSize(), (start, end)->
             {
-                final int ID = p;
-                partialSums.add(ex.submit(() ->
+                for(int i = start; i < end; i++)
                 {
-                    double sum = 0;
-                    double weightSum = 0;
-                    for (int i = ParallelUtils.getStartBlock(N, ID, P); i < ParallelUtils.getEndBlock(N, ID, P); i++)
-                    {
-                        DataPoint dp = D.getDataPoint(i);
-                        Vec x = dp.getNumericalValues();
-                        double y = getTargetY(D, i);
-                        sum += loss.getLoss(w.dot(x), y)*dp.getWeight();
-                        weightSum += dp.getWeight();
-                    }
-                    weightSums[ID] = weightSum;
-                    return sum;
-                }));
-            }
-            double sum = 0;
-            try
-            {
-                for (Double partial : ListUtils.collectFutures(partialSums))
-                    sum += partial;
-            }
-            catch (ExecutionException ex1)
-            {
-                Logger.getLogger(LinearBatch.class.getName()).log(Level.SEVERE, null, ex1);
-            }
-            catch (InterruptedException ex1)
-            {
-                Logger.getLogger(LinearBatch.class.getName()).log(Level.SEVERE, null, ex1);
-            }
-
-            double weightSum = 0;
-            for(double ws : weightSums)
-                weightSum += ws;
+                    DataPoint dp = D.getDataPoint(i);
+                    Vec x = dp.getNumericalValues();
+                    double y = getTargetY(D, i);
+                    sum.add(loss.getLoss(w.dot(x), y)*dp.getWeight());
+                    weightSum.add(dp.getWeight());
+                }
+            });
+            
             if(lambda0 > 0)
-                return sum/weightSum + lambda0*w.dot(w);
+                return sum.sum()/weightSum.sum() + lambda0*w.dot(w);
             else
-                return sum/weightSum;
+                return sum.sum()/weightSum.sum();
         }
-
-        @Override
-        public double f(double... x)
-        {
-            return f(DenseVector.toDenseVec(x));
-        }
-        
     }
 
     /**
@@ -607,111 +554,41 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             this.D = D;
             this.loss = loss;
         }
-
+        
         @Override
-        public Vec f(double... x)
-        {
-            return f(DenseVector.toDenseVec(x));
-        }
-
-        @Override
-        public Vec f(Vec w)
-        {
-            Vec s = w.clone();
-            f(w, s);
-            return s;
-        }
-
-        @Override
-        public Vec f(Vec w, Vec s)
+        public Vec f(Vec w, Vec s, boolean parallel)
         {
             if(s == null)
                 s = w.clone();
             s.zeroOut();
-            double weightSum = 0;
-            for (int i = 0; i < D.getSampleSize(); i++)
-            {
-                DataPoint dp = D.getDataPoint(i);
-                Vec x = dp.getNumericalValues();
-                double y = getTargetY(D, i);
-                s.mutableAdd(loss.getDeriv(w.dot(x), y)*dp.getWeight(), x);
-                weightSum += dp.getWeight();
-            }
-            s.mutableDivide(weightSum);
-            if(lambda0 > 0)
-                s.mutableSubtract(lambda0, w);
-            return s;
-        }
-
-        @Override
-        public Vec f(final Vec w, Vec s, ExecutorService ex)
-        {
-            if (s == null)
-                s = w.clone();
-            s.zeroOut();
-            if (tempVecs == null)
-                tempVecs = new ThreadLocal<Vec>()
-                {
-                    @Override
-                    protected Vec initialValue()
-                    {
-                        return w.clone();
-                    }
-                };
-            final Vec store = s;
-            final int N = D.getSampleSize();
-            final int P = SystemInfo.LogicalCores;
-            final CountDownLatch latch = new CountDownLatch(P);
-            final double[] weightSums = new double[P];
-            for (int p = 0; p < SystemInfo.LogicalCores; p++)
-            {
-                final int ID = p;
-                ex.submit(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        Vec temp = tempVecs.get();
-                        temp.zeroOut();
-                        double weightSum = 0;
-                        for (int i = ParallelUtils.getStartBlock(N, ID, P); i < ParallelUtils.getEndBlock(N, ID, P); i++)
-                        {
-                            DataPoint dp = D.getDataPoint(i);
-                            Vec x = dp.getNumericalValues();
-                            double y = getTargetY(D, i);
-                            temp.mutableAdd(loss.getDeriv(w.dot(x), y)*dp.getWeight(), x);
-                            weightSum += dp.getWeight();
-                        }
-                        synchronized (store)
-                        {
-                            store.mutableAdd(temp);
-                        }
-                        weightSums[ID] = weightSum;
-                        latch.countDown();
-                    }
-                });
-            }
+            DoubleAdder weightSum = new DoubleAdder();
+            ThreadLocal<Vec> tl_s = ThreadLocal.withInitial(s::clone);
             
-            try
+            ParallelUtils.run(parallel, D.getSampleSize(), (start, end)->
             {
-                latch.await();
-            }
-            catch (InterruptedException ex1)
-            {
-                Logger.getLogger(LinearBatch.class.getName()).log(Level.SEVERE, null, ex1);
-            }
-
-            double weightSum = 0;
-            for(double ws : weightSums)
-                weightSum += ws;
-            s.mutableDivide(weightSum);
+                Vec s_l = tl_s.get();
+                
+                for (int i = start; i < end; i++)
+                {
+                    DataPoint dp = D.getDataPoint(i);
+                    Vec x = dp.getNumericalValues();
+                    double y = getTargetY(D, i);
+                    s_l.mutableAdd(loss.getDeriv(w.dot(x), y)*dp.getWeight(), x);
+                    weightSum.add(dp.getWeight());
+                }
+                
+                return s_l;
+            }, (a,b)->a.add(b))
+                    .copyTo(s);
+            
+            s.mutableDivide(weightSum.sum());
             if(lambda0 > 0)
                 s.mutableSubtract(lambda0, w);
             return s;
         }
     }
     
-    public class LossMCFunction implements FunctionP
+    public class LossMCFunction implements Function
     {
         private static final long serialVersionUID = -861700500356609563L;
         private final ClassificationDataSet D;
@@ -724,98 +601,33 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         }
         
         @Override
-        public double f(Vec w)
+        public double f(Vec w, boolean parallel)
         {
-            double sum = 0;
+            DoubleAdder sum = new DoubleAdder();
             Vec pred = new DenseVector(D.getClassSize());//store the predictions in
             //bias terms are at the end, treat them seperate and special
             final int subWSize = (w.length() - (useBiasTerm ? bs.length : 0) )/D.getClassSize();
-            double weightSum = 0;
-            for (int i = 0; i < D.getSampleSize(); i++)
+            DoubleAdder weightSum = new DoubleAdder();
+            ParallelUtils.run(parallel, D.getSampleSize(), (start, end)->
             {
-                DataPoint dp = D.getDataPoint(i);
-                Vec x = dp.getNumericalValues();
-                for(int k = 0; k < pred.length(); k++)
-                    pred.set(k, new SubVector(k*subWSize, subWSize, w).dot(x));
-                if(useBiasTerm)
-                    pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
-                loss.process(pred, pred);
-                int y = D.getDataPointCategory(i);
-                sum += loss.getLoss(pred, y)*dp.getWeight();
-                weightSum += dp.getWeight();
-            }
-            if(lambda0 > 0 )
-                return sum/weightSum + lambda0*w.dot(w);
-            return sum;
-        }
-
-        @Override
-        public double f(final Vec w, ExecutorService ex)
-        {
-            final int N = D.getSampleSize();
-            final int P = SystemInfo.LogicalCores;
-            final int subWSize = (w.length() - (useBiasTerm ? bs.length : 0) )/D.getClassSize();
-            List<Future<Double>> partialSums = new ArrayList<Future<Double>>(P);
-            final double[] weightSums = new double[P];
-            for (int p = 0; p < SystemInfo.LogicalCores; p++)
-            {
-                final int ID = p;
-                partialSums.add(ex.submit(new Callable<Double>()
+                for (int i = start; i < end; i++)
                 {
-                    @Override
-                    public Double call() throws Exception
-                    {
-                        double sum = 0;
-                        Vec pred = new DenseVector(D.getClassSize());//store the predictions in
-                        double weightSum = 0;
-                        for (int i = ParallelUtils.getStartBlock(N, ID, P); i < ParallelUtils.getEndBlock(N, ID, P); i++)
-                        {
-                            DataPoint dp = D.getDataPoint(i);
-                            Vec x = dp.getNumericalValues();
-                            for(int k = 0; k < pred.length(); k++)
-                                pred.set(k, new SubVector(k * subWSize, subWSize, w).dot(x));
-                            if(useBiasTerm)
-                                pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
-                            loss.process(pred, pred);
-                            int y = D.getDataPointCategory(i);
-                            sum += loss.getLoss(pred, y)*dp.getWeight();
-                            weightSum += dp.getWeight();
-                        }
-
-                        weightSums[ID] = weightSum;
-                        return sum;
-                    }
-                }));
-            }
-            double sum = 0;
-            
-            try
-            {
-                for (Double partial : ListUtils.collectFutures(partialSums))
-                    sum += partial;
-            }
-            catch (ExecutionException ex1)
-            {
-                Logger.getLogger(LinearBatch.class.getName()).log(Level.SEVERE, null, ex1);
-            }
-            catch (InterruptedException ex1)
-            {
-                Logger.getLogger(LinearBatch.class.getName()).log(Level.SEVERE, null, ex1);
-            }
-
-            double weightSum = 0;
-            for(double ws : weightSums)
-                weightSum += ws;
-
-            return sum/weightSum + lambda0*w.dot(w);
+                    DataPoint dp = D.getDataPoint(i);
+                    Vec x = dp.getNumericalValues();
+                    for(int k = 0; k < pred.length(); k++)
+                        pred.set(k, new SubVector(k*subWSize, subWSize, w).dot(x));
+                    if(useBiasTerm)
+                        pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
+                    loss.process(pred, pred);
+                    int y = D.getDataPointCategory(i);
+                    sum.add(loss.getLoss(pred, y)*dp.getWeight());
+                    weightSum.add(dp.getWeight());
+                }
+            });
+            if(lambda0 > 0 )
+                return sum.sum()/weightSum.sum() + lambda0*w.dot(w);
+            return sum.sum();
         }
-
-        @Override
-        public double f(double... x)
-        {
-            return f(DenseVector.toDenseVec(x));
-        }
-
     }
     
     private class GradMCFunction implements FunctionVec
@@ -831,122 +643,38 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         }
 
         @Override
-        public Vec f(double... x)
-        {
-            return f(DenseVector.toDenseVec(x));
-        }
-
-        @Override
-        public Vec f(Vec w)
-        {
-            Vec s = w.clone();
-            f(w, s);
-            return s;
-        }
-
-        @Override
-        public Vec f(Vec w, Vec s)
+        public Vec f(Vec w, Vec s, boolean parllel)
         {
             if(s == null)
                 s = w.clone();
             s.zeroOut();
             
+            ThreadLocal<Vec> tl_s = ThreadLocal.withInitial(s::clone);
+            
             Vec pred = new DenseVector(D.getClassSize());//store the predictions in
             final int subWSize = (w.length() - (useBiasTerm ? bs.length : 0) )/D.getClassSize();
-            double weightSum = 0;
-            for (int i = 0; i < D.getSampleSize(); i++)
+            DoubleAdder weightSum = new DoubleAdder();
+            ParallelUtils.run(parllel, D.getSampleSize(), (start, end)->
             {
-                DataPoint dp = D.getDataPoint(i);
-                Vec x = dp.getNumericalValues();
-                for(int k = 0; k < pred.length(); k++)
-                    pred.set(k, new SubVector(k*subWSize, subWSize, w).dot(x));
-                if(useBiasTerm)
-                    pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
-                loss.process(pred, pred);
-                int y = D.getDataPointCategory(i);
-                loss.deriv(pred, pred, y);
-                for(int k = 0; k < pred.length(); k++)
-                    new SubVector(k*subWSize, subWSize, s).mutableAdd(pred.get(k)*dp.getWeight(), x);
-                weightSum += dp.getWeight();
-            }
-            s.mutableDivide(weightSum);
-            if(lambda0 > 0)
-                s.mutableSubtract(lambda0, w);
-            return s;
-        }
-
-        @Override
-        public Vec f(final Vec w, Vec s, ExecutorService ex)
-        {
-            if (s == null)
-                s = w.clone();
-            s.zeroOut();
-            if (tempVecs == null)
-                tempVecs = new ThreadLocal<Vec>()
+                Vec s_l = tl_s.get();
+                for (int i = start; i < end; i++)
                 {
-                    @Override
-                    protected Vec initialValue()
-                    {
-                        return w.clone();
-                    }
-                };
-            final Vec store = s;
-            final int N = D.getSampleSize();
-            final int P = SystemInfo.LogicalCores;
-            final int subWSize = (w.length() - (useBiasTerm ? bs.length : 0) )/D.getClassSize();
-            final CountDownLatch latch = new CountDownLatch(P);
-            final double[] weightSums = new double[P];
-            for (int p = 0; p < SystemInfo.LogicalCores; p++)
-            {
-                final int ID = p;
-                ex.submit(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        Vec temp = tempVecs.get();
-                        temp.zeroOut();
-                        Vec pred = new DenseVector(D.getClassSize());//store the predictions in
-                        double weightSum = 0;
-                        for (int i = ParallelUtils.getStartBlock(N, ID, P); i < ParallelUtils.getEndBlock(N, ID, P); i++)
-                        {
-                            DataPoint dp = D.getDataPoint(i);
-                            Vec x = dp.getNumericalValues();
-                            for (int k = 0; k < pred.length(); k++)
-                                pred.set(k, new SubVector(k * subWSize, subWSize, w).dot(x));
-                            if(useBiasTerm)
-                                pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
-                            loss.process(pred, pred);
-                            int y = D.getDataPointCategory(i);
-                            loss.deriv(pred, pred, y);
-                            for(IndexValue iv : pred)
-                                new SubVector(iv.getIndex() * subWSize, subWSize, temp).mutableAdd(iv.getValue()*dp.getWeight(), x);
-                            weightSum += dp.getWeight();
-                        }
-                        synchronized (store)
-                        {
-                            store.mutableAdd(temp);
-                        }
-                        weightSums[ID] = weightSum;
-                        latch.countDown();
-                    }
-                });
-            }
-            
-            try
-            {
-                latch.await();
-            }
-            catch (InterruptedException ex1)
-            {
-                Logger.getLogger(LinearBatch.class.getName()).log(Level.SEVERE, null, ex1);
-            }
-            
-            double weightSum = 0;
-            for(double ws : weightSums)
-                weightSum += ws;
-
-            s.mutableDivide(weightSum);
+                    DataPoint dp = D.getDataPoint(i);
+                    Vec x = dp.getNumericalValues();
+                    for(int k = 0; k < pred.length(); k++)
+                        pred.set(k, new SubVector(k*subWSize, subWSize, w).dot(x));
+                    if(useBiasTerm)
+                        pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
+                    loss.process(pred, pred);
+                    int y = D.getDataPointCategory(i);
+                    loss.deriv(pred, pred, y);
+                    for(int k = 0; k < pred.length(); k++)
+                        new SubVector(k*subWSize, subWSize, s_l).mutableAdd(pred.get(k)*dp.getWeight(), x);
+                    weightSum.add(dp.getWeight());
+                }
+                return s_l;
+            }, (a,b)->a.add(b)).copyTo(s);
+            s.mutableDivide(weightSum.sum());
             if(lambda0 > 0)
                 s.mutableSubtract(lambda0, w);
             return s;

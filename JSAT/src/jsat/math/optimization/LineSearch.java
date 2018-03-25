@@ -1,6 +1,5 @@
 package jsat.math.optimization;
 
-import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.FunctionVec;
@@ -43,7 +42,10 @@ public interface LineSearch
      * @param grad_x_alpha_pk location to store the value of &nabla; f(x<sub>k</sub>&alpha;+p<sub>k</sub>). May be {@code null}, local storage will be allocated if needed
      * @return the value of &alpha; that satisfies the line search in minimizing f(x<sub>k</sub> + &alpha; p<sub>k</sub>)
      */
-    public double lineSearch(double alpha_max, Vec x_k, Vec x_grad, Vec p_k, Function f, FunctionVec fp, double f_x, double gradP, Vec x_alpha_pk, double[] fxApRet, Vec grad_x_alpha_pk);
+    default public double lineSearch(double alpha_max, Vec x_k, Vec x_grad, Vec p_k, Function f, FunctionVec fp, double f_x, double gradP, Vec x_alpha_pk, double[] fxApRet, Vec grad_x_alpha_pk)
+    {
+        return lineSearch(alpha_max, x_k, x_grad, p_k, f, fp, f_x, gradP, x_alpha_pk, fxApRet, grad_x_alpha_pk, false);
+    }
     
     /**
      * Attempts to find the value of &alpha; that minimizes 
@@ -56,7 +58,7 @@ public interface LineSearch
      * @param f the function to minimize the value of 
      * f(x<sub>k</sub> + &alpha; p<sub>k</sub>)
      * @param fp the gradient of f, &nabla;f(x), may be {@code null} depending 
-     * upon the linesearch method
+     * upon the line search method
      * @param f_x the value of f(x<sub>k</sub>), or {@link Double#NaN} if it needs to be computed
      * @param gradP the value of &nabla;f(x<sub>k</sub>)<sup>T</sup>p<sub>k</sub>,
      * or {@link Double#NaN} if it needs to be computed
@@ -66,11 +68,10 @@ public interface LineSearch
      * f(x<sub>k</sub> + &alpha; p<sub>k</sub>) in the first index
      * contain. May be {@code null} and the value will not be returned
      * @param grad_x_alpha_pk location to store the value of &nabla; f(x<sub>k</sub>&alpha;+p<sub>k</sub>). May be {@code null}, local storage will be allocated if needed
-     * @param ex the source of threads for parallel computation, or {@code null}
-     * to perform serial computation
+     * @param parallel {@code true} if this line search should be done using multiple cores, or {@code false} to be single threaded. 
      * @return the value of &alpha; that satisfies the line search in minimizing f(x<sub>k</sub> + &alpha; p<sub>k</sub>)
      */
-    public double lineSearch(double alpha_max, Vec x_k, Vec x_grad, Vec p_k, Function f, FunctionVec fp, double f_x, double gradP, Vec x_alpha_pk, double[] fxApRet, Vec grad_x_alpha_pk, ExecutorService ex);
+    public double lineSearch(double alpha_max, Vec x_k, Vec x_grad, Vec p_k, Function f, FunctionVec fp, double f_x, double gradP, Vec x_alpha_pk, double[] fxApRet, Vec grad_x_alpha_pk, boolean parallel);
 
     /**
      * When performing the {@link #lineSearch(double, jsat.linear.Vec, jsat.linear.Vec, jsat.linear.Vec, jsat.math.Function, jsat.math.FunctionVec, double, double, jsat.linear.Vec, double[], jsat.linear.Vec) linear search}

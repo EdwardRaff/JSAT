@@ -1,6 +1,5 @@
 package jsat.math.optimization;
 
-import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.FunctionVec;
@@ -32,7 +31,10 @@ public interface Optimizer2
      * @param fpp the Hessian of the objective function, may be {@code null} 
      * depending on the optimizer
      */
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp);
+    default public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp)
+    {
+        optimize(tolerance, w, x0, f, fp, fpp, false);
+    }
     
     /**
      * Attempts to optimize the given function by finding the value of {@code w}
@@ -49,10 +51,10 @@ public interface Optimizer2
      * depending on the optimizer
      * @param fpp the Hessian of the objective function, may be {@code null} 
      * depending on the optimizer
-     * @param ex the source of threads for parallel computation, may be 
-     * {@code null} to perform serial computation. 
+     * @param parallel {@code true} if multiple threads should be used for
+     * optimization, or {@code false} if a single thread should be used.
      */
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp, ExecutorService ex);
+    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp, boolean parallel);
     
     /**
      * Sets the maximum number of iterations allowed for the optimization method
