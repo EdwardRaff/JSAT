@@ -64,15 +64,19 @@ public interface VisualizationTransform extends Cloneable, Serializable
      * @param d the data set to transform
      * @return the lower dimension dataset for visualization.
      */
-    public <Type extends DataSet> Type transform(DataSet<Type> d);
+    default public <Type extends DataSet> Type transform(DataSet<Type> d)
+    {
+        return transform(d, false);
+    }
 
     /**
      * Transforms the given data set, returning a dataset of the same type.
      *
      * @param <Type> the dataset type
      * @param d the data set to transform
-     * @param ex the source of threads for parallel computation
+     * @param parallel {@code true} if transform should be done in parallel, or
+     * {@code false} if it should use a single thread.
      * @return the lower dimension dataset for visualization.
      */
-    public <Type extends DataSet> Type transform(DataSet<Type> d, ExecutorService ex);
+    public <Type extends DataSet> Type transform(DataSet<Type> d, boolean parallel);
 }
