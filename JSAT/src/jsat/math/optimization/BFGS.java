@@ -11,7 +11,7 @@ import jsat.math.*;
  * 
  * @author Edward Raff
  */
-public class BFGS implements Optimizer2 
+public class BFGS implements Optimizer 
 {
     private LineSearch lineSearch;
     private int maxIterations;
@@ -40,7 +40,7 @@ public class BFGS implements Optimizer2
     }
     
     @Override
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp, boolean parallel)
+    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, boolean parallel)
     {
         LineSearch search = lineSearch.clone();
         
@@ -192,7 +192,7 @@ public class BFGS implements Optimizer2
     }
     
     @Override
-    public Optimizer2 clone()
+    public Optimizer clone()
     {
         return new BFGS(maxIterations, lineSearch.clone());
     }

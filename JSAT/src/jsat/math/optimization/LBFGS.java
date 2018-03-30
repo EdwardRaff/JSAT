@@ -14,7 +14,7 @@ import jsat.utils.DoubleList;
  * 
  * @author Edward Raff
  */
-public class LBFGS implements Optimizer2 
+public class LBFGS implements Optimizer 
 {
     private int m;
     private int maxIterations;
@@ -92,7 +92,7 @@ public class LBFGS implements Optimizer2
     }
     
     @Override
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp, boolean parallel)
+    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, boolean parallel)
     {
         LineSearch search = lineSearch.clone();
         final double[] f_xVal = new double[1];//store place for f_x

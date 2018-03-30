@@ -120,6 +120,7 @@ public class Dirichlet extends MultivariateDistributionSkeleton
         return exp(logPdf(x));
     }
     
+    @Override
     public <V extends Vec> boolean setUsingData(final List<V> dataSet)
     {
         Function logLike = (Vec x, boolean parallel) -> 
@@ -144,7 +145,7 @@ public class Dirichlet extends MultivariateDistributionSkeleton
         guesses.add(guess.add(1.0));
         guesses.add(guess.add(0.1));
         guesses.add(guess.add(10.0));
-        this.alphas = optimize.optimize(1e-10, 100, logLike, guesses);
+        this.alphas = optimize.optimize(1e-10, 100, logLike, guesses, false);
 
         return true;
     }
@@ -178,7 +179,7 @@ public class Dirichlet extends MultivariateDistributionSkeleton
         guesses.add(guess.add(1.0));
         guesses.add(guess.add(0.1));
         guesses.add(guess.add(10.0));
-        this.alphas = optimize.optimize(1e-10, 100, logLike, guesses);
+        this.alphas = optimize.optimize(1e-10, 100, logLike, guesses, false);
 
         return true;
     }

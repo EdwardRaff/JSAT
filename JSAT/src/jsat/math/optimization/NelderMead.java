@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.Function;
+import jsat.math.FunctionVec;
 import jsat.utils.ProbailityMatch;
 
 /**
@@ -22,8 +22,8 @@ import jsat.utils.ProbailityMatch;
 public class NelderMead implements Optimizer
 {
 
-	private static final long serialVersionUID = -2930235371787386607L;
-	/**
+    private static final long serialVersionUID = -2930235371787386607L;
+    /**
      * Reflection constant
      */
     private double reflection = 1.0;
@@ -39,6 +39,20 @@ public class NelderMead implements Optimizer
      * Shrink constant
      */
     private double shrink = 0.5;
+    
+    private int maxIterations = 1000;
+
+    public NelderMead() {
+    }
+    
+    public NelderMead(NelderMead toCopy)
+    {
+        this.reflection = toCopy.reflection;
+        this.expansion = toCopy.expansion;
+        this.contraction = toCopy.contraction;
+        this.shrink = toCopy.shrink;
+        this.maxIterations = toCopy.maxIterations;
+    }
 
     /**
      * Sets the reflection constant, which must be greater than 0
@@ -85,19 +99,18 @@ public class NelderMead implements Optimizer
             throw new ArithmeticException("Shrinkage constant must be > 0 and < 1, not " + shrink);
         this.shrink = shrink;
     }
-    
-    public Vec optimize(double eps, int iterationLimit, Function f, Function fd, Vec vars, List<Vec> inputs, Vec outputs, ExecutorService threadpool)
-    {
-        return optimize(eps, iterationLimit, f, fd, vars, inputs, outputs);
-    }
 
-    public Vec optimize(double eps, int iterationLimit, Function f, Function fd, Vec vars, List<Vec> inputs, Vec outputs)
+    @Override
+    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, boolean parallel) 
     {
-        List<Vec> initialPoints = new ArrayList<Vec>();
-        initialPoints.add(vars);
+        List<Vec> initialPoints = new ArrayList<>();
+        initialPoints.add(x0.clone());
         
-        return optimize(eps, iterationLimit, f, initialPoints);
+        optimize(tolerance, maxIterations, f, initialPoints, parallel).copyTo(w);
     }
+    
+    
+    
     
     /**
      * Attempts to find the minimal value of the given function. 
@@ -107,18 +120,20 @@ public class NelderMead implements Optimizer
      * @param f the function to optimize. This value can not be null
      * @param initalPoints the list of initial guess points. If too small, new ones will be generated. if too large, 
      * the extra ones will be ignored. This list may not be empty
+     * @param parallel {@code true} if multiple threads should be used for
+     * optimization, or {@code false} if a single thread should be used.
      * @return the computed value for the optimization. 
      */
-    public Vec optimize(double eps, int iterationLimit, Function f, List<Vec> initalPoints)
+    public Vec optimize(double eps, int iterationLimit, Function f, List<Vec> initalPoints, boolean parallel)
     {
         if(initalPoints.isEmpty())
             throw new ArithmeticException("Empty Initial list. Can not determin dimension of problem");
         Vec init = initalPoints.get(0);
         int N = initalPoints.get(0).length();
         //The simplex verticies paired with their value from the objective function 
-        List<ProbailityMatch<Vec>> simplex = new ArrayList<ProbailityMatch<Vec>>(N);
+        List<ProbailityMatch<Vec>> simplex = new ArrayList<>(N);
         for(Vec vars : initalPoints)
-            simplex.add(new ProbailityMatch<Vec>(f.f(vars), vars.clone()));
+            simplex.add(new ProbailityMatch<>(f.f(vars, parallel), vars.clone()));
         Random rand = new Random(initalPoints.hashCode());
         
         while(simplex.size() < N+1)
@@ -131,7 +146,7 @@ public class NelderMead implements Optimizer
                 else
                     newSimplex.set(i, rand.nextGaussian());
             
-            simplex.add(new ProbailityMatch<Vec>(f.f(newSimplex), newSimplex));
+            simplex.add(new ProbailityMatch<>(f.f(newSimplex, parallel), newSimplex));
         }
         
         Collections.sort(simplex);
@@ -230,6 +245,25 @@ public class NelderMead implements Optimizer
             else//It was a bit better then that
                 simplex.add(sortInto, pm);
         }
+    }
+
+    @Override
+    public void setMaximumIterations(int iterations) 
+    {
+        if(iterations <= 0)
+            throw new IllegalArgumentException("Number of iterations must be positive, not " + iterations);
+        this.maxIterations = iterations;
+    }
+
+    @Override
+    public int getMaximumIterations() 
+    {
+        return maxIterations;
+    }
+
+    @Override
+    public NelderMead clone() {
+        return new NelderMead(this);
     }
     
 }

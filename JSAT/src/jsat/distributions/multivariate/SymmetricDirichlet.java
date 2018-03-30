@@ -132,7 +132,7 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
         guesses.add(guess.add(1.0));
         guesses.add(guess.add(0.1));
         guesses.add(guess.add(10.0));
-        this.alpha = optimize.optimize(1e-10, 100, logLike, guesses).get(0);
+        this.alpha = optimize.optimize(1e-10, 100, logLike, guesses, false).get(0);
         return true;
     }
 
@@ -164,7 +164,7 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
         guesses.add(guess.add(1.0));
         guesses.add(guess.add(0.1));
         guesses.add(guess.add(10.0));
-        this.alpha = optimize.optimize(1e-10, 100, logLike, guesses).get(0);
+        this.alpha = optimize.optimize(1e-10, 100, logLike, guesses, false).get(0);
         return true;
     }
     

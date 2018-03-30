@@ -61,7 +61,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
     private double[] bs;
     private LossFunc loss;
     private double lambda0;
-    private Optimizer2 optimizer;
+    private Optimizer optimizer;
     private double tolerance;
     private boolean useBiasTerm = true;
 
@@ -102,7 +102,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
      * @param tolerance the threshold for convergence 
      * @param optimizer the batch optimization method to use
      */
-    public LinearBatch(LossFunc loss, double lambda0, double tolerance, Optimizer2 optimizer)
+    public LinearBatch(LossFunc loss, double lambda0, double tolerance, Optimizer optimizer)
     {
         setLoss(loss);
         setLambda0(lambda0);
@@ -187,7 +187,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
      * 
      * @param optimizer the method to use for function minimization
      */
-    public void setOptimizer(Optimizer2 optimizer)
+    public void setOptimizer(Optimizer optimizer)
     {
         this.optimizer = optimizer;
     }
@@ -196,7 +196,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
      * Returns the optimization method in use, or {@code null}. 
      * @return the optimization method in use, or {@code null}. 
      */
-    public Optimizer2 getOptimizer()
+    public Optimizer getOptimizer()
     {
         return optimizer;
     }
@@ -279,7 +279,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         for (int i = 0; i < ws.length; i++)
             ws[i] = new DenseVector(D.getNumNumericalVars());
 
-        Optimizer2 optimizerToUse;
+        Optimizer optimizerToUse;
         if(optimizer == null)
             optimizerToUse = new LBFGS(10);
         else
@@ -295,10 +295,10 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             {
                 //Special wrapper class that will handle it - tight coupling with the implementation of LossFun and GradFunc
                 Vec w_tmp = new VecWithBias(ws[0], bs);
-                optimizerToUse.optimize(tolerance, w_tmp, w_tmp, new LossFunction(D, loss), new GradFunction(D, loss), null, parallel);
+                optimizerToUse.optimize(tolerance, w_tmp, w_tmp, new LossFunction(D, loss), new GradFunction(D, loss), parallel);
             }
             else
-                optimizerToUse.optimize(tolerance, ws[0], ws[0], new LossFunction(D, loss), new GradFunction(D, loss), null, parallel);
+                optimizerToUse.optimize(tolerance, ws[0], ws[0], new LossFunction(D, loss), new GradFunction(D, loss), parallel);
         }
         else
         {
@@ -312,7 +312,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             }
             else
                 wAll = new ConcatenatedVec(Arrays.asList(ws));
-            optimizerToUse.optimize(tolerance, wAll, new DenseVector(wAll), new LossMCFunction(D, lossMC), new GradMCFunction(D, lossMC), null, parallel);
+            optimizerToUse.optimize(tolerance, wAll, new DenseVector(wAll), new LossMCFunction(D, lossMC), new GradMCFunction(D, lossMC), parallel);
         }
         
         threadPool.shutdownNow();
@@ -368,7 +368,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         ws = new Vec[]{ new DenseVector(D.getNumNumericalVars()) };
         bs = new double[1];
         
-        Optimizer2 optimizerToUse;
+        Optimizer optimizerToUse;
         if(optimizer == null)
             optimizerToUse = new LBFGS(10);
         else
@@ -381,10 +381,10 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         if(useBiasTerm)
         {
             Vec w_tmp = new VecWithBias(ws[0], bs);
-            optimizerToUse.optimize(tolerance, w_tmp, w_tmp, new LossFunction(D, loss), new GradFunction(D, loss), null, parallel);
+            optimizerToUse.optimize(tolerance, w_tmp, w_tmp, new LossFunction(D, loss), new GradFunction(D, loss), parallel);
         }
         else
-            optimizerToUse.optimize(tolerance, ws[0], ws[0], new LossFunction(D, loss), new GradFunction(D, loss), null, parallel);
+            optimizerToUse.optimize(tolerance, ws[0], ws[0], new LossFunction(D, loss), new GradFunction(D, loss), parallel);
         
         threadPool.shutdownNow();
     }

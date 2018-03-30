@@ -48,7 +48,7 @@ import jsat.linear.IndexValue;
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class ModifiedOWLQN implements Optimizer2 
+public class ModifiedOWLQN implements Optimizer 
 {
     private int m = 10;
     private double lambda;
@@ -187,7 +187,7 @@ public class ModifiedOWLQN implements Optimizer2
     }
 
     @Override
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp, boolean parallel)
+    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, boolean parallel)
     {
         //Algorithm 2 mOWL-QN: modified Orthant-Wise Limited memory Quasi-Newton
         
