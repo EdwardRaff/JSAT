@@ -3,6 +3,7 @@ package jsat.distributions;
 
 import jsat.linear.Vec;
 import static java.lang.Math.*;
+import java.util.Random;
 import static jsat.math.SpecialMath.*;
 /**
  *
@@ -156,40 +157,51 @@ public class Beta extends ContinuousDistribution
         return 2*(beta-alpha)*sqrt(alpha+beta+1)/((alpha+beta+2)*sqrt(alpha*beta));
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		long temp;
-		temp = Double.doubleToLongBits(alpha);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(beta);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		return result;
-	}
+    @Override
+    public double[] sample(int numSamples, Random rand) 
+    {
+        double[] a = new Gamma(alpha, 1.0).sample(numSamples, rand);
+        double[] b = new Gamma(beta, 1.0).sample(numSamples, rand);
+        
+        for(int i = 0; i < a.length; i++)
+            a[i] /= a[i] + b[i];
+        return a;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		Beta other = (Beta) obj;
-		if (Double.doubleToLongBits(alpha) != Double
-				.doubleToLongBits(other.alpha)) {
-			return false;
-		}
-		if (Double.doubleToLongBits(beta) != Double
-				.doubleToLongBits(other.beta)) {
-			return false;
-		}
-		return true;
-	}
-    
-    
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        long temp;
+        temp = Double.doubleToLongBits(alpha);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
+        temp = Double.doubleToLongBits(beta);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Beta other = (Beta) obj;
+        if (Double.doubleToLongBits(alpha) != Double
+                .doubleToLongBits(other.alpha)) {
+            return false;
+        }
+        if (Double.doubleToLongBits(beta) != Double
+                .doubleToLongBits(other.beta)) {
+            return false;
+        }
+        return true;
+    }
+
+
 }

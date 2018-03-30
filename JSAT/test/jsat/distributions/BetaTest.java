@@ -4,6 +4,10 @@
  */
 package jsat.distributions;
 
+import java.util.Arrays;
+import java.util.Random;
+import jsat.linear.Vec;
+import jsat.utils.random.RandomUtil;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -233,6 +237,24 @@ public class BetaTest
         assertEquals(-1.5745916432444336, dist.skewness(), 1e-10);
         dist = new Beta(3, 3);
         assertEquals(0, dist.skewness(), 1e-10);
+    }
+    
+    @Test
+    public void testSample(){
+    	System.out.println("hashCode");
+    	Beta d1 = new Beta(0.5, 0.5);
+    	Beta d2 = new Beta(1.6, 0.5);
+    	Beta d3 = new Beta(0.5, 2.5);
+        Beta d4 = new Beta(3.5, 2.5);
+    	
+        Random rand = RandomUtil.getRandom();
+        for(Beta d : Arrays.asList(d1, d2, d3, d4))
+        {
+            
+            Vec sample = d.sampleVec(1000000, rand);
+            assertEquals(d.mean(), sample.mean(), 1e-2);
+            assertEquals(d.standardDeviation(), sample.standardDeviation(), 1e-2);
+        }
     }
     
     @Test
