@@ -42,6 +42,8 @@ public class BFGS implements Optimizer
     @Override
     public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, boolean parallel)
     {
+        if(fp == null)
+            fp = Function.forwardDifference(f);
         LineSearch search = lineSearch.clone();
         
         Matrix H = Matrix.eye(x0.length());

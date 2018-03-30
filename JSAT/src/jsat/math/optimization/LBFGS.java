@@ -94,6 +94,8 @@ public class LBFGS implements Optimizer
     @Override
     public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, boolean parallel)
     {
+        if(fp == null)
+            fp = Function.forwardDifference(f);
         LineSearch search = lineSearch.clone();
         final double[] f_xVal = new double[1];//store place for f_x
         

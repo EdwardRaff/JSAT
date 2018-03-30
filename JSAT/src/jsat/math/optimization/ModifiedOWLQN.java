@@ -18,7 +18,6 @@ package jsat.math.optimization;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.FunctionVec;
@@ -189,6 +188,8 @@ public class ModifiedOWLQN implements Optimizer
     @Override
     public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, boolean parallel)
     {
+        if(fp == null)
+            fp = Function.forwardDifference(f);
         //Algorithm 2 mOWL-QN: modified Orthant-Wise Limited memory Quasi-Newton
         
         Vec lambdaMul = lambdaMultipler;
