@@ -41,4 +41,41 @@ public interface Function extends Serializable
      * @return the scalar output of this function
      */
     public double f(Vec x, boolean parallel);
+    
+    /**
+     * Returns a new function that approximates the derivative of the given one
+     * via numerical forward difference approximation.
+     *
+     * @param f the function to approximate the derivative of
+     * @return a function that will return an estimate of the derivative
+     */
+    public static FunctionVec forwardDifference(Function f)
+    {
+        FunctionVec fP = (Vec x, Vec s, boolean parallel) -> 
+        {
+            if(s == null)
+            {
+                s = x.clone();
+                s.zeroOut();
+            }
+            
+            double sqrtEps = Math.sqrt(2e-16);
+            
+            double f_x = f.f(x, parallel);
+            
+            Vec x_ph = x.clone();
+            
+            for(int i = 0; i < x.length(); i++)
+            {
+                double h = Math.max(Math.abs(x.get(i))*sqrtEps, 1e-5);
+                x_ph.set(i, x.get(i)+h);
+                double f_xh = f.f(x_ph, parallel);
+                s.set(i, (f_xh-f_x)/h);//set derivative estimate
+                x_ph.set(i, x.get(i));
+            }
+            
+            return s;
+        };
+        return fP;
+    }
 }
