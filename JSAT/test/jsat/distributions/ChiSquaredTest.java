@@ -4,6 +4,10 @@
  */
 package jsat.distributions;
 
+import java.util.Arrays;
+import java.util.Random;
+import jsat.linear.Vec;
+import jsat.utils.random.RandomUtil;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -235,7 +239,25 @@ public class ChiSquaredTest
         assertEquals(4, dist.skewness(), 1e-10);
     }
 
-
+    @Test
+    public void testSample(){
+    	System.out.println("hashCode");
+    	ChiSquared d1 = new ChiSquared(1);
+    	ChiSquared d2 = new ChiSquared(2);
+    	ChiSquared d3 = new ChiSquared(3.5);
+        ChiSquared d4 = new ChiSquared(10.5);
+    	
+        Random rand = RandomUtil.getRandom();
+        for(ChiSquared d : Arrays.asList(d1, d2, d3, d4))
+        {
+            
+            Vec sample = d.sampleVec(1000000, rand);
+            assertEquals(d.mean(), sample.mean(), 1e-2);
+            assertEquals(d.standardDeviation(), sample.standardDeviation(), 1e-2);
+        }
+    }
+    
+    
 	@Test
 	public void testEquals(){
 		System.out.println("equals");
