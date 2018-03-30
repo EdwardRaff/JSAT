@@ -16,6 +16,7 @@
  */
 package jsat.distributions.discrete;
 
+import java.util.Arrays;
 import jsat.linear.Vec;
 import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
@@ -144,7 +145,7 @@ public class PoissonTest
     public void testSample()
     {
         System.out.println("sample");
-        Poisson instance = new Poisson(7);
+        
         //Poisson can get wonked on variance, so larger range used there
         /* 
          * "however in practice, the observed variance is usually larger than 
@@ -152,13 +153,25 @@ public class PoissonTest
          * mean. This is known as overdispersion, an important concept that 
          * occurs with discrete data"
          */
-        Vec samples = instance.sampleVec(10000, RandomUtil.getRandom());
         
-        assertEquals(instance.mean(), samples.mean(), 2e-1);
-        assertEquals(instance.median(), samples.median(), 2e-1);
-        assertEquals(instance.variance(), samples.variance(), 0.4);
-        assertEquals(instance.standardDeviation(), samples.standardDeviation(), 0.1);
-        assertEquals(instance.skewness(), samples.skewness(), 2e-1);
+//        for(int d = 1; d  < 100000000; d*=2)
+//        {
+//            long start = System.currentTimeMillis();
+//            Vec samples = new Poisson(d).sampleVec(100000, RandomUtil.getRandom());
+//            long end = System.currentTimeMillis();
+//            System.out.println(d + ": " + (end-start));
+//        }
+        
+        for(Poisson instance : Arrays.asList(new Poisson(2), new Poisson(20), new Poisson(40), new Poisson(200)))
+        {
+            System.out.println(instance.mean());
+            Vec samples = instance.sampleVec(10000, RandomUtil.getRandom());
+        
+            assertEquals(instance.mean(), samples.mean(), 2e-1);
+            assertEquals(instance.median(), samples.median(), 2e-1);
+            assertEquals(0.0, (instance.standardDeviation()-samples.standardDeviation())/instance.standardDeviation(), 0.1);
+            assertEquals(instance.skewness(), samples.skewness(), 2e-1);
+        }
         
     }
 }
