@@ -1,5 +1,9 @@
 package jsat.distributions;
 
+import java.util.Arrays;
+import java.util.Random;
+import jsat.linear.Vec;
+import jsat.utils.random.RandomUtil;
 import static org.junit.Assert.*;
 
 import org.junit.After;
@@ -8,7 +12,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class StudentTTest {
+public class StudentTTest 
+{
+    
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -26,6 +32,21 @@ public class StudentTTest {
 	public void tearDown() throws Exception {
 	}
 
+    @Test
+    public void testSample(){
+    	System.out.println("hashCode");
+    	StudentT d1 = new StudentT(1.9);
+    	StudentT d2 = new StudentT(2.1);
+    	
+        Random rand = RandomUtil.getRandom();
+        for(StudentT d : Arrays.asList( d1, d2))
+        {
+            
+            Vec sample = d.sampleVec(100000, rand);
+            assertEquals(d.mean(), sample.mean(), 1e-1);
+        }
+    }
+        
     @Test
     public void testEquals(){
     	System.out.println("equals");
