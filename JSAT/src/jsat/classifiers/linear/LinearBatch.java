@@ -610,17 +610,18 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             DoubleAdder weightSum = new DoubleAdder();
             ParallelUtils.run(parallel, D.getSampleSize(), (start, end)->
             {
+                Vec pred_local = pred.clone();
                 for (int i = start; i < end; i++)
                 {
                     DataPoint dp = D.getDataPoint(i);
                     Vec x = dp.getNumericalValues();
-                    for(int k = 0; k < pred.length(); k++)
-                        pred.set(k, new SubVector(k*subWSize, subWSize, w).dot(x));
+                    for(int k = 0; k < pred_local.length(); k++)
+                        pred_local.set(k, new SubVector(k*subWSize, subWSize, w).dot(x));
                     if(useBiasTerm)
-                        pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
-                    loss.process(pred, pred);
+                        pred_local.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
+                    loss.process(pred_local, pred_local);
                     int y = D.getDataPointCategory(i);
-                    sum.add(loss.getLoss(pred, y)*dp.getWeight());
+                    sum.add(loss.getLoss(pred_local, y)*dp.getWeight());
                     weightSum.add(dp.getWeight());
                 }
             });
@@ -657,19 +658,20 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             ParallelUtils.run(parllel, D.getSampleSize(), (start, end)->
             {
                 Vec s_l = tl_s.get();
+                Vec pred_local = pred.clone();
                 for (int i = start; i < end; i++)
                 {
                     DataPoint dp = D.getDataPoint(i);
                     Vec x = dp.getNumericalValues();
-                    for(int k = 0; k < pred.length(); k++)
-                        pred.set(k, new SubVector(k*subWSize, subWSize, w).dot(x));
+                    for(int k = 0; k < pred_local.length(); k++)
+                        pred_local.set(k, new SubVector(k*subWSize, subWSize, w).dot(x));
                     if(useBiasTerm)
-                        pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
-                    loss.process(pred, pred);
+                        pred_local.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
+                    loss.process(pred_local, pred_local);
                     int y = D.getDataPointCategory(i);
-                    loss.deriv(pred, pred, y);
-                    for(int k = 0; k < pred.length(); k++)
-                        new SubVector(k*subWSize, subWSize, s_l).mutableAdd(pred.get(k)*dp.getWeight(), x);
+                    loss.deriv(pred_local, pred_local, y);
+                    for(int k = 0; k < pred_local.length(); k++)
+                        new SubVector(k*subWSize, subWSize, s_l).mutableAdd(pred_local.get(k)*dp.getWeight(), x);
                     weightSum.add(dp.getWeight());
                 }
                 return s_l;
