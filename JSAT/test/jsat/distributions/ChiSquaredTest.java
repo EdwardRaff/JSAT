@@ -252,8 +252,8 @@ public class ChiSquaredTest
         {
             
             Vec sample = d.sampleVec(1000000, rand);
-            assertEquals(d.mean(), sample.mean(), 1e-2);
-            assertEquals(d.standardDeviation(), sample.standardDeviation(), 1e-2);
+            assertEquals(0, (d.mean()-sample.mean())/d.mean(), 1e-2);
+            assertEquals(0, (d.standardDeviation()-sample.standardDeviation())/d.standardDeviation(), 1e-2);
         }
     }
     
