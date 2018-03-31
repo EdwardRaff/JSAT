@@ -84,7 +84,7 @@ public class DirichletTest
         System.out.println("setUsingData");
         List<Vec> dataSet = null;
         Dirichlet instance = new Dirichlet(DenseVector.toDenseVec(2.5, 2.5, 2.5));
-        dataSet = instance.sample(500, new Random(1));
+        dataSet = instance.sample(5000, new Random(1));
         
         Dirichlet setI = new Dirichlet(DenseVector.toDenseVec(2.0, 2.0, 2.0));
         setI.setUsingData(dataSet);
