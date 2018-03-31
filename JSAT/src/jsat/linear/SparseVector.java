@@ -44,11 +44,6 @@ public class SparseVector extends  Vec
      */
     protected double[] values;
     
-    private Double sumCache = null;
-    private Double varianceCache = null;
-    private Double minCache = null;
-    private Double maxCache = null;
-    
     /**
      * Creates a new sparse vector of the given length that is all zero values. 
      * 
@@ -143,17 +138,6 @@ public class SparseVector extends  Vec
         }
     }
     
-    /**
-     * nulls out the cached summary statistics, should be called every time the data set changes
-     */
-    private void clearCaches()
-    {
-        sumCache = null;
-        varianceCache = null;
-        minCache = null;
-        maxCache = null;
-    }
-    
     @Override
     public int length()
     {
@@ -238,8 +222,6 @@ public class SparseVector extends  Vec
         if(index > length()-1 || index < 0)
             throw new IndexOutOfBoundsException(index + " does not fit in [0," + length + ")");
 
-        
-        clearCaches();
         int insertLocation = Arrays.binarySearch(indexes, 0, used, index);
         if(insertLocation >= 0)
         {
@@ -327,34 +309,26 @@ public class SparseVector extends  Vec
     @Override
     public double min()
     {
-        if(minCache != null)
-            return minCache;
         double result = 0;
         for(int i = 0; i < used; i++)
             result = Math.min(result, values[i]);
 
-        return (minCache = result);
+        return result;
     }
 
     @Override
     public double max()
-    {
-        if(maxCache != null)
-            return maxCache;
-        
+    {   
         double result = 0;
         for(int i = 0; i < used; i++)
             result = Math.max(result, values[i]);
 
-        return (maxCache = result);
+        return result;
     }
 
     @Override
     public double sum()
     {
-        if(sumCache != null)
-            return sumCache;
-        
         /*
          * Uses Kahan summation algorithm, which is more accurate then
          * naively summing the values in floating point. Though it
@@ -374,14 +348,12 @@ public class SparseVector extends  Vec
             sum = t;
         }
 
-        return (sumCache = sum);
+        return sum;
     }
     
     @Override
     public double variance()
     {
-        if(varianceCache != null)
-            return varianceCache;
         
         double mu = mean();
         double tmp = 0;
@@ -395,7 +367,7 @@ public class SparseVector extends  Vec
         tmp +=  (length()-used) * Math.pow(0-mu, 2);
         tmp /= N;
         
-        return (varianceCache = tmp);
+        return tmp;
     }
 
     @Override
@@ -470,12 +442,10 @@ public class SparseVector extends  Vec
                 other.indexes = Arrays.copyOf(this.indexes, this.used);
                 other.values = Arrays.copyOf(this.values, this.used);
                 other.used = this.used;
-                other.clearCaches();
             }
             else
             {
                 other.used = this.used;
-                other.clearCaches();
                 System.arraycopy(this.indexes, 0, other.indexes, 0, this.used);
                 System.arraycopy(this.values, 0, other.values, 0, this.used);
             }
@@ -556,7 +526,6 @@ public class SparseVector extends  Vec
     {
         if(c == 0.0)
             return;
-        clearCaches();
         /* This NOT the most efficient way to implement this. 
          * But adding a constant to every value in a sparce 
          * vector defeats its purpos. 
@@ -568,7 +537,6 @@ public class SparseVector extends  Vec
     @Override
     public void mutableAdd(double c, Vec v)
     {
-        clearCaches();
         if(c == 0.0)
             return;
         if(v instanceof SparseVector)
@@ -655,7 +623,6 @@ public class SparseVector extends  Vec
     @Override
     public void mutableMultiply(double c)
     {
-        clearCaches();
         if(c == 0.0)
         {
             zeroOut();
@@ -669,7 +636,6 @@ public class SparseVector extends  Vec
     @Override
     public void mutableDivide(double c)
     {
-        clearCaches();
         if(c == 0 && used != length)
             throw new ArithmeticException("Division by zero would occur");
         for(int i = 0; i < used; i++)
@@ -790,8 +756,6 @@ public class SparseVector extends  Vec
     {
         if(this.length() != b.length())
             throw new ArithmeticException("Vectors must have the same length");
-        clearCaches();
-        
         for(int i = 0; i < used; i++)
             values[i] *= b.get(indexes[i]);//zeros stay zero
     }
@@ -801,12 +765,11 @@ public class SparseVector extends  Vec
     {
         if(this.length() != b.length())
             throw new ArithmeticException("Vectors must have the same length");
-        clearCaches();
-        
-            for(int i = 0; i < used; i++)
+
+        for (int i = 0; i < used; i++) 
             values[i] /= b.get(indexes[i]);//zeros stay zero
     }
-    
+
     @Override
     public boolean equals(Object obj, double range)
     {
