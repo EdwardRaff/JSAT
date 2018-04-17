@@ -1,6 +1,7 @@
 
 package jsat.linear;
 
+import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -264,6 +265,8 @@ public class ScaledVector extends Vec
     @Override
     public Iterator<IndexValue> getNonZeroIterator(int start)
     {
+        if(scale == 0)
+            return Collections.EMPTY_LIST.iterator();
         final Iterator<IndexValue> origIter = base.getNonZeroIterator(start);
         
         Iterator<IndexValue> wrapedIter = new Iterator<IndexValue>() 
