@@ -33,6 +33,14 @@ public interface Outlire extends Serializable
     
     public void fit(DataSet d, boolean parallel);
             
+    /**
+     * Returns an unbounded anomaly/outlier score. Negative values indicate the
+     * input is likely to be an outlier, and positive values that the input is
+     * likely to be an inlier.
+     *
+     * @param x
+     * @return 
+     */
     public double score(DataPoint x);
     
     default public boolean isOutlier(DataPoint x)
