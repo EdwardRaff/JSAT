@@ -69,7 +69,7 @@ public class LinearOCSVM implements Outlire
     
     
     @Override
-    public void fit(DataSet d)
+    public void fit(DataSet d, boolean parallel)
     {
         
         Random rand = RandomUtil.getRandom();

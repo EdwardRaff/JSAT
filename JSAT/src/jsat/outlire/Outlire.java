@@ -26,7 +26,12 @@ import jsat.classifiers.DataPoint;
  */
 public interface Outlire extends Serializable
 {
-    public void fit(DataSet d);
+    default public void fit(DataSet d)
+    {
+        fit(d, false);
+    }
+    
+    public void fit(DataSet d, boolean parallel);
             
     public double score(DataPoint x);
     

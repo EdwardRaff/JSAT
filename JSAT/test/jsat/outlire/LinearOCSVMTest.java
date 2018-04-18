@@ -82,7 +82,7 @@ public class LinearOCSVMTest
         for(double v : new double[]{0.01, 0.05, 0.1})
         {
             instance.setV(v);
-            instance.fit(trainData);
+            instance.fit(trainData, false);
             
             double numOutliersInTrain = trainData.getDataPoints().stream().mapToDouble(instance::score).filter(x->x<0).count();
 //            System.out.println(v + " " + numOutliersInTrain + " " + v*N);
