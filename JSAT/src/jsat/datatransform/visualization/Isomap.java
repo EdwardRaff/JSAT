@@ -33,6 +33,7 @@ import jsat.linear.vectorcollection.VectorCollection;
 import jsat.utils.FakeExecutor;
 import jsat.utils.FibHeap;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * Isomap is an extension of {@link MDS}. It uses a geodesic distance made from
@@ -142,15 +143,9 @@ public class Isomap implements VisualizationTransform
     {
         return c_isomap;
     }
-            
-    @Override
-    public <Type extends DataSet> Type transform(DataSet<Type> d)
-    {
-        return transform(d, new FakeExecutor());
-    }
     
     @Override
-    public <Type extends DataSet> Type transform(DataSet<Type> d, ExecutorService ex)
+    public <Type extends DataSet> Type transform(DataSet<Type> d, boolean parallel)
     {
         final int N = d.getSampleSize();
         final Matrix delta = new DenseMatrix(N, N);
@@ -165,8 +160,8 @@ public class Isomap implements VisualizationTransform
         final List<VecPaired<Vec, Integer>> vecs = new ArrayList<>(N);
         for(int i = 0; i < N; i++)
             vecs.add(new VecPaired<>(d.getDataPoint(i).getNumericalValues(), i));
-        vc.build(ex != null, vecs, dm);
-        final List<Double> cache = dm.getAccelerationCache(vecs, ex);
+        vc.build(parallel, vecs, dm);
+        final List<Double> cache = dm.getAccelerationCache(vecs, parallel);
                 
         final int knn = searchNeighbors+1;//+1 b/c we are closest to ourselves
         
@@ -178,42 +173,19 @@ public class Isomap implements VisualizationTransform
         final double[] avgNeighborDist = new double[N];
         
         //do knn search and store results so we can do distances
-        final CountDownLatch latch1 = new CountDownLatch(SystemInfo.LogicalCores);
-        for(int id = 0; id < SystemInfo.LogicalCores; id++)
+        ParallelUtils.run(parallel, N, (i)->
         {
-            final int ID = id;
-            ex.submit(new Runnable()
+            List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = vc.search(vecs.get(i).getVector(), knn);
+            neighborGraph.set(i, neighbors);
+            //Compute stats that may be used for c-isomap version
+            for (int z = 1; z < neighbors.size(); z++)
             {
-
-                @Override
-                public void run()
-                {
-                    for (int i = ID; i < N; i+=SystemInfo.LogicalCores)
-                    {
-                        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = vc.search(vecs.get(i).getVector(), knn);
-                        neighborGraph.set(i, neighbors);
-                        //Compute stats that may be used for c-isomap version
-                        for (int z = 1; z < neighbors.size(); z++)
-                        {
-                            VecPaired<VecPaired<Vec, Integer>, Double> neighbor = neighbors.get(z);
-                            double dist = neighbor.getPair();
-                            avgNeighborDist[i] += dist;
-                        }
-                        avgNeighborDist[i] /= (neighbors.size()-1);
-                    }
-                    latch1.countDown();
-                }
-            });
-        }
-        
-        try
-        {
-            latch1.await();
-        }
-        catch (InterruptedException ex1)
-        {
-            Logger.getLogger(Isomap.class.getName()).log(Level.SEVERE, null, ex1);
-        }
+                VecPaired<VecPaired<Vec, Integer>, Double> neighbor = neighbors.get(z);
+                double dist = neighbor.getPair();
+                avgNeighborDist[i] += dist;
+            }
+            avgNeighborDist[i] /= (neighbors.size()-1);
+        });
         
         if(c_isomap)
         {
@@ -226,41 +198,16 @@ public class Isomap implements VisualizationTransform
             }
         }
         
-        final CountDownLatch latch2 = new CountDownLatch(SystemInfo.LogicalCores);
-        for(int id = 0; id < SystemInfo.LogicalCores; id++)
+        ParallelUtils.run(parallel, N, (k)->
         {
-            final int ID = id;
-            ex.submit(new Runnable()
+            double[] tmp_dist = dijkstra(neighborGraph, k);
+            for (int i = 0; i < N; i++)
             {
-
-                @Override
-                public void run()
-                {
-                    for (int k = ID; k < N; k += SystemInfo.LogicalCores)
-                    {
-                        double[] tmp_dist = dijkstra(neighborGraph, k);
-                        for (int i = 0; i < N; i++)
-                        {
-                            tmp_dist[i] = Math.min(tmp_dist[i], delta.get(k, i));
-                            delta.set(i, k, tmp_dist[i]);
-                            delta.set(k, i, tmp_dist[i]);
-                        }
-                    }
-                    latch2.countDown();
-                }
-
-            });
-        }
-        
-        try
-        {
-            latch2.await();
-        }
-        catch (InterruptedException ex1)
-        {
-            Logger.getLogger(Isomap.class.getName()).log(Level.SEVERE, null, ex1);
-        }
-        
+                tmp_dist[i] = Math.min(tmp_dist[i], delta.get(k, i));
+                delta.set(i, k, tmp_dist[i]);
+                delta.set(k, i, tmp_dist[i]);
+            }
+        });
         
         //lets check for any disjoint groupings, replace them with something reasonable
         //we will use the largest obtainable distance to be an offset for our infinity distances
@@ -271,44 +218,21 @@ public class Isomap implements VisualizationTransform
                     largest_natural_dist_tmp = Math.max(largest_natural_dist_tmp, delta.get(i, j));
         final double largest_natural_dist = largest_natural_dist_tmp;
         
-        final CountDownLatch latch3 = new CountDownLatch(SystemInfo.LogicalCores);
-        for(int id = 0; id < SystemInfo.LogicalCores; id++)
+        ParallelUtils.run(parallel, N, (i)->
         {
-            final int ID = id;
-            ex.submit(new Runnable()
+            for (int j = i + 1; j < N; j++)
             {
-
-                @Override
-                public void run()
+                double d_ij = delta.get(i, j);
+                if (d_ij >= Double.MAX_VALUE)//replace with the normal distance + 1 order of magnitude? 
                 {
-                    for (int i = ID; i < N; i += SystemInfo.LogicalCores)
-                    {
-                        for (int j = i + 1; j < N; j++)
-                        {
-                            double d_ij = delta.get(i, j);
-                            if (d_ij >= Double.MAX_VALUE)//replace with the normal distance + 1 order of magnitude? 
-                            {
-                                d_ij = 10*dm.dist(i, j, vecs, cache)+1.5*largest_natural_dist;
-                                delta.set(i, j, d_ij);
-                                delta.set(j, i, d_ij);
-                            }
-                        }
-                        latch3.countDown();
-                    }
+                    d_ij = 10*dm.dist(i, j, vecs, cache)+1.5*largest_natural_dist;
+                    delta.set(i, j, d_ij);
+                    delta.set(j, i, d_ij);
                 }
-            });
-        }
+            }
+        });
         
-        try
-        {
-            latch3.await();
-        }
-        catch (InterruptedException ex1)
-        {
-            Logger.getLogger(Isomap.class.getName()).log(Level.SEVERE, null, ex1);
-        }
-        
-        SimpleDataSet emedded = mds.transform(delta, ex);
+        SimpleDataSet emedded = mds.transform(delta, parallel);
         
         DataSet<Type> transformed = d.shallowClone();
         transformed.replaceNumericFeatures(emedded.getDataVectors());
@@ -322,9 +246,9 @@ public class Isomap implements VisualizationTransform
         double[] dist = new double[N];
         Arrays.fill(dist, Double.POSITIVE_INFINITY);
         dist[sourceIndex] = 0;
-        List<FibHeap.FibNode<Integer>> nodes = new ArrayList<FibHeap.FibNode<Integer>>(N);
+        List<FibHeap.FibNode<Integer>> nodes = new ArrayList<>(N);
 
-        FibHeap<Integer> Q = new FibHeap<Integer>();
+        FibHeap<Integer> Q = new FibHeap<>();
         for (int i = 0; i < N; i++)
             nodes.add(null);
         nodes.set(sourceIndex, Q.insert(sourceIndex, dist[sourceIndex]));

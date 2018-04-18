@@ -1,12 +1,12 @@
 package jsat.math;
 
-import java.util.concurrent.ExecutorService;
+import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 
 /**
- * Interface for representing a function that should return a vector as the 
- * result. 
- * 
+ * Interface for representing a function that takes a vector as input should
+ * return a vector as the output.
+ *
  * @author Edward Raff
  */
 public interface FunctionVec
@@ -16,14 +16,20 @@ public interface FunctionVec
      * @param x the input to compute the output from
      * @return the vector containing the results
      */
-    public Vec f(double... x);
+    default public Vec f(double... x)
+    {
+        return f(DenseVector.toDenseVec(x));
+    }
     
     /**
      * Computes the function value given the input {@code x}
      * @param x the input to compute the output from
      * @return the vector containing the results
      */
-    public Vec f(Vec x);
+    default public Vec f(Vec x)
+    {
+        return f(x, null);
+    }
     
     /**
      * Computes the function value given the input {@code x}
@@ -33,16 +39,20 @@ public interface FunctionVec
      * @return the vector containing the results. This is the same object as 
      * {@code s} if {@code s} is not {@code null}
      */
-    public Vec f(Vec x, Vec s);
+    default public Vec f(Vec x, Vec s)
+    {
+        return f(x, s, false);
+    }
     
     /**
      * Computes the function value given the input {@code x} 
      * @param x the input to compute the output from
      * @param s the vector to store the result in, or {@code null} if a new 
      * vector should be allocated
-     * @param ex the source of threads to use for the computation
+     * @param parallel {@code true} if multiple threads should be used for
+     * evaluation, {@code false} if only a single thread should.
      * @return the vector containing the results. This is the same object as 
      * {@code s} of {@code s} is not {@code null}
      */
-    public Vec f(Vec x, Vec s, ExecutorService ex);
+    public Vec f(Vec x, Vec s, boolean parallel);
 }

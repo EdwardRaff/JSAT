@@ -17,7 +17,6 @@
 package jsat.linear.distancemetrics;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import jsat.linear.Vec;
 
@@ -115,12 +114,6 @@ public class DistanceCounter implements DistanceMetric
     public List<Double> getAccelerationCache(List<? extends Vec> vecs, boolean parallel)
     {
         return base.getAccelerationCache(vecs, parallel);
-    }
-
-    @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs, ExecutorService threadpool)
-    {
-        return base.getAccelerationCache(vecs, threadpool);
     }
 
     @Override

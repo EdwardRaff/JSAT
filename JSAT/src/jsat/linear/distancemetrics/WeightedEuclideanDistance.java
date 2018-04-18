@@ -8,7 +8,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.linear.Vec;
 import jsat.linear.VecOps;
-import jsat.math.MathTricks;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
@@ -129,44 +128,6 @@ public class WeightedEuclideanDistance implements DistanceMetric
         return DoubleList.view(cache, vecs.size());
     }
     
-    @Override
-    public List<Double> getAccelerationCache(final List<? extends Vec> vecs, ExecutorService threadpool)
-    {
-        if(threadpool == null || threadpool instanceof FakeExecutor)
-            return getAccelerationCache(vecs);
-        final double[] cache = new double[vecs.size()];
-        
-        final int P = Math.min(SystemInfo.LogicalCores, vecs.size());
-        final CountDownLatch latch = new CountDownLatch(P);
-
-        for(int ID = 0; ID < P; ID++)
-        {
-            final int start = ParallelUtils.getStartBlock(cache.length, ID, P);
-            final int end = ParallelUtils.getEndBlock(cache.length, ID, P);
-            threadpool.submit(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    for(int i = start; i < end; i++)
-                        cache[i] = VecOps.weightedDot(w, vecs.get(i), vecs.get(i));
-                    latch.countDown();
-                }
-            });
-        }
-        
-        try
-        {
-            latch.await();
-        }
-        catch (InterruptedException ex)
-        {
-            Logger.getLogger(WeightedEuclideanDistance.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        return DoubleList.view(cache, cache.length);
-    }
-
     @Override
     public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
     {

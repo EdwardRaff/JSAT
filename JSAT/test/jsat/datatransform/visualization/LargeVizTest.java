@@ -124,7 +124,7 @@ public class LargeVizTest
             origNNs.add(nns);
         }
         
-        SimpleDataSet transformed_0 = instance.transform(proj, ex);
+        SimpleDataSet transformed_0 = instance.transform(proj, true);
         SimpleDataSet transformed_1 = instance.transform(proj);
         
         
@@ -199,7 +199,7 @@ public class LargeVizTest
             origNNs.add(nns);
         }
         
-        SimpleDataSet transformed_0 = instance.transform(proj, ex);
+        SimpleDataSet transformed_0 = instance.transform(proj, true);
         SimpleDataSet transformed_1 = instance.transform(proj);
         
         

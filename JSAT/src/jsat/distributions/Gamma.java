@@ -3,6 +3,7 @@ package jsat.distributions;
 
 import jsat.linear.Vec;
 import static java.lang.Math.*;
+import java.util.Random;
 import static jsat.math.SpecialMath.*;
 
 /**
@@ -160,6 +161,66 @@ public class Gamma extends ContinuousDistribution
     {
         return 2 / sqrt(k);
     }
+    
+    @Override
+    public double[] sample(int numSamples, Random rand) 
+    {
+        /**
+         * See: Marsaglia, George, and Wai Wan Tsang. “A Simple Method for
+         * Generating Gamma Variables.” ACM Trans. Math. Softw. 26, no. 3
+         * (September 2000): 363–72. https://doi.org/10.1145/358407.358414.
+         */
+        double[] toRet = new double[numSamples];
+        
+        if (k >= 1.0)
+        {
+            double d = k - 1.0/3.0;
+            double c = 1.0/sqrt(9.0*d);
+                
+            for(int i = 0; i < toRet.length; i++)
+            {
+                while(true)
+                {
+                    double x = 0, xSqrd = 0;
+                    double v = 0;
+                    while (v <= 0.0)
+                    {
+                        x = rand.nextGaussian();
+                        v = 1 + c*x;
+                    }
+
+                    v = v*v*v;
+                    double u = rand.nextDouble();
+                    xSqrd = x*x;
+                    //Squeeze check done first to avoid expensieve logs
+                    double squeezeCheck = 1.0 - 0.0331 * xSqrd * xSqrd;
+                    if (u <  squeezeCheck) 
+                    {
+                        toRet[i] = theta*d*v;
+                        break;
+                    }//fail, now try logs if we must
+                    else if( log(u) < 0.5 * xSqrd + d * (1.0 - v + log(v)))
+                    {
+                        toRet[i] = theta*d*v;
+                        break;
+                    }
+                }
+            }
+        }
+        else
+        {
+            Gamma shifted = new Gamma(k+1, 1.0);
+            
+            double[] gs = shifted.sample(numSamples, rand);
+            for(int i = 0; i < toRet.length; i++)
+                toRet[i] = theta*gs[i]*pow(rand.nextDouble(), 1.0/k);
+        }
+        
+        
+        return toRet;
+    }
+    
+    
 
 	@Override
 	public int hashCode() {

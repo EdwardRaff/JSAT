@@ -3,6 +3,7 @@ package jsat.distributions;
 
 import jsat.linear.Vec;
 import static java.lang.Math.*;
+import java.util.Random;
 import static jsat.math.SpecialMath.*;
 
 /**
@@ -12,11 +13,10 @@ import static jsat.math.SpecialMath.*;
 public class ChiSquared extends ContinuousDistribution
 {
 
-	private static final long serialVersionUID = 2446232102260721666L;
-	double df;//Degrees of freedom
+    private static final long serialVersionUID = 2446232102260721666L;
+    double df;//Degrees of freedom
 
-    public ChiSquared(double df)
-    {
+    public ChiSquared(double df) {
         this.df = df;
     }
 
@@ -141,6 +141,15 @@ public class ChiSquared extends ContinuousDistribution
         return sqrt(8/df);
     }
 
+    @Override
+    public double[] sample(int numSamples, Random rand) 
+    {
+        if(df == 2)
+            return super.sample(numSamples, rand); 
+        //else, lets do different
+        double[] sample = new Gamma(df/2, 2).sample(numSamples, rand);
+        return sample;
+    }
 
 	@Override
 	public int hashCode() {

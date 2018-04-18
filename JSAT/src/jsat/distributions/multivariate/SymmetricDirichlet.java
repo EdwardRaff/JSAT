@@ -21,8 +21,8 @@ import static jsat.math.SpecialMath.*;
 public class SymmetricDirichlet extends MultivariateDistributionSkeleton
 {
 
-	private static final long serialVersionUID = -1206894014440494142L;
-	private double alpha;
+    private static final long serialVersionUID = -1206894014440494142L;
+    private double alpha;
     private int dim;
     
     /**
@@ -101,101 +101,77 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
         return logVal;
     }
 
+    @Override
     public double pdf(Vec x)
     {
         return exp(logPdf(x));
     }
 
+    @Override
     public <V extends Vec> boolean setUsingData(final List<V> dataSet)
     {
-        Function logLike = new Function() 
+        Function logLike = (Vec x, boolean parallel) -> 
         {
-
-            /**
-			 * 
-			 */
-			private static final long serialVersionUID = -3591420776536183583L;
-
-			public double f(double... x)
+            double a = x.get(0);
+            double constantTerm = lnGamma(a*dim);
+            constantTerm -= lnGamma(a)*dim;
+            
+            double sum = 0.0;
+            for(int i = 0; i < dataSet.size(); i++)
             {
-                return f(DenseVector.toDenseVec(x));
+                Vec s = dataSet.get(i);
+                for(int j = 0; j < s.length(); j++)
+                    sum += log(s.get(j))*(a-1.0);
             }
-
-            public double f(Vec x)
-            {
-                double a = x.get(0);
-                double constantTerm = lnGamma(a*dim);
-                constantTerm -= lnGamma(a)*dim;
-                
-                double sum = 0.0;
-                for(int i = 0; i < dataSet.size(); i++)
-                {
-                    Vec s = dataSet.get(i);
-                    for(int j = 0; j < s.length(); j++)
-                        sum += log(s.get(j))*(a-1.0);
-                }
-                
-                return -(sum+constantTerm*dataSet.size());
-            }
+            
+            return -(sum+constantTerm*dataSet.size());
         };
         NelderMead optimize = new NelderMead();
         Vec guess = new DenseVector(1);
-        List<Vec> guesses = new ArrayList<Vec>();
+        List<Vec> guesses = new ArrayList<>();
         guesses.add(guess.add(1.0));
         guesses.add(guess.add(0.1));
         guesses.add(guess.add(10.0));
-        this.alpha = optimize.optimize(1e-10, 100, logLike, guesses).get(0);
+        this.alpha = optimize.optimize(1e-10, 100, logLike, guesses, false).get(0);
         return true;
     }
 
+    @Override
     public boolean setUsingDataList(final List<DataPoint> dataPoint)
     {
-        Function logLike = new Function() 
+        Function logLike = (Vec x, boolean parallel) -> 
         {
-
-            /**
-			 * 
-			 */
-			private static final long serialVersionUID = -1145407955317879017L;
-
-			public double f(double... x)
+            double a = x.get(0);
+            double constantTerm = lnGamma(a*dim);
+            constantTerm -= lnGamma(a)*dim;
+            double weightSum = 0.0;
+            
+            double sum = 0.0;
+            for(int i = 0; i < dataPoint.size(); i++)
             {
-                return f(DenseVector.toDenseVec(x));
+                DataPoint dp = dataPoint.get(i);
+                weightSum += dp.getWeight();
+                Vec s = dp.getNumericalValues();
+                for(int j = 0; j < s.length(); j++)
+                    sum += log(s.get(j))*(a-1.0)*dp.getWeight();
             }
-
-            public double f(Vec x)
-            {
-                double a = x.get(0);
-                double constantTerm = lnGamma(a*dim);
-                constantTerm -= lnGamma(a)*dim;
-                double weightSum = 0.0;
-                
-                double sum = 0.0;
-                for(int i = 0; i < dataPoint.size(); i++)
-                {
-                    DataPoint dp = dataPoint.get(i);
-                    weightSum += dp.getWeight();
-                    Vec s = dp.getNumericalValues();
-                    for(int j = 0; j < s.length(); j++)
-                        sum += log(s.get(j))*(a-1.0)*dp.getWeight();
-                }
-                
-                return -(sum+constantTerm*weightSum);
-            }
+            
+            return -(sum+constantTerm*weightSum);
         };
         NelderMead optimize = new NelderMead();
         Vec guess = new DenseVector(1);
-        List<Vec> guesses = new ArrayList<Vec>();
+        List<Vec> guesses = new ArrayList<>();
         guesses.add(guess.add(1.0));
         guesses.add(guess.add(0.1));
         guesses.add(guess.add(10.0));
-        this.alpha = optimize.optimize(1e-10, 100, logLike, guesses).get(0);
+        this.alpha = optimize.optimize(1e-10, 100, logLike, guesses, false).get(0);
         return true;
     }
     
+    @Override
     public List<Vec> sample(int count, Random rand)
     {
-        List<Vec> samples = new ArrayList<Vec>(count);
+        List<Vec> samples = new ArrayList<>(count);
         
         double[] gammaSamples = new Gamma(alpha, 1.0).sample(count*dim, rand);
         int samplePos = 0;

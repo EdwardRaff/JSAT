@@ -1,7 +1,6 @@
 
 package jsat.regression;
 
-import java.util.concurrent.ExecutorService;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
@@ -10,7 +9,6 @@ import jsat.linear.DenseVector;
 import jsat.linear.Matrix;
 import jsat.linear.QRDecomposition;
 import jsat.linear.Vec;
-import jsat.utils.FakeExecutor;
 import jsat.utils.concurrent.ParallelUtils;
 
 /**

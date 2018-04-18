@@ -113,7 +113,7 @@ public class NormalizedEuclideanDistanceTest
         dist.train(normal.sample(30000, RandomUtil.getRandom()));
         
         List<Double> cache = dist.getAccelerationCache(vecs);
-        List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
+        List<Double> cache2 = dist.getAccelerationCache(vecs, true);
         
         if(cache != null)
         {
@@ -169,7 +169,7 @@ public class NormalizedEuclideanDistanceTest
         dist.train(normal.sample(30000, RandomUtil.getRandom()), true);
         
         List<Double> cache = dist.getAccelerationCache(vecs);
-        List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
+        List<Double> cache2 = dist.getAccelerationCache(vecs, true);
 
         if(cache != null)
         {

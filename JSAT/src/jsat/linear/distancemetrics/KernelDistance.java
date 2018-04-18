@@ -2,7 +2,6 @@
 package jsat.linear.distancemetrics;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import jsat.classifiers.knn.NearestNeighbour;
 import jsat.distributions.kernels.*;
 import jsat.linear.Vec;
@@ -121,12 +120,6 @@ public class KernelDistance implements DistanceMetric
         return null;
     }
     
-    @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs, ExecutorService threadpool)
-    {
-        return null;
-    }
-
     @Override
     public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
     {

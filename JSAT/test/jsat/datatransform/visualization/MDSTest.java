@@ -103,7 +103,7 @@ public class MDSTest
         for(int i = 0; i < proj_data.rows(); i++)
             proj.add(new DataPoint(proj_data.getRow(i)));
         
-        SimpleDataSet transformed_0 = instance.transform(proj, ex);
+        SimpleDataSet transformed_0 = instance.transform(proj, true);
         SimpleDataSet transformed_1 = instance.transform(proj);
         
         for(SimpleDataSet transformed : new SimpleDataSet[]{transformed_0, transformed_1})

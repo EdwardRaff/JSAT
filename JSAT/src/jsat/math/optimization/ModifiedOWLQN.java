@@ -18,10 +18,8 @@ package jsat.math.optimization;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.math.Function;
-import jsat.math.FunctionP;
 import jsat.math.FunctionVec;
 import jsat.utils.DoubleList;
 import static java.lang.Math.*;
@@ -49,7 +47,7 @@ import jsat.linear.IndexValue;
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class ModifiedOWLQN implements Optimizer2 
+public class ModifiedOWLQN implements Optimizer 
 {
     private int m = 10;
     private double lambda;
@@ -186,18 +184,12 @@ public class ModifiedOWLQN implements Optimizer2
     {
         return beta;
     }
-    
-    
 
     @Override
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp)
+    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, boolean parallel)
     {
-        optimize(tolerance, w, x0, f, fp, fpp, null);
-    }
-
-    @Override
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp, ExecutorService ex)
-    {
+        if(fp == null)
+            fp = Function.forwardDifference(f);
         //Algorithm 2 mOWL-QN: modified Orthant-Wise Limited memory Quasi-Newton
         
         Vec lambdaMul = lambdaMultipler;
@@ -225,14 +217,14 @@ public class ModifiedOWLQN implements Optimizer2
         
         //history for implicit H
         List<Double> Rho = new DoubleList(m);
-        List<Vec> S = new ArrayList<Vec>(m);
-        List<Vec> Y = new ArrayList<Vec>(m);
+        List<Vec> S = new ArrayList<>(m);
+        List<Vec> Y = new ArrayList<>(m);
         double[] alphas = new double[m];
         
         
-        double f_x = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_cur, ex) : f.f(x_cur);
+        double f_x = f.f(x_cur, parallel);
         f_x += getL1Penalty(x_cur, lambdaMul);
-        x_grad = (ex != null) ? fp.f(x_cur, x_grad, ex) : fp.f(x_cur, x_grad);
+        x_grad = fp.f(x_cur, x_grad, parallel);
         
         //2: for k = 0 to maxiter do
         for(int k = 0; k < maxIterations; k++)
@@ -314,7 +306,7 @@ public class ModifiedOWLQN implements Optimizer2
                             x_alpha.set(i, 0.0);
 
                     }
-                    f_x_alpha = (ex != null && f instanceof FunctionP) ? ((FunctionP) f).f(x_alpha, ex) : f.f(x_alpha);
+                    f_x_alpha = f.f(x_alpha, parallel);
                     f_x_alpha += getL1Penalty(x_alpha, lambdaMul);
                 }
                 while(f_x_alpha > f_x - alpha*rightSideMainTerm );
@@ -355,7 +347,7 @@ public class ModifiedOWLQN implements Optimizer2
                     x_alpha.copyTo(x_diff);
                     x_diff.mutableSubtract(x_cur);
                     
-                    f_x_alpha = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_alpha, ex) : f.f(x_alpha);
+                    f_x_alpha = f.f(x_alpha, parallel);
                     f_x_alpha += getL1Penalty(x_alpha, lambdaMul);
                 }
                 while(f_x_alpha > f_x - gamma/(2*alpha)*x_diff.dot(x_diff));//eq(8) f(x^k(α)) ≤ f(x^k)− γ/(2α) || x^k(α)−x^k||^2
@@ -364,8 +356,7 @@ public class ModifiedOWLQN implements Optimizer2
             //update history
             S.add(0, x_diff.clone());
             
-            
-            x_gradNext = (ex != null) ? fp.f(x_alpha, x_gradNext, ex) : fp.f(x_alpha, x_gradNext);
+            x_gradNext = fp.f(x_alpha, x_gradNext, parallel);
             
             //convergence check
             double maxGrad = 0;

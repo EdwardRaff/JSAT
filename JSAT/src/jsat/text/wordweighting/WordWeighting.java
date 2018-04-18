@@ -14,13 +14,10 @@ import jsat.math.IndexFunction;
  * 
  * @author Edward Raff
  */
-public abstract class WordWeighting extends IndexFunction
+public interface WordWeighting extends IndexFunction
 {
 
-
-	private static final long serialVersionUID = 2372760149718829334L;
-
-	/**
+    /**
      * Prepares the word weighting to be performed on a data set. This should be
      * called once before being applied to any vectors. Different WordWeightings
      * may require different amounts of computation to set up. 
@@ -31,7 +28,7 @@ public abstract class WordWeighting extends IndexFunction
      * @param df a list mapping each integer index of a word to how many times 
      * that word occurred in total
      */
-    abstract public void setWeight(List<? extends Vec> allDocuments, List<Integer> df);
+    public void setWeight(List<? extends Vec> allDocuments, List<Integer> df);
 
     /**
      * The implementation may want to pre compute come values based on the 
@@ -44,5 +41,5 @@ public abstract class WordWeighting extends IndexFunction
      * @param vec the vector to set up for and then alter by invoking 
      * {@link Vec#applyIndexFunction(jsat.math.IndexFunction) } on
      */
-    abstract public void applyTo(Vec vec);
+    public void applyTo(Vec vec);
 }

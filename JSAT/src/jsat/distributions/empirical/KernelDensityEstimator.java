@@ -6,7 +6,6 @@ import java.util.*;
 import jsat.distributions.ContinuousDistribution;
 import jsat.distributions.empirical.kernelfunc.*;
 import jsat.linear.Vec;
-import jsat.math.Function;
 import jsat.math.OnLineStatistics;
 import jsat.utils.ProbailityMatch;
 /**
@@ -26,11 +25,10 @@ public class KernelDensityEstimator extends ContinuousDistribution
      * can do 2 binary searches and then a loop. Though this is still 
      * technically, O(n), its more accurately described as O(n * epsilon * log(n)) , where n * epsilon << n
      */
-    
 
-	private static final long serialVersionUID = 7708020456632603947L;
-	/**
-     * The various values 
+    private static final long serialVersionUID = 7708020456632603947L;
+    /**
+     * The various values
      */
     private double[] X;
     /**
@@ -246,25 +244,6 @@ public class KernelDensityEstimator extends ContinuousDistribution
         
         return sum / (X.length);
     }
-
-    @SuppressWarnings("unused")
-	private final Function cdfFunc = new Function() {
-
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = -4100975560125048798L;
-
-		public double f(double... x)
-        {
-            return cdf(x[0]);
-        }
-
-        public double f(Vec x)
-        {
-            return f(x.get(0));
-        }
-    };
     
     @Override
     public double invCdf(double p)

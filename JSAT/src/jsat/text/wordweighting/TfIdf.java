@@ -11,7 +11,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class TfIdf extends WordWeighting
+public class TfIdf implements WordWeighting
 {
 
     private static final long serialVersionUID = 5749882005002311735L;

@@ -103,7 +103,10 @@ public interface DistanceMetric extends Cloneable, Serializable
      * @return {@code true} if cache acceleration is supported for this metric, 
      * {@code false} otherwise. 
      */
-    public boolean supportsAcceleration();
+    default public boolean supportsAcceleration()
+    {
+        return false;
+    }
     
     /**
      * Returns a cache of double values associated with the given list of 
@@ -128,28 +131,15 @@ public interface DistanceMetric extends Cloneable, Serializable
      * returned.
      * 
      * @param vecs the list of vectors to build an acceleration cache for
-     * @param threadpool source of threads for parallel computation of result. 
-     * This may be {@code null}, which means the 
-     * {@link #getAccelerationCache(java.util.List) singled threaded} version 
-     * may be used. 
-     * @return the list of double for the cache
-     */
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs, ExecutorService threadpool);
-    
-    /**
-     * Returns a cache of double values associated with the given list of 
-     * vectors in the given order. This can be used by the distance metric to 
-     * increase runtime at the cost of memory. This is an optional method. 
-     * <br> If this metric does not support acceleration, {@code null} will be 
-     * returned.
-     * 
-     * @param vecs the list of vectors to build an acceleration cache for
      * @param parallel {@code true} if multiple threads should be used to
      * perform clustering. {@code false} if it should be done in a single
      * threaded manner.
      * @return the list of double for the cache
      */
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs, boolean parallel);
+    default public List<Double> getAccelerationCache(List<? extends Vec> vecs, boolean parallel)
+    {
+        return null;
+    }
     
     /**
      * Computes the distance between 2 vectors in the original list of vectors. 
@@ -161,7 +151,10 @@ public interface DistanceMetric extends Cloneable, Serializable
      * @param cache the cache associated with the given list of vectors
      * @return the distance between the two vectors
      */
-    public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache);
+    default public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
+    {
+        return dist(vecs.get(a), vecs.get(b));
+    }
     
     /**
      * Computes the distance between one vector in the original list of vectors
@@ -174,7 +167,10 @@ public interface DistanceMetric extends Cloneable, Serializable
      * @param cache the cache associated with the given list of vectors
      * @return the distance between the two vectors
      */
-    public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache);
+    default public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
+    {
+        return dist(a, b, getQueryInfo(b), vecs, cache);
+    }
     
     /**
      * Pre computes query information that would have be generated if the query 
@@ -189,7 +185,10 @@ public interface DistanceMetric extends Cloneable, Serializable
      * @param q the query point to generate cache information for
      * @return the cache information for the query point
      */
-    public List<Double> getQueryInfo(Vec q);
+    default public List<Double> getQueryInfo(Vec q)
+    {
+        return null;
+    }
     
     /**
      * Computes the distance between one vector in the original list of vectors 
@@ -204,7 +203,10 @@ public interface DistanceMetric extends Cloneable, Serializable
      * @param cache the cache associated with the given list of vectors
      * @return the distance between the two vectors
      */
-    public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache);
+    default public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    {
+        return dist(vecs.get(a), b);
+    }
     
     /**
      * Returns a descriptive name of the Distance Metric in use

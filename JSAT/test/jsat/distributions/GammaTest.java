@@ -1,5 +1,9 @@
 package jsat.distributions;
 
+import java.util.Arrays;
+import java.util.Random;
+import jsat.linear.Vec;
+import jsat.utils.random.RandomUtil;
 import static org.junit.Assert.*;
 
 import org.junit.After;
@@ -52,6 +56,24 @@ public class GammaTest {
     	ContinuousDistribution d4 = new Gamma(0.5, 0.5);
     	assertEquals(d1.hashCode(), d4.hashCode());
     	assertFalse(d1.hashCode()==d2.hashCode());
+    }
+    
+    @Test
+    public void testSample(){
+    	System.out.println("hashCode");
+    	Gamma d1 = new Gamma(0.5, 0.5);
+    	Gamma d2 = new Gamma(1.6, 0.5);
+    	Gamma d3 = new Gamma(0.5, 2.5);
+        Gamma d4 = new Gamma(3.5, 2.5);
+    	
+        Random rand = RandomUtil.getRandom();
+        for(Gamma d : Arrays.asList(d1, d2, d3, d4))
+        {
+            
+            Vec sample = d.sampleVec(1000000, rand);
+            assertEquals(d.mean(), sample.mean(), 1e-2);
+            assertEquals(d.standardDeviation(), sample.standardDeviation(), 1e-2);
+        }
     }
 
 }

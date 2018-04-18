@@ -103,7 +103,7 @@ public class SquaredEuclideanDistanceTest
         SquaredEuclideanDistance dist = new SquaredEuclideanDistance();
         
         List<Double> cache = dist.getAccelerationCache(vecs);
-        List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
+        List<Double> cache2 = dist.getAccelerationCache(vecs, true);
         if(cache != null)
         {
             assertEquals(cache.size(), cache2.size());

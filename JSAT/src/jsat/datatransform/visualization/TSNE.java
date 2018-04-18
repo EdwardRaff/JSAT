@@ -18,9 +18,6 @@ package jsat.datatransform.visualization;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.*;
@@ -29,13 +26,10 @@ import jsat.linear.*;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.vectorcollection.DefaultVectorCollection;
-import jsat.linear.vectorcollection.VPTree;
-import jsat.linear.vectorcollection.VPTreeMV;
 import jsat.linear.vectorcollection.VectorCollection;
 import jsat.math.FastMath;
 import jsat.math.optimization.stochastic.*;
 import jsat.math.rootfinding.Zeroin;
-import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDouble;
 import jsat.utils.concurrent.ParallelUtils;
@@ -149,13 +143,7 @@ public class TSNE implements VisualizationTransform
     }
     
     @Override
-    public <Type extends DataSet> Type transform(DataSet<Type> d)
-    {
-        return transform(d, new FakeExecutor());
-    }
-    
-    @Override
-    public <Type extends DataSet> Type transform(DataSet<Type> d, ExecutorService ex)
+    public <Type extends DataSet> Type transform(DataSet<Type> d, boolean parallel)
     {
         Random rand = RandomUtil.getRandom();
         final int N = d.getSampleSize();
@@ -178,7 +166,7 @@ public class TSNE implements VisualizationTransform
          */
         final int[][] nearMe = new int[N][knn];
         
-        computeP(d, ex, rand, knn, nearMe, nearMePij, dm, perplexity);
+        computeP(d, parallel, rand, knn, nearMe, nearMePij, dm, perplexity);
         
         Normal normalDIst = new Normal(0, 1e-4);
         /**
@@ -204,93 +192,54 @@ public class TSNE implements VisualizationTransform
             //First loop for the F_rep forces, we do this first to normalize so we can use 1 work space for the gradient
             final Quadtree qt = new Quadtree(y);
             
-            final AtomicDouble Z = new AtomicDouble(0);
-            final CountDownLatch latch_g0 = new CountDownLatch(SystemInfo.LogicalCores);
-
-            for (int id = 0; id < SystemInfo.LogicalCores; id++)
+            //TODO might not result in even load
+            double Z = ParallelUtils.run(parallel, N, (start, end)->
             {
-                final int ID = id;
-                ex.submit(new Runnable()
+                double[] workSpace = new double[s];
+                double local_Z = 0;
+                for (int i = start; i < end; i ++)
                 {
-                    @Override
-                    public void run()
-                    {
-                        double[] workSpace = new double[s];
-                        double local_Z = 0;
-                        for (int i = ID; i < N; i += SystemInfo.LogicalCores)
-                        {
-                            Arrays.fill(workSpace, 0.0);
-                            local_Z += computeF_rep(qt.root, i, y, workSpace);
+                    Arrays.fill(workSpace, 0.0);
+                    local_Z += computeF_rep(qt.root, i, y, workSpace);
 
-                            //should be multiplied by 4, rolling it into the normalization by Z after
-                            for (int k = 0; k < s; k++)
-                                inc_z_ij(workSpace[k], i, k, y_grad, s);
-                        }
-                        Z.addAndGet(local_Z);
-                        latch_g0.countDown();
-                    }
-                });
-            }
+                    //should be multiplied by 4, rolling it into the normalization by Z after
+                    for (int k = 0; k < s; k++)
+                        inc_z_ij(workSpace[k], i, k, y_grad, s);
+                }
+                return local_Z;
+            }, (a,b)->a+b);
             
-            try
-            {
-                latch_g0.await();
-            }
-            catch (InterruptedException ex1)
-            {
-                Logger.getLogger(TSNE.class.getName()).log(Level.SEVERE, null, ex1);
-            }
             
             //normalize by Z
-            final double zNorm = 4.0/(Z.get()+1e-13);
+            final double zNorm = 4.0/(Z+1e-13);
             for(int i = 0; i < y.length; i++)
                 y_grad[i] *= zNorm;
             
             //This second loops computes the F_attr forces
             final CountDownLatch latch_g1 = new CountDownLatch(SystemInfo.LogicalCores);
 
-            for (int id = 0; id < SystemInfo.LogicalCores; id++)
+            ParallelUtils.run(parallel, N, (start,end)->
             {
-                final int ID = id;
-                ex.submit(new Runnable()
+                for (int i = start; i < end; i++)//N
                 {
-                    @Override
-                    public void run()
+                    for(int j_indx = 0; j_indx < knn; j_indx ++) //O(u)
                     {
-                        int start = ParallelUtils.getStartBlock(N, ID, SystemInfo.LogicalCores);
-                        int end = ParallelUtils.getEndBlock(N, ID, SystemInfo.LogicalCores);
-                        for (int i = start; i < end; i++)//N
-                        {
-                            for(int j_indx = 0; j_indx < knn; j_indx ++) //O(u)
-                            {
-                                int j = nearMe[i][j_indx];
-                                if(i == j)//this should never happen b/c we skipped that when creating nearMe
-                                    continue;
-                                double pij = nearMePij[i][j_indx];
-                                if(ITER < T*exageratedPortion)
-                                    pij *= alpha;
-                                double cnst = pij*q_ijZ(i, j, y, s)*4;
+                        int j = nearMe[i][j_indx];
+                        if(i == j)//this should never happen b/c we skipped that when creating nearMe
+                            continue;
+                        double pij = nearMePij[i][j_indx];
+                        if(ITER < T*exageratedPortion)
+                            pij *= alpha;
+                        double cnst = pij*q_ijZ(i, j, y, s)*4;
 
-                                for(int k = 0; k < s; k++)
-                                {
-                                    double diff = z_ij(i, k, y, s)-z_ij(j, k, y, s);
-                                    inc_z_ij(cnst*diff, i, k, y_grad, s);
-                                }
-                            }
+                        for(int k = 0; k < s; k++)
+                        {
+                            double diff = z_ij(i, k, y, s)-z_ij(j, k, y, s);
+                            inc_z_ij(cnst*diff, i, k, y_grad, s);
                         }
-                        latch_g1.countDown();
                     }
-                });
-            }
-            
-            try
-            {
-                latch_g1.await();
-            }
-            catch (InterruptedException ex1)
-            {
-                Logger.getLogger(TSNE.class.getName()).log(Level.SEVERE, null, ex1);
-            }
+                }
+            });
             
             //now we have accumulated all gradients
             double eta = 200;
@@ -301,7 +250,7 @@ public class TSNE implements VisualizationTransform
         
         DataSet<Type> transformed = d.shallowClone();
         
-        final IdentityHashMap<DataPoint, Integer> indexMap = new IdentityHashMap<DataPoint, Integer>(N);
+        final IdentityHashMap<DataPoint, Integer> indexMap = new IdentityHashMap<>(N);
         for(int i = 0; i < N; i++)
             indexMap.put(d.getDataPoint(i), i);
         
@@ -337,7 +286,7 @@ public class TSNE implements VisualizationTransform
     /**
      * 
      * @param d the dataset to search
-     * @param ex the source of threads for parallel computation
+     * @param parallel {@code true} if computation should be done with multiple threads, {@code false} for single threaded
      * @param rand source of randomness
      * @param knn the number of neighbors to search for
      * @param nearMe each row is the set of knn indices returned by the NN search
@@ -345,15 +294,15 @@ public class TSNE implements VisualizationTransform
      * @param dm the distance metric to use for determining closeness
      * @param perplexity the perplexity value for the effective nearest neighbor search and weighting
      */
-    protected static void computeP(DataSet d, ExecutorService ex, Random rand, final int knn, final int[][] nearMe, final double[][] nearMePij, final DistanceMetric dm, final double perplexity)
+    protected static void computeP(DataSet d, boolean parallel, Random rand, final int knn, final int[][] nearMe, final double[][] nearMePij, final DistanceMetric dm, final double perplexity)
     {
         @SuppressWarnings("unchecked")
         final List<Vec> vecs = d.getDataVectors();
-        final List<Double> accelCache = dm.getAccelerationCache(vecs, ex);
+        final List<Double> accelCache = dm.getAccelerationCache(vecs, parallel);
         final int N = vecs.size();
         
         final VectorCollection<Vec> vc = new DefaultVectorCollection<>();
-        vc.build(ex != null, vecs, dm);
+        vc.build(parallel, vecs, dm);
         
         final List<List<? extends VecPaired<Vec, Double>>> neighbors = new ArrayList<>(N);
         for(int i = 0; i < N; i++)
@@ -368,40 +317,16 @@ public class TSNE implements VisualizationTransform
             for(int i = 0; i < N; i++)
                 vecIndex.put(vecs.get(i), i);
 
-            final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-
-            for (int id = 0; id < SystemInfo.LogicalCores; id++)
+            ParallelUtils.run(parallel, N, (i)->
             {
-                final int ID = id;
-                ex.submit(new Runnable()
+                Vec x_i = vecs.get(i);
+                List<? extends VecPaired<Vec, Double>> closest = vc.search(x_i, knn+1);//+1 b/c self is closest
+                neighbors.set(i, closest);
+                for (int j = 1; j < closest.size(); j++)
                 {
-                    @Override
-                    public void run()
-                    {
-                        for (int i = ID; i < N; i += SystemInfo.LogicalCores)//lets pre-compute the 3u nearesst neighbors used in eq(1)
-                        {
-                            Vec x_i = vecs.get(i);
-                            List<? extends VecPaired<Vec, Double>> closest = vc.search(x_i, knn+1);//+1 b/c self is closest
-                            neighbors.set(i, closest);
-                            for (int j = 1; j < closest.size(); j++)
-                            {
-                                nearMe[i][j - 1] = vecIndex.get(closest.get(j).getVector());
-                            }
-                        }
-                        latch.countDown();
-                    }
-                });
-            }
-
-            try
-            {
-                latch.await();
-            }
-            catch (InterruptedException ex1)
-            {
-                Logger.getLogger(TSNE.class.getName()).log(Level.SEVERE, null, ex1);
-            }
-
+                    nearMe[i][j - 1] = vecIndex.get(closest.get(j).getVector());
+                }
+            });
         }
         //Now lets figure out everyone's sigmas
         final double[] sigma = new double[N];
@@ -419,95 +344,46 @@ public class TSNE implements VisualizationTransform
         }
         
         //now compute the bandwidth for each datum
-        final CountDownLatch latch0 = new CountDownLatch(SystemInfo.LogicalCores);
-        
-        for (int id = 0; id < SystemInfo.LogicalCores; id++)
-        {
-            final int ID = id;
-            ex.submit(new Runnable()
+        ParallelUtils.run(parallel, N, (i)->
+        {   
+            boolean tryAgain = false;
+            do
             {
-                @Override
-                public void run()
+                tryAgain = false;
+                try
                 {
-                    for (int i = ID; i < N; i += SystemInfo.LogicalCores)
-                    {
-                        final int I = i;
-                        
-                        boolean tryAgain = false;
-                        do
-                        {
-                            tryAgain = false;
-                            try
-                            {
-                                double sigma_i = Zeroin.root(1e-2, 100, minSigma.get(), maxSigma.get(),
-                                        (double x) -> perp(I, nearMe, x, neighbors, vecs, accelCache, dm) - perplexity);
-                                
-                                sigma[i] = sigma_i;
-                            }
-                            catch (ArithmeticException exception)//perp not in search range?
-                            {
-                                if(maxSigma.get() >= Double.MAX_VALUE/2)
-                                {
-                                    //Why can't we find a range that fits? Just pick a value.. 
-                                    //Not max value, but data is small.. so lets just set someting to break the loop
-                                    sigma[i] = 1e100;
-                                }
-                                else
-                                {
-                                    tryAgain = true;
-                                    minSigma.set(Math.max(minSigma.get() / 2, 1e-6));
-                                    maxSigma.set(Math.min(maxSigma.get() * 2, Double.MAX_VALUE / 2));
-                                }
-                            }
-                        }
-                        while (tryAgain);
-                    }
-                    latch0.countDown();
+                    double sigma_i = Zeroin.root(1e-2, 100, minSigma.get(), maxSigma.get(),
+                            (double x) -> perp(i, nearMe, x, neighbors, vecs, accelCache, dm) - perplexity);
+
+                    sigma[i] = sigma_i;
                 }
-            });
-        }
+                catch (ArithmeticException exception)//perp not in search range?
+                {
+                    if(maxSigma.get() >= Double.MAX_VALUE/2)
+                    {
+                        //Why can't we find a range that fits? Just pick a value.. 
+                        //Not max value, but data is small.. so lets just set someting to break the loop
+                        sigma[i] = 1e100;
+                    }
+                    else
+                    {
+                        tryAgain = true;
+                        minSigma.set(Math.max(minSigma.get() / 2, 1e-6));
+                        maxSigma.set(Math.min(maxSigma.get() * 2, Double.MAX_VALUE / 2));
+                    }
+                }
+            }
+            while (tryAgain);
+        });
         
-        try
+        ParallelUtils.run(parallel, N, (i)->
         {
-            latch0.await();
-        }
-        catch (InterruptedException ex1)
-        {
-            Logger.getLogger(TSNE.class.getName()).log(Level.SEVERE, null, ex1);
-        }
-        
-        
-        final CountDownLatch latch1 = new CountDownLatch(SystemInfo.LogicalCores);
-        
-        for (int id = 0; id < SystemInfo.LogicalCores; id++)
-        {
-            final int ID = id;
-            ex.submit(new Runnable()
+            for(int j_indx = 0; j_indx < knn; j_indx++)
             {
-                @Override
-                public void run()
-                {
-                    for (int i = ID; i < N; i += SystemInfo.LogicalCores)
-                    {
-                        for(int j_indx = 0; j_indx < knn; j_indx++)
-                        {
-                            int j = nearMe[i][j_indx];
-                            nearMePij[i][j_indx] =  p_ij(i, j, sigma[i], sigma[j], neighbors, vecs, accelCache, dm);
-                        }
-                    }
-                    latch1.countDown();
-                }
-            });
-        }
-        
-        try
-        {
-            latch1.await();
-        }
-        catch (InterruptedException ex1)
-        {
-            Logger.getLogger(TSNE.class.getName()).log(Level.SEVERE, null, ex1);
-        }
+                int j = nearMe[i][j_indx];
+                nearMePij[i][j_indx] =  p_ij(i, j, sigma[i], sigma[j], neighbors, vecs, accelCache, dm);
+            }
+        });
     }
     
     /**

@@ -14,12 +14,8 @@ import java.util.List;
 public class DenseVector extends Vec
 {
 
-	private static final long serialVersionUID = -889493251793828934L;
-	protected  double[] array;
-    private Double sumCache = null;
-    private Double varianceCache = null;
-    private Double minCache = null;
-    private Double maxCache = null;
+    private static final long serialVersionUID = -889493251793828934L;
+    protected double[] array;
     private int startIndex;
     private int endIndex;
 
@@ -93,17 +89,6 @@ public class DenseVector extends Vec
             set(iv.getIndex(), iv.getValue());
     }
     
-    /**
-     * nulls out the cached summary statistics, should be called every time the data set changes
-     */
-    private void clearCaches()
-    {
-        sumCache = null;
-        varianceCache = null;
-        minCache = null;
-        maxCache = null;
-    }
-    
     @Override
     public int length()
     {
@@ -119,40 +104,32 @@ public class DenseVector extends Vec
     @Override
     public void set(int index, double val)
     {
-        clearCaches();
         array[index+startIndex] = val;
     }
 
     @Override
     public double min()
     {
-        if(minCache != null)
-            return minCache;
-        
         double result = array[startIndex];
         for(int i = startIndex+1; i < endIndex; i++)
             result = Math.min(result, array[i]);
 
-        return (minCache = result);
+        return result;
     }
 
     @Override
     public double max()
     {
-        if(maxCache != null)
-            return maxCache;
         double result = array[startIndex];
         for(int i = startIndex+1; i < endIndex; i++)
             result = Math.max(result, array[i]);
 
-        return (maxCache = result);
+        return result;
     }
 
     @Override
     public double sum()
     {
-        if(sumCache != null)
-            return sumCache;
         /*
          * Uses Kahan summation algorithm, which is more accurate then
          * naively summing the values in floating point. Though it
@@ -171,7 +148,7 @@ public class DenseVector extends Vec
             sum = t;
         }
 
-        return (sumCache = sum);
+        return sum;
     }
 
     @Override
@@ -233,8 +210,6 @@ public class DenseVector extends Vec
     @Override
     public double variance()
     {
-        if(varianceCache != null)
-            return varianceCache;
         double mu = mean();
         double tmp = 0;
 
@@ -244,7 +219,7 @@ public class DenseVector extends Vec
         for(int i = startIndex; i < endIndex; i++)
             tmp += pow(array[i]-mu, 2)/N;
         
-        return (varianceCache = tmp);
+        return tmp;
     }
 
     @Override
@@ -287,7 +262,6 @@ public class DenseVector extends Vec
     @Override
     public void mutableAdd(double c)
     {
-        clearCaches();
         for(int i = startIndex; i < endIndex; i++)
             array[i] += c;
     }
@@ -298,7 +272,6 @@ public class DenseVector extends Vec
         if(this.length() !=  b.length())
             throw new ArithmeticException("Can not add vectors of unequal length");
         
-        clearCaches();
         if (b.isSparse())
             for (IndexValue iv : b)
                 array[iv.getIndex()] += c * iv.getValue();
@@ -310,7 +283,6 @@ public class DenseVector extends Vec
     @Override
     public void mutableSubtract(double c)
     {
-        clearCaches();
         for(int i = startIndex; i < endIndex; i++)
             array[i] -= c;
     }
@@ -318,7 +290,6 @@ public class DenseVector extends Vec
     @Override
     public void mutableMultiply(double c)
     {
-        clearCaches();
         for(int i = startIndex; i < endIndex; i++)
             array[i] *= c;
     }
@@ -326,7 +297,6 @@ public class DenseVector extends Vec
     @Override
     public void mutableDivide(double c)
     {
-        clearCaches();
         for(int i = startIndex; i < endIndex; i++)
             array[i] /= c;
     }

@@ -183,7 +183,7 @@ public class JaccardDistanceTest
         ExecutorService threadpool = null;
         JaccardDistance instance = new JaccardDistance();
         List<Double> expResult = null;
-        List<Double> result = instance.getAccelerationCache(vecs, threadpool);
+        List<Double> result = instance.getAccelerationCache(vecs, true);
         assertEquals(expResult, result);
     }
 

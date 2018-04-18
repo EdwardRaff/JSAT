@@ -19,6 +19,7 @@ package jsat.distributions.discrete;
 import static jsat.math.SpecialMath.*;
 import static java.lang.Math.*;
 import java.util.Random;
+import jsat.linear.DenseVector;
 import jsat.math.SpecialMath;
 
 /**
@@ -129,8 +130,32 @@ public class Poisson extends DiscreteDistribution
     public double[] sample(int numSamples, Random rand)
     {
         double[] samples = new double[numSamples];
-        for(int i = 0; i < numSamples; i++)
-            samples[i] = sampleOne(rand);
+        if(lambda < 60)
+        {
+            //https://en.wikipedia.org/wiki/Poisson_distribution
+            double p_init = exp(-lambda);
+            for(int i = 0; i < numSamples; i++)
+            {
+                double u = rand.nextDouble();
+                double x = 0;
+                double p = p_init;
+                double s = p;
+                
+                while(u > s)
+                {
+                    x++;
+                    p *= lambda/x;
+                    s += p;
+                }
+                
+                samples[i] = x;
+            }
+        }
+        else
+        {
+            for(int i = 0; i < numSamples; i++)
+                samples[i] = sampleOne(rand);
+        }
         return samples;
     }
     

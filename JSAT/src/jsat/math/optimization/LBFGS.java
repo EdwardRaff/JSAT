@@ -2,7 +2,6 @@ package jsat.math.optimization;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 import jsat.linear.*;
 import jsat.math.*;
@@ -15,7 +14,7 @@ import jsat.utils.DoubleList;
  * 
  * @author Edward Raff
  */
-public class LBFGS implements Optimizer2 
+public class LBFGS implements Optimizer 
 {
     private int m;
     private int maxIterations;
@@ -91,27 +90,23 @@ public class LBFGS implements Optimizer2
             q.mutableAdd(alphas[i]-beta, s.get(i));
         }
     }
-
-    @Override
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp)
-    {
-        optimize(tolerance, w, x0, f, fp, fpp, null);
-    }
     
     @Override
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp, ExecutorService ex)
+    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, boolean parallel)
     {
+        if(fp == null)
+            fp = Function.forwardDifference(f);
         LineSearch search = lineSearch.clone();
         final double[] f_xVal = new double[1];//store place for f_x
         
         //history for implicit H
         List<Double> Rho = new DoubleList(m);
-        List<Vec> S = new ArrayList<Vec>(m);
-        List<Vec> Y = new ArrayList<Vec>(m);
+        List<Vec> S = new ArrayList<>(m);
+        List<Vec> Y = new ArrayList<>(m);
         
         Vec x_prev = x0.clone();
         Vec x_cur = x0.clone();
-        f_xVal[0] = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_prev, ex) : f.f(x_prev);
+        f_xVal[0] = f.f(x_prev, parallel);
         //graidnet
         Vec x_grad = x0.clone();
         x_grad.zeroOut();
@@ -121,7 +116,7 @@ public class LBFGS implements Optimizer2
         Vec s_k = x_grad.clone();
         Vec y_k = x_grad.clone();
         
-        x_grad = (ex != null) ? fp.f(x_cur, x_grad, ex) : fp.f(x_cur, x_grad);
+        x_grad = fp.f(x_cur, x_grad, parallel);
        
         double[] alphas = new double[m];
         int iter = 0;
@@ -136,15 +131,12 @@ public class LBFGS implements Optimizer2
             x_cur.copyTo(x_prev);
             x_grad.copyTo(x_gradPrev);
             
-            double alpha_k = search.lineSearch(1.0, x_prev, x_gradPrev, p_k, f, fp, f_xVal[0], x_gradPrev.dot(p_k), x_cur, f_xVal, x_grad, ex);
+            double alpha_k = search.lineSearch(1.0, x_prev, x_gradPrev, p_k, f, fp, f_xVal[0], x_gradPrev.dot(p_k), x_cur, f_xVal, x_grad, parallel);
             if(alpha_k < 1e-12)//if we are making near epsilon steps consider it done
                 break;
             
             if(!search.updatesGrad())
-                if (ex != null)
-                    fp.f(x_cur, x_grad, ex);
-                else
-                    fp.f(x_cur, x_grad);
+                fp.f(x_cur, x_grad, parallel);
             
             //Define s_k =x_k+1 −x_k and y_k = ∇f_k+1 −∇f_k;
             x_cur.copyTo(s_k);

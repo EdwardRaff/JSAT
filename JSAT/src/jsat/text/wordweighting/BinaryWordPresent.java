@@ -14,14 +14,13 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class BinaryWordPresent extends WordWeighting
+public class BinaryWordPresent implements WordWeighting
 {
 
     private static final long serialVersionUID = 5633647387188363706L;
 
-	@Override
-    public void setWeight(List<? extends Vec> allDocuments, List<Integer> df)
-    {
+    @Override
+    public void setWeight(List<? extends Vec> allDocuments, List<Integer> df) {
         //No work needed
     }
 

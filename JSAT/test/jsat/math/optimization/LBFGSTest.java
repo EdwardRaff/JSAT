@@ -63,7 +63,7 @@ public class LBFGSTest
         {
             instance.setLineSearch(lineSearch);
             Vec w = new DenseVector(x0.length());
-            instance.optimize(1e-5, w, x0, f, fp, null);
+            instance.optimize(1e-5, w, x0, f, fp);
 
             for(int i = 0; i <w.length(); i++)
                 assertEquals(1.0, w.get(i), 1e-3);

@@ -3,6 +3,7 @@ package jsat.distributions;
 
 import jsat.linear.Vec;
 import static java.lang.Math.*;
+import java.util.Random;
 import static jsat.math.SpecialMath.*;
 import jsat.text.GreekLetters;
 
@@ -15,8 +16,8 @@ import jsat.text.GreekLetters;
 public class StudentT extends ContinuousDistribution
 {
 
-	private static final long serialVersionUID = -3157525461647767831L;
-	double df;
+    private static final long serialVersionUID = -3157525461647767831L;
+    double df;
     double mu;
     double sig;
 
@@ -189,6 +190,17 @@ public class StudentT extends ContinuousDistribution
         if(df <= 3)//Undefined for df <= 3
             return Double.NaN;
         return 0;
+    }
+
+    @Override
+    public double[] sample(int numSamples, Random rand) 
+    {
+        if(mu != 0 || sig != 1)
+            return super.sample(numSamples, rand);
+        double[] sample = new ChiSquared(df).sample(numSamples, rand);
+        for(int i = 0; i < sample.length; i++)
+            sample[i] = rand.nextGaussian()/sqrt(sample[i]/df);
+        return sample;
     }
 
 	@Override

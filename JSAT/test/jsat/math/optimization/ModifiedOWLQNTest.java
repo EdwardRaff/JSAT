@@ -71,7 +71,7 @@ public class ModifiedOWLQNTest
         instance.setMaximumIterations(500);
 
         Vec w = new DenseVector(x0.length());
-        instance.optimize(1e-8, w, x0, f, fp, null);
+        instance.optimize(1e-8, w, x0, f, fp);
 
         for (int i = 0; i < w.length(); i++)
             assertEquals(1.0, w.get(i), 1e-2);
@@ -95,7 +95,7 @@ public class ModifiedOWLQNTest
         instance.setMaximumIterations(2000);
 
         Vec w = new DenseVector(x0.length());
-        instance.optimize(1e-4, w, x0, f, fp, null);
+        instance.optimize(1e-4, w, x0, f, fp);
 
         for (int i = 0; i < w.length(); i++)
             assertEquals(1.0, w.get(i), 0.5);
@@ -145,7 +145,7 @@ public class ModifiedOWLQNTest
         instance.setMaximumIterations(500);
         
         Vec w = new DenseVector(x0.length());
-        instance.optimize(1e-4, w, x0, f, fp, null);
+        instance.optimize(1e-4, w, x0, f, fp);
         
         assertTrue(w.nnz() <= 3);
         for(IndexValue iv : w)
@@ -161,7 +161,7 @@ public class ModifiedOWLQNTest
         instance.setLambdaMultipler(DenseVector.toDenseVec(1, 1, 1, 1, 0, 1));
         x0.zeroOut();
         instance = instance.clone();
-        instance.optimize(1e-4, w, x0, f, fp, null);
+        instance.optimize(1e-4, w, x0, f, fp);
 
         assertTrue(w.nnz() <= 4);
         for(IndexValue iv : w)
@@ -190,7 +190,7 @@ public class ModifiedOWLQNTest
         }
 
         @Override
-        public double f(Vec w)
+        public double f(Vec w, boolean parallel)
         {
             double sum = 0;
             double weightSum = 0;
@@ -220,21 +220,7 @@ public class ModifiedOWLQNTest
         }
 
         @Override
-        public Vec f(double... x)
-        {
-            return f(DenseVector.toDenseVec(x));
-        }
-
-        @Override
-        public Vec f(Vec w)
-        {
-            Vec s = w.clone();
-            f(w, s);
-            return s;
-        }
-
-        @Override
-        public Vec f(Vec w, Vec s)
+        public Vec f(Vec w, Vec s, boolean parallel)
         {
             if (s == null)
                 s = w.clone();
@@ -250,12 +236,6 @@ public class ModifiedOWLQNTest
             }
             s.mutableDivide(weightSum);
             return s;
-        }
-
-        @Override
-        public Vec f(Vec x, Vec s, ExecutorService ex)
-        {
-            return f(x, s);
         }
     }
 }
