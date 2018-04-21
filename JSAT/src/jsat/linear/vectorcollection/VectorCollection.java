@@ -5,6 +5,7 @@ import java.io.Serializable;
 import static java.lang.Math.max;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -17,6 +18,7 @@ import jsat.utils.DoubleList;
 import jsat.utils.FibHeap;
 import jsat.utils.IntList;
 import jsat.utils.Tuple3;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * A Vector Collection is a collection of vectors that is meant to be used to 
@@ -171,6 +173,47 @@ public interface VectorCollection<V extends Vec> extends Cloneable, Serializable
      * @return the size of the collection
      */
     public int size();
+    
+    
+    default public void search(VectorCollection<V> Q, double r_min, double r_max, List<List<Integer>> neighbors, List<List<Double>> distances , boolean parallel)
+    {
+        neighbors.clear();
+        distances.clear();
+        for(int i = 0; i < Q.size(); i++)
+        {
+            neighbors.add(new ArrayList<>());
+            distances.add(new ArrayList<>());
+        }
+        
+        ParallelUtils.range(size(), parallel).forEach(i->
+        {
+            //this gets everything up to max
+            this.search(Q.get(i), r_max, neighbors.get(i), distances.get(i));
+            //now lets remove the things below min
+            int indx = Collections.binarySearch(distances.get(i), r_min);
+            if(indx < 0)
+                indx = -indx-1;
+            neighbors.get(i).subList(0, indx).clear();
+            distances.get(i).subList(0, indx).clear();
+        });
+    }
+    
+    default public void search(VectorCollection<V> Q, int numNeighbors, List<List<Integer>> neighbors, List<List<Double>> distances, boolean parallel)
+    {
+        neighbors.clear();
+        distances.clear();
+        for(int i = 0; i < Q.size(); i++)
+        {
+            neighbors.add(new ArrayList<>());
+            distances.add(new ArrayList<>());
+        }
+        
+        ParallelUtils.range(size(), parallel).forEach(i->
+        {
+            //this gets everything up to max
+            this.search(Q.get(i), numNeighbors, neighbors.get(i), distances.get(i));
+        });
+    }
     
     public VectorCollection<V> clone();
 
