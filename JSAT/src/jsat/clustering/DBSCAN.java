@@ -105,15 +105,15 @@ public class DBSCAN extends ClustererBase
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
         vc.build(parallel, getVecIndexPairs(dataSet), dm);
         
+        List<List<Integer>> neighbors = new ArrayList<>();
+        List<List<Double>> distances = new ArrayList<>();
+        vc.search(vc, minPts+1, neighbors, distances, parallel);
         
         OnLineStatistics stats = ParallelUtils.run(parallel, dataSet.getSampleSize(), (start, end)->
         {
             OnLineStatistics s = new OnLineStatistics();
             for(int i = start; i < end; i++)
-            {
-                DataPoint dp = dataSet.getDataPoint(i);
-                s.add(vc.search(dp.getNumericalValues(), minPts+1).get(minPts).getPair());
-            }
+                s.add(distances.get(i).get(minPts));
             return s;
         }, (t, u)->t.apply(t, u));
         
@@ -159,7 +159,9 @@ public class DBSCAN extends ClustererBase
         Arrays.fill(pointCats, UNCLASSIFIED);
         
         vc.build(parallel, getVecIndexPairs(dataSet), dm);
-        List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> allNearestNeighbor = VectorCollectionUtils.allEpsNeighbors(vc, dataSet.getDataVectors(), eps, parallel);
+        List<List<Integer>> neighbors = new ArrayList<>();
+        List<List<Double>> distances = new ArrayList<>();
+        vc.search(vc, 0, eps, neighbors, distances, parallel);
         
         int curClusterID = 0;
         for(int i = 0; i < pointCats.length; i++)
@@ -167,7 +169,7 @@ public class DBSCAN extends ClustererBase
             if(pointCats[i] == UNCLASSIFIED)
             {
                 //All assignments are done by expandCluster
-                if(expandCluster(pointCats, dataSet, i, curClusterID, eps, minPts, allNearestNeighbor))
+                if(expandCluster(pointCats, dataSet, i, curClusterID, eps, minPts, neighbors))
                     curClusterID++;
             }
         }
@@ -186,9 +188,9 @@ public class DBSCAN extends ClustererBase
      * @param vc the collection to use to search with 
      * @return true if a cluster was expanded, false if the point was marked as noise
      */
-    private boolean expandCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> allNearNeighbors)
+    private boolean expandCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, List<List<Integer>> neighbors)
     {
-        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> seeds = allNearNeighbors.get(point);
+        List<Integer> seeds = neighbors.get(point);
         
         if(seeds.size() < minPts)// no core point
         {
@@ -197,23 +199,22 @@ public class DBSCAN extends ClustererBase
         }
         //Else, all points in seeds are density-reachable from Point
         
-        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> results;
+        List<Integer> results;
         
         pointCats[point] = clId;
-        Queue<VecPaired<VecPaired<Vec, Integer>, Double>> workQue = new ArrayDeque<>(seeds);
+        Queue<Integer> workQue = new ArrayDeque<>(seeds);
         while(!workQue.isEmpty())
         {
-            VecPaired<VecPaired<Vec, Integer>, Double> currentP = workQue.poll();
-            results = allNearNeighbors.get(currentP.getVector().getPair());
+            int currentP = workQue.poll();
+            results = neighbors.get(currentP);
             
             if(results.size() >= minPts)
-                for(VecPaired<VecPaired<Vec, Integer>, Double> resultP :  results)
+                for(int resultPIndx :  results)
                 {
-                    int resultPIndx = resultP.getVector().getPair();
                     if(pointCats[resultPIndx] < 0)// is UNCLASSIFIED or NOISE
                     {
                         if(pointCats[resultPIndx] == UNCLASSIFIED)
-                            workQue.add(resultP);
+                            workQue.add(resultPIndx);
                         pointCats[resultPIndx] = clId;
                     }
                 }
