@@ -2,13 +2,21 @@
 package jsat.linear.vectorcollection;
 
 import java.io.Serializable;
+import static java.lang.Math.max;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.utils.DoubleList;
+import jsat.utils.FibHeap;
 import jsat.utils.IntList;
+import jsat.utils.Tuple3;
 
 /**
  * A Vector Collection is a collection of vectors that is meant to be used to 
@@ -165,4 +173,11 @@ public interface VectorCollection<V extends Vec> extends Cloneable, Serializable
     public int size();
     
     public VectorCollection<V> clone();
+
+    public default List<Vec> getVecs()
+    {
+        return IntStream.range(0, size())
+                .mapToObj(this::get)
+                .collect(Collectors.toList());
+    }
 }
