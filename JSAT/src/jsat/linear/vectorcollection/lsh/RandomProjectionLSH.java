@@ -116,6 +116,12 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
             }
         };
     }
+    
+    @Override
+    public List<Double> getAccelerationCache()
+    {
+        return null;
+    }
 
     @Override
     public void build(boolean parallel, List<V> collection, DistanceMetric dm)

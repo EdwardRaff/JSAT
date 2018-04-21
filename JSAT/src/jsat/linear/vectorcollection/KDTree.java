@@ -134,6 +134,12 @@ public class KDTree<V extends Vec> implements IncrementalCollection<V>
         this(PivotSelection.SPREAD_MEDOID);
     }
     
+    @Override
+    public List<Double> getAccelerationCache()
+    {
+        return distCache;
+    }
+    
     /**
      * Sets the number of points stored within a leaf node of the index. Larger
      * values avoid search overhead, but reduce opportunities for pruning.

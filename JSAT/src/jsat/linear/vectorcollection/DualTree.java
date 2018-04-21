@@ -17,7 +17,6 @@
 package jsat.linear.vectorcollection;
 
 import java.util.ArrayList;
-import java.util.IdentityHashMap;
 import java.util.List;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
@@ -26,10 +25,8 @@ import jsat.utils.DoubleList;
 import jsat.utils.IndexTable;
 import jsat.utils.IntList;
 import static java.lang.Math.*;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Stack;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.Map;
 import jsat.utils.ListUtils;
 /**
  *
@@ -56,9 +53,8 @@ public interface DualTree<V extends Vec> extends VectorCollection<V>
     
     default public void search(DualTree<V> Q, int numNeighbors, List<List<Integer>> neighbors, List<List<Double>> distances )
     {
-        
         //Mpa each node to a cached value. This is used for recursive bound updates
-        IdentityHashMap<IndexNode, Double> query_B_cache = new IdentityHashMap<>(Q.size());
+        Map<IndexNode, Double> query_B_cache = new HashMap<>(Q.size());
         
         //For each item in Q, we want to find its nearest neighbor in THIS collection. 
         //each item in Q gets a priority queue of k-nns
@@ -143,7 +139,6 @@ public interface DualTree<V extends Vec> extends VectorCollection<V>
             {
                 query_B_cache.put(query, bound_final);
                 
-//                System.out.println(d_min_b + " " + bound_final);
                 if(d_min_b > bound_final)//YAY we can prune!
                     return Double.NaN;
             }
@@ -151,7 +146,6 @@ public interface DualTree<V extends Vec> extends VectorCollection<V>
             return d_min_b;
         };
         
-//        IndexNode.dual_depth_first(this.getRoot(), Q.getRoot(), base, score, true);
         traverse(Q, base, score, true);
         
         
@@ -239,19 +233,142 @@ public interface DualTree<V extends Vec> extends VectorCollection<V>
             IndexNode.dual_depth_first(this.getRoot(), Q.getRoot(), base, score, improvedTraverse);
         else//we need more index structure
         {
-            IdentityHashMap<IndexNode, Set<IndexNode>> alreadySeen = new IdentityHashMap<>();
-            //Pre-populate keys for thread safe traversal 
-            Stack<IndexNode> toAdd = new Stack<>();
-            toAdd.add(this.getRoot());
-            while(!toAdd.isEmpty())
-            {
-                IndexNode node = toAdd.pop();
-                alreadySeen.put(node, new HashSet<>());
-                for(int i = 0; i < node.numChildren(); i++)
-                    toAdd.add(node.getChild(i));
-            }
+            SelfAsChildNode R_wrap = new SelfAsChildNode<>(this.getRoot());
+            SelfAsChildNode Q_wrap = new SelfAsChildNode<>(Q.getRoot());
             
-            IndexNode.dual_depth_first_pointsInBranches(this.getRoot(), Q.getRoot(), base, score, improvedTraverse, alreadySeen);
+            IndexNode.dual_depth_first(R_wrap, Q_wrap, base, score, improvedTraverse);
         }
+    }
+    
+    class SelfAsChildNode<N extends IndexNode<N>> implements IndexNode<SelfAsChildNode<N>>
+    {
+        public boolean asLeaf;
+        N wrapping;
+
+        public SelfAsChildNode(N wrapping)
+        {
+            this.wrapping = wrapping;
+            asLeaf = !wrapping.hasChildren();
+        }
+
+        public SelfAsChildNode(boolean asLeaf, N wrapping)
+        {
+            this.asLeaf = asLeaf;
+            this.wrapping = wrapping;
+        }
+        
+        
+        @Override
+        public double furthestPointDistance()
+        {
+            if(!asLeaf)//Not acting as a leaf, so you don't have children!
+                return 0;
+            //else, return the answer
+            return wrapping.furthestPointDistance();
+        }
+
+        @Override
+        public double furthestDescendantDistance()
+        {
+            if(asLeaf)
+                return wrapping.furthestPointDistance();
+            else
+                return wrapping.furthestDescendantDistance();
+        }
+
+        @Override
+        public int numChildren()
+        {
+            if(asLeaf)
+                return 0;
+            else
+                return wrapping.numChildren() + 1;//+1 for self child
+        }
+
+        @Override
+        public IndexNode getChild(int indx)
+        {
+            if(indx == wrapping.numChildren())
+                return new SelfAsChildNode(true, wrapping);
+            //else, return base children
+            return new SelfAsChildNode(wrapping.getChild(indx));
+        }
+
+        @Override
+        public Vec getVec(int indx)
+        {
+            return wrapping.getVec(indx);
+        }
+
+        @Override
+        public int numPoints()
+        {
+            if(asLeaf)
+                return wrapping.numPoints();
+            else
+                return 0;
+        }
+
+        @Override
+        public int getPoint(int indx)
+        {
+            if(asLeaf)
+                return wrapping.getPoint(indx);
+            else//we can't have children if we aren't a leaf node!
+                throw new IndexOutOfBoundsException("Leaf node does not have any children");
+        }
+
+        @Override
+        public SelfAsChildNode<N> getParrent()
+        {
+            if(asLeaf)
+                if(wrapping.hasChildren())//we are a branch node and acting as a leaf, so parrent its our non-leaf self
+                    return new SelfAsChildNode<>(false, wrapping);
+                else//we are true leaf node, parrent is just parrent
+                    return new SelfAsChildNode<>(false, wrapping.getParrent());
+            else//we are not a leaf node, parrent is just parrent
+                return new SelfAsChildNode<>(false, wrapping.getParrent());
+                
+        }
+
+        @Override
+        public double minNodeDistance(SelfAsChildNode<N> other)
+        {
+            return wrapping.minNodeDistance(other.wrapping);
+        }
+
+        @Override
+        public double maxNodeDistance(SelfAsChildNode<N> other)
+        {
+            return wrapping.maxNodeDistance(other.wrapping);
+        }
+
+        @Override
+        public double minNodeDistance(int other)
+        {
+            return wrapping.minNodeDistance(other);
+        }
+
+        @Override
+        public boolean equals(Object obj)
+        {
+            if(obj instanceof SelfAsChildNode)
+            {
+                SelfAsChildNode other = (SelfAsChildNode) obj;
+                if(this.asLeaf == other.asLeaf)
+                    return this.wrapping.equals(other.wrapping);
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            int hash = 5;
+            hash = 71 * hash + (this.asLeaf ? 1 : 0);
+            hash = 71 * hash + this.wrapping.hashCode();
+            return hash;
+        }
+        
     }
 }

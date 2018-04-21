@@ -163,6 +163,12 @@ public class RTree<V extends Vec> implements IncrementalCollection<V>
         return null;
     }
     
+    @Override
+    public List<Double> getAccelerationCache()
+    {
+        return null;
+    }
+    
     private class RNode<V extends Vec> implements Comparable<RNode<V>>, Cloneable
     {
         List<RNode<V>> children;

@@ -71,6 +71,12 @@ public class DefaultVectorCollection<V extends Vec> implements VectorCollection<
             base = new VPTreeMV<>();
         base.build(parallel, collection, dm);
     }
+    
+    @Override
+    public List<Double> getAccelerationCache()
+    {
+        return base.getAccelerationCache();
+    }
 
     @Override
     public void setDistanceMetric(DistanceMetric dm)

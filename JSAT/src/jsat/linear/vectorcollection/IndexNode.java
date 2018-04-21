@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.PriorityQueue;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
-import java.util.IdentityHashMap;
-import java.util.Set;
 /**
  *
  * @author Edward Raff
@@ -116,123 +114,6 @@ public interface IndexNode<N extends IndexNode>
     default public boolean allPointsInLeaves()
     {
         return true;
-    }
-    
-    public static void dual_depth_first_pointsInBranches(IndexNode n_r, IndexNode n_q, BaseCaseDT base, ScoreDT score, boolean improvedSearch, IdentityHashMap<IndexNode, Set<IndexNode>> alreadyProcced)
-    {
-        //TODO still in progress, not quite working yet... 
-        //Algo 10 in Thesis
-        
-        //3: {Perform base cases for points in node combination.}
-        for(int i = 0; i < n_r.numPoints(); i++)
-            for(int j = 0; j < n_q.numPoints(); j++)
-                base.base_case(n_r.getPoint(i), n_q.getPoint(j));
-        
-//        if(n_r.hasChildren() && n_r.numPoints() > 0)
-//            dual_depth_first_fix(n_r, n_q, base, score);
-        //Get parrents 
-        IndexNode n_q_p = n_q.getParrent();
-        while(n_q_p != null)
-        {
-            Set<IndexNode> n_r_seen = alreadyProcced.get(n_r);
-            if(!n_r_seen.add(n_q_p))
-                break;//we've alreayd seen this - get out!
-//            
-            for(int i = 0; i < n_r.numPoints(); i++)
-                for(int j = 0; j < n_q_p.numPoints(); j++)
-                    base.base_case(n_r.getPoint(i), n_q_p.getPoint(j));
-            n_q_p = n_q_p.getParrent();
-        }
-        IndexNode n_r_p = n_r.getParrent();
-        while(n_r_p != null)
-        {
-            Set<IndexNode> n_rp_seen = alreadyProcced.get(n_r_p);
-            if(!n_rp_seen.add(n_q))
-                break;//we've alreayd seen this - get out!
-            
-                
-            for(int i = 0; i < n_r_p.numPoints(); i++)
-                for(int j = 0; j < n_q.numPoints(); j++)
-                    base.base_case(n_r_p.getPoint(i), n_q.getPoint(j));
-            n_r_p = n_r_p.getParrent();
-        }
-        //7: {Assemble list of combinations to recurse into.}
-        //8: q←empty priority queue
-        PriorityQueue<IndexTuple> q = new PriorityQueue<>();
-        
-        //9: if Nq andNr both have children then
-        if(n_q.hasChildren() && n_r.hasChildren())
-        {
-            //the Algorithm 10 version. Simpler but not as efficent
-            if(!improvedSearch)
-            {
-                for(int i = 0; i < n_r.numChildren(); i++)
-                    for(int j = 0; j < n_q.numChildren(); j++)
-                    {
-                        IndexNode n_r_i = n_r.getChild(i);
-                        IndexNode n_q_j = n_q.getChild(j);
-
-                        double s = score.score(n_r_i, n_q_j);
-                        if(!Double.isNaN(s))
-                            q.offer(new IndexTuple(n_r_i, n_q_j, s));
-//                        else
-//                            System.out.println("WAT?");
-                    }
-            }
-            else //Below is the Algo 13 version. 
-            {
-                for(int c = 0; c < n_q.numChildren(); c++)
-                {
-                    IndexNode n_q_c = n_q.getChild(c);
-                    List<IndexTuple> q_qc =new ArrayList<>();
-                    boolean all_scores_same = true;
-                    for(int i = 0; i < n_r.numChildren(); i++)
-                    {
-                        IndexNode n_r_i = n_r.getChild(i);
-                        double s = score.score(n_r_i, n_q_c);
-                        //check if all scores have the same value
-                        if(i > 0 && abs(q_qc.get(i-1).priority-s) < 1e-13)
-                            all_scores_same = false;
-                        q_qc.add(new IndexTuple(n_r_i, n_q_c, s));
-                    }
-
-                    if(all_scores_same)
-                    {
-                        double s = score.score(n_r, n_q_c);
-                        q.offer(new IndexTuple(n_r, n_q_c, s));
-                    }
-                    else
-                        q.addAll(q_qc);
-                }
-            }
-        }
-        else if(n_q.hasChildren()) //implicitly n_r has not children if this check passes
-        {
-            for(int j = 0; j < n_q.numChildren(); j++)
-            {
-                IndexNode n_q_j = n_q.getChild(j);
-                double s = score.score(n_r, n_q_j);
-                if (!Double.isNaN(s))
-                    q.offer(new IndexTuple(n_r, n_q_j, s));
-            }
-        }
-        else if(n_r.hasChildren())// implicitly n_q has no children if this check passes
-        {
-            for (int i = 0; i < n_r.numChildren(); i++)
-            {
-                IndexNode n_r_i = n_r.getChild(i);
-                double s = score.score(n_r_i, n_q);
-                if (!Double.isNaN(s))
-                    q.offer(new IndexTuple(n_r_i, n_q, s));
-            }
-        }
-        
-        //22: {Recurse into combinations with highest priority first.
-        while(!q.isEmpty())
-        {
-            IndexTuple toProccess = q.poll();
-            dual_depth_first_pointsInBranches(toProccess.a, toProccess.b, base, score, improvedSearch, alreadyProcced);
-        }
     }
     
     public static void dual_depth_first(IndexNode n_r, IndexNode n_q, BaseCaseDT base, ScoreDT score, boolean improvedSearch)

@@ -131,6 +131,12 @@ public class RandomBallCover<V extends Vec> implements IncrementalCollection<V>
         ListUtils.addRange(allIndices, 0, size, 1);
         setUp(allIndices, parallel);
     }
+    
+    @Override
+    public List<Double> getAccelerationCache()
+    {
+        return distCache;
+    }
 
     private void setUp(List<Integer> vecIndices, boolean parallel)
     {

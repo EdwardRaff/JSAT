@@ -172,6 +172,12 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
         });
         
     }
+    
+    @Override
+    public List<Double> getAccelerationCache()
+    {
+        return distCache;
+    }
 
     @Override
     public void search(Vec query, double range, List<Integer> neighbors, List<Double> distances)

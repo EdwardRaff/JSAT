@@ -12,6 +12,7 @@ import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jsat.classifiers.DataPoint;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
@@ -42,7 +43,7 @@ import jsat.utils.random.RandomUtil;
  * 
  * @author Edward Raff
  */
-public class VPTree<V extends Vec> implements IncrementalCollection<V>
+public class VPTree<V extends Vec> implements IncrementalCollection<V>, DualTree<V>
 {
 
     private static final long serialVersionUID = -7271540108746353762L;
@@ -52,10 +53,16 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
     private Random rand;
     private int sampleSize;
     private int searchIterations;
-    private volatile TreeNode root;
+    protected volatile TreeNode root;
     private VPSelection vpSelection;
     private int size;
     private int maxLeafSize = 5;
+
+    @Override
+    public IndexNode getRoot()
+    {
+        return root;
+    }
 
     public enum VPSelection
     {
@@ -349,6 +356,7 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         
         int vpIndex = selectVantagePointIndex(S);
         final VPNode node = new VPNode(S.get(vpIndex).getSecondItem());
+        node.parent_dist = S.get(vpIndex).getFirstItem();
         
         //move VP to front, its self dist is zero and we dont want it used in computing bounds. 
         Collections.swap(S, 0, vpIndex);
@@ -360,7 +368,11 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
          * would get thrown off or require aditonal book keeping. 
          */
         node.right = makeVPTree(S.subList(splitIndex+1, S.size()));
+        if(node.right != null)
+            node.right.parent = node;
         node.left  = makeVPTree(S.subList(1, splitIndex+1));
+        if(node.left != null)
+            node.left.parent = node;
         
         return node;
     }
@@ -379,6 +391,7 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         
         int vpIndex = selectVantagePointIndex(S);
         final VPNode node = new VPNode(S.get(vpIndex).getSecondItem());
+        node.parent_dist = S.get(vpIndex).getFirstItem();
         
         //move VP to front, its self dist is zero and we dont want it used in computing bounds. 
         Collections.swap(S, 0, vpIndex);
@@ -395,9 +408,13 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         threadpool.submit(() -> 
         {
             node.right = makeVPTree(rightS, threadpool, mcdl);
+            if(node.right != null)
+                node.right.parent = node;
             mcdl.countDown();
         });
         node.left  = makeVPTree(leftS, threadpool, mcdl);
+        if(node.left != null)
+            node.left.parent = node;
 
         return node;
     }
@@ -467,8 +484,16 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         return new VPTree<>(this);
     }
     
-    private abstract class TreeNode implements Cloneable, Serializable
+    @Override
+    public List<Double> getAccelerationCache()
     {
+        return distCache;
+    }
+    
+    private abstract class TreeNode implements Cloneable, Serializable, IndexNode
+    {
+        VPNode parent;
+        
         /**
          * Inserts the given data point into the tree structure. The vector
          * should have already been added to {@link #allVecs}.
@@ -514,6 +539,8 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         
         @Override
         public abstract TreeNode clone();
+        
+        public abstract int size();
     }
     
     private class VPNode extends TreeNode
@@ -521,6 +548,7 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         int p;
         double left_low, left_high, right_low, right_high;
         TreeNode right, left;
+        double parent_dist;
 
         public VPNode(int p)
         {
@@ -586,13 +614,17 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
                 int vpIndex = selectVantagePointIndex(S);
                 
                 final VPNode node = new VPNode(S.get(vpIndex).getSecondItem());
+                node.parent_dist = S.get(vpIndex).getFirstItem();
+                node.parent = ((VPLeaf) child).parent;
                 
                 //move VP to front, its self dist is zero and we dont want it used in computing bounds. 
                 Collections.swap(S, 0, vpIndex);
                 int splitIndex = sortSplitSet(S.subList(1, S.size()), node)+1;//ofset by 1 b/c we sckipped the VP, which was moved to the front
                 
                 node.right = new VPLeaf(S.subList(splitIndex+1, S.size()));
+                node.right.parent = node;
                 node.left = new VPLeaf(S.subList(1, splitIndex+1));
+                node.left.parent = node;
                 return node;
             }
             else
@@ -757,6 +789,130 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         {
             return new VPNode(this);
         }
+
+        @Override
+        public IndexNode getParrent()
+        {
+            return parent;
+        }
+
+        @Override
+        public double maxNodeDistance(IndexNode other)
+        {
+            if(other instanceof jsat.linear.vectorcollection.VPTree.VPNode)
+            {
+                jsat.linear.vectorcollection.VPTree.VPNode o = (jsat.linear.vectorcollection.VPTree.VPNode) other;
+//                return dm.dist(this.p, o.p, allVecs, distCache) - this.right_high - o.right_high;
+                Vec ov = o.getVec(o.p);
+                List<Double> qi = dm.getQueryInfo(ov);
+                return dm.dist(this.p, ov, qi, allVecs, distCache) + this.right_high + o.right_high;
+            }
+            else
+            {
+//                jsat.linear.vectorcollection.VPTree.VPLeaf o = (jsat.linear.vectorcollection.VPTree.VPLeaf) other;
+                return Double.POSITIVE_INFINITY;
+            }
+        }
+
+        @Override
+        public double minNodeDistance(IndexNode other)
+        {
+            if(other instanceof jsat.linear.vectorcollection.VPTree.VPNode)
+            {
+                jsat.linear.vectorcollection.VPTree.VPNode o = (jsat.linear.vectorcollection.VPTree.VPNode) other;
+//                return dm.dist(this.p, o.p, allVecs, distCache) - this.right_high - o.right_high;
+                Vec ov = o.getVec(o.p);
+                List<Double> qi = dm.getQueryInfo(ov);
+                return dm.dist(this.p, ov, qi, allVecs, distCache) - this.right_high - o.right_high;
+//                return dm.dist(ov, get(this.p)) - this.right_high - o.right_high;
+//                return 0;
+            }
+            else
+            {
+//                jsat.linear.vectorcollection.VPTree.VPLeaf o = (jsat.linear.vectorcollection.VPTree.VPLeaf) other;
+                return 0;
+            }
+        }
+
+        @Override
+        public double minNodeDistance(int other)
+        {
+            return 0;
+//            return dm.dist(p, other, allVecs, distCache) - right_low;
+        }
+
+        @Override
+        public double getParentDistance()
+        {
+            return parent_dist;
+        }
+
+        @Override
+        public double furthestPointDistance()
+        {
+            return 0;//WE have one point which is the centroid, so distance is 0. 
+        }
+
+        @Override
+        public double furthestDescendantDistance()
+        {
+            return right_high;
+//            return Double.POSITIVE_INFINITY;
+        }
+
+        @Override
+        public int numChildren()
+        {
+            return 2;
+        }
+
+        @Override
+        public IndexNode getChild(int indx)
+        {
+            switch(indx)
+            {
+                case 0:
+                    return left;
+                case 1:
+                    return right;
+                default:
+                    throw new IndexOutOfBoundsException();
+            }
+        }
+
+        @Override
+        public Vec getVec(int indx)
+        {
+            return get(indx);
+        }
+
+        @Override
+        public int numPoints()
+        {
+            return 1;
+        }
+
+        @Override
+        public int getPoint(int indx)
+        {
+            if(indx == 0)
+                return p;
+            else
+                throw new IndexOutOfBoundsException("VPNode has only one point, can't access index " + indx);
+        }
+
+        @Override
+        public int size()
+        {
+            return 0 + left.size() + right.size();
+        }
+
+        @Override
+        public boolean allPointsInLeaves()
+        {
+            return false;
+        }
+        
     }
     
     private class VPLeaf extends TreeNode
@@ -848,6 +1004,88 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>
         public TreeNode clone()
         {
             return new VPLeaf(this);
+        }
+
+        @Override
+        public IndexNode getParrent()
+        {
+            return parent;
+        }
+
+        @Override
+        public double maxNodeDistance(IndexNode other)
+        {
+            //Leaf node, return a value that makes caller go brute-force
+            return Double.POSITIVE_INFINITY;
+        }
+        
+
+        @Override
+        public double minNodeDistance(IndexNode other)
+        {
+            //Leaf node, return a value that makes caller go brute-force
+            return 0.0;
+        }
+
+        @Override
+        public double minNodeDistance(int other)
+        {
+            //Leaf node, return a value that makes caller go brute-force
+            return 0.0;
+        }
+
+        @Override
+        public double getParentDistance()
+        {
+            return bounds.stream().mapToDouble(d->d).max().orElse(Double.POSITIVE_INFINITY);
+        }
+
+        @Override
+        public double furthestPointDistance()
+        {
+            return bounds.stream().mapToDouble(d->d).max().orElse(Double.POSITIVE_INFINITY);
+        }
+
+        @Override
+        public double furthestDescendantDistance()
+        {
+            return bounds.stream().mapToDouble(d->d).max().orElse(Double.POSITIVE_INFINITY);
+        }
+
+        @Override
+        public int numChildren()
+        {
+            return 0;
+        }
+
+        @Override
+        public IndexNode getChild(int indx)
+        {
+            throw new IndexOutOfBoundsException("Leaf nodes have no children");
+        }
+
+        @Override
+        public Vec getVec(int indx)
+        {
+            return get(indx);
+        }
+
+        @Override
+        public int numPoints()
+        {
+            return points.size();
+        }
+
+        @Override
+        public int getPoint(int indx)
+        {
+            return points.getI(indx);
+        }
+
+        @Override
+        public int size()
+        {
+            return points.size();
         }
     }
 }

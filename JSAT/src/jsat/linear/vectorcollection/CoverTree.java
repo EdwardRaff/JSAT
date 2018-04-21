@@ -118,6 +118,12 @@ public final class CoverTree<V extends Vec> implements IncrementalCollection<V>
         if(toCopy.root != null)
             this.root = new TreeNode(toCopy.root);
     }
+    
+    @Override
+    public List<Double> getAccelerationCache()
+    {
+        return accell_cache;
+    }
 
     @Override
     public void build(boolean parallel, List<V> collection, DistanceMetric dm)
