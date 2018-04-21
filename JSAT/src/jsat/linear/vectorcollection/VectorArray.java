@@ -87,6 +87,12 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements Incremen
             this.distCache.addAll(distanceMetric.getQueryInfo(e));
         return toRet;
     }
+    
+    @Override
+    public List<Double> getAccelerationCache()
+    {
+        return distCache;
+    }
 
     @Override
     public boolean addAll(Collection<? extends V> c)

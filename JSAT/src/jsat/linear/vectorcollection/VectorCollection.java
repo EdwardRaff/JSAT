@@ -156,6 +156,8 @@ public interface VectorCollection<V extends Vec> extends Cloneable, Serializable
      */
     public V get(int indx);
     
+    public List<Double> getAccelerationCache();
+    
     /**
      * Returns the number of vectors stored in the collection
      * @return the size of the collection

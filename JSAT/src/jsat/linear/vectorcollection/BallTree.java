@@ -77,7 +77,7 @@ import jsat.utils.random.RandomUtil;
  * @author Edward Raff
  * @param <V>
  */
-public class BallTree<V extends Vec> implements IncrementalCollection<V>
+public class BallTree<V extends Vec> implements IncrementalCollection<V>, DualTree<V>
 {
     public static final int DEFAULT_LEAF_SIZE = 40;
     private int leaf_size = DEFAULT_LEAF_SIZE;
@@ -87,6 +87,18 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
     private ConstructionMethod construction_method;
     private PivotSelection pivot_method;
     private Node root;
+
+    @Override
+    public IndexNode getRoot()
+    {
+        return root;
+    }
+
+    @Override
+    public List<Double> getAccelerationCache()
+    {
+        return cache;
+    }
     
     public enum ConstructionMethod
     {
@@ -355,6 +367,8 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
         //everyone has been assigned, now creat children objects
         branch.left_child = build(left_children, parallel);
         branch.right_child = build(right_children, parallel);
+        branch.left_child.parent = branch;
+        branch.right_child.parent = branch;
 
         return branch;
     }
@@ -432,6 +446,9 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
         //everyone has been assigned, now creat children objects
         branch.left_child = build(left_children, parallel);
         branch.right_child = build(right_children, parallel);
+        branch.left_child.parent = branch;
+        branch.right_child.parent = branch;
+        
         
         return branch;
     }
@@ -615,6 +632,8 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
             merged.radius = mergeCost.get(toMerge);
             merged.left_child = anchor_nodes.get(winningQ);
             merged.right_child = anchor_nodes.get(other);
+            merged.left_child.parent = merged;
+            merged.right_child.parent = merged;
             anchor_nodes.set(winningQ, merged);
             anchor_nodes.set(other, null);
             
@@ -839,11 +858,13 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
         return allVecs.size();
     }
 
-    private abstract class Node implements Cloneable, Serializable, Iterable<Integer>
+    private abstract class Node implements Cloneable, Serializable, Iterable<Integer>, IndexNode<Node>
     {
         Vec pivot;
         List<Double> pivot_qi;
         double radius;
+        Node parent;
+        double parrent_dist = Double.POSITIVE_INFINITY;
 
         public Node()
         {
@@ -879,6 +900,55 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
         abstract public void search(Vec query, List<Double> qi, double range, List<Integer> neighbors, List<Double> distances);
         
         abstract public void search(Vec query, List<Double> qi, int numNeighbors, BoundedSortedList<IndexDistPair> knn, double pivot_to_query);
+
+        @Override
+        public double minNodeDistance(int other)
+        {
+            return 0;
+        }
+
+        @Override
+        public double minNodeDistance(Node other)
+        {
+            return dm.dist(this.pivot, other.pivot) - this.radius - other.radius;
+        }
+
+        @Override
+        public double furthestDescendantDistance()
+        {
+            return radius;
+        }
+        
+        @Override
+        public double maxNodeDistance(Node other)
+        {
+            return dm.dist(this.pivot, other.pivot) + this.radius + other.radius;
+        }
+        
+        @Override
+        public double furthestPointDistance()
+        {
+            return 0;//don't own any points, so dist is zero
+        }
+        
+        @Override
+        public Node getParrent()
+        {
+            return parent;
+        }
+
+//        @Override
+//        public double getParentDistance()
+//        {
+//            return parrent_dist;
+//        }
+
+        @Override
+        public Vec getVec(int indx)
+        {
+            return get(indx);
+        }
+
     }
     
     private class Leaf extends Node
@@ -927,6 +997,30 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
         public int findMaxDepth(int curDepth)
         {
             return curDepth;
+        }
+
+        @Override
+        public int numChildren()
+        {
+            return 0;
+        }
+
+        @Override
+        public IndexNode getChild(int indx)
+        {
+            throw new IndexOutOfBoundsException("Leaf nodes do not have children");
+        }
+
+        @Override
+        public int numPoints()
+        {
+            return children.size();
+        }
+
+        @Override
+        public int getPoint(int indx)
+        {
+            return children.get(indx);
         }
         
     }
@@ -1012,6 +1106,38 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>
                         return iter_right.next();
                 }
             };
+        }
+
+        @Override
+        public int numChildren()
+        {
+            return 2;
+        }
+
+        @Override
+        public IndexNode getChild(int indx)
+        {
+            switch(indx)
+            {
+                case 0:
+                    return left_child;
+                case 1:
+                    return right_child;
+                default:
+                    throw new IndexOutOfBoundsException();
+            }
+        }
+
+        @Override
+        public int numPoints()
+        {
+            return 0;
+        }
+
+        @Override
+        public int getPoint(int indx)
+        {
+            throw new IndexOutOfBoundsException("Branching node does not contain any children");
         }
         
     }
