@@ -243,11 +243,11 @@ public class VectorArrayTest
         
         
         for(boolean p : new boolean[]{true, false})
-        for(VectorArray<Vec> base : Arrays.asList(new VectorArray<>()))
+        for(VectorCollection<Vec> base : Arrays.asList(new VectorArray<>()))
         {
 //            System.out.println(base.getClass().getCanonicalName());
-            VectorArray<Vec> A_dt = base.clone();
-            VectorArray<Vec> B_dt = base.clone();
+            VectorCollection<Vec> A_dt = base.clone();
+            VectorCollection<Vec> B_dt = base.clone();
             A_dt.build(A);
             B_dt.build(B);
 

@@ -236,12 +236,6 @@ public class SMOTE implements Classifier, Parameterized
         if(dataSet.getNumCategoricalVars() != 0)
             throw new FailedToFitException("SMOTE only works with numeric-only feature values");
         
-        ExecutorService threadPool;
-        if(parallel)
-            threadPool = new FakeExecutor();
-        else
-            threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-        
         List<Vec> vAll = dataSet.getDataVectors();
         IntList[] classIndex = new IntList[dataSet.getClassSize()];
         for(int i = 0; i < classIndex.length; i++)
@@ -271,7 +265,9 @@ public class SMOTE implements Classifier, Parameterized
                 V_id.add(vAll.get(i));
             VectorCollection<Vec> VC_id = new DefaultVectorCollection<>(dm, V_id, parallel);
             //find all the nearest neighbors for each point so we know who to interpolate with
-            final List<List<? extends VecPaired<Vec, Double>>> nns_id = VectorCollectionUtils.allNearestNeighbors(VC_id, V_id, smoteNeighbors+1, threadPool);
+            List<List<Integer>> neighbors = new ArrayList<>();
+            List<List<Double>> distances = new ArrayList<>();
+            VC_id.search(VC_id, smoteNeighbors+1, neighbors, distances, parallel);
             
             ParallelUtils.run(parallel, samplesNeeded, (start, end)->
             {
@@ -282,7 +278,7 @@ public class SMOTE implements Classifier, Parameterized
                     int sampleIndex = i % V_id.size();
                     //which of the neighbors should we use?
                     int nn = rand.nextInt(smoteNeighbors) + 1;//index 0 is ourselve
-                    VecPaired<Vec, Double> vec_nn = nns_id.get(sampleIndex).get(nn);
+                    Vec vec_nn = VC_id.get(neighbors.get(sampleIndex).get(nn));
                     double gap = rand.nextDouble();
 
                     // x ~ U(0, 1)
@@ -301,15 +297,13 @@ public class SMOTE implements Classifier, Parameterized
                     for (DataPoint v : local_new)
                         synthetics.add(new DataPointPair<>(v, classID));
                 }
-            }, threadPool);
+            });
             
         }
         
         ClassificationDataSet newDataSet = new ClassificationDataSet(ListUtils.mergedView(synthetics, dataSet.getAsDPPList()), dataSet.getPredicting());
         
         baseClassifier.train(newDataSet, parallel);
-        
-        threadPool.shutdownNow();
     }
 
     @Override

@@ -175,6 +175,12 @@ public interface VectorCollection<V extends Vec> extends Cloneable, Serializable
     public int size();
     
     
+    default public void search(List<V> Q, double r_min, double r_max, List<List<Integer>> neighbors, List<List<Double>> distances , boolean parallel)
+    {
+        VectorCollection<V> vc = new VectorArray<>(getDistanceMetric(), Q);
+        search(vc, r_min, r_max, neighbors, distances, parallel);
+    }
+    
     default public void search(VectorCollection<V> Q, double r_min, double r_max, List<List<Integer>> neighbors, List<List<Double>> distances , boolean parallel)
     {
         neighbors.clear();
@@ -185,7 +191,7 @@ public interface VectorCollection<V extends Vec> extends Cloneable, Serializable
             distances.add(new ArrayList<>());
         }
         
-        ParallelUtils.range(size(), parallel).forEach(i->
+        ParallelUtils.range(Q.size(), parallel).forEach(i->
         {
             //this gets everything up to max
             this.search(Q.get(i), r_max, neighbors.get(i), distances.get(i));
@@ -198,6 +204,12 @@ public interface VectorCollection<V extends Vec> extends Cloneable, Serializable
         });
     }
     
+    default public void search(List<V> Q, int numNeighbors, List<List<Integer>> neighbors, List<List<Double>> distances, boolean parallel)
+    {
+        VectorCollection<V> vc = new VectorArray<>(getDistanceMetric(), Q);
+        search(vc, numNeighbors, neighbors, distances, parallel);
+    }
+    
     default public void search(VectorCollection<V> Q, int numNeighbors, List<List<Integer>> neighbors, List<List<Double>> distances, boolean parallel)
     {
         neighbors.clear();
@@ -208,7 +220,7 @@ public interface VectorCollection<V extends Vec> extends Cloneable, Serializable
             distances.add(new ArrayList<>());
         }
         
-        ParallelUtils.range(size(), parallel).forEach(i->
+        ParallelUtils.range(Q.size(), parallel).forEach(i->
         {
             //this gets everything up to max
             this.search(Q.get(i), numNeighbors, neighbors.get(i), distances.get(i));

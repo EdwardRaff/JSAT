@@ -186,7 +186,6 @@ public class BorderlineSMOTE extends SMOTE
         if(dataSet.getNumCategoricalVars() != 0)
             throw new FailedToFitException("SMOTE only works with numeric-only feature values");
         
-        ExecutorService threadPool = ParallelUtils.getNewExecutor(parallel);
         List<Vec> vAll = dataSet.getDataVectors();
         IntList[] classIndex = new IntList[dataSet.getClassSize()];
         for(int i = 0; i < classIndex.length; i++)
@@ -205,10 +204,7 @@ public class BorderlineSMOTE extends SMOTE
         final List<DataPointPair<Integer>> synthetics = new ArrayList<>();
         
         //Put ALL the vectors intoa single VC paired with their class label
-        List<VecPaired<Vec, Integer>> allVecsWithClass = new ArrayList<>(vAll.size());
-        for(int i = 0; i < vAll.size(); i++)
-            allVecsWithClass.add(new VecPaired<>(vAll.get(i), dataSet.getDataPointCategory(i)));
-        VectorCollection<VecPaired<Vec, Integer>> VC_all = new DefaultVectorCollection<>(dm, allVecsWithClass, parallel);
+        VectorCollection<Vec> VC_all = new DefaultVectorCollection<>(dm, vAll, parallel);
         
         //Go through and perform oversampling of each class
         for(final int classID : ListUtils.range(0, dataSet.getClassSize()))
@@ -225,14 +221,16 @@ public class BorderlineSMOTE extends SMOTE
             VectorCollection<Vec> VC_id = new DefaultVectorCollection<>(dm, V_id, parallel);
             //Step 1. For every p ii =( 1,2,..., pnum) in the minority class P, 
             //we calculate its m nearest neighbors from the whole training set T
-            List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> all_nns_ID = VectorCollectionUtils.allNearestNeighbors(VC_all, V_id, smoteNeighbors+1, threadPool);
+            List<List<Integer>> allNeighbors = new ArrayList<>();
+            List<List<Double>> allDistances = new ArrayList<>();
+            VC_all.search(V_id, smoteNeighbors+1, allNeighbors, allDistances, parallel);
             /**
              * A list of the vectors for only the neighbors who were not members
              * of the same class. Used when majorityInterpolation is true
              */
             final List<List<Vec>> otherClassSamples = new ArrayList<>();
             if(majorityInterpolation)
-                for(List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> tmp : all_nns_ID)
+                for(List<Integer> tmp : allNeighbors)
                     otherClassSamples.add(new ArrayList<>(smoteNeighbors));
 
 
@@ -242,15 +240,15 @@ public class BorderlineSMOTE extends SMOTE
             for(int i = 0; i < VC_id.size(); i++)
             {
                 int same_class = 0;
-                List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nns_id_i = all_nns_ID.get(i);
-                for(int j = 1; j < nns_id_i.size(); j++)
+                List<Integer> neighors_of_i = allNeighbors.get(i);
+                for(int j = 1; j < smoteNeighbors+1; j++)
                 {
-                    if(classID == nns_id_i.get(j).getVector().getPair())
+                    if(classID == dataSet.getDataPointCategory(neighors_of_i.get(j)))
                         same_class++;
                     else
                     {
                         if(majorityInterpolation)
-                            otherClassSamples.get(i).add(nns_id_i.get(j).getVector().getVector());
+                            otherClassSamples.get(i).add(VC_all.get(neighors_of_i.get(j)));
                     }
                 }
                 //are you in the DANZER ZONE!?
@@ -266,7 +264,9 @@ public class BorderlineSMOTE extends SMOTE
             
             
             //find all the nearest neighbors for each point so we know who to interpolate with
-            final List<List<? extends VecPaired<Vec, Double>>> nns_id = VectorCollectionUtils.allNearestNeighbors(VC_id, V_id, smoteNeighbors+1, threadPool);
+            List<List<Integer>> idNeighbors = new ArrayList<>();
+            List<List<Double>> idDistances = new ArrayList<>();
+            VC_id.search(VC_id, smoteNeighbors+1, idNeighbors, idDistances, parallel);
             
             ParallelUtils.run(parallel, samplesNeeded, (start, end)->
             {
@@ -293,7 +293,7 @@ public class BorderlineSMOTE extends SMOTE
                     else
                     {
                         int nn = rand.nextInt(smoteNeighbors) + 1;//index 0 is ourself
-                        vec_nn = nns_id.get(sampleIndex).get(nn);
+                        vec_nn = VC_id.get(idNeighbors.get(sampleIndex).get(nn));
                     }
                     double gap = rand.nextDouble();
                     if (useOtherClass)
@@ -315,7 +315,7 @@ public class BorderlineSMOTE extends SMOTE
                     for (DataPoint v : local_new)
                         synthetics.add(new DataPointPair<>(v, classID));
                 }
-            }, threadPool);
+            });
             
         }
         
