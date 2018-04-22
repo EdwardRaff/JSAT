@@ -13,7 +13,7 @@ import java.util.stream.Stream;
  * 
  * @author Edward Raff
  */
-public class IntList extends AbstractList<Integer> implements Serializable
+public class IntList extends AbstractList<Integer> implements Serializable, RandomAccess
 {
 
     private static final long serialVersionUID = 8189142393005394477L;
