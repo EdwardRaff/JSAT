@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jsat.outlire;
+package jsat.outlier;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ import jsat.utils.random.RandomUtil;
  *
  * @author edraff
  */
-public class IsolationForest implements Outlire
+public class IsolationForest implements Outlier
 {
     private int trees = 100;
     private double subSamplingSize = 256;

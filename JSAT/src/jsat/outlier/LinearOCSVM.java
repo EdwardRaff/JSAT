@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jsat.outlire;
+package jsat.outlier;
 
 import java.util.Collections;
 import java.util.List;
@@ -48,7 +48,7 @@ import jsat.utils.random.RandomUtil;
  * 
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class LinearOCSVM implements Outlire
+public class LinearOCSVM implements Outlier
 {
     
     private Vec w;

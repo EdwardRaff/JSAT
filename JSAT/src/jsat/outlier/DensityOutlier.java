@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Edward Raff <Raff.Edward@gmail.com>
+ * Copyright (C) 2018 Edward Raff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,37 +14,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jsat.outlire;
+package jsat.outlier;
 
-import java.io.Serializable;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
+import jsat.distributions.multivariate.MultivariateDistribution;
 
 /**
- *
- * @author Edward Raff <Raff.Edward@gmail.com>
+ * This class provides an outlier detector based upon density estimation. 
+ * @author Edward Raff
  */
-public interface Outlire extends Serializable
+public class DensityOutlier implements Outlier
 {
-    default public void fit(DataSet d)
+    double outlireFraction;
+    MultivariateDistribution density;
+    
+    
+
+    @Override
+    public void fit(DataSet d, boolean parallel)
     {
-        fit(d, false);
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public double score(DataPoint x)
+    {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
-    public void fit(DataSet d, boolean parallel);
-            
-    /**
-     * Returns an unbounded anomaly/outlier score. Negative values indicate the
-     * input is likely to be an outlier, and positive values that the input is
-     * likely to be an inlier.
-     *
-     * @param x
-     * @return 
-     */
-    public double score(DataPoint x);
-    
-    default public boolean isOutlier(DataPoint x)
-    {
-        return score(x) < 0 ;
-    }
 }
