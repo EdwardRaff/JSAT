@@ -472,6 +472,7 @@ public class MatrixStatistics
      * the Minimum Covariance Determinant Estimator. Technometrics, 41(3),
      * 212–223. http://doi.org/10.2307/1270566
      *
+     * @param <V>
      * @param mean the location to store the estimated mean, values will be
      * overwritten
      * @param cov the location to store the estimated covariance, values will be
@@ -481,7 +482,7 @@ public class MatrixStatistics
      * @param parallel {@code true} if multiple cores should be used for
      * estimation, {@code false} for single thread.
      */
-    public static void FastMCD(Vec mean, Matrix cov, List<Vec> dataset, boolean parallel)
+    public static  <V extends Vec> void FastMCD(Vec mean, Matrix cov, List<V> dataset, boolean parallel)
     {
         final int N = dataset.size();
         final int D = dataset.get(0).length();
@@ -729,7 +730,7 @@ public class MatrixStatistics
      * @param parallel 
      * @return the determinant of the given covariance matrix 
      */
-    protected static double MCD_C_step(Vec subset_mean, Matrix subset_cov, List<Vec> dataset, IntList h_prev, final int h, boolean parallel)
+    protected static  <V extends Vec> double MCD_C_step(Vec subset_mean, Matrix subset_cov, List<V> dataset, IntList h_prev, final int h, boolean parallel)
     {
         final int N = dataset.size();
         MahalanobisDistance md = new MahalanobisDistance();
