@@ -59,6 +59,17 @@ public class MahalanobisDistance extends TrainableDistanceMetric
         this.reTrain = reTrain;
     }
     
+    /**
+     * Sets the Inverse Covariance Matrix used as the distance matrix by this
+     * distance metric.
+     *
+     * @param S the matrix to use as the distance matrix
+     */
+    public void setInverseCovariance(Matrix S)
+    {
+        this.S = S;
+    }
+    
     
     @Override
     public <V extends Vec> void train(List<V> dataSet)
