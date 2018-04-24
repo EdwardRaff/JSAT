@@ -5,7 +5,6 @@ import static java.lang.Math.*;
 
 import java.util.*;
 
-import jsat.classifiers.DataPoint;
 import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.distributions.empirical.kernelfunc.EpanechnikovKF;
 import jsat.distributions.empirical.kernelfunc.KernelFunction;
@@ -26,8 +25,8 @@ import jsat.utils.IntSet;
 public class ProductKDE extends MultivariateKDE
 {
 
-	private static final long serialVersionUID = 7298078759216991650L;
-	private KernelFunction k;
+    private static final long serialVersionUID = 7298078759216991650L;
+    private KernelFunction k;
     private double[][] sortedDimVals;
     private double[] bandwidth;
     private int[][] sortedIndexVals;
@@ -85,12 +84,12 @@ public class ProductKDE extends MultivariateKDE
         SparseVector logProd = new SparseVector(sortedDimVals[0].length);
         Set<Integer> validIndecies = new IntSet();
         double logH = queryWork(x, validIndecies, logProd);
-        List<VecPaired<VecPaired<Vec, Integer>, Double>> results = new ArrayList<VecPaired<VecPaired<Vec, Integer>, Double>>(validIndecies.size());
+        List<VecPaired<VecPaired<Vec, Integer>, Double>> results = new ArrayList<>(validIndecies.size());
         
         for(int i : validIndecies)
         {
             Vec v = originalVecs.get(i);
-            results.add(new VecPaired<VecPaired<Vec, Integer>, Double>(new VecPaired<Vec, Integer>(v, i), exp(logProd.get(i))));
+            results.add(new VecPaired<>(new VecPaired<>(v, i), exp(logProd.get(i))));
         }
         return results;
     }
@@ -175,7 +174,7 @@ public class ProductKDE extends MultivariateKDE
     }
 
     @Override
-    public <V extends Vec> boolean setUsingData(List<V> dataSet)
+    public <V extends Vec> boolean setUsingData(List<V> dataSet, boolean parallel)
     {
         int dimSize = dataSet.get(0).length();
         sortedDimVals = new double[dimSize][dataSet.size()];
@@ -201,15 +200,6 @@ public class ProductKDE extends MultivariateKDE
         this.originalVecs = (List<Vec>) dataSet;
         
         return true;
-    }
-
-    @Override
-    public boolean setUsingDataList(List<DataPoint> dataPoints)
-    {
-        List<Vec> dataSet = new ArrayList<Vec>(dataPoints.size());
-        for(DataPoint dp : dataPoints)
-            dataSet.add(dp.getNumericalValues());
-        return setUsingData(dataSet);
     }
 
     @Override

@@ -12,6 +12,7 @@ import jsat.classifiers.DataPoint;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
 import static jsat.math.SpecialMath.*;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * The Symmetric Dirichlet Distribution is a special case of the {@link Dirichlet} distribution, and occurs when all alphas have the same value. 
@@ -108,21 +109,25 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
     }
 
     @Override
-    public <V extends Vec> boolean setUsingData(final List<V> dataSet)
+    public <V extends Vec> boolean setUsingData(final List<V> dataSet, boolean parallel)
     {
-        Function logLike = (Vec x, boolean parallel) -> 
+        Function logLike = (Vec x, boolean p) -> 
         {
             double a = x.get(0);
             double constantTerm = lnGamma(a*dim);
             constantTerm -= lnGamma(a)*dim;
             
-            double sum = 0.0;
-            for(int i = 0; i < dataSet.size(); i++)
+            double sum = ParallelUtils.run(p, dataSet.size(), (start, end)->
             {
-                Vec s = dataSet.get(i);
-                for(int j = 0; j < s.length(); j++)
-                    sum += log(s.get(j))*(a-1.0);
-            }
+                double local_sum = 0;
+                for(int i = start; i < end; i++)
+                {
+                    Vec s = dataSet.get(i);
+                    for(int j = 0; j < s.length(); j++)
+                        local_sum += log(s.get(j))*(a-1.0);
+                }
+                return local_sum;
+            }, (z,b)->z+b);
             
             return -(sum+constantTerm*dataSet.size());
         };
@@ -132,39 +137,7 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
         guesses.add(guess.add(1.0));
         guesses.add(guess.add(0.1));
         guesses.add(guess.add(10.0));
-        this.alpha = optimize.optimize(1e-10, 100, logLike, guesses, false).get(0);
-        return true;
-    }
-
-    @Override
-    public boolean setUsingDataList(final List<DataPoint> dataPoint)
-    {
-        Function logLike = (Vec x, boolean parallel) -> 
-        {
-            double a = x.get(0);
-            double constantTerm = lnGamma(a*dim);
-            constantTerm -= lnGamma(a)*dim;
-            double weightSum = 0.0;
-            
-            double sum = 0.0;
-            for(int i = 0; i < dataPoint.size(); i++)
-            {
-                DataPoint dp = dataPoint.get(i);
-                weightSum += dp.getWeight();
-                Vec s = dp.getNumericalValues();
-                for(int j = 0; j < s.length(); j++)
-                    sum += log(s.get(j))*(a-1.0)*dp.getWeight();
-            }
-            
-            return -(sum+constantTerm*weightSum);
-        };
-        NelderMead optimize = new NelderMead();
-        Vec guess = new DenseVector(1);
-        List<Vec> guesses = new ArrayList<>();
-        guesses.add(guess.add(1.0));
-        guesses.add(guess.add(0.1));
-        guesses.add(guess.add(10.0));
-        this.alpha = optimize.optimize(1e-10, 100, logLike, guesses, false).get(0);
+        this.alpha = optimize.optimize(1e-10, 100, logLike, guesses, parallel).get(0);
         return true;
     }
     

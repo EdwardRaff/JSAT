@@ -24,8 +24,8 @@ import static jsat.linear.MatrixStatistics.*;
 public class NormalM extends MultivariateDistributionSkeleton
 {
 
-	private static final long serialVersionUID = -7043369396743253382L;
-	/**
+    private static final long serialVersionUID = -7043369396743253382L;
+    /**
      * When computing the PDF of some x, part of the equation is only dependent on the covariance matrix. This part is
      * <pre>
      *       -k
@@ -143,45 +143,13 @@ public class NormalM extends MultivariateDistributionSkeleton
     }
 
     @Override
-    public <V extends Vec> boolean setUsingData(List<V> dataSet)
+    public <V extends Vec> boolean setUsingData(List<V> dataSet, boolean parallel)
     {
         Vec origMean = this.mean;
         try
         {
             Vec newMean = MatrixStatistics.meanVector(dataSet);
             Matrix covariance = MatrixStatistics.covarianceMatrix(newMean, dataSet);
-
-            this.mean = newMean;
-            setCovariance(covariance);
-            return true;
-        }
-        catch(ArithmeticException ex)
-        {
-            this.mean = origMean;
-            return false;
-        }
-    }
-
-    @Override
-    public boolean setUsingDataList(List<DataPoint> dataSet)
-    {
-        Vec origMean = this.mean;
-        try
-        {
-            Vec newMean = new DenseVector(dataSet.get(0).getNumericalValues().length());
-            double sumOfWeights = 0.0, sumOfSquaredWeights = 0.0;
-            for(int i = 0; i < dataSet.size(); i++)
-            {
-                DataPoint dp = dataSet.get(i);
-                newMean.mutableAdd(dp.getWeight(), dp.getNumericalValues());
-                sumOfWeights += dp.getWeight();
-                sumOfSquaredWeights += Math.pow(dp.getWeight(), 2);
-            }
-            newMean.mutableDivide(sumOfWeights);
-
-            //Now compute the covariance matrix
-            Matrix covariance = new DenseMatrix(newMean.length(), newMean.length());
-            covarianceMatrix(newMean, dataSet, covariance, sumOfWeights, sumOfSquaredWeights);
 
             this.mean = newMean;
             setCovariance(covariance);
@@ -206,9 +174,10 @@ public class NormalM extends MultivariateDistributionSkeleton
         return clone;
     }
     
+    @Override
     public List<Vec> sample(int count, Random rand)
     {
-        List<Vec> samples = new ArrayList<Vec>(count);
+        List<Vec> samples = new ArrayList<>(count);
         Vec Z = new DenseVector(L.rows());
         
         for(int i = 0; i < count; i++)

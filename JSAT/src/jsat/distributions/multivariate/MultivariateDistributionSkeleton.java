@@ -21,12 +21,6 @@ public abstract class MultivariateDistributionSkeleton implements MultivariateDi
 {
 
     private static final long serialVersionUID = 4080753806798149915L;
-
-    @Override
-    public double logPdf(double... x)
-    {
-        return logPdf(DenseVector.toDenseVec(x));
-    }
     
     @Override
     public double logPdf(Vec x)
@@ -37,35 +31,6 @@ public abstract class MultivariateDistributionSkeleton implements MultivariateDi
         return logPDF;
     }
     
-    @Override
-    public double pdf(double... x)
-    {
-        return pdf(DenseVector.toDenseVec(x));
-    }
-    
-    @Override
-    public boolean setUsingData(DataSet dataSet)
-    {
-        return setUsingDataList(dataSet.getDataPoints());
-    }
-
-    @Override
-    public boolean setUsingData(DataSet dataSet, ExecutorService threadpool)
-    {
-        return setUsingDataList(dataSet.getDataPoints(), threadpool);
-    }
-
-    @Override
-    public <V extends Vec> boolean setUsingData(List<V> dataSet, ExecutorService threadpool)
-    {
-        return setUsingData(dataSet);
-    }
-
-    @Override
-    public boolean setUsingDataList(List<DataPoint> dataPoints, ExecutorService threadpool)
-    {
-        return setUsingDataList(dataPoints);
-    }
     
     @Override
     abstract public MultivariateDistribution clone();

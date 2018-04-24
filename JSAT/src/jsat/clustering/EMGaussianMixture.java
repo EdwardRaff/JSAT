@@ -1,6 +1,5 @@
 package jsat.clustering;
 
-import jsat.clustering.kmeans.ElkanKMeans;
 import static java.lang.Math.log;
 
 import java.util.*;
@@ -16,13 +15,9 @@ import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.distributions.multivariate.MultivariateDistribution;
 import jsat.distributions.multivariate.NormalM;
 import jsat.linear.*;
-import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.utils.ListUtils;
-import static jsat.utils.SystemInfo.LogicalCores;
 import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 
 /**
  * An implementation of Gaussian Mixture models that learns the specified number of Gaussians using Expectation Maximization algorithm. 
@@ -104,7 +99,7 @@ public class EMGaussianMixture  implements KClusterer, MultivariateDistribution
     {
         if(gm.gaussians != null && !gm.gaussians.isEmpty())
         {
-            this.gaussians = new ArrayList<NormalM>(gm.gaussians.size());
+            this.gaussians = new ArrayList<>(gm.gaussians.size());
             for(NormalM gaussian : gm.gaussians)
                 this.gaussians.add(gaussian.clone());
         }
@@ -223,11 +218,7 @@ public class EMGaussianMixture  implements KClusterer, MultivariateDistribution
                 
                 mStep(means, N, dataPoints, K, p_ik, covs, parallel);
             }
-            catch (ExecutionException ex)
-            {
-                Logger.getLogger(EMGaussianMixture.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            catch (InterruptedException ex)
+            catch (ExecutionException | InterruptedException ex)
             {
                 Logger.getLogger(EMGaussianMixture.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -407,24 +398,12 @@ public class EMGaussianMixture  implements KClusterer, MultivariateDistribution
     }
 
     @Override
-    public double logPdf(double... x)
-    {
-        return logPdf(DenseVector.toDenseVec(x));
-    }
-
-    @Override
     public double logPdf(Vec x)
     {
         double pdf = pdf(x);
         if(pdf == 0)
             return -Double.MAX_VALUE;
         return log(pdf);
-    }
-
-    @Override
-    public double pdf(double... x)
-    {
-        return pdf(DenseVector.toDenseVec(x));
     }
 
     @Override
@@ -437,50 +416,26 @@ public class EMGaussianMixture  implements KClusterer, MultivariateDistribution
     }
 
     @Override
-    public <V extends Vec> boolean setUsingData(List<V> dataSet)
+    public <V extends Vec> boolean setUsingData(List<V> dataSet, boolean parallel)
     {
         List<DataPoint> dataPoints = new ArrayList<>(dataSet.size());
         for(Vec x :  dataSet)
             dataPoints.add(new DataPoint(x, new int[0], new CategoricalData[0]));
-        return setUsingDataList(dataPoints);
+        return setUsingData(new SimpleDataSet(dataPoints), parallel);
     }
-
+    
     @Override
-    public boolean setUsingDataList(List<DataPoint> dataPoint)
-    {
-        return setUsingData(new SimpleDataSet(dataPoint));
-    }
-
-    @Override
-    public boolean setUsingData(DataSet dataSet)
+    public boolean setUsingData(DataSet dataSet, boolean parallel)
     {
         try
         {
-            cluster(dataSet);
+            cluster(dataSet, parallel);
             return true;
         }
         catch (ArithmeticException ex)
         {
             return false;
         }
-    }
-
-    @Override
-    public boolean setUsingData(DataSet dataSet, ExecutorService threadpool)
-    {
-        return setUsingData(dataSet);
-    }
-
-    @Override
-    public <V extends Vec> boolean setUsingData(List<V> dataSet, ExecutorService threadpool)
-    {
-        return setUsingData(dataSet);
-    }
-
-    @Override
-    public boolean setUsingDataList(List<DataPoint> dataPoints, ExecutorService threadpool)
-    {
-        return setUsingDataList(dataPoints);
     }
 
     @Override

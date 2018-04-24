@@ -12,6 +12,7 @@ import jsat.math.Function;
 import jsat.math.optimization.NelderMead;
 import static java.lang.Math.*;
 import static jsat.math.SpecialMath.*;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * An implementation of the Dirichlet distribution. The Dirichlet distribution takes a vector of 
@@ -119,23 +120,28 @@ public class Dirichlet extends MultivariateDistributionSkeleton
     {
         return exp(logPdf(x));
     }
-    
+
     @Override
-    public <V extends Vec> boolean setUsingData(final List<V> dataSet)
+    public <V extends Vec> boolean setUsingData(List<V> dataSet, boolean parallel)
     {
-        Function logLike = (Vec x, boolean parallel) -> 
+        Function logLike = (Vec x, boolean p) -> 
         {
             double constantTerm = lnGamma(x.sum());
             for(int i = 0; i < x.length(); i++)
                 constantTerm -= lnGamma(x.get(i));
             
-            double sum = 0.0;
-            for(int i = 0; i < dataSet.size(); i++)
+            double sum = ParallelUtils.run(p, dataSet.size(), (start, end)->
             {
-                Vec s = dataSet.get(i);
-                for(int j = 0; j < x.length(); j++)
-                    sum += log(s.get(j))*(x.get(j)-1.0);
-            }
+                double local_sum = 0;
+                for(int i = start; i < end; i++)
+                {
+                    Vec s = dataSet.get(i);
+                    for(int j = 0; j < x.length(); j++)
+                        local_sum += log(s.get(j))*(x.get(j)-1.0);
+                }
+                return local_sum;
+            }, (a,b)->a+b);
+            
             
             return -(sum+constantTerm*dataSet.size());
         };
@@ -145,45 +151,11 @@ public class Dirichlet extends MultivariateDistributionSkeleton
         guesses.add(guess.add(1.0));
         guesses.add(guess.add(0.1));
         guesses.add(guess.add(10.0));
-        this.alphas = optimize.optimize(1e-10, 100, logLike, guesses, false);
+        this.alphas = optimize.optimize(1e-10, 100, logLike, guesses, parallel);
 
         return true;
     }
 
-    @Override
-    public boolean setUsingDataList(final List<DataPoint> dataPoint)
-    {
-        Function logLike = (Vec x, boolean parallel) -> 
-        {
-            double constantTerm = lnGamma(x.sum());
-            for(int i = 0; i < x.length(); i++)
-                constantTerm -= lnGamma(x.get(i));
-            double weightSum = 0.0;
-            
-            double sum = 0.0;
-            for(int i = 0; i < dataPoint.size(); i++)
-            {
-                
-                DataPoint dp = dataPoint.get(i);
-                Vec s = dp.getNumericalValues();
-                weightSum += dp.getWeight();
-                for(int j = 0; j < x.length(); j++)
-                    sum += log(s.get(j))*(x.get(j)-1.0)*dp.getWeight();
-            }
-            
-            return -(sum+constantTerm*weightSum);
-        };
-        NelderMead optimize = new NelderMead();
-        Vec guess = new DenseVector(dataPoint.get(0).numNumericalValues());
-        List<Vec> guesses = new ArrayList<Vec>();
-        guesses.add(guess.add(1.0));
-        guesses.add(guess.add(0.1));
-        guesses.add(guess.add(10.0));
-        this.alphas = optimize.optimize(1e-10, 100, logLike, guesses, false);
-
-        return true;
-    }
-    
     @Override
     public List<Vec> sample(int count, Random rand)
     {

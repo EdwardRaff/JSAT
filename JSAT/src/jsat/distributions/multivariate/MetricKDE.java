@@ -3,7 +3,6 @@ package jsat.distributions.multivariate;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import jsat.classifiers.DataPoint;
 import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.distributions.empirical.kernelfunc.EpanechnikovKF;
 import jsat.distributions.empirical.kernelfunc.KernelFunction;
@@ -14,6 +13,7 @@ import jsat.linear.distancemetrics.*;
 import jsat.linear.vectorcollection.*;
 import jsat.math.OnLineStatistics;
 import jsat.parameters.*;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * MetricKDE is a generalization of the {@link KernelDensityEstimator} to the multivariate case. 
@@ -255,6 +255,16 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
         return PDF / (vc.size() * Math.pow(bandwidth, nearBy.get(0).length()));
     }
 
+    @Override
+    public <V extends Vec> boolean setUsingData(List<V> dataSet, boolean parallel)
+    {
+        ExecutorService ex = ParallelUtils.getNewExecutor(parallel);
+        boolean toRet = setUsingData(dataSet, ex);
+        ex.shutdownNow();
+        return toRet;
+    }
+    
+
     /**
      * Sets the KDE to model the density of the given data set with the specified bandwidth
      * @param dataSet the data set to model the density of
@@ -342,9 +352,9 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      */
     public <V extends Vec> boolean setUsingData(List<V> dataSet, int k, double stndDevs, ExecutorService threadpool)
     {
-        List<VecPaired<Vec, Integer>> indexVectorPair = new ArrayList<VecPaired<Vec, Integer>>(dataSet.size());
+        List<VecPaired<Vec, Integer>> indexVectorPair = new ArrayList<>(dataSet.size());
         for(int i = 0; i < dataSet.size(); i++)
-            indexVectorPair.add(new VecPaired<Vec, Integer>(dataSet.get(i), i));
+            indexVectorPair.add(new VecPaired<>(dataSet.get(i), i));
         TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, threadpool);
         vc.build(indexVectorPair, distanceMetric);
         
@@ -361,36 +371,11 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
         return true;
     }
     
-    @Override
-    public <V extends Vec> boolean setUsingData(List<V> dataSet)
-    {
-        return setUsingData(dataSet, defaultK);
-    }
-
-    @Override
     public <V extends Vec> boolean setUsingData(List<V> dataSet, ExecutorService threadpool)
     {
         return setUsingData(dataSet, defaultK, threadpool);
     }
     
-    @Override
-    public boolean setUsingDataList(List<DataPoint> dataPoints)
-    {
-        List<Vec> dataSet = new ArrayList<Vec>(dataPoints.size());
-        for(DataPoint dp : dataPoints)
-            dataSet.add(dp.getNumericalValues());
-        return setUsingData(dataSet);
-    }
-
-    @Override
-    public boolean setUsingDataList(List<DataPoint> dataPoints, ExecutorService threadpool)
-    {
-        List<Vec> dataSet = new ArrayList<Vec>(dataPoints.size());
-        for(DataPoint dp : dataPoints)
-            dataSet.add(dp.getNumericalValues());
-        return setUsingData(dataSet, threadpool);
-    }
-
     /**
      * Sampling not yet supported 
      * @param count
