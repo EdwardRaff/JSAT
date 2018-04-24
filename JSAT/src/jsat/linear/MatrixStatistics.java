@@ -689,7 +689,7 @@ public class MatrixStatistics
         });
         IndexTable it = new IndexTable(dist);
         
-        double reScale = dist[it.index(N/2)]/chi.invCdf(0.5);
+        double reScale = Math.pow(dist[it.index(N/2)],2)/chi.invCdf(0.5);
         S_full.mutableMultiply(reScale);
         
         //applyg re-scale to the distsances
@@ -697,7 +697,7 @@ public class MatrixStatistics
             dist[i] /= reScale;
         
         //Now we have the corrected Covariance, last step is to detmerine weights and compute mean and cov one last time
-        double threshold = chi.invCdf(0.975);
+        double threshold = Math.sqrt(chi.invCdf(0.975));
         //since weights are 0 or 1, just collect the 1s
         List<Vec> finalSet = new ArrayList<>(N);
         
