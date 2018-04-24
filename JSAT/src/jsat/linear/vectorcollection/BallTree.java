@@ -924,6 +924,19 @@ public class BallTree<V extends Vec> implements IncrementalCollection<V>, DualTr
         {
             return dm.dist(this.pivot, other.pivot) + this.radius + other.radius;
         }
+
+        @Override
+        public double[] minMaxDistance(Node other)
+        {
+            double d = dm.dist(this.pivot, other.pivot);
+            return new double[]
+            {
+                d - this.radius - other.radius, 
+                d + this.radius + other.radius
+            };
+        }
+        
+        
         
         @Override
         public double furthestPointDistance()

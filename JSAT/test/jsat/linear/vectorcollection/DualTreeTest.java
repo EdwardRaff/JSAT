@@ -114,43 +114,44 @@ public class DualTreeTest
 
 //        for(DualTree<Vec> base : Arrays.asList(new SVPTree<>()))
 //        for(DualTree<Vec> base : Arrays.asList(new VPTree<>()))
-        for(DualTree<Vec> base : Arrays.asList(new BallTree<>()))
-        {
-//            System.out.println(base.getClass().getCanonicalName());
-            DualTree<Vec> A_dt = base.clone();
-            DualTree<Vec> B_dt = base.clone();
-            A_dt.build(A);
-
-            B_dt.build(B);
-
-            List<List<Integer>> nn_found = new ArrayList<>();
-            List<List<Double>> dists_found = new ArrayList<>();
-
-            A_dt.search(B_dt, min_radius, max_radius, nn_found, dists_found);
-
-            for(int i = 0; i < B.size(); i++)
+        for(boolean parallel : new boolean[]{false,true})
+            for(DualTree<Vec> base : Arrays.asList(new BallTree<>(), new VPTree<>()))
             {
-                List<Integer> nn_t = nn_true.get(i);
-                List<Integer> nn_f = nn_found.get(i);
+    //            System.out.println(base.getClass().getCanonicalName());
+                DualTree<Vec> A_dt = base.clone();
+                DualTree<Vec> B_dt = base.clone();
+                A_dt.build(A);
 
-                List<Double> dd_t = dists_true.get(i);
-                List<Double> dd_f = dists_found.get(i);
-                
-                
-                assertEquals(nn_t.size(), nn_f.size());
-                assertEquals(dd_t.size(), dd_f.size());
+                B_dt.build(B);
 
-                for(int j = 0; j < nn_t.size(); j++)
+                List<List<Integer>> nn_found = new ArrayList<>();
+                List<List<Double>> dists_found = new ArrayList<>();
+
+                A_dt.search(B_dt, min_radius, max_radius, nn_found, dists_found, parallel);
+
+                for(int i = 0; i < B.size(); i++)
                 {
-                    assertEquals(nn_t.get(j), nn_f.get(j));
-                    assertEquals(dd_t.get(j), dd_f.get(j), 1e-10);
+                    List<Integer> nn_t = nn_true.get(i);
+                    List<Integer> nn_f = nn_found.get(i);
+
+                    List<Double> dd_t = dists_true.get(i);
+                    List<Double> dd_f = dists_found.get(i);
+
+
+                    assertEquals(nn_t.size(), nn_f.size());
+                    assertEquals(dd_t.size(), dd_f.size());
+
+                    for(int j = 0; j < nn_t.size(); j++)
+                    {
+                        assertEquals(nn_t.get(j), nn_f.get(j));
+                        assertEquals(dd_t.get(j), dd_f.get(j), 1e-10);
+                    }
                 }
             }
-        }
     }
 
     
-//    @Test
+    @Test
     public void testSearch_knn_DT()
     {
         System.out.println("search_knn_dt");
@@ -186,37 +187,38 @@ public class DualTreeTest
         
 //        for(DualTree<Vec> base : Arrays.asList(new VPTree<>()))
 //        for(DualTree<Vec> base : Arrays.asList(new SVPTree<>()))
-        for(DualTree<Vec> base : Arrays.asList(new BallTree<>()))
-        {
-//            System.out.println(base.getClass().getCanonicalName());
-            DualTree<Vec> A_dt = base.clone();
-            DualTree<Vec> B_dt = base.clone();
-            A_dt.build(A);
-            B_dt.build(B);
-
-            List<List<Integer>> nn_found = new ArrayList<>();
-            List<List<Double>> dists_found = new ArrayList<>();
-
-            A_dt.search(B_dt, K, nn_found, dists_found);
-
-            for(int i = 0; i < B.size(); i++)
+        for(boolean parallel : new boolean[]{false, true})
+            for(DualTree<Vec> base : Arrays.asList(new BallTree<>(), new VPTreeMV<>()))
             {
-                List<Integer> nn_t = nn_true.get(i);
-                List<Integer> nn_f = nn_found.get(i);
+    //            System.out.println(base.getClass().getCanonicalName());
+                DualTree<Vec> A_dt = base.clone();
+                DualTree<Vec> B_dt = base.clone();
+                A_dt.build(A);
+                B_dt.build(B);
 
-                List<Double> dd_t = dists_true.get(i);
-                List<Double> dd_f = dists_found.get(i);
+                List<List<Integer>> nn_found = new ArrayList<>();
+                List<List<Double>> dists_found = new ArrayList<>();
 
-                assertEquals(nn_t.size(), nn_f.size());
-                assertEquals(dd_t.size(), dd_f.size());
+                A_dt.search(B_dt, K, nn_found, dists_found, parallel);
 
-                for(int j = 0; j < nn_t.size(); j++)
+                for(int i = 0; i < B.size(); i++)
                 {
-                    assertEquals(nn_t.get(j), nn_f.get(j));
-                    assertEquals(dd_t.get(j), dd_f.get(j), 1e-10);
+                    List<Integer> nn_t = nn_true.get(i);
+                    List<Integer> nn_f = nn_found.get(i);
+
+                    List<Double> dd_t = dists_true.get(i);
+                    List<Double> dd_f = dists_found.get(i);
+
+                    assertEquals(nn_t.size(), nn_f.size());
+                    assertEquals(dd_t.size(), dd_f.size());
+
+                    for(int j = 0; j < nn_t.size(); j++)
+                    {
+                        assertEquals(nn_t.get(j), nn_f.get(j));
+                        assertEquals(dd_t.get(j), dd_f.get(j), 1e-10);
+                    }
                 }
             }
-        }
         
     }
     

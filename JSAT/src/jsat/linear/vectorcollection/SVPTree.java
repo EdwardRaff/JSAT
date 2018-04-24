@@ -697,7 +697,7 @@ public class SVPTree<V extends Vec> implements IncrementalCollection<V>, DualTre
         }
 
         @Override
-        public IndexNode getParrent()
+        public VPNode getParrent()
         {
             return parent;
         }
@@ -714,7 +714,11 @@ public class SVPTree<V extends Vec> implements IncrementalCollection<V>, DualTre
             }
             else
             {
-//                jsat.linear.vectorcollection.VPTree.VPLeaf o = (jsat.linear.vectorcollection.VPTree.VPLeaf) other;
+//                VPLeaf c = (jsat.linear.vectorcollection.SVPTree.VPLeaf) other;
+//                VPNode o = c.getParrent();
+//                Vec ov = o.getVec(o.p);
+//                List<Double> qi = dm.getQueryInfo(ov);
+//                return dm.dist(this.p, ov, qi, allVecs, distCache) + this.right_high + c.getParentDistance();
                 return Double.POSITIVE_INFINITY;
             }
         }
@@ -732,7 +736,34 @@ public class SVPTree<V extends Vec> implements IncrementalCollection<V>, DualTre
             }
             else
             {
+//                VPLeaf c = (jsat.linear.vectorcollection.SVPTree.VPLeaf) other;
+//                VPNode o = c.getParrent();
+//                Vec ov = o.getVec(o.p);
+//                List<Double> qi = dm.getQueryInfo(ov);
+//                return dm.dist(this.p, ov, qi, allVecs, distCache) - this.right_high - c.getParentDistance();
                 return 0;
+            }
+        }
+
+        @Override
+        public double[] minMaxDistance(IndexNode other)
+        {
+            if(other instanceof jsat.linear.vectorcollection.SVPTree.VPNode)
+            {
+                jsat.linear.vectorcollection.SVPTree.VPNode o = (jsat.linear.vectorcollection.SVPTree.VPNode) other;
+
+                Vec ov = o.getVec(o.p);
+                List<Double> qi = dm.getQueryInfo(ov);
+                double d = dm.dist(this.p, ov, qi, allVecs, distCache);
+                return new double[]
+                {
+                    d - this.right_high - o.right_high,
+                    d + this.right_high + o.right_high
+                };
+            }
+            else
+            {
+                return new double[]{0, Double.POSITIVE_INFINITY};
             }
         }
 
@@ -892,7 +923,7 @@ public class SVPTree<V extends Vec> implements IncrementalCollection<V>, DualTre
         }
 
         @Override
-        public IndexNode getParrent()
+        public VPNode getParrent()
         {
             return parent;
         }
@@ -900,16 +931,38 @@ public class SVPTree<V extends Vec> implements IncrementalCollection<V>, DualTre
         @Override
         public double maxNodeDistance(IndexNode other)
         {
-            //Leaf node, return a value that makes caller go brute-force
             return Double.POSITIVE_INFINITY;
+//            if(other instanceof jsat.linear.vectorcollection.SVPTree.VPNode)
+//            {
+//                return other.maxNodeDistance(this);
+//            }
+//            else
+//            {
+//                VPLeaf c = (jsat.linear.vectorcollection.SVPTree.VPLeaf) other;
+//                VPNode o = c.getParrent();
+//                Vec ov = o.getVec(o.p);
+//                List<Double> qi = dm.getQueryInfo(ov);
+//                return dm.dist(this.getParrent().p, ov, qi, allVecs, distCache) + this.getParentDistance() + c.getParentDistance();
+//            }
         }
         
 
         @Override
         public double minNodeDistance(IndexNode other)
         {
-            //Leaf node, return a value that makes caller go brute-force
-            return 0.0;
+            return 0;
+//            if(other instanceof jsat.linear.vectorcollection.SVPTree.VPNode)
+//            {
+//                return other.minNodeDistance(this);
+//            }
+//            else
+//            {
+//                VPLeaf c = (jsat.linear.vectorcollection.SVPTree.VPLeaf) other;
+//                VPNode o = c.getParrent();
+//                Vec ov = o.getVec(o.p);
+//                List<Double> qi = dm.getQueryInfo(ov);
+//                return dm.dist(this.getParrent().p, ov, qi, allVecs, distCache) - this.getParentDistance() - c.getParentDistance();
+//            }
         }
 
         @Override

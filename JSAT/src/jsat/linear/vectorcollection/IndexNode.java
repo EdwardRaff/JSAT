@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.PriorityQueue;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
+import java.util.*;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveAction;
 /**
  *
  * @author Edward Raff
@@ -49,6 +52,16 @@ public interface IndexNode<N extends IndexNode>
     public double minNodeDistance(N other);
     
     public double maxNodeDistance(N other);
+    
+    /**
+     * 
+     * @param other
+     * @return an array where the first value is the minimum distance between nodes, and second value is the maximum
+     */
+    public default double[] minMaxDistance(N other)
+    {
+        return new double[]{minNodeDistance(other), maxNodeDistance(other)};
+    }
     
     /**
      * This method returns a lower bound on the minimum distance from a point in
@@ -116,92 +129,50 @@ public interface IndexNode<N extends IndexNode>
         return true;
     }
     
-    public static void dual_depth_first(IndexNode n_r, IndexNode n_q, BaseCaseDT base, ScoreDT score, boolean improvedSearch)
+    default public Iterator<Integer> DescendantIterator()
     {
-        //Algo 10 in Thesis
+        Stack<IndexNode<N>> toProcess = new Stack<>();
+        toProcess.add(this);
         
-        //3: {Perform base cases for points in node combination.}
-        for(int i = 0; i < n_r.numPoints(); i++)
-            for(int j = 0; j < n_q.numPoints(); j++)
-                base.base_case(n_r.getPoint(i), n_q.getPoint(j));
-        
-        //7: {Assemble list of combinations to recurse into.}
-        //8: q←empty priority queue
-        PriorityQueue<IndexTuple> q = new PriorityQueue<>();
-        
-        //9: if Nq andNr both have children then
-        if(n_q.hasChildren() && n_r.hasChildren())
+        return new Iterator<Integer>()
         {
-            //the Algorithm 10 version. Simpler but not as efficent
-            if(!improvedSearch)
-            {
-                for(int i = 0; i < n_r.numChildren(); i++)
-                    for(int j = 0; j < n_q.numChildren(); j++)
-                    {
-                        IndexNode n_r_i = n_r.getChild(i);
-                        IndexNode n_q_j = n_q.getChild(j);
-
-                        double s = score.score(n_r_i, n_q_j);
-                        if(!Double.isNaN(s))
-                            q.offer(new IndexTuple(n_r_i, n_q_j, s));
-                    }
-            }
-            else //Below is the Algo 13 version. 
-            {
-                for(int c = 0; c < n_q.numChildren(); c++)
-                {
-                    IndexNode n_q_c = n_q.getChild(c);
-                    List<IndexTuple> q_qc =new ArrayList<>();
-                    boolean all_scores_same = true;
-                    for(int i = 0; i < n_r.numChildren(); i++)
-                    {
-                        IndexNode n_r_i = n_r.getChild(i);
-                        double s = score.score(n_r_i, n_q_c);
-                        //check if all scores have the same value
-                        if(i > 0 && abs(q_qc.get(i-1).priority-s) < 1e-13)
-                            all_scores_same = false;
-                        q_qc.add(new IndexTuple(n_r_i, n_q_c, s));
-                    }
-
-                    if(all_scores_same)
-                    {
-                        double s = score.score(n_r, n_q_c);
-                        q.offer(new IndexTuple(n_r, n_q_c, s));
-                    }
-                    else
-                        q.addAll(q_qc);
-                }
-            }
-        }
-        else if(n_q.hasChildren()) //implicitly n_r has not children if this check passes
-        {
-            for(int j = 0; j < n_q.numChildren(); j++)
-            {
-                IndexNode n_q_j = n_q.getChild(j);
-                double s = score.score(n_r, n_q_j);
-                if (!Double.isNaN(s))
-                    q.offer(new IndexTuple(n_r, n_q_j, s));
-            }
-        }
-        else if(n_r.hasChildren())// implicitly n_q has no children if this check passes
-        {
-            for (int i = 0; i < n_r.numChildren(); i++)
-            {
-                IndexNode n_r_i = n_r.getChild(i);
-                double s = score.score(n_r_i, n_q);
-                if (!Double.isNaN(s))
-                    q.offer(new IndexTuple(n_r_i, n_q, s));
-            }
-        }
-        
-        
-        //22: {Recurse into combinations with highest priority first.
-        while(!q.isEmpty())
-        {
-            IndexTuple toProccess = q.poll();
-            dual_depth_first(toProccess.a, toProccess.b, base, score, improvedSearch);
-        }
-    }
+            int curPointPos = 0;
+            boolean primed = false;
             
+            @Override
+            public boolean hasNext()
+            {
+                do
+                {
+                    if(toProcess.isEmpty())
+                    {
+                        return false;
+                    }
+                    else if(toProcess.peek().numPoints() >= curPointPos)//we have exaughsted this node, expand search
+                    {
+                        IndexNode tmp = toProcess.pop();
+                        for(int i = 0; i < tmp.numChildren(); i++)
+                            toProcess.add(tmp.getChild(i));
+                        curPointPos = 0;
+                    }
+                    else//we have points that have not been iterated on the stack
+                        return (primed = true);
+                }
+                while(!toProcess.isEmpty());
+                return false;
+            }
+
+            @Override
+            public Integer next()
+            {
+                if(!primed)//call hasNext to get the structures in place and ready
+                    if(!hasNext())
+                        throw new NoSuchElementException();
+                primed = false;
+                return toProcess.peek().getPoint(curPointPos++);
+            }
+        };
+    }
+                
 }
 

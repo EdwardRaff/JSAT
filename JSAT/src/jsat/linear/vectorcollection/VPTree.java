@@ -833,6 +833,28 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>, DualTree
                 return 0;
             }
         }
+        
+    @Override
+        public double[] minMaxDistance(IndexNode other)
+        {
+            if(other instanceof jsat.linear.vectorcollection.VPTree.VPNode)
+            {
+                jsat.linear.vectorcollection.VPTree.VPNode o = (jsat.linear.vectorcollection.VPTree.VPNode) other;
+
+                Vec ov = o.getVec(o.p);
+                List<Double> qi = dm.getQueryInfo(ov);
+                double d = dm.dist(this.p, ov, qi, allVecs, distCache);
+                return new double[]
+                {
+                    d - this.right_high - o.right_high,
+                    d + this.right_high + o.right_high
+                };
+            }
+            else
+            {
+                return new double[]{0, Double.POSITIVE_INFINITY};
+            }
+        }
 
         @Override
         public double minNodeDistance(int other)
