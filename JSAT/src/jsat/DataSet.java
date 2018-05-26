@@ -17,6 +17,7 @@ import jsat.utils.FakeExecutor;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 import jsat.utils.random.XORWOW;
 
@@ -111,7 +112,7 @@ public abstract class DataSet<Type extends DataSet>
      */
     public void applyTransform(DataTransform dt)
     {
-        applyTransform(dt, false);
+        DataSet.this.applyTransform(dt, false);
     }
     
     /**
@@ -120,15 +121,11 @@ public abstract class DataSet<Type extends DataSet>
      * the data points will occur. 
      * 
      * @param dt the transformation to apply
-     * @param ex the threadpool to provide threads from. May be {@code null} to 
-     * perform operations in serial 
+     * @param parallel whether or not to perform the transform in parallel or not. 
      */
-    public void applyTransform(DataTransform dt, ExecutorService ex)
+    public void applyTransform(DataTransform dt, boolean parallel)
     {
-        if(ex == null || ex instanceof FakeExecutor)
-            applyTransform(dt);
-        else
-            applyTransform(dt, false, ex);
+        applyTransformMutate(dt, false, parallel);
     }
 
     /**
@@ -141,9 +138,9 @@ public abstract class DataSet<Type extends DataSet>
      * {@code false} to ignore the ability to mutableTransform and replace the original
      * data points.
      */
-    public void applyTransform(DataTransform dt, boolean mutate)
+    public void applyTransformMutate(DataTransform dt, boolean mutate)
     {
-        applyTransform(dt, mutate, new FakeExecutor());
+        applyTransformMutate(dt, mutate, false);
     }
     
     /**
@@ -153,66 +150,29 @@ public abstract class DataSet<Type extends DataSet>
      *
      * @param dt the transformation to apply
      * @param mutate {@code true} to mutableTransform the original data points,
-     * {@code false} to ignore the ability to mutableTransform and replace the original
-     * @param ex the threadpool to provide threads from. May be {@code null} to 
-     * perform operations in serial 
+     * {@code false} to ignore the ability to mutableTransform and replace the original 
+     * @param parallel whether or not to perform the transform in parallel or not. 
      */
-    public void applyTransform(final DataTransform dt, boolean mutate, ExecutorService ex)
+    public void applyTransformMutate(final DataTransform dt, boolean mutate, boolean parallel)
     {
-        final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-        if(ex == null)
-            ex = new FakeExecutor();
-        
         if (mutate && dt instanceof InPlaceTransform)
         {
             final InPlaceTransform ipt = (InPlaceTransform) dt;
-            for(int id = 0; id < SystemInfo.LogicalCores; id++)
-            {
-                final int ID = id;
-                ex.submit(new Runnable() 
-                {
-                    @Override
-                    public void run()
-                    {
-                        for (int i = ID; i < getSampleSize(); i+=SystemInfo.LogicalCores)
-                            ipt.mutableTransform(getDataPoint(i));
-                        latch.countDown();
-                    }
-                });
-            }
+            ParallelUtils.range(getSampleSize(), parallel)
+                    .forEach(i->ipt.mutableTransform(getDataPoint(i)));
         }
         else
-            for(int id = 0; id < SystemInfo.LogicalCores; id++)
-            {
-                final int ID = id;
-                ex.submit(new Runnable() 
-                {
-                    @Override
-                    public void run()
-                    {
-                        for (int i = ID; i < getSampleSize(); i+=SystemInfo.LogicalCores)
-                            setDataPoint(i, dt.transform(getDataPoint(i)));
-                        latch.countDown();
-                    }
-                });
-            }
-        try
+            ParallelUtils.range(getSampleSize(), parallel).forEach(i->setDataPoint(i, dt.transform(getDataPoint(i))));
+        
+        columnVecCache.clear();
+        //TODO this should be added to DataTransform
+        numNumerVals = getDataPoint(0).numNumericalValues();
+        categories = getDataPoint(0).getCategoricalData();
+        if (this.numericalVariableNames != null)
         {
-            latch.await();
-            columnVecCache.clear();
-            //TODO this should be added to DataTransform
-            numNumerVals = getDataPoint(0).numNumericalValues();
-            categories = getDataPoint(0).getCategoricalData();
-            if (this.numericalVariableNames != null)
-            {
-                this.numericalVariableNames.clear();
-                for (int i = 0; i < getNumNumericalVars(); i++)
-                    numericalVariableNames.add("TN" + (i + 1));
-            }
-        }
-        catch (InterruptedException ex1)
-        {
-            Logger.getLogger(DataSet.class.getName()).log(Level.SEVERE, null, ex1);
+            this.numericalVariableNames.clear();
+            for (int i = 0; i < getNumNumericalVars(); i++)
+                numericalVariableNames.add("TN" + (i + 1));
         }
     }
     
@@ -365,16 +325,19 @@ public abstract class DataSet<Type extends DataSet>
             int cur = 0;
             int to = getSampleSize();
 
+            @Override
             public boolean hasNext()
             {
                 return cur < to;
             }
 
+            @Override
             public DataPoint next()
             {
                 return getDataPoint(cur++);
             }
 
+            @Override
             public void remove()
             {
                 throw new UnsupportedOperationException("This operation is not supported for DataSet");
@@ -546,7 +509,7 @@ public abstract class DataSet<Type extends DataSet>
      */
     public List<DataPoint> getDataPoints()
     {
-        List<DataPoint> list = new ArrayList<DataPoint>(getSampleSize());
+        List<DataPoint> list = new ArrayList<>(getSampleSize());
         for(int i = 0; i < getSampleSize(); i++)
             list.add(getDataPoint(i));
         return list;
@@ -558,7 +521,7 @@ public abstract class DataSet<Type extends DataSet>
      */
     public List<Vec> getDataVectors()
     {
-        List<Vec> vecs = new ArrayList<Vec>(getSampleSize());
+        List<Vec> vecs = new ArrayList<>(getSampleSize());
         for(int i = 0; i < getSampleSize(); i++)
             vecs.add(getDataPoint(i).getNumericalValues());
         return vecs;
@@ -595,7 +558,7 @@ public abstract class DataSet<Type extends DataSet>
             toRet = new SparseVector(dv);
         else
             toRet = dv;
-        columnVecCache.put(i, new SoftReference<Vec>(toRet));
+        columnVecCache.put(i, new SoftReference<>(toRet));
         return toRet;
     }
     
@@ -678,10 +641,10 @@ public abstract class DataSet<Type extends DataSet>
                         dontSet[i] = true;
                     }
                     else
-                        columnVecCache.put(i, new SoftReference<Vec>(cols[i] = sparse ? new SparseVector(getSampleSize()) : new DenseVector(getSampleSize())));
+                        columnVecCache.put(i, new SoftReference<>(cols[i] = sparse ? new SparseVector(getSampleSize()) : new DenseVector(getSampleSize())));
                 }
                 else
-                    columnVecCache.put(i, new SoftReference<Vec>(cols[i] = sparse ? new SparseVector(getSampleSize()) : new DenseVector(getSampleSize())));
+                    columnVecCache.put(i, new SoftReference<>(cols[i] = sparse ? new SparseVector(getSampleSize()) : new DenseVector(getSampleSize())));
             }
         for(int i = 0; i < getSampleSize(); i++)
         {

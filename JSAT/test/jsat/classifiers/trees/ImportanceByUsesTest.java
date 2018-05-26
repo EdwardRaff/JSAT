@@ -106,7 +106,7 @@ public class ImportanceByUsesTest
 
             //categorical features, make space wider b/c we lose resolution 
             train = FixedProblems.getCircles(10000, RandomUtil.getRandom(), 1.0, 1.5);
-    //        train.applyTransform(new PCA(train, 2, 0));
+//            train.applyTransformMutate(new PCA(train, 2, 0));
             good_featres = train.getNumNumericalVars();
             train_noise = new ClassificationDataSet(train.getNumNumericalVars()+randomFeatures, train.getCategories(), train.getPredicting());
 

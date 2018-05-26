@@ -38,8 +38,8 @@ public class DataTransformProcess implements DataTransform, Parameterized
      */
     public DataTransformProcess()
     {
-        transformSource = new ArrayList<DataTransform>();
-        learnedTransforms = new ArrayList<DataTransform>();   
+        transformSource = new ArrayList<>();
+        learnedTransforms = new ArrayList<>();   
     }
     
     /**
@@ -166,7 +166,7 @@ public class DataTransformProcess implements DataTransform, Parameterized
                 
                 //Now we know if we can apply the mutations or not
                 if(vecSafe && (!ipt.mutatesNominal() || catSafe))
-                    dataSet.applyTransform(ipt, true);
+                    dataSet.applyTransformMutate(ipt, true);
                 else//go back to normal
                     dataSet.applyTransform(transform);
             }
