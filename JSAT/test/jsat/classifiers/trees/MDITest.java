@@ -82,7 +82,7 @@ public class MDITest
             int good_featres = train.getNumNumericalVars();
             ClassificationDataSet train_noise = new ClassificationDataSet(train.getNumNumericalVars()+randomFeatures, train.getCategories(), train.getPredicting());
 
-            for(int i = 0; i < train.getSampleSize(); i++)
+            for(int i = 0; i < train.size(); i++)
             {
                 DataPoint dp = train.getDataPoint(i);
                 Vec n = dp.getNumericalValues();
@@ -109,7 +109,7 @@ public class MDITest
             good_featres = train.getNumNumericalVars();
             train_noise = new ClassificationDataSet(train.getNumNumericalVars()+randomFeatures, train.getCategories(), train.getPredicting());
 
-            for(int i = 0; i < train.getSampleSize(); i++)
+            for(int i = 0; i < train.size(); i++)
             {
                 DataPoint dp = train.getDataPoint(i);
                 Vec n = dp.getNumericalValues().add(DenseVector.random(good_featres).multiply(0.3));

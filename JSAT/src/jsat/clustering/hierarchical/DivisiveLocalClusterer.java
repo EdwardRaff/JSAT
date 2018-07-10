@@ -53,20 +53,20 @@ public class DivisiveLocalClusterer extends KClustererBase
     @Override
     public int[] cluster(DataSet dataSet, int[] designations)
     {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()), designations);
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.size()), designations);
     }
 
     @Override
     public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()), parallel, designations);
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.size()), parallel, designations);
     }
 
     @Override
     public int[] cluster(DataSet dataSet, int clusters, boolean parallel, int[] designations) 
     {
         if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+            designations = new int[dataSet.size()];
         /**
          * For each current cluster, we store the clustering results if we 
          * attempt to split it into two.
@@ -77,7 +77,7 @@ public class DivisiveLocalClusterer extends KClustererBase
         /**
          * Stores the index from the sub data set into the full data set
          */
-        final int[][] originalPositions = new int[clusters][dataSet.getSampleSize()];
+        final int[][] originalPositions = new int[clusters][dataSet.size()];
         
         /**
          * Stores the dissimilarity of the splitting of the cluster with the same index value. Negative value indicates not set
@@ -173,7 +173,7 @@ public class DivisiveLocalClusterer extends KClustererBase
     {
         subDesignation[originalCluster] = new int[listOfDataPointsInCluster.size()];
         int pos = 0;
-        for(int i = 0; i < fullDataSet.getSampleSize(); i++)
+        for(int i = 0; i < fullDataSet.size(); i++)
         {
             if(fullDesignations[i] != originalCluster)
                 continue;

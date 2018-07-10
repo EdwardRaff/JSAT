@@ -141,7 +141,7 @@ public class PCA implements DataTransform
         Matrix E = dataSet.getDataMatrix();
         
         //This is the MAX number of possible Principlal Components
-        int PCs = Math.min(dataSet.getSampleSize(), dataSet.getNumNumericalVars());
+        int PCs = Math.min(dataSet.size(), dataSet.getNumNumericalVars());
         PCs = Math.min(maxPCs, PCs);
         Vec t = getColumn(E);
         

@@ -223,7 +223,7 @@ public class FastICA implements InvertibleTransform
     @Override
     public void fit(DataSet data)
     {
-        int N = data.getSampleSize();
+        int N = data.size();
         
         Vec tmp = new DenseVector(N);
              

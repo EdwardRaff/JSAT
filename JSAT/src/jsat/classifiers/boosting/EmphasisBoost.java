@@ -230,7 +230,7 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
         predicting = dataSet.getPredicting();
         hypWeights = new DoubleList(maxIterations);
         hypoths = new ArrayList<Classifier>(maxIterations);
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         
         List<DataPointPair<Integer>> dataPoints = dataSet.getTwiceShallowClone().getAsDPPList();
         //Initialization step, set up the weights  so they are all 1 / size of dataset

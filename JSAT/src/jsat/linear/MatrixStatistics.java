@@ -113,10 +113,10 @@ public class MatrixStatistics
      */
     public static void meanVector(Vec mean, DataSet dataSet)
     {
-        if(dataSet.getSampleSize() == 0)
+        if(dataSet.size() == 0)
             throw new ArithmeticException("Can not compute the mean of zero data points");
         double sumOfWeights = 0;
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             DataPoint dp = dataSet.getDataPoint(i);
             double w = dp.getWeight();
@@ -298,7 +298,7 @@ public class MatrixStatistics
     {
         double sumOfWeights = 0.0, sumOfSquaredWeights = 0.0;
         
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             DataPoint dp = dataSet.getDataPoint(i);
             sumOfWeights += dp.getWeight();
@@ -322,7 +322,7 @@ public class MatrixStatistics
             throw new ArithmeticException("Storage for covariance matrix must be square");
         else if (covariance.rows() != mean.length())
             throw new ArithmeticException("Covariance Matrix size and mean size do not agree");
-        else if (dataSet.getSampleSize() == 0)
+        else if (dataSet.size() == 0)
             throw new ArithmeticException("No data points to compute covariance from");
         else if (mean.length() != dataSet.getNumNumericalVars())
             throw new ArithmeticException("Data vectors do not agree with mean and covariance matrix");
@@ -350,7 +350,7 @@ public class MatrixStatistics
 
         Vec scratch = new DenseVector(mean.length());
 
-        for (int i = 0; i < dataSet.getSampleSize(); i++)
+        for (int i = 0; i < dataSet.size(); i++)
         {
             DataPoint dp = dataSet.getDataPoint(i);
             Vec x = dp.getNumericalValues();
@@ -372,7 +372,7 @@ public class MatrixStatistics
      */
     public static void covarianceDiag(Vec means, Vec diag, DataSet dataset)
     {
-        final int n = dataset.getSampleSize();
+        final int n = dataset.size();
         final int d = dataset.getNumNumericalVars();
         
         int[] nnzCounts = new int[d];

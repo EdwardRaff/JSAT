@@ -91,7 +91,7 @@ public class HamerlyKMeans extends KMeans
     @Override
     protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, boolean parallel, boolean returnError, Vec dataPointWeights)
     {
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         final int D = dataSet.getNumNumericalVars();
         
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);

@@ -59,7 +59,7 @@ public class DCSVMTest
             classifier.setClusterSampleSize(200);//make smaller to test sub-sampling
             classifier.train(trainSet, true);
 
-            for (int i = 0; i < testSet.getSampleSize(); i++)
+            for (int i = 0; i < testSet.size(); i++)
                 assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
         }
 
@@ -75,7 +75,7 @@ public class DCSVMTest
             classifier.train(trainSet, true);
             
 
-            for (int i = 0; i < testSet.getSampleSize(); i++)
+            for (int i = 0; i < testSet.size(); i++)
                 assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
         }
     }
@@ -95,7 +95,7 @@ public class DCSVMTest
             classifier.setClusterSampleSize(200);//make smaller to test sub-sampling
             classifier.train(trainSet);
 
-            for (int i = 0; i < testSet.getSampleSize(); i++)
+            for (int i = 0; i < testSet.size(); i++)
                 assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
         }
 
@@ -111,7 +111,7 @@ public class DCSVMTest
             classifier.train(trainSet);
             
 
-            for (int i = 0; i < testSet.getSampleSize(); i++)
+            for (int i = 0; i < testSet.size(); i++)
                 assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
         }
     }

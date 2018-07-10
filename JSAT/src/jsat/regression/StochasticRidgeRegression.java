@@ -225,11 +225,11 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
     @Override
     public void train(RegressionDataSet dataSet)
     {
-        int batch = Math.min(batchSize, dataSet.getSampleSize());
+        int batch = Math.min(batchSize, dataSet.size());
         w = new DenseVector(dataSet.getNumNumericalVars());
         
-        IntList sample = new IntList(dataSet.getSampleSize());
-        ListUtils.addRange(sample, 0, dataSet.getSampleSize(), 1);
+        IntList sample = new IntList(dataSet.size());
+        ListUtils.addRange(sample, 0, dataSet.size(), 1);
         
         //Time and last time used to lazy update the parameters that do not get touched on a sparse update
         int time = 0;
@@ -239,10 +239,10 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
         final boolean sparseUpdates;
         {
             int sparse = 0;
-            for (int i = 0; i < dataSet.getSampleSize(); i++)
+            for (int i = 0; i < dataSet.size(); i++)
                 if(dataSet.getDataPoint(i).getNumericalValues().isSparse())
                     sparse++;
-            if(sparse > dataSet.getSampleSize()/4)
+            if(sparse > dataSet.size()/4)
                 sparseUpdates = true;
             else
                 sparseUpdates = false;

@@ -133,8 +133,8 @@ public class DataTransformProcess implements DataTransform, Parameterized
         int iter = 0;
         
         //copy original references so we can check saftey of inplace mutation later
-        Vec[] origVecs = new Vec[dataSet.getSampleSize()];
-        int[][] origCats = new int[dataSet.getSampleSize()][];
+        Vec[] origVecs = new Vec[dataSet.size()];
+        int[][] origCats = new int[dataSet.size()][];
         for (int i = 0; i < origVecs.length; i++)
         {
             DataPoint dp = dataSet.getDataPoint(i);

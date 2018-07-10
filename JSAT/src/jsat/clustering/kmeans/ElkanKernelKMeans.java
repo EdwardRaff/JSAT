@@ -169,7 +169,7 @@ public class ElkanKernelKMeans extends KernelKMeans
             /**
              * N data points
              */
-            final int N = dataSet.getSampleSize();
+            final int N = dataSet.size();
             if(N < k)//Not enough points
                 throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
             
@@ -408,8 +408,8 @@ public class ElkanKernelKMeans extends KernelKMeans
     public int[] cluster(DataSet dataSet, int clusters, boolean parallel, int[] designations)
     {
         if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
-        if(dataSet.getSampleSize() < clusters)
+            designations = new int[dataSet.size()];
+        if(dataSet.size() < clusters)
             throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         
         cluster(dataSet, clusters, designations, false, parallel);

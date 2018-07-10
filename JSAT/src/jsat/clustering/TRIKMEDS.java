@@ -101,7 +101,7 @@ public class TRIKMEDS extends PAM
             accel = cacheAccel;
         
         //N : number of training samples
-        final int N = data.getSampleSize();
+        final int N = data.size();
         final int K = medioids.length;
         //medioids = m
         //m(k) : index of current medoid of cluster k,m(k) ∈ {1, . . . ,N}

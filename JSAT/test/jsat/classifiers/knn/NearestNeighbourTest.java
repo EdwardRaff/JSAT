@@ -43,8 +43,8 @@ public class NearestNeighbourTest
     public static void setUpClass()
     {
         GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2);
-        easyTrain = new ClassificationDataSet(gdg.generateData(80).getBackingList(), 0);
-        easyTest = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
+        easyTrain = new ClassificationDataSet(gdg.generateData(80).getList(), 0);
+        easyTest = new ClassificationDataSet(gdg.generateData(40).getList(), 0);
     }
     
     @AfterClass
@@ -118,9 +118,9 @@ public class NearestNeighbourTest
         System.out.println("trainC");
         nn.train(easyTrain);
         nn2.train(easyTrain);
-        for(int i = 0; i < easyTest.getSampleSize(); i++)
+        for(int i = 0; i < easyTest.size(); i++)
             assertEquals(easyTest.getDataPointCategory(i), nn.classify(easyTest.getDataPoint(i)).mostLikely());
-        for(int i = 0; i < easyTest.getSampleSize(); i++)
+        for(int i = 0; i < easyTest.size(); i++)
             assertEquals(easyTest.getDataPointCategory(i), nn2.classify(easyTest.getDataPoint(i)).mostLikely());
     }
 
@@ -131,10 +131,10 @@ public class NearestNeighbourTest
         nn.train(easyTrain);
         nn2.train(easyTrain);
         Classifier clone = nn.clone();
-        for(int i = 0; i < easyTest.getSampleSize(); i++)
+        for(int i = 0; i < easyTest.size(); i++)
             assertEquals(easyTest.getDataPointCategory(i), clone.classify(easyTest.getDataPoint(i)).mostLikely());
         clone = nn2.clone();
-        for(int i = 0; i < easyTest.getSampleSize(); i++)
+        for(int i = 0; i < easyTest.size(); i++)
             assertEquals(easyTest.getDataPointCategory(i), clone.classify(easyTest.getDataPoint(i)).mostLikely());
     }
 
@@ -144,9 +144,9 @@ public class NearestNeighbourTest
         System.out.println("trainC");
         nn.train(easyTrain, true);
         nn2.train(easyTrain, true);
-        for(int i = 0; i < easyTest.getSampleSize(); i++)
+        for(int i = 0; i < easyTest.size(); i++)
             assertEquals(easyTest.getDataPointCategory(i), nn.classify(easyTest.getDataPoint(i)).mostLikely());
-        for(int i = 0; i < easyTest.getSampleSize(); i++)
+        for(int i = 0; i < easyTest.size(); i++)
             assertEquals(easyTest.getDataPointCategory(i), nn2.classify(easyTest.getDataPoint(i)).mostLikely());
     }
 }

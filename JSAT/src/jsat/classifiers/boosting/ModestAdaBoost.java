@@ -156,7 +156,7 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
         predicting = dataSet.getPredicting();
         hypWeights = new DoubleList(maxIterations);
         hypoths = new ArrayList<Classifier>(maxIterations);
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         
         double[] D_inv = new double[N];
         double[] D = new double[N];

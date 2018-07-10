@@ -50,7 +50,7 @@ public class MeanCentroidDistance implements IntraClusterEvaluation
         Vec mean = new DenseVector(dataSet.getNumNumericalVars());
         
         int clusterSize = 0;
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
             if(designations[i] == clusterID)
             {
                 clusterSize++;
@@ -61,11 +61,11 @@ public class MeanCentroidDistance implements IntraClusterEvaluation
         
         double dists = 0.0;
         
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
             if(designations[i] == clusterID)
                 dists += dm.dist(dataSet.getDataPoint(i).getNumericalValues(), mean);
         
-        return dists/dataSet.getSampleSize();
+        return dists/dataSet.size();
     }
 
     @Override

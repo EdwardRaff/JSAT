@@ -351,8 +351,8 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
             throw new FailedToFitException("LS-SVM only supports binary classification problems");
         if(warmSolution != null && !(warmSolution instanceof LSSVM))
             throw new FailedToFitException("Warm solution must be an implementation of LS-SVM, not " + warmSolution.getClass());
-        double[] targets = new double[dataSet.getSampleSize()];
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        double[] targets = new double[dataSet.size()];
+        for(int i = 0; i < dataSet.size(); i++)
             targets[i] = dataSet.getDataPointCategory(i)*2-1;
         mainLoop(dataSet, (LSSVM) warmSolution , targets, parallel);
     }

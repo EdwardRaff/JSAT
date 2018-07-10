@@ -280,7 +280,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                 Set<Integer> points = new IntSet();
                 
                 while (points.size() < centroids)
-                    points.add(rand.nextInt(data.getSampleSize()));
+                    points.add(rand.nextInt(data.size()));
                     
                 for (int i : points)
                     toRet.add(data.getDataPoint(i).getNumericalValues());
@@ -341,7 +341,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                     averages[i] = new OnLineStatistics();
                 
                 List<Vec> X = data.getDataVectors();
-                ParallelUtils.run(true, data.getSampleSize(), (start, end) -> 
+                ParallelUtils.run(true, data.size(), (start, end) -> 
                 {
                     final OnLineStatistics[] localAverages = new OnLineStatistics[bandwidths.length];
                     for (int i = 0; i < localAverages.length; i++)
@@ -413,7 +413,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                 for(int i =0; i < classLabels.length; i++)
                     classLabels[i] = new AtomicIntegerArray(cds.getClassSize());
 
-                ParallelUtils.run(true, data.getSampleSize(), (start, end)->
+                ParallelUtils.run(true, data.size(), (start, end)->
                 {
                     for(int id = start; id < end; id++)
                     {

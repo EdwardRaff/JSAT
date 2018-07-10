@@ -153,9 +153,9 @@ public class MeanShift implements Clusterer
     {
         try
         {
-            if(designations == null || designations.length < dataSet.getSampleSize())
-                designations = new int[dataSet.getSampleSize()];
-            boolean[] converged = new boolean[dataSet.getSampleSize()];
+            if(designations == null || designations.length < dataSet.size())
+                designations = new int[dataSet.size()];
+            boolean[] converged = new boolean[dataSet.size()];
             Arrays.fill(converged, false);
             
             final KernelFunction k = mkde.getKernelFunction();

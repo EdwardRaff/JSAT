@@ -73,7 +73,7 @@ public class RBFNetTest
                 net.train(trainSet, true);
 
                 net = net.clone();
-                for (int i = 0; i < testSet.getSampleSize(); i++)
+                for (int i = 0; i < testSet.size(); i++)
                     assertEquals(testSet.getDataPointCategory(i), net.classify(testSet.getDataPoint(i)).mostLikely());
             }
     }
@@ -99,7 +99,7 @@ public class RBFNetTest
                 net = net.clone();
                 net.train(trainSet);
                 net = net.clone();
-                for (int i = 0; i < testSet.getSampleSize(); i++)
+                for (int i = 0; i < testSet.size(); i++)
                     assertEquals(testSet.getDataPointCategory(i), net.classify(testSet.getDataPoint(i)).mostLikely());
             }
         
@@ -128,9 +128,9 @@ public class RBFNetTest
                 net = net.clone();
                 
                 double errors = 0;
-                for (int i = 0; i < testSet.getSampleSize(); i++)
+                for (int i = 0; i < testSet.size(); i++)
                     errors += Math.pow(testSet.getTargetValue(i) - net.regress(testSet.getDataPoint(i)), 2);
-                assertTrue(errors/testSet.getSampleSize() < 1);
+                assertTrue(errors/testSet.size() < 1);
             }
     }
 
@@ -156,9 +156,9 @@ public class RBFNetTest
                 net = net.clone();
                 
                 double errors = 0;
-                for (int i = 0; i < testSet.getSampleSize(); i++)
+                for (int i = 0; i < testSet.size(); i++)
                     errors += Math.pow(testSet.getTargetValue(i) - net.regress(testSet.getDataPoint(i)), 2);
-                assertTrue(errors/testSet.getSampleSize() < 1);
+                assertTrue(errors/testSet.size() < 1);
             }
         
     }

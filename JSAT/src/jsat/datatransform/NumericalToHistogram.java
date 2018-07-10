@@ -48,7 +48,7 @@ public class NumericalToHistogram implements DataTransform
      */
     public NumericalToHistogram(DataSet dataSet)
     {
-        this(dataSet, (int) Math.ceil(Math.sqrt(dataSet.getSampleSize())));
+        this(dataSet, (int) Math.ceil(Math.sqrt(dataSet.size())));
     }
     
     /**
@@ -85,7 +85,7 @@ public class NumericalToHistogram implements DataTransform
             mins[i] = Double.MAX_VALUE;
             maxs[i] = Double.MIN_VALUE;
         }
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             Vec v = dataSet.getDataPoint(i).getNumericalValues();
             for(int j = 0; j < mins.length; j++)
@@ -137,12 +137,12 @@ public class NumericalToHistogram implements DataTransform
      */
     public static Distribution guessNumberOfBins(DataSet data)
     {
-        if(data.getSampleSize() < 20)
-            return new UniformDiscrete(2, data.getSampleSize()-1);
-        else if(data.getSampleSize() >= 1000000)
+        if(data.size() < 20)
+            return new UniformDiscrete(2, data.size()-1);
+        else if(data.size() >= 1000000)
             return new LogUniform(50, 1000);
-        int sqrt = (int) Math.sqrt(data.getSampleSize());
-        return new UniformDiscrete(Math.max(sqrt/3, 2), Math.min(sqrt*3, data.getSampleSize()-1));
+        int sqrt = (int) Math.sqrt(data.size());
+        return new UniformDiscrete(Math.max(sqrt/3, 2), Math.min(sqrt*3, data.size()-1));
     }
     
     /**

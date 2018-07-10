@@ -343,7 +343,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
         double[] delta = new double[useBias ? D + 1 : D];
         Arrays.fill(delta, 1.0);
 
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         double[] r = new double[N];
         double[] y = new double[N];
         for (int i = 0; i < N; i++)

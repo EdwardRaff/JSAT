@@ -304,19 +304,19 @@ public class CSV
          * Fist mapping is for each column that contains categorical variables. 
          * The value map is a mapping from each string to its index, based on order seen. 
          */
-        Map<Integer, Map<String, Integer>> seenCats = new HashMap<Integer, Map<String, Integer>>();
+        Map<Integer, Map<String, Integer>> seenCats = new HashMap<>();
         for(int col : cat_col)
             if(col != cat_target)
-            seenCats.put(col, new HashMap<String, Integer>());
+                seenCats.put(col, new HashMap<>());
         /**
          * a mapping from each string to its index, based on order seen, for the target class
          */
-        Map<String, Integer> seenCats_target = new HashMap<String, Integer>();
+        Map<String, Integer> seenCats_target = new HashMap<>();
         
         /**
          * 
          */
-        Map<Integer, Integer> cat_indx_to_csv_column = new HashMap<Integer, Integer>();
+        Map<Integer, Integer> cat_indx_to_csv_column = new HashMap<>();
 
         
         STATE state = STATE.INITIAL;
@@ -332,8 +332,8 @@ public class CSV
         IntList catFeats = new IntList();
         int cur_column = 0;
         
-        List<Vec> all_vecs = new ArrayList<Vec>();
-        List<int[]> all_cats = new ArrayList<int[]>();
+        List<Vec> all_vecs = new ArrayList<>();
+        List<int[]> all_cats = new ArrayList<>();
         
         while(true)
         {
@@ -529,18 +529,18 @@ public class CSV
          * we will sort each set of seen options so that we get the same feature
          * index ordering regardless of the order they occurred in the data
          */
-        Map<Integer, Map<Integer, Integer>> cat_true_index = new HashMap<Integer, Map<Integer, Integer>>();
+        Map<Integer, Map<Integer, Integer>> cat_true_index = new HashMap<>();
         
-        Map<Integer, CategoricalData> catDataMap = new HashMap<Integer, CategoricalData>();
+        Map<Integer, CategoricalData> catDataMap = new HashMap<>();
         if(cat_target >= 0)//added so it gets processed easily below
             seenCats.put(cat_target, seenCats_target);
         CategoricalData target_data = null;
         for( Map.Entry<Integer, Map<String, Integer>> main_entry : seenCats.entrySet())
         {
-            HashMap<Integer, Integer> translator = new HashMap<Integer, Integer>();
+            HashMap<Integer, Integer> translator = new HashMap<>();
             int col = main_entry.getKey();
             Map<String, Integer> catsSeen = main_entry.getValue();
-            List<String> sortedOrder = new ArrayList<String>(catsSeen.keySet());
+            List<String> sortedOrder = new ArrayList<>(catsSeen.keySet());
             Collections.sort(sortedOrder);
             
             CategoricalData cd = new CategoricalData(sortedOrder.size());
@@ -597,7 +597,7 @@ public class CSV
         }
         else
         {
-            SimpleDataSet d = new SimpleDataSet(cat_array, totalCols - cat_array.length);
+            SimpleDataSet d = new SimpleDataSet(totalCols - cat_array.length, cat_array);
             for (int i = 0; i < all_vecs.size(); i++)
                 d.add(new DataPoint(all_vecs.get(i), all_cats.get(i), cat_array));
 
@@ -678,7 +678,7 @@ public class CSV
             classNames = getSafeNames(new CategoricalData[]{((ClassificationDataSet)data).getPredicting()}, delimiter)[0];
         
         //write out every data point
-        for(int i = 0; i < data.getSampleSize(); i++)
+        for(int i = 0; i < data.size(); i++)
         {
             if(i > 0)//write newline first
                 writer.write('\n');

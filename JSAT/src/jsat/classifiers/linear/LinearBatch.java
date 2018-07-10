@@ -520,7 +520,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             DoubleAdder sum = new DoubleAdder();
             DoubleAdder weightSum = new DoubleAdder();
             
-            ParallelUtils.run(parallel, D.getSampleSize(), (start, end)->
+            ParallelUtils.run(parallel, D.size(), (start, end)->
             {
                 for(int i = start; i < end; i++)
                 {
@@ -564,7 +564,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             DoubleAdder weightSum = new DoubleAdder();
             ThreadLocal<Vec> tl_s = ThreadLocal.withInitial(s::clone);
             
-            ParallelUtils.run(parallel, D.getSampleSize(), (start, end)->
+            ParallelUtils.run(parallel, D.size(), (start, end)->
             {
                 Vec s_l = tl_s.get();
                 
@@ -608,7 +608,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             //bias terms are at the end, treat them seperate and special
             final int subWSize = (w.length() - (useBiasTerm ? bs.length : 0) )/D.getClassSize();
             DoubleAdder weightSum = new DoubleAdder();
-            ParallelUtils.run(parallel, D.getSampleSize(), (start, end)->
+            ParallelUtils.run(parallel, D.size(), (start, end)->
             {
                 Vec pred_local = pred.clone();
                 for (int i = start; i < end; i++)
@@ -655,7 +655,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             Vec pred = new DenseVector(D.getClassSize());//store the predictions in
             final int subWSize = (w.length() - (useBiasTerm ? bs.length : 0) )/D.getClassSize();
             DoubleAdder weightSum = new DoubleAdder();
-            ParallelUtils.run(parllel, D.getSampleSize(), (start, end)->
+            ParallelUtils.run(parllel, D.size(), (start, end)->
             {
                 Vec s_l = tl_s.get();
                 Vec pred_local = pred.clone();

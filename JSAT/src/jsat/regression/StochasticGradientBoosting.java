@@ -250,7 +250,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
          * Instead of recomputing previous weak learner's output, keep track of 
          * the current total sum to know the current prediction value
          */
-        final double[] currPredictions = new double[dataSet.getSampleSize()];
+        final double[] currPredictions = new double[dataSet.size()];
         
         
         
@@ -260,7 +260,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
         RegressionDataSet resids = RegressionDataSet.usingDPPList(backingResidsList);
         
         
-        final int randSampleSize = (int) Math.round(resids.getSampleSize()*trainingProportion);
+        final int randSampleSize = (int) Math.round(resids.size()*trainingProportion);
         final List<DataPointPair<Double>> randSampleList = new ArrayList<DataPointPair<Double>>(randSampleSize);
         final Random rand = RandomUtil.getRandom();
 
@@ -270,7 +270,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
             lastF = F.get(iter);
             
             //Compute the new residuals 
-            for(int j = 0; j < resids.getSampleSize(); j++)
+            for(int j = 0; j < resids.size(); j++)
             {
                 //Update the current total preduction values while we do this 
                 double lastFPred = lastF.regress(resids.getDataPoint(j));

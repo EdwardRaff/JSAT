@@ -76,27 +76,27 @@ public class JLTransformTest
         Random rand = new XORWOW(124);
         int k = 550;
         
-        List<Vec> transformed = new ArrayList<Vec>(ds.getSampleSize());
+        List<Vec> transformed = new ArrayList<Vec>(ds.size());
         for( JLTransform.TransformMode mode : JLTransform.TransformMode.values())
         {
             JLTransform jl = new JLTransform(k, mode, true);
             jl.fit(ds);
 
             transformed.clear();
-            for(int i = 0; i < ds.getSampleSize(); i++)
+            for(int i = 0; i < ds.size(); i++)
                 transformed.add(jl.transform(ds.getDataPoint(i)).getNumericalValues());
             
             int violations = 0;
             int count = 0;
 
             EuclideanDistance d = new EuclideanDistance();
-            for(int i = 0; i < ds.getSampleSize(); i++)
+            for(int i = 0; i < ds.size(); i++)
             {
                 DataPoint dpi = ds.getDataPoint(i);
                 Vec vi = dpi.getNumericalValues();
                 Vec vti = transformed.get(i);
 
-                for(int j = i+1; j < ds.getSampleSize(); j++)
+                for(int j = i+1; j < ds.size(); j++)
                 {
                     count++;
 

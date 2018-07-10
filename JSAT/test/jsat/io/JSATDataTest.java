@@ -18,7 +18,10 @@ package jsat.io;
 
 import java.io.*;
 import java.util.Random;
+import jsat.ColumnMajorStore;
 import jsat.DataSet;
+import jsat.DataStore;
+import jsat.RowMajorStore;
 import jsat.SimpleDataSet;
 import jsat.classifiers.*;
 import jsat.datatransform.DenseSparceTransform;
@@ -69,7 +72,7 @@ public class JSATDataTest
         
         categories[1].setCategoryName("I love " + GreekLetters.pi);//unicide to exercise non-ascii writer
         
-        simpleData = new SimpleDataSet(categories, 20);
+        simpleData = new SimpleDataSet(20, categories);
         
         Random rand = RandomUtil.getRandom();
         
@@ -90,7 +93,7 @@ public class JSATDataTest
         
         
         
-        byteIntegerData = new SimpleDataSet(categories, 20);
+        byteIntegerData = new SimpleDataSet(20, categories);
         
         
         for(int i = 0; i < 10; i++)
@@ -163,37 +166,41 @@ public class JSATDataTest
     {
         System.out.println("ReadWriteSimple");
         
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        JSATData.writeData(simpleData, baos);
-        
-        ByteArrayInputStream bin = new ByteArrayInputStream(baos.toByteArray());
-        
-        DataSet readBack = JSATData.load(bin);
-        
-        checkDataSet(simpleData, readBack);
-        
-        simpleData.applyTransform(new DenseSparceTransform(0.5));//sparcify our numeric values and try again
-        
-        baos = new ByteArrayOutputStream();
-        JSATData.writeData(simpleData, baos);
-        
-        byte[] raw_read_back = baos.toByteArray();
-        bin = new ByteArrayInputStream(raw_read_back);
-        
-        readBack = JSATData.load(bin);
-        
-        checkDataSet(simpleData, readBack);
-        
-        //what if we muck the number of data points to be a negative value? indicates streaming write scenario
-        raw_read_back[17] = -1;
-        raw_read_back[18] = -1;
-        raw_read_back[19] = -1;
-        raw_read_back[20] = -1;
-        bin = new ByteArrayInputStream(raw_read_back);
+        for(DataStore store : new DataStore[]{new RowMajorStore(), new ColumnMajorStore()})
+        {
+            //Prime by writting out the data
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            JSATData.writeData(simpleData, baos);
+            
+            ByteArrayInputStream bin = new ByteArrayInputStream(baos.toByteArray());
+            
+            DataSet readBack = JSATData.load(bin, store.clone());
 
-        readBack = JSATData.load(bin);
+            checkDataSet(simpleData, readBack);
 
-        checkDataSet(simpleData, readBack);
+            simpleData.applyTransform(new DenseSparceTransform(0.5));//sparcify our numeric values and try again
+
+            baos = new ByteArrayOutputStream();
+            JSATData.writeData(simpleData, baos);
+
+            byte[] raw_read_back = baos.toByteArray();
+            bin = new ByteArrayInputStream(raw_read_back);
+
+            readBack = JSATData.load(bin, store.clone());
+
+            checkDataSet(simpleData, readBack);
+
+            //what if we muck the number of data points to be a negative value? indicates streaming write scenario
+            raw_read_back[17] = -1;
+            raw_read_back[18] = -1;
+            raw_read_back[19] = -1;
+            raw_read_back[20] = -1;
+            bin = new ByteArrayInputStream(raw_read_back);
+
+            readBack = JSATData.load(bin, store.clone());
+
+            checkDataSet(simpleData, readBack);
+        }
     }
     
     @Test
@@ -205,53 +212,57 @@ public class JSATDataTest
         //use the last categorical feature as the read target so that forcing as a standard dataset produces the same expected result as the original simple dataset
         ClassificationDataSet cds = simpleData.asClassificationDataSet(simpleData.getNumCategoricalVars()-1);
         
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        JSATData.writeData(cds, baos);
         
-        ByteArrayInputStream bin = new ByteArrayInputStream(baos.toByteArray());
+        for(DataStore store : new DataStore[]{new RowMajorStore(), new ColumnMajorStore()})
+        {
+            //Prime by writting out the data
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            JSATData.writeData(cds, baos);
         
-        
-        //check classificaiton is right
-        DataSet readBack = JSATData.load(bin);
-        checkDataSet(cds, readBack);
-        bin.reset();
-        readBack = JSATData.loadClassification(bin);
-        checkDataSet(cds, readBack);
-        //check forcing as simple
-        bin = new ByteArrayInputStream(baos.toByteArray());
-        readBack = JSATData.load(bin, true);
-        checkDataSet(simpleData, readBack);
-        
-        cds.applyTransform(new DenseSparceTransform(0.5));//sparcify our numeric values and try again
-        simpleData.applyTransform(new DenseSparceTransform(0.5));
-        
-        baos = new ByteArrayOutputStream();
-        JSATData.writeData(cds, baos);
-        
-        bin = new ByteArrayInputStream(baos.toByteArray());
-        
-        //check classificaiton is right
-        readBack = JSATData.load(bin);
-        checkDataSet(cds, readBack);
-        bin.reset();
-        readBack = JSATData.loadClassification(bin);
-        checkDataSet(cds, readBack);
-        //check forcing as simple
-        byte[] raw_read_back = baos.toByteArray();
-        bin = new ByteArrayInputStream(raw_read_back);
-        readBack = JSATData.load(bin, true);
-        checkDataSet(simpleData, readBack);
-        
-        //what if we muck the number of data points to be a negative value? indicates streaming write scenario
-        raw_read_back[17] = -1;
-        raw_read_back[18] = -1;
-        raw_read_back[19] = -1;
-        raw_read_back[20] = -1;
-        bin = new ByteArrayInputStream(raw_read_back);
+            ByteArrayInputStream bin = new ByteArrayInputStream(baos.toByteArray());
+            
+            //check classificaiton is right
+            DataSet readBack = JSATData.load(bin, store.clone());
+            checkDataSet(cds, readBack);
+            bin.reset();
+            readBack = JSATData.loadClassification(bin, store.clone());
+            checkDataSet(cds, readBack);
+            //check forcing as simple
+            bin = new ByteArrayInputStream(baos.toByteArray());
+            readBack = JSATData.load(bin, true, store.clone());
+            checkDataSet(simpleData, readBack);
 
-        readBack = JSATData.load(bin, true);
+            cds.applyTransform(new DenseSparceTransform(0.5));//sparcify our numeric values and try again
+            simpleData.applyTransform(new DenseSparceTransform(0.5));
 
-        checkDataSet(simpleData, readBack);
+            baos = new ByteArrayOutputStream();
+            JSATData.writeData(cds, baos);
+
+            bin = new ByteArrayInputStream(baos.toByteArray());
+
+            //check classificaiton is right
+            readBack = JSATData.load(bin, store.clone());
+            checkDataSet(cds, readBack);
+            bin.reset();
+            readBack = JSATData.loadClassification(bin, store.clone());
+            checkDataSet(cds, readBack);
+            //check forcing as simple
+            byte[] raw_read_back = baos.toByteArray();
+            bin = new ByteArrayInputStream(raw_read_back);
+            readBack = JSATData.load(bin, true, store.clone());
+            checkDataSet(simpleData, readBack);
+
+            //what if we muck the number of data points to be a negative value? indicates streaming write scenario
+            raw_read_back[17] = -1;
+            raw_read_back[18] = -1;
+            raw_read_back[19] = -1;
+            raw_read_back[20] = -1;
+            bin = new ByteArrayInputStream(raw_read_back);
+
+            readBack = JSATData.load(bin, true, store.clone());
+
+            checkDataSet(simpleData, readBack);
+        }
     }
     
     @Test
@@ -260,57 +271,60 @@ public class JSATDataTest
         System.out.println("ReadWriteRegression");
         
         
-        //use the last categorical feature as the read target so that forcing as a standard dataset produces the same expected result as the original simple dataset
-        RegressionDataSet rds = new RegressionDataSet(simpleData.getBackingList(), simpleData.getNumNumericalVars()-1);
-        
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        JSATData.writeData(rds, baos);
-        
-        ByteArrayInputStream bin = new ByteArrayInputStream(baos.toByteArray());
-        
-        //check classificaiton is right
-        DataSet readBack = JSATData.load(bin);
-        checkDataSet(rds, readBack);
-        bin.reset();
-        readBack = JSATData.loadRegression(bin);
-        checkDataSet(rds, readBack);
-        //check forcing as simple
-        bin = new ByteArrayInputStream(baos.toByteArray());
-        readBack = JSATData.load(bin, true);
-        checkDataSet(simpleData, readBack);
-        
-        rds.applyTransform(new DenseSparceTransform(0.5));//sparcify our numeric values and try again
-        simpleData.applyTransform(new DenseSparceTransform(0.5));
-        
-        baos = new ByteArrayOutputStream();
-        JSATData.writeData(rds, baos);
-        
-        bin = new ByteArrayInputStream(baos.toByteArray());
-        
-        //check classificaiton is right
-        readBack = JSATData.load(bin);
-        checkDataSet(rds, readBack);
-        bin.reset();
-        readBack = JSATData.loadRegression(bin);
-        checkDataSet(rds, readBack);
-        //check forcing as simple
-        byte[] raw_read_back = baos.toByteArray();
-        bin = new ByteArrayInputStream(raw_read_back);
-        readBack = JSATData.load(bin, true);
-        checkDataSet(simpleData, readBack);
-        
-        //what if we muck the number of data points to be a negative value? indicates streaming write scenario
-        raw_read_back[17] = -1;
-        raw_read_back[18] = -1;
-        raw_read_back[19] = -1;
-        raw_read_back[20] = -1;
-        bin = new ByteArrayInputStream(raw_read_back);
+        for(DataStore store : new DataStore[]{new RowMajorStore(), new ColumnMajorStore()})
+        {
+            //use the last categorical feature as the read target so that forcing as a standard dataset produces the same expected result as the original simple dataset
+            RegressionDataSet rds = new RegressionDataSet(simpleData.getList(), simpleData.getNumNumericalVars()-1);
 
-        readBack = JSATData.load(bin, true);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            JSATData.writeData(rds, baos);
 
-        checkDataSet(simpleData, readBack);
-        
-        //Check data-writer appraoch looks like mucked version of binary
+            ByteArrayInputStream bin = new ByteArrayInputStream(baos.toByteArray());
+
+            //check classificaiton is right
+            DataSet readBack = JSATData.load(bin, store.clone());
+            checkDataSet(rds, readBack);
+            bin.reset();
+            readBack = JSATData.loadRegression(bin, store.clone());
+            checkDataSet(rds, readBack);
+            //check forcing as simple
+            bin = new ByteArrayInputStream(baos.toByteArray());
+            readBack = JSATData.load(bin, true, store.clone());
+            checkDataSet(simpleData, readBack);
+
+            rds.applyTransform(new DenseSparceTransform(0.5));//sparcify our numeric values and try again
+            simpleData.applyTransform(new DenseSparceTransform(0.5));
+
+            baos = new ByteArrayOutputStream();
+            JSATData.writeData(rds, baos);
+
+            bin = new ByteArrayInputStream(baos.toByteArray());
+
+            //check classificaiton is right
+            readBack = JSATData.load(bin, store.clone());
+            checkDataSet(rds, readBack);
+            bin.reset();
+            readBack = JSATData.loadRegression(bin, store.clone());
+            checkDataSet(rds, readBack);
+            //check forcing as simple
+            byte[] raw_read_back = baos.toByteArray();
+            bin = new ByteArrayInputStream(raw_read_back);
+            readBack = JSATData.load(bin, true, store.clone());
+            checkDataSet(simpleData, readBack);
+
+            //what if we muck the number of data points to be a negative value? indicates streaming write scenario
+            raw_read_back[17] = -1;
+            raw_read_back[18] = -1;
+            raw_read_back[19] = -1;
+            raw_read_back[20] = -1;
+            bin = new ByteArrayInputStream(raw_read_back);
+
+            readBack = JSATData.load(bin, true, store.clone());
+
+            checkDataSet(simpleData, readBack);
+
+            //Check data-writer appraoch looks like mucked version of binary
+        }
         
     }
 
@@ -320,7 +334,7 @@ public class JSATDataTest
         
         assertEquals(ogData.getNumNumericalVars(), cpData.getNumNumericalVars());
         assertEquals(ogData.getNumCategoricalVars(), cpData.getNumCategoricalVars());
-        assertEquals(ogData.getSampleSize(), cpData.getSampleSize());
+        assertEquals(ogData.size(), cpData.size());
         
         CategoricalData[] og_cats = ogData.getCategories();
         CategoricalData[] cp_cats = ogData.getCategories();
@@ -334,7 +348,7 @@ public class JSATDataTest
         }
         
         //compare datapoint values
-        for(int i = 0; i < ogData.getSampleSize(); i++)
+        for(int i = 0; i < ogData.size(); i++)
         {
             DataPoint og = ogData.getDataPoint(i);
             DataPoint cp = cpData.getDataPoint(i);
@@ -342,7 +356,7 @@ public class JSATDataTest
             assertArrayEquals(og.getCategoricalValues(), cp.getCategoricalValues());
             Vec og_vec = og.getNumericalValues();
             Vec cp_vec = cp.getNumericalValues();
-            assertTrue(og_vec.isSparse() == cp_vec.isSparse());
+//            assertTrue(og_vec.isSparse() == cp_vec.isSparse());
             assertTrue(og_vec.equals(cp_vec));
             
             assertEquals(og.getWeight(), cp.getWeight(), 0.0);
@@ -354,7 +368,7 @@ public class JSATDataTest
             ClassificationDataSet ogC = (ClassificationDataSet) ogData;
             ClassificationDataSet cpC = (ClassificationDataSet) cpData;
             
-            for(int i = 0; i < ogData.getSampleSize(); i++)
+            for(int i = 0; i < ogData.size(); i++)
                 assertEquals(ogC.getDataPointCategory(i), cpC.getDataPointCategory(i));
         }
         
@@ -363,7 +377,7 @@ public class JSATDataTest
             RegressionDataSet ogR = (RegressionDataSet) ogData;
             RegressionDataSet cpR = (RegressionDataSet) cpData;
             
-            for(int i = 0; i < ogData.getSampleSize(); i++)
+            for(int i = 0; i < ogData.size(); i++)
                 assertEquals(ogR.getTargetValue(i), cpR.getTargetValue(i), 0.0);
         }
         

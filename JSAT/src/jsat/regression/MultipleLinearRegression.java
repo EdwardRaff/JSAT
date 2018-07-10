@@ -50,13 +50,13 @@ public class MultipleLinearRegression implements Regressor, SingleWeightVectorMo
     {
         if(dataSet.getNumCategoricalVars() > 0)
             throw new RuntimeException("Multiple Linear Regression only works with numerical values");
-        int sda = dataSet.getSampleSize();
-        DenseMatrix X = new DenseMatrix(dataSet.getSampleSize(), dataSet.getNumNumericalVars()+1);
-        DenseVector Y = new DenseVector(dataSet.getSampleSize());
+        int sda = dataSet.size();
+        DenseMatrix X = new DenseMatrix(dataSet.size(), dataSet.getNumNumericalVars()+1);
+        DenseVector Y = new DenseVector(dataSet.size());
         
         
         //Construct matrix and vector, Y = X * B, we will solve for B or its least squares solution
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             DataPointPair<Double> dpp = dataSet.getDataPointPair(i);
             
@@ -70,8 +70,8 @@ public class MultipleLinearRegression implements Regressor, SingleWeightVectorMo
         if(useWeights)
         {
             //The sqrt(weight) vector can be applied to X and Y, and then QR can procede as normal 
-            Vec weights = new DenseVector(dataSet.getSampleSize());
-            for(int i = 0; i < dataSet.getSampleSize(); i++)
+            Vec weights = new DenseVector(dataSet.size());
+            for(int i = 0; i < dataSet.size(); i++)
                 weights.set(i, Math.sqrt(dataSet.getDataPoint(i).getWeight()));
             
             Matrix.diagMult(weights, X);

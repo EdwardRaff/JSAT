@@ -295,7 +295,7 @@ public class SVMnoBias extends SupportVectorLearner implements BinaryScoreClassi
 
     private void bookKeepingInit(ClassificationDataSet dataSet)
     {
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         vecs = dataSet.getDataVectors();
         weights = dataSet.getDataWeights();
         label = new short[N];

@@ -191,7 +191,7 @@ public class LargeViz implements VisualizationTransform
         Random rand = RandomUtil.getRandom();
         final ThreadLocal<Random> local_rand = ThreadLocal.withInitial(RandomUtil::getRandom);
         
-        final int N = d.getSampleSize();
+        final int N = d.size();
         //If perp set too big, the search size would be larger than the dataset size. So min to N
         /**
          * form sec 4.1: "we compute the sparse approximation by finding the

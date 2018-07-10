@@ -182,7 +182,7 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
         if(dataSet.getClassSize() != 2)
             throw new FailedToFitException("SBP supports only binary classification");
         
-        final int n = dataSet.getSampleSize();
+        final int n = dataSet.size();
         /**
          * First index where we start summing for the average
          */

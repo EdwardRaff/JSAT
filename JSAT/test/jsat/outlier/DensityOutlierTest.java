@@ -79,10 +79,10 @@ public class DensityOutlierTest
                 instance.fit(trainData, parallel);
 
                 double numOutliersInTrain = trainData.getDataPoints().stream().mapToDouble(instance::score).filter(x->x<0).count();
-                assertEquals(0, numOutliersInTrain/trainData.getSampleSize(), v*3);//Better say something like v% or less of training data is an outlier!
+                assertEquals(0, numOutliersInTrain/trainData.size(), v*3);//Better say something like v% or less of training data is an outlier!
 
                 double numOutliersInOutliers = outlierData.getDataPoints().stream().mapToDouble(instance::score).filter(x->x<0).count();
-                assertEquals(1.0, numOutliersInOutliers/outlierData.getSampleSize(), 0.1);//Better say 90% are outliers!
+                assertEquals(1.0, numOutliersInOutliers/outlierData.size(), 0.1);//Better say 90% are outliers!
             }
     }
     

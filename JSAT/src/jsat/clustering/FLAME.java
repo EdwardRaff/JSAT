@@ -190,13 +190,13 @@ public class FLAME extends ClustererBase implements Parameterized
     @Override
     public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        if(k >= dataSet.getSampleSize())
-            throw new FailedToFitException("Number of k-neighbors (" + k + ") can not be larger than the number of datapoints (" + dataSet.getSampleSize() + ")");
-        final int n = dataSet.getSampleSize();
-        if (designations == null || designations.length < dataSet.getSampleSize())
+        if(k >= dataSet.size())
+            throw new FailedToFitException("Number of k-neighbors (" + k + ") can not be larger than the number of datapoints (" + dataSet.size() + ")");
+        final int n = dataSet.size();
+        if (designations == null || designations.length < dataSet.size())
             designations = new int[n];
         List<VecPaired<Vec, Integer>> vecs = new ArrayList<>(n);
-        for (int i = 0; i < dataSet.getSampleSize(); i++)
+        for (int i = 0; i < dataSet.size(); i++)
             vecs.add(new VecPaired<>(dataSet.getDataPoint(i).getNumericalValues(), i));
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
         final List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> allNNs;

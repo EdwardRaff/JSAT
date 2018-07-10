@@ -121,7 +121,7 @@ public class ElkanKMeans extends KMeans
             /**
              * N data points
              */
-            final int N = dataSet.getSampleSize();
+            final int N = dataSet.size();
             final int D = dataSet.getNumNumericalVars();
             if(N < k)//Not enough points
                 throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");

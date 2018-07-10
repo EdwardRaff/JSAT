@@ -3,11 +3,14 @@ package jsat.regression;
 
 import java.util.*;
 import jsat.DataSet;
+import jsat.DataStore;
+import jsat.RowMajorStore;
 import jsat.classifiers.*;
 import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
 import jsat.linear.SparseVector;
 import jsat.linear.Vec;
+import jsat.utils.DoubleList;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 
@@ -22,10 +25,7 @@ import jsat.utils.ListUtils;
 public class RegressionDataSet extends DataSet<RegressionDataSet>
 {
 
-    /**
-     * The list of all data points, paired with their true regression output
-     */
-    protected List<DataPointPair<Double>> dataPoints;
+    protected DoubleList targets;
     
     /**
      * Creates a new empty data set for regression 
@@ -35,11 +35,22 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
      */
     public RegressionDataSet(int numerical, CategoricalData[] categories)
     {
-        this.numNumerVals = numerical;
-        this.categories = categories;
-        dataPoints = new ArrayList<DataPointPair<Double>>();
-        this.numericalVariableNames = new ArrayList<String>(getNumNumericalVars());
-        setUpGenericNumericNames();
+        super(numerical, categories);
+        targets = new DoubleList();
+    }
+    
+    /**
+     * Creates a new dataset containing the given points paired with their
+     * target values. Pairing is determined by the iteration order of each
+     * collection.
+     *
+     * @param datapoints the DataStore that will back this Data Set
+     * @param targets the target values to use
+     */
+    public RegressionDataSet(DataStore datapoints, List<Double> targets)
+    {
+       super(datapoints);
+       this.targets = new DoubleList(targets);
     }
     
     /**
@@ -53,15 +64,12 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
      */
     public RegressionDataSet(List<DataPoint> data, int predicting)
     {
+        super(data.get(0).numNumericalValues()-1, data.get(0).getCategoricalData());
         //Use the first data point to set up
         DataPoint tmp = data.get(0);
         categories = new CategoricalData[tmp.numCategoricalValues()];
         System.arraycopy(tmp.getCategoricalData(), 0, categories, 0, categories.length);
-        
-        
-        numNumerVals = tmp.numNumericalValues()-1;
-        
-        dataPoints = new ArrayList<DataPointPair<Double>>(data.size());
+        targets = new DoubleList(data.size());
         
         //Fill up data
         for(DataPoint dp : data)
@@ -83,13 +91,10 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
                     newVec.set(iv.getIndex() - 1, iv.getValue());
 
             DataPoint newDp = new DataPoint(newVec, dp.getCategoricalValues(), categories, dp.getWeight());
-            DataPointPair<Double> dpp = new DataPointPair<Double>(newDp, target);
             
-            dataPoints.add(dpp);
+            datapoints.addDataPoint(newDp);
+            targets.add(target);
         }
-        
-        this.numericalVariableNames = new ArrayList<String>(getNumNumericalVars());
-        setUpGenericNumericNames();
     }
     
     /**
@@ -99,29 +104,19 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
      */
     public RegressionDataSet(List<DataPointPair<Double>> list)
     {
-        this.numNumerVals = list.get(0).getDataPoint().numNumericalValues();
-        this.numericalVariableNames = new ArrayList<String>(getNumNumericalVars());
-        setUpGenericNumericNames();
-        this.categories = CategoricalData.copyOf(list.get(0).getDataPoint().getCategoricalData());
-        this.dataPoints =new ArrayList<DataPointPair<Double>>(list.size());
+        super(list.get(0).getDataPoint().numNumericalValues(), CategoricalData.copyOf(list.get(0).getDataPoint().getCategoricalData()));
+        this.datapoints = new RowMajorStore(numNumerVals, categories);
+        this.targets = new DoubleList();
         for(DataPointPair<Double> dpp : list)
-            dataPoints.add(new DataPointPair<Double>(dpp.getDataPoint().clone(), dpp.getPair()));
-    }
-
-    /**
-     * Sets all the names of the numeric variables 
-     */
-    private void setUpGenericNumericNames()
-    {
-        if(getNumNumericalVars() > 100)
-            return;
-        for(int i = 0; i < getNumNumericalVars(); i++)
-            this.numericalVariableNames.add("Numeric Input " + (i+1));
+        {
+            datapoints.addDataPoint(dpp.getDataPoint());
+            targets.add(dpp.getPair());
+        }
     }
     
     private RegressionDataSet()
     {
-        
+        super(new RowMajorStore(1, new CategoricalData[0]));
     }
     
     public static RegressionDataSet comineAllBut(List<RegressionDataSet> list, int exception)
@@ -136,7 +131,8 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
             if (i == exception)
                 continue;
             else
-                rds.dataPoints.addAll(list.get(i).dataPoints);
+                for(int j = 0; j < list.get(i).size(); j++)
+                    rds.addDataPoint(list.get(i).getDataPoint(j), list.get(i).getTargetValue(j));
         
         return rds;
     }
@@ -148,6 +144,7 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
      * effect the data set. 
      * 
      * @param numerical the numerical values for the data point
+     * @param val the taret value
      * @throws IllegalArgumentException if the given values are inconsistent with the data this class stores. 
      */
     public void addDataPoint(Vec numerical, double val)
@@ -186,21 +183,13 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         else if(Double.isInfinite(val) || Double.isNaN(val))
             throw new ArithmeticException("Unregressiable value " + val + " given for regression");
         
-        DataPointPair<Double> dpp = new DataPointPair<Double>(dp, val);
-        dataPoints.add(dpp);
-        columnVecCache.clear();
+        datapoints.addDataPoint(dp);
+        targets.add(val);
     }
     
     public void addDataPointPair(DataPointPair<Double> pair)
     {
-        dataPoints.add(pair);
-        columnVecCache.clear();
-    }
-    
-    @Override
-    public DataPoint getDataPoint(int i)
-    {
-        return dataPoints.get(i).getDataPoint();
+        addDataPoint(pair.getDataPoint(), pair.getPair());
     }
     
     /**
@@ -212,7 +201,7 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
      */
     public DataPointPair<Double> getDataPointPair(int i)
     {
-        return dataPoints.get(i);
+        return new DataPointPair<>(getDataPoint(i), targets.get(i));
     }
     
     /**
@@ -224,9 +213,9 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
      */
     public List<DataPointPair<Double>> getAsDPPList()
     {
-        ArrayList<DataPointPair<Double>> list = new ArrayList<DataPointPair<Double>>(dataPoints.size());
-        for(DataPointPair<Double> dpp : dataPoints)
-            list.add(new DataPointPair<Double>(dpp.getDataPoint().clone(), dpp.getPair()));
+        ArrayList<DataPointPair<Double>> list = new ArrayList<>(size());
+        for(int i = 0; i < size(); i++)
+            list.add(new DataPointPair<>(getDataPoint(i).clone(), targets.get(i)));
         return list;
     }
     
@@ -240,16 +229,10 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
      */
     public List<DataPointPair<Double>> getDPPList()
     {
-        ArrayList<DataPointPair<Double>> list = new ArrayList<DataPointPair<Double>>(dataPoints);
-        
+        ArrayList<DataPointPair<Double>> list = new ArrayList<>(size());
+        for(int i = 0; i < size(); i++)
+            list.add(getDataPointPair(i));
         return list;
-    }
-    
-    @Override
-    public void setDataPoint(int i, DataPoint dp)
-    {
-        dataPoints.get(i).setDataPoint(dp);
-        columnVecCache.clear();
     }
     
     /**
@@ -262,7 +245,7 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
     {
         if(Double.isInfinite(val) || Double.isNaN(val))
             throw new ArithmeticException("Can not predict a " + val + " value");
-        dataPoints.get(i).setPair(val);
+        targets.set(i, val);
     }
 
     @Override
@@ -274,12 +257,6 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         return newData;
     }
     
-    @Override
-    public int getSampleSize()
-    {
-        return dataPoints.size();
-    }
-    
     /**
      * Returns a vector containing the target regression values for each 
      * data point. The vector is a copy, and modifications to it will not
@@ -289,10 +266,10 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
      */
     public Vec getTargetValues()
     {
-        DenseVector vals = new DenseVector(getSampleSize());
+        DenseVector vals = new DenseVector(size());
         
-        for(int i = 0; i < getSampleSize(); i++)
-            vals.set(i, dataPoints.get(i).getPair());
+        for(int i = 0; i < size(); i++)
+            vals.set(i, targets.getD(i));
         
         return vals;
     }
@@ -305,7 +282,7 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
      */
     public double getTargetValue(int i)
     {
-        return dataPoints.get(i).getPair();
+        return targets.getD(i);
     }
     
     /**
@@ -318,23 +295,15 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
      */
     public static RegressionDataSet usingDPPList(List<DataPointPair<Double>> list)
     {
-        RegressionDataSet rds = new RegressionDataSet();
-        rds.dataPoints = list;
-        rds.numNumerVals = list.get(0).getDataPoint().numNumericalValues();
-        rds.numericalVariableNames = new ArrayList<String>(rds.getNumNumericalVars());
-        for(int i = 0; i < rds.getNumNumericalVars(); i++)
-            rds.numericalVariableNames.add("Numeric Input " + (i+1));
-        rds.categories = CategoricalData.copyOf(list.get(0).getDataPoint().getCategoricalData());
-        return rds;
+        return new RegressionDataSet(list);
     }
 
     @Override
     public RegressionDataSet shallowClone()
     {
         RegressionDataSet clone = new RegressionDataSet(numNumerVals, categories);
-        for(DataPointPair<Double> dpp : this.dataPoints)
-            clone.dataPoints.add(new DataPointPair<Double>(dpp.getDataPoint(), dpp.getPair()));
-        clone.columnVecCache.putAll(this.columnVecCache);
+        for(int i = 0; i < size(); i++)
+            clone.addDataPointPair(getDataPointPair(i));
         return clone;
     }
 

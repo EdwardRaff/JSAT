@@ -118,8 +118,8 @@ public class AMM extends OnlineAMM
     @Override
     public void train(ClassificationDataSet dataSet)
     {   
-        IntList randOrder = new IntList(dataSet.getSampleSize());
-        ListUtils.addRange(randOrder, 0, dataSet.getSampleSize(), 1);
+        IntList randOrder = new IntList(dataSet.size());
+        ListUtils.addRange(randOrder, 0, dataSet.size(), 1);
         Random rand = RandomUtil.getRandom();
         
         int[] Z = new int[randOrder.size()];

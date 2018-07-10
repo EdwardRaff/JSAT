@@ -146,7 +146,7 @@ public class TSNE implements VisualizationTransform
     public <Type extends DataSet> Type transform(DataSet<Type> d, boolean parallel)
     {
         Random rand = RandomUtil.getRandom();
-        final int N = d.getSampleSize();
+        final int N = d.size();
         //If perp set too big, the search size would be larger than the dataset size. So min to N
         /**
          * form sec 4.1: "we compute the sparse approximation by finding the

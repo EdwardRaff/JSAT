@@ -210,7 +210,7 @@ public class SeedSelectionMethods
                 case RANDOM:
                     Set<Integer> indecies = new IntSet(k);
                     while (indecies.size() != k)//Keep sampling, we cant use the same point twice.
-                        indecies.add(rand.nextInt(d.getSampleSize()));//TODO create method to do uniform sampleling for a select range
+                        indecies.add(rand.nextInt(d.size()));//TODO create method to do uniform sampleling for a select range
                     int j = 0;
                     for (Integer i : indecies)
                         indices[j++] = i;
@@ -242,9 +242,9 @@ public class SeedSelectionMethods
          *
          */
         //Initial random point
-        indices[0] = rand.nextInt(d.getSampleSize());
+        indices[0] = rand.nextInt(d.size());
 
-        final double[] closestDist = new double[d.getSampleSize()];
+        final double[] closestDist = new double[d.size()];
         final List<Vec> X = d.getDataVectors();
 
         for (int j = 1; j < k; j++)
@@ -291,7 +291,7 @@ public class SeedSelectionMethods
             double rndX = rand.nextDouble() * sqrdDistSum;
             double searchSum = closestDist[0];
             int i = 0;
-            while(searchSum < rndX && i < d.getSampleSize()-1)
+            while(searchSum < rndX && i < d.size()-1)
                 searchSum += closestDist[++i];
             
             indices[j] = i;
@@ -301,9 +301,9 @@ public class SeedSelectionMethods
     private static void ffSelection(final int[] indices, Random rand, final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, boolean parallel)
     {
         //Initial random point
-        indices[0] = rand.nextInt(d.getSampleSize());
+        indices[0] = rand.nextInt(d.size());
 
-        final double[] closestDist = new double[d.getSampleSize()];
+        final double[] closestDist = new double[d.size()];
         Arrays.fill(closestDist, Double.POSITIVE_INFINITY);
         final List<Vec> X = d.getDataVectors();
 
@@ -315,7 +315,7 @@ public class SeedSelectionMethods
             //Atomic integer storres the index of the vector with the current maximum  minimum distance to a selected centroid
             final AtomicInteger maxDistIndx = new AtomicInteger(0);
             
-            ParallelUtils.run(parallel, d.getSampleSize(), (start, end)->
+            ParallelUtils.run(parallel, d.size(), (start, end)->
             {
                 double maxDist = Double.NEGATIVE_INFINITY;
                 int max = indices[0];//set to some lazy value, it will be changed
@@ -344,14 +344,14 @@ public class SeedSelectionMethods
     
     private static void mqSelection(final int[] indices, final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, boolean parallel)
     {
-        final double[] meanDist = new double[d.getSampleSize()];
+        final double[] meanDist = new double[d.size()];
 
         //Compute the distance from each data point to the closest mean
         final Vec newMean = MatrixStatistics.meanVector(d);
         final List<Double> meanQI = dm.getQueryInfo(newMean);
         final List<Vec> X = d.getDataVectors();
 
-        ParallelUtils.run(parallel, d.getSampleSize(), (start, end)->
+        ParallelUtils.run(parallel, d.size(), (start, end)->
         {
             for (int i = start; i < end; i++)
                 meanDist[i] = dm.dist(i, newMean, meanQI, X, accelCache);
@@ -359,7 +359,7 @@ public class SeedSelectionMethods
         
         IndexTable indxTbl = new IndexTable(meanDist);
         for(int l = 0; l < k; l++)
-            indices[l] = indxTbl.index(l*d.getSampleSize()/k);
+            indices[l] = indxTbl.index(l*d.size()/k);
     }
     
 }

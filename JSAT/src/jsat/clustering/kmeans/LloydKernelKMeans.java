@@ -40,7 +40,7 @@ public class LloydKernelKMeans extends KernelKMeans
         if(K < 2)
             throw new FailedToFitException("Clustering requires at least 2 clusters");
         
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         if(designations == null)
             designations = new int[N];
         
@@ -109,7 +109,7 @@ public class LloydKernelKMeans extends KernelKMeans
         if(K < 2)
             throw new FailedToFitException("Clustering requires at least 2 clusters");
         
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         if(designations == null)
             designations = new int[N];
         

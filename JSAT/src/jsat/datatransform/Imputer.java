@@ -101,8 +101,8 @@ public class Imputer implements InPlaceTransform
                 colSoW = new double[d.getNumNumericalVars()];
                 for(int i = 0; i < d.getNumNumericalVars(); i++)
                 {
-                    columnCounts.add(new DoubleList(d.getSampleSize()));
-                    columnWeights.add(new DoubleList(d.getSampleSize()));
+                    columnCounts.add(new DoubleList(d.size()));
+                    columnWeights.add(new DoubleList(d.size()));
                 }
                 break;
         }
@@ -113,7 +113,7 @@ public class Imputer implements InPlaceTransform
             cat_counts[i] = new double[d.getCategories()[i].getNumOfCategories()];
         
         
-        for(int sample = 0; sample < d.getSampleSize(); sample++)
+        for(int sample = 0; sample < d.size(); sample++)
         {
             DataPoint dp = d.getDataPoint(sample);
             final double weights = dp.getWeight();

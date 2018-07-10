@@ -46,8 +46,8 @@ public class MaxDistance implements IntraClusterEvaluation
     public double evaluate(int[] designations, DataSet dataSet, int clusterID)
     {
         double maxDistance = 0;
-        for (int i = 0; i < dataSet.getSampleSize(); i++)
-            for (int j = i + 1; j < dataSet.getSampleSize(); j++)
+        for (int i = 0; i < dataSet.size(); i++)
+            for (int j = i + 1; j < dataSet.size(); j++)
                 if (designations[i] == clusterID)
                     maxDistance = Math.max(
                             dm.dist(dataSet.getDataPoint(i).getNumericalValues(),

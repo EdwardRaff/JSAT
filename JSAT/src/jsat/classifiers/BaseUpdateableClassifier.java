@@ -86,8 +86,8 @@ public abstract class BaseUpdateableClassifier implements UpdateableClassifier
             throw new IllegalArgumentException("epochs must be positive");
         toTrain.setUp(dataSet.getCategories(), dataSet.getNumNumericalVars(), 
                 dataSet.getPredicting());
-        IntList randomOrder = new IntList(dataSet.getSampleSize());
-        ListUtils.addRange(randomOrder, 0, dataSet.getSampleSize(), 1);
+        IntList randomOrder = new IntList(dataSet.size());
+        ListUtils.addRange(randomOrder, 0, dataSet.size(), 1);
         for (int epoch = 0; epoch < epochs; epoch++)
         {
             Collections.shuffle(randomOrder);

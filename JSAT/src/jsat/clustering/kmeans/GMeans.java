@@ -139,19 +139,19 @@ public class GMeans extends KMeans
     @Override
     public int[] cluster(DataSet dataSet, int[] designations)
     {
-        return cluster(dataSet, 1, Math.max(dataSet.getSampleSize()/20, 10), designations);
+        return cluster(dataSet, 1, Math.max(dataSet.size()/20, 10), designations);
     }
 
     @Override
     public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, 1, Math.max(dataSet.getSampleSize()/20, 10), parallel, designations);
+        return cluster(dataSet, 1, Math.max(dataSet.size()/20, 10), parallel, designations);
     }
 
     @Override
     public int[] cluster(DataSet dataSet, int lowK, int highK, boolean parallel, int[] designations)
     {
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         //initiate
         if(lowK >= 2)
         {

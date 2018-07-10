@@ -357,8 +357,8 @@ public class DANN implements Classifier, Parameterized
     public void train(ClassificationDataSet dataSet, boolean parallel)
     {
         predicting = dataSet.getPredicting();
-        vecList = new ArrayList<>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        vecList = new ArrayList<>(dataSet.size());
+        for(int i = 0; i < dataSet.size(); i++)
             vecList.add(new VecPaired<>(dataSet.getDataPoint(i).getNumericalValues(), dataSet.getDataPointCategory(i)));
         vc.build(parallel, vecList, new EuclideanDistance());
     }
@@ -430,6 +430,6 @@ public class DANN implements Classifier, Parameterized
      */
     public static Distribution guessKn(DataSet d)
     {
-        return new UniformDiscrete(40, Math.max(d.getSampleSize()/5, 50));
+        return new UniformDiscrete(40, Math.max(d.size()/5, 50));
     }
 }

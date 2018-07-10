@@ -536,7 +536,7 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
      */
     public static Distribution guessLambda1(DataSet d)
     {
-        int N = d.getSampleSize();
+        int N = d.size();
         return new LogUniform(1e-7/N, 1e-3/N);
     }
     

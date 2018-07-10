@@ -148,12 +148,12 @@ public class EMGaussianMixture  implements KClusterer, MultivariateDistribution
             covariances.add(new DenseMatrix(dimension, dimension));
         
         a_k = new double[K];
-        double sum = dataSet.getSampleSize();
+        double sum = dataSet.size();
         
         //Compute inital Covariances
         Vec scratch = new DenseVector(dimension);
         List<Vec> X = dataSet.getDataVectors();
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             Vec x = dataSet.getDataPoint(i).getNumericalValues();
             //find out which this belongs to 
@@ -473,21 +473,21 @@ public class EMGaussianMixture  implements KClusterer, MultivariateDistribution
     @Override
     public int[] cluster(DataSet dataSet, int[] designations)
     {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), designations);
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.size()/2), designations);
     }
 
     @Override
     public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), parallel, designations);
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.size()/2), parallel, designations);
     }
 
     @Override
     public int[] cluster(DataSet dataSet, int clusters, boolean parallel, int[] designations)
     {
         if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
-        if(dataSet.getSampleSize() < clusters)
+            designations = new int[dataSet.size()];
+        if(dataSet.size() < clusters)
             throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         
         List<Vec> means = new ArrayList<>(clusters);

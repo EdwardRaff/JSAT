@@ -132,7 +132,7 @@ public class NNChainHAC implements KClusterer
     @Override
     public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, 2, (int) Math.sqrt(dataSet.getSampleSize()), parallel, designations);
+        return cluster(dataSet, 2, (int) Math.sqrt(dataSet.size()), parallel, designations);
     }
     
     private double getDist(int a, int j, int[] size, List<Vec> vecs, List<Double> cache, List<Map<Integer, Double>> d_xk)
@@ -183,9 +183,9 @@ public class NNChainHAC implements KClusterer
      */
     public List<List<DataPoint>> getClusterDesignations(int clusters, DataSet data)
     {
-        if(merges == null || (merges.length+2)/2 != data.getSampleSize())
+        if(merges == null || (merges.length+2)/2 != data.size())
             return null;
-        int[] assignments = new int[data.getSampleSize()];
+        int[] assignments = new int[data.size()];
         assignments = getClusterDesignations(assignments, clusters);
         return createClusterListFromAssignmentArray(assignments, data);
     }
@@ -200,9 +200,9 @@ public class NNChainHAC implements KClusterer
     public int[] cluster(DataSet dataSet, int lowK, int highK, boolean parallel, int[] designations)
     {
         if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+            designations = new int[dataSet.size()];
         
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         
         merges = new int[N*2-2];
         /**

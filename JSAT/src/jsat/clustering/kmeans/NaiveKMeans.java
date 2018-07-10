@@ -104,7 +104,7 @@ public class NaiveKMeans extends KMeans
             W = dataSet.getDataWeights();
         else
             W = dataPointWeights;
-        final int blockSize = dataSet.getSampleSize() / SystemInfo.LogicalCores;
+        final int blockSize = dataSet.size() / SystemInfo.LogicalCores;
         final List<Vec> X = dataSet.getDataVectors();
         //done a wonky way b/c we want this as a final object for convinence, otherwise we may be stuck with null accel when we dont need to be
         final List<Double> accelCache;
@@ -152,7 +152,7 @@ public class NaiveKMeans extends KMeans
             }
         };
         
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         Arrays.fill(assignment, -1);
         do
         {

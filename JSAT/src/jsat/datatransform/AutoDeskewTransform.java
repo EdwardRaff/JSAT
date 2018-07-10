@@ -156,7 +156,7 @@ public class AutoDeskewTransform implements InPlaceTransform
 
         boolean containsSparseVecs = false;
         //First pass, get min/max values
-        for (int i = 0; i < dataSet.getSampleSize(); i++)
+        for (int i = 0; i < dataSet.size(); i++)
         {
             Vec x = dataSet.getDataPoint(i).getNumericalValues();
             if (x.isSparse())
@@ -174,7 +174,7 @@ public class AutoDeskewTransform implements InPlaceTransform
                 mins[i] = Math.min(0, mins[i]);
 
         //Second pass, find the best skew transform
-        for (int i = 0; i < dataSet.getSampleSize(); i++)
+        for (int i = 0; i < dataSet.size(); i++)
         {
             Vec x = dataSet.getDataPoint(i).getNumericalValues();
             double weight = dataSet.getDataPoint(i).getWeight();

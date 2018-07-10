@@ -156,7 +156,7 @@ public class CSVTest
                     SimpleDataSet smpData = CSV.read(new StringReader(input.toString()), ',', 0, comment, Collections.EMPTY_SET);
                     ClassificationDataSet catData = CSV.readC(0, new StringReader(input.toString()), ',', 0, comment, Collections.EMPTY_SET);
 
-                    assertEquals(i + 1, regData.getSampleSize());
+                    assertEquals(i + 1, regData.size());
                     for (int j = 0; j < i + 1; j++)
                     {
                         Vec ex_vec = expectedVec.get(j);
@@ -320,7 +320,7 @@ public class CSVTest
                     SimpleDataSet readBackIn = CSV.read(new StringReader(data_strng_out.toString()), 0, cat_cols_reed_back);
                     compareDataSetPoints(smpData, readBackIn);
 
-                    assertEquals(i + 1, regData.getSampleSize());
+                    assertEquals(i + 1, regData.size());
                     for (int j = 0; j < i + 1; j++)
                     {
                         Vec ex_vec = expectedVec.get(j);
@@ -381,7 +381,7 @@ public class CSVTest
         cats[2].setOptionName("whats up?", 2);
 
         
-        SimpleDataSet truth_data = new SimpleDataSet(cats, 3);
+        SimpleDataSet truth_data = new SimpleDataSet(3, cats);
         Random rand = RandomUtil.getRandom();
         for (int i = 0; i < 100; i++)
         {
@@ -415,7 +415,7 @@ public class CSVTest
                 
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 DataWriter dw = CSV.getWriter(baos, truth_data.getCategories(), truth_data.getNumNumericalVars(), null, DataWriter.DataSetType.SIMPLE, ',');
-                for(int i = 0; i < truth_data.getSampleSize(); i++)
+                for(int i = 0; i < truth_data.size(); i++)
                     dw.writePoint(truth_data.getDataPoint(i), 0);
                 dw.close();
                 simpleIn = CSV.read(new StringReader(extraLines.toString()+new String(baos.toByteArray())), ',', lines_to_skip, '#', new HashSet<Integer>(Arrays.asList(3, 4, 5)));
@@ -435,7 +435,7 @@ public class CSVTest
                     CSV.write(trutch_c, writter, ',');
                     ClassificationDataSet in = CSV.readC(0, new StringReader(extraLines.toString()+writter.toString()), ',', lines_to_skip, '#', new HashSet<Integer>(Arrays.asList(4, 5)));
                     compareDataSetPoints(trutch_c, in);
-                    for (int i = 0; i < trutch_c.getSampleSize(); i++)
+                    for (int i = 0; i < trutch_c.size(); i++)
                     {
                         String exp_s = trutch_c.getPredicting().getOptionName(trutch_c.getDataPointCategory(i));
                         String found_s = in.getPredicting().getOptionName(in.getDataPointCategory(i));
@@ -469,11 +469,11 @@ public class CSVTest
 
     private void compareDataSetPoints(DataSet<?> truth_data, DataSet<?> simpleIn)
     {
-        assertEquals(truth_data.getSampleSize(), simpleIn.getSampleSize());
+        assertEquals(truth_data.size(), simpleIn.size());
         assertEquals(truth_data.getNumCategoricalVars(), simpleIn.getNumCategoricalVars());
         assertEquals(truth_data.getNumNumericalVars(), simpleIn.getNumNumericalVars());
         
-        for(int i = 0;i < truth_data.getSampleSize(); i++)
+        for(int i = 0;i < truth_data.size(); i++)
         {
             DataPoint exp = truth_data.getDataPoint(i);
             DataPoint found = simpleIn.getDataPoint(i);

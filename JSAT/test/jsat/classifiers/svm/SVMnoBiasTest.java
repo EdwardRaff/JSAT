@@ -62,7 +62,7 @@ public class SVMnoBiasTest
                 classifier.setC(10);
                 classifier.train(trainSet, true);
                 
-                for (int i = 0; i < testSet.getSampleSize(); i++)
+                for (int i = 0; i < testSet.size(); i++)
                     assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
             }
     }
@@ -82,7 +82,7 @@ public class SVMnoBiasTest
                 classifier.setC(10);
                 classifier.train(trainSet);
                 
-                for (int i = 0; i < testSet.getSampleSize(); i++)
+                for (int i = 0; i < testSet.size(); i++)
                     assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
                 
                 //test warm start off corrupted solution
@@ -96,7 +96,7 @@ public class SVMnoBiasTest
                 classifier2.setC(10);
                 classifier2.train(trainSet, a);
                 
-                for (int i = 0; i < testSet.getSampleSize(); i++)
+                for (int i = 0; i < testSet.size(); i++)
                     assertEquals(testSet.getDataPointCategory(i), classifier2.classify(testSet.getDataPoint(i)).mostLikely());
             }
     }

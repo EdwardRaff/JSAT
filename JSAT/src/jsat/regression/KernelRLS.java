@@ -161,8 +161,8 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
     public void train(RegressionDataSet dataSet)
     {
         setUp(dataSet.getCategories(), dataSet.getNumNumericalVars());
-        IntList randOrder = new IntList(dataSet.getSampleSize());
-        ListUtils.addRange(randOrder, 0, dataSet.getSampleSize(), 1);
+        IntList randOrder = new IntList(dataSet.size());
+        ListUtils.addRange(randOrder, 0, dataSet.size(), 1);
         for(int i : randOrder)
             update(dataSet.getDataPoint(i), dataSet.getTargetValue(i));
     }

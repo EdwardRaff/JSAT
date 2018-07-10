@@ -104,7 +104,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
         /**
          * Size of the data set
          */
-        int N = dataSet.getSampleSize();
+        int N = dataSet.size();
         /**
          * Stores the target values
          */
@@ -270,7 +270,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
         @Override
         public void train(RegressionDataSet dataSet, double nugget)
         {
-            int npt=dataSet.getSampleSize();
+            int npt=dataSet.size();
             double num=0,denom=0, nugSqrd = nugget*nugget;
 
             for (int i = 0; i < npt; i++)

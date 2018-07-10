@@ -69,7 +69,7 @@ public class DReDNetSimpleTest
         net.train(trainSet, true);
 
         net = net.clone();
-        for (int i = 0; i < testSet.getSampleSize(); i++)
+        for (int i = 0; i < testSet.size(); i++)
             assertEquals(testSet.getDataPointCategory(i), net.classify(testSet.getDataPoint(i)).mostLikely());
 
     }
@@ -92,11 +92,11 @@ public class DReDNetSimpleTest
         net.train(trainSet);
 
         net = net.clone();
-        for (int i = 0; i < testSet.getSampleSize(); i++)
+        for (int i = 0; i < testSet.size(); i++)
             assertEquals(testSet.getDataPointCategory(i), net.classify(testSet.getDataPoint(i)).mostLikely());
         //serialization check
         net = TestTools.deepCopy(net);
-        for (int i = 0; i < testSet.getSampleSize(); i++)
+        for (int i = 0; i < testSet.size(); i++)
             assertEquals(testSet.getDataPointCategory(i), net.classify(testSet.getDataPoint(i)).mostLikely());
     }
     

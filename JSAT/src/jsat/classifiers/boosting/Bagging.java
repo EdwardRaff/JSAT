@@ -218,7 +218,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
         
         //Creat a synchrnozied view so we can add safely 
         final List synchronizedLearners = Collections.synchronizedList(learners);
-        final int[] sampleCounts = new int[dataSet.getSampleSize()];
+        final int[] sampleCounts = new int[dataSet.size()];
         ExecutorService threadPool = ParallelUtils.getNewExecutor(parallel);
         for(int i = 0; i < rounds; i++)
         {
@@ -408,7 +408,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
         
         //Creat a synchrnozied view so we can add safely 
         final List synchronizedLearners = Collections.synchronizedList(learners);
-        final int[] sampleCount = new int[dataSet.getSampleSize()];
+        final int[] sampleCount = new int[dataSet.size()];
         ExecutorService threadPool = ParallelUtils.getNewExecutor(parallel);
         for(int i = 0; i < rounds; i++)
         {

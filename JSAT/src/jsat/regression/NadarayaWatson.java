@@ -58,8 +58,8 @@ public class NadarayaWatson implements Regressor, Parameterized
 
     private List<VecPaired<Vec, Double>> collectVectors(RegressionDataSet dataSet)
     {
-        List<VecPaired<Vec, Double>> vectors = new ArrayList<>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        List<VecPaired<Vec, Double>> vectors = new ArrayList<>(dataSet.size());
+        for(int i = 0; i < dataSet.size(); i++)
             vectors.add(new VecPaired<>(dataSet.getDataPoint(i).getNumericalValues(), dataSet.getTargetValue(i)));
         return vectors;
     }

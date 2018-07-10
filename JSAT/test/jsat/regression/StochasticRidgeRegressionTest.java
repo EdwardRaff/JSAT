@@ -131,14 +131,14 @@ public class StochasticRidgeRegressionTest
             instance.train(t1);
 
             StochasticRidgeRegression result = instance.clone();
-            for (int i = 0; i < t1.getSampleSize(); i++)
+            for (int i = 0; i < t1.size(); i++)
                 assertEquals(t1.getTargetValue(i), result.regress(t1.getDataPoint(i)), t1.getTargetValues().mean());
             result.train(t2);
 
-            for (int i = 0; i < t1.getSampleSize(); i++)
+            for (int i = 0; i < t1.size(); i++)
                 assertEquals(t1.getTargetValue(i), instance.regress(t1.getDataPoint(i)), t1.getTargetValues().mean());
 
-            for (int i = 0; i < t2.getSampleSize(); i++)
+            for (int i = 0; i < t2.size(); i++)
                 assertEquals(t2.getTargetValue(i), result.regress(t2.getDataPoint(i)), t2.getTargetValues().mean()*0.5);
         }
 

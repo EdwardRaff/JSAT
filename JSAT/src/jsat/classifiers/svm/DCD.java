@@ -297,7 +297,7 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
     {
         if(dataSet.getClassSize() != 2)
             throw new FailedToFitException("SVM only supports binary classificaiton problems");
-        vecs = new Vec[dataSet.getSampleSize()];
+        vecs = new Vec[dataSet.size()];
         alpha = new double[vecs.length];
         y = new double[vecs.length];
         bias = 0;
@@ -305,7 +305,7 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
         
         final double U = getU(), D = getD();
         
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             vecs[i] = dataSet.getDataPoint(i).getNumericalValues();
             y[i] = dataSet.getDataPointCategory(i)*2-1;
@@ -382,7 +382,7 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
     @Override
     public void train(RegressionDataSet dataSet)
     {
-        vecs = new Vec[dataSet.getSampleSize()];
+        vecs = new Vec[dataSet.size()];
         /**
          * Makes the Beta vector in the Algo 4 description 
          */
@@ -393,7 +393,7 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
         
         final double U = getU(), lambda = getD();
         double v_0 = 0;
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             vecs[i] = dataSet.getDataPoint(i).getNumericalValues();
             y[i] = dataSet.getTargetValue(i);

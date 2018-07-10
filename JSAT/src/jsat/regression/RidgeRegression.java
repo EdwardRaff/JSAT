@@ -113,9 +113,9 @@ public class RidgeRegression implements Regressor, Parameterized
     public void train(RegressionDataSet dataSet, boolean parallel)
     {
         final int dim = dataSet.getNumNumericalVars()+1;
-        DenseMatrix X = new DenseMatrix(dataSet.getSampleSize(), dim);
+        DenseMatrix X = new DenseMatrix(dataSet.size(), dim);
 
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             Vec from = dataSet.getDataPoint(i).getNumericalValues();
             X.set(i, 0, 1.0);

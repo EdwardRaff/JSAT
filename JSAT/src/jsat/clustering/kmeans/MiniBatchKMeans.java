@@ -214,7 +214,7 @@ public class MiniBatchKMeans extends KClustererBase
     public int[] cluster(DataSet dataSet, int clusters, boolean parallel, int[] designations) 
     {
         if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+            designations = new int[dataSet.size()];
         
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);
         
@@ -233,7 +233,7 @@ public class MiniBatchKMeans extends KClustererBase
 
         final int[] v = new int[means.size()];
         
-        final int usedBatchSize = Math.min(batchSize, dataSet.getSampleSize());
+        final int usedBatchSize = Math.min(batchSize, dataSet.size());
         
         /**
          * Store the indices of the sampled points instead of sampling, that 
@@ -292,7 +292,7 @@ public class MiniBatchKMeans extends KClustererBase
         //Stochastic travel complete, calculate all
         final int[] des = designations;
 
-        double sumErr = ParallelUtils.run(parallel, dataSet.getSampleSize(), (start, end) ->
+        double sumErr = ParallelUtils.run(parallel, dataSet.size(), (start, end) ->
         {
             double dists = 0;
             double tmp;

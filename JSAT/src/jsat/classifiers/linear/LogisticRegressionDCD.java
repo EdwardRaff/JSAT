@@ -205,7 +205,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
     {
         if(dataSet.getClassSize() != 2)
             throw new FailedToFitException("Logistic Regression is a binary classifier, can can not handle " + dataSet.getClassSize() + " class problems");
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         List<Vec> x = dataSet.getDataVectors();
         double[] alpha = new double[N];
         double[] alphaPrime = new double[N];

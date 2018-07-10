@@ -46,12 +46,12 @@ public class MeanDistance implements IntraClusterEvaluation
     public double evaluate(int[] designations, DataSet dataSet, int clusterID)
     {
         double distances = 0;
-        for (int i = 0; i < dataSet.getSampleSize(); i++)
-            for (int j = i + 1; j < dataSet.getSampleSize(); j++)
+        for (int i = 0; i < dataSet.size(); i++)
+            for (int j = i + 1; j < dataSet.size(); j++)
                 if (designations[i] == clusterID)
                     distances += dm.dist(dataSet.getDataPoint(i).getNumericalValues(),
                                          dataSet.getDataPoint(j).getNumericalValues());
-        return distances/(dataSet.getSampleSize()*(dataSet.getSampleSize()-1));
+        return distances/(dataSet.size()*(dataSet.size()-1));
     }
 
     @Override

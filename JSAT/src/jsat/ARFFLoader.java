@@ -238,7 +238,7 @@ public class ARFFLoader
         if(data instanceof RegressionDataSet)
             writer.write("@ATTRIBUTE target NUMERIC\n");
         writer.write("@DATA\n");
-        for(int row = 0; row < data.getSampleSize(); row++)
+        for(int row = 0; row < data.size(); row++)
         {
             DataPoint dp = data.getDataPoint(row);
             boolean firstFeature = true;

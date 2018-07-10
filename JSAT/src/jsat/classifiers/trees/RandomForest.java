@@ -310,12 +310,12 @@ public class RandomForest implements Classifier, Regressor, Parameterized
         AtomicDoubleArray pred = null;
         if(dataSet instanceof RegressionDataSet)
         {
-            pred = new AtomicDoubleArray(dataSet.getSampleSize());
+            pred = new AtomicDoubleArray(dataSet.size());
             counts = new int[pred.length()][1];//how many predictions are in this?
         }
         else
         {
-            counts = new int[dataSet.getSampleSize()][((ClassificationDataSet)dataSet).getClassSize()];
+            counts = new int[dataSet.size()][((ClassificationDataSet)dataSet).getClassSize()];
         }
 
         while (roundsToDistribut > 0)
@@ -357,7 +357,7 @@ public class RandomForest implements Classifier, Regressor, Parameterized
                     for (int i = 0; i < counts.length; i++)
                         outOfBagError += Math.pow(pred.get(i)/counts[i][0]-rds.getTargetValue(i), 2);
                 }
-                outOfBagError /= dataSet.getSampleSize();
+                outOfBagError /= dataSet.size();
             }
             
             if(useOutOfBagImportance)//collect feature importance stats from each worker
@@ -445,7 +445,7 @@ public class RandomForest implements Classifier, Regressor, Parameterized
         public LearningWorker call() throws Exception
         {
             Set<Integer> features = new IntSet(baseLearner.getRandomFeatureCount());
-            int[] sampleCounts = new int[dataSet.getSampleSize()];
+            int[] sampleCounts = new int[dataSet.size()];
             for(int i = 0; i < toLearn; i++)
             {
                 //Sample to get the training points

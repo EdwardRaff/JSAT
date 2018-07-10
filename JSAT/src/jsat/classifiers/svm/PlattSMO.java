@@ -201,7 +201,7 @@ public class PlattSMO extends SupportVectorLearner implements BinaryScoreClassif
             throw new FailedToFitException("SVM does not support non binary decisions");
         //First we need to set up the vectors array
 
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         vecs = new ArrayList<Vec>(N);
         label = new double[N];
         weights = new DenseVector(N);
@@ -1241,7 +1241,7 @@ public class PlattSMO extends SupportVectorLearner implements BinaryScoreClassif
     @Override
     public void train(RegressionDataSet dataSet, Regressor warmSolution)
     {
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         vecs = new ArrayList<Vec>(N);
         label = new double[N];
         fcache = new double[N];

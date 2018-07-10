@@ -107,18 +107,18 @@ public class LargeVizTest
         
         Matrix proj_data = orig_dim.multiply(s);
         
-        SimpleDataSet proj = new SimpleDataSet(new CategoricalData[0], proj_data.cols());
+        SimpleDataSet proj = new SimpleDataSet(proj_data.cols(), new CategoricalData[0]);
         for(int i = 0; i < proj_data.rows(); i++)
             proj.add(new DataPoint(proj_data.getRow(i)));
         
-        List<Set<Integer>> origNNs = new ArrayList<Set<Integer>>();
-        VectorArray<VecPaired<Vec, Integer>> proj_vc = new VectorArray<VecPaired<Vec, Integer>>(new EuclideanDistance());
-        for(int i = 0; i < proj.getSampleSize(); i++)
-            proj_vc.add(new VecPaired<Vec, Integer>(proj.getDataPoint(i).getNumericalValues(), i));
+        List<Set<Integer>> origNNs = new ArrayList<>();
+        VectorArray<VecPaired<Vec, Integer>> proj_vc = new VectorArray<>(new EuclideanDistance());
+        for(int i = 0; i < proj.size(); i++)
+            proj_vc.add(new VecPaired<>(proj.getDataPoint(i).getNumericalValues(), i));
         
-        for(int i = 0; i < proj.getSampleSize(); i++)
+        for(int i = 0; i < proj.size(); i++)
         {
-            Set<Integer> nns = new HashSet<Integer>();
+            Set<Integer> nns = new HashSet<>();
             for(VecPaired<VecPaired<Vec, Integer>, Double> neighbor : proj_vc.search(proj_vc.get(i), K))
                 nns.add(neighbor.getVector().getPair());
             origNNs.add(nns);
@@ -132,7 +132,7 @@ public class LargeVizTest
         {
             double sameNN = 0;
             VectorArray<VecPaired<Vec, Integer>> trans_vc = new VectorArray<VecPaired<Vec, Integer>>(new EuclideanDistance());
-            for (int i = 0; i < transformed.getSampleSize(); i++)
+            for (int i = 0; i < transformed.size(); i++)
                 trans_vc.add(new VecPaired<Vec, Integer>(transformed.getDataPoint(i).getNumericalValues(), i));
 
             for(int i = 0; i < orig_dim.rows(); i++)
@@ -142,7 +142,7 @@ public class LargeVizTest
                         sameNN++;
             }
             
-            double score = sameNN/(transformed.getSampleSize()*K);
+            double score = sameNN/(transformed.size()*K);
             assertTrue("was " + score, score >= 0.50);
         }
         
@@ -182,18 +182,18 @@ public class LargeVizTest
         
         Matrix proj_data = orig_dim.multiply(s);
         
-        SimpleDataSet proj = new SimpleDataSet(new CategoricalData[0], proj_data.cols());
+        SimpleDataSet proj = new SimpleDataSet(proj_data.cols(), new CategoricalData[0]);
         for(int i = 0; i < proj_data.rows(); i++)
             proj.add(new DataPoint(proj_data.getRow(i)));
         
-        List<Set<Integer>> origNNs = new ArrayList<Set<Integer>>();
-        VectorArray<VecPaired<Vec, Integer>> proj_vc = new VectorArray<VecPaired<Vec, Integer>>(new EuclideanDistance());
-        for(int i = 0; i < proj.getSampleSize(); i++)
-            proj_vc.add(new VecPaired<Vec, Integer>(proj.getDataPoint(i).getNumericalValues(), i));
+        List<Set<Integer>> origNNs = new ArrayList<>();
+        VectorArray<VecPaired<Vec, Integer>> proj_vc = new VectorArray<>(new EuclideanDistance());
+        for(int i = 0; i < proj.size(); i++)
+            proj_vc.add(new VecPaired<>(proj.getDataPoint(i).getNumericalValues(), i));
         
-        for(int i = 0; i < proj.getSampleSize(); i++)
+        for(int i = 0; i < proj.size(); i++)
         {
-            Set<Integer> nns = new HashSet<Integer>();
+            Set<Integer> nns = new HashSet<>();
             for(VecPaired<VecPaired<Vec, Integer>, Double> neighbor : proj_vc.search(proj_vc.get(i), K))
                 nns.add(neighbor.getVector().getPair());
             origNNs.add(nns);
@@ -207,7 +207,7 @@ public class LargeVizTest
         {
             double sameNN = 0;
             VectorArray<VecPaired<Vec, Integer>> trans_vc = new VectorArray<VecPaired<Vec, Integer>>(new EuclideanDistance());
-            for (int i = 0; i < transformed.getSampleSize(); i++)
+            for (int i = 0; i < transformed.size(); i++)
                 trans_vc.add(new VecPaired<Vec, Integer>(transformed.getDataPoint(i).getNumericalValues(), i));
 
             for(int i = 0; i < orig_dim.rows(); i++)
@@ -217,7 +217,7 @@ public class LargeVizTest
                         sameNN++;
             }
             
-            double score = sameNN/(transformed.getSampleSize()*K);
+            double score = sameNN/(transformed.size()*K);
             assertTrue("was " + score, score >= 0.50);
         }
         

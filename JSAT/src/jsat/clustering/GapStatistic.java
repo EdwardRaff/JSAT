@@ -261,7 +261,7 @@ public class GapStatistic extends KClustererBase implements Parameterized
     @Override
     public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, 1, (int) Math.min(Math.max(Math.sqrt(dataSet.getSampleSize()), 10), 100), parallel, designations);
+        return cluster(dataSet, 1, (int) Math.min(Math.max(Math.sqrt(dataSet.size()), 10), 100), parallel, designations);
     }
 
     @Override
@@ -274,7 +274,7 @@ public class GapStatistic extends KClustererBase implements Parameterized
     public int[] cluster(DataSet dataSet, int lowK, int highK, boolean parallel, int[] designations)
     {
         final int D = dataSet.getNumNumericalVars();
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         
         if(designations == null || designations.length < N)
             designations = new int[N];
@@ -302,7 +302,7 @@ public class GapStatistic extends KClustererBase implements Parameterized
             expected[i] = new OnLineStatistics();
         
         //dataset object we will reuse
-        SimpleDataSet Xp = new SimpleDataSet(new CategoricalData[0], D);
+        SimpleDataSet Xp = new SimpleDataSet(D, new CategoricalData[0]);
         for(int i = 0; i < N; i++)
             Xp.add(new DataPoint(new DenseVector(D)));
         

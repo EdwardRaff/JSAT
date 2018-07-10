@@ -141,8 +141,8 @@ public class DReDNetSimple implements Classifier, Parameterized
         setup(dataSet);
         
         List<Vec> X = dataSet.getDataVectors();
-        List<Vec> Y = new ArrayList<Vec>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        List<Vec> Y = new ArrayList<Vec>(dataSet.size());
+        for(int i = 0; i < dataSet.size(); i++)
         {
             SparseVector sv = new SparseVector(dataSet.getClassSize(), 1);
             sv.set(dataSet.getDataPointCategory(i), 1.0);

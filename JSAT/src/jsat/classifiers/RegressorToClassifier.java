@@ -83,7 +83,7 @@ public class RegressorToClassifier implements BinaryScoreClassifier, Parameteriz
     private RegressionDataSet getRegressionDataSet(ClassificationDataSet dataSet)
     {
         RegressionDataSet rds = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
             rds.addDataPoint(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i)*2-1);
         return rds;
     }

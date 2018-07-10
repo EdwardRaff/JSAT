@@ -186,7 +186,7 @@ public class ConditionalProbabilityTable implements Classifier
         Arrays.fill(countArray, 1);//Laplace correction
         
         int[] cordinate = new int[dimSize.length];
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             DataPoint dp = dataSet.getDataPoint(i);
             for (int j = 0; j < realIndexToCatIndex.length; j++)

@@ -51,8 +51,8 @@ public class FastICATest
     {
         System.out.println("transform");
         
-        SimpleDataSet source = new SimpleDataSet(new CategoricalData[0], 2);
-        SimpleDataSet X = new SimpleDataSet(new CategoricalData[0], 2);
+        SimpleDataSet source = new SimpleDataSet(2, new CategoricalData[0]);
+        SimpleDataSet X = new SimpleDataSet(2, new CategoricalData[0]);
         
         Matrix mixing_true = new DenseMatrix(new double[][]
         {
@@ -151,8 +151,8 @@ public class FastICATest
     {
         System.out.println("transform");
         
-        SimpleDataSet source = new SimpleDataSet(new CategoricalData[0], 2);
-        SimpleDataSet X = new SimpleDataSet(new CategoricalData[0], 2);
+        SimpleDataSet source = new SimpleDataSet(2, new CategoricalData[0]);
+        SimpleDataSet X = new SimpleDataSet(2, new CategoricalData[0]);
         
         Matrix mixing_true = new DenseMatrix(new double[][]
         {
@@ -255,8 +255,8 @@ public class FastICATest
     {
         System.out.println("transform");
 
-        SimpleDataSet source = new SimpleDataSet(new CategoricalData[0], 2);
-        SimpleDataSet X = new SimpleDataSet(new CategoricalData[0], 3);
+        SimpleDataSet source = new SimpleDataSet(2, new CategoricalData[0]);
+        SimpleDataSet X = new SimpleDataSet(3, new CategoricalData[0]);
         
         Matrix mixing_true = new DenseMatrix(new double[][]
         {

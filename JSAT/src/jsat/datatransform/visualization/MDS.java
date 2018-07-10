@@ -116,7 +116,7 @@ public class MDS implements VisualizationTransform
         OnLineStatistics avg = ParallelUtils.run(parallel, N, (i)->
         {
             OnLineStatistics local_avg = new OnLineStatistics();
-            for(int j = i+1; j < d.getSampleSize(); j++)
+            for(int j = i+1; j < d.size(); j++)
             {
                 double dist = dm.dist(i, j, orig_vecs, orig_distCache);
                 local_avg.add(dist);
@@ -220,7 +220,7 @@ public class MDS implements VisualizationTransform
             oldStress = newStress;
         }
         
-        SimpleDataSet sds = new SimpleDataSet(new CategoricalData[0], targetSize);
+        SimpleDataSet sds = new SimpleDataSet(targetSize, new CategoricalData[0]);
         for(Vec v : X_views)
             sds.add(new DataPoint(v));
         return sds;

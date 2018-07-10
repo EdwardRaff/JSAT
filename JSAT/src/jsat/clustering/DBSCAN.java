@@ -109,7 +109,7 @@ public class DBSCAN extends ClustererBase
         List<List<Double>> distances = new ArrayList<>();
         vc.search(vc, minPts+1, neighbors, distances, parallel);
         
-        OnLineStatistics stats = ParallelUtils.run(parallel, dataSet.getSampleSize(), (start, end)->
+        OnLineStatistics stats = ParallelUtils.run(parallel, dataSet.size(), (start, end)->
         {
             OnLineStatistics s = new OnLineStatistics();
             for(int i = start; i < end; i++)
@@ -124,8 +124,8 @@ public class DBSCAN extends ClustererBase
 
     private List<VecPaired<Vec, Integer>> getVecIndexPairs(DataSet dataSet)
     {
-        List<VecPaired<Vec, Integer>> vecs = new ArrayList<>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        List<VecPaired<Vec, Integer>> vecs = new ArrayList<>(dataSet.size());
+        for(int i = 0; i < dataSet.size(); i++)
             vecs.add(new VecPaired<>(dataSet.getDataPoint(i).getNumericalValues(), i));
         return vecs;
     }
@@ -155,7 +155,7 @@ public class DBSCAN extends ClustererBase
     private int[] cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, boolean parallel, int[] pointCats)
     {
         if (pointCats == null)
-            pointCats = new int[dataSet.getSampleSize()];
+            pointCats = new int[dataSet.size()];
         Arrays.fill(pointCats, UNCLASSIFIED);
         
         vc.build(parallel, getVecIndexPairs(dataSet), dm);

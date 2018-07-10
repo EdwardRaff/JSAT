@@ -51,7 +51,7 @@ public class PriorClassifier implements Classifier
     public void train(ClassificationDataSet dataSet)
     {
         cr = new CategoricalResults(dataSet.getPredicting().getNumOfCategories());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
             cr.incProb(dataSet.getDataPointCategory(i), dataSet.getDataPoint(i).getWeight());
         cr.normalize();
     }

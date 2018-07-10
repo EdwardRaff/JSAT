@@ -26,6 +26,8 @@ import jsat.*;
 import jsat.classifiers.*;
 import jsat.linear.*;
 import jsat.regression.RegressionDataSet;
+import jsat.utils.DoubleList;
+import jsat.utils.IntList;
 
 /**
  * JSAT Data Loader provides a simple binary file format for storing and reading
@@ -214,7 +216,7 @@ public class JSATData
                 EnumSet<FloatStorageMethod> storageCandidates = EnumSet.complementOf(EnumSet.of(FloatStorageMethod.AUTO));
 
                 //loop through all the data and remove invalid candidates
-                for(int i = 0; i < data.getSampleSize(); i++)
+                for(int i = 0; i < data.size(); i++)
                 {
                     DataPoint dp = data.getDataPoint(i);
                     for (IndexValue iv : dp.getNumericalValues())
@@ -340,7 +342,7 @@ public class JSATData
         DataWriter dw = getWriter(outRaw, dataset.getCategories(), dataset.getNumNumericalVars(), predicting, fpStore, type);
         
         //write out all the datapoints
-        for(int i = 0; i < dataset.getSampleSize(); i++)
+        for(int i = 0; i < dataset.size(); i++)
         {
             double label = 0;
             if (dataset instanceof ClassificationDataSet)
@@ -484,14 +486,30 @@ public class JSATData
      * {@link RegressionDataSet} depending on what type of dataset was
      * originally written out.<br>
      *
-     * @param <Type>
      * @param inRaw the input stream, caller should buffer it
      * @return a dataset
      * @throws IOException 
      */
     public static DataSet<?> load(InputStream inRaw) throws IOException
     {
-        return load(inRaw, false);
+        return load(inRaw, false, new RowMajorStore());
+    }
+    
+    /**
+     * This loads a JSAT dataset from an input stream, and will not do any of
+     * its own buffering. The DataSet will be returned as either a
+     * {@link SimpleDataSet}, {@link ClassificationDataSet}, or
+     * {@link RegressionDataSet} depending on what type of dataset was
+     * originally written out.<br>
+     *
+     * @param inRaw the input stream, caller should buffer it
+     * @param backingStore the data store to put all datapoints in
+     * @return a dataset
+     * @throws IOException 
+     */
+    public static DataSet<?> load(InputStream inRaw, DataStore backingStore) throws IOException
+    {
+        return load(inRaw, false, backingStore);
     }
     
     /**
@@ -504,7 +522,21 @@ public class JSATData
      */
     public static SimpleDataSet loadSimple(InputStream inRaw) throws IOException
     {
-        return (SimpleDataSet) load(inRaw, true);
+        return loadSimple(inRaw, new RowMajorStore());
+    }
+    
+    /**
+     * Loads in a JSAT dataset as a {@link SimpleDataSet}. So long as the input
+     * stream is valid, this will not fail.
+     *
+     * @param inRaw the input stream, caller should buffer it
+     * @param backingStore the data store to put all data points in
+     * @return a SimpleDataSet object
+     * @throws IOException 
+     */
+    public static SimpleDataSet loadSimple(InputStream inRaw, DataStore backingStore) throws IOException
+    {
+        return (SimpleDataSet) load(inRaw, true, backingStore);
     }
     
     /**
@@ -519,7 +551,23 @@ public class JSATData
      */
     public static ClassificationDataSet loadClassification(InputStream inRaw) throws IOException
     {
-        return (ClassificationDataSet) load(inRaw);
+        return loadClassification(inRaw, new RowMajorStore());
+    }
+    
+    /**
+     * Loads in a JSAT dataset as a {@link ClassificationDataSet}. An exception
+     * will be thrown if the original dataset in the file was not a
+     * {@link ClassificationDataSet}.
+     *
+     * @param inRaw the input stream, caller should buffer it
+     * @param backingStore the data store to put all data points in
+     * @return a ClassificationDataSet object
+     * @throws IOException 
+     * @throws ClassCastException if the original dataset was a not a ClassificationDataSet
+     */
+    public static ClassificationDataSet loadClassification(InputStream inRaw, DataStore backingStore) throws IOException
+    {
+        return (ClassificationDataSet) load(inRaw, backingStore);
     }
     
     /**
@@ -534,7 +582,23 @@ public class JSATData
      */
     public static RegressionDataSet loadRegression(InputStream inRaw) throws IOException
     {
-        return (RegressionDataSet) load(inRaw);
+        return loadRegression(inRaw, new RowMajorStore());
+    }
+    
+    /**
+     * Loads in a JSAT dataset as a {@link RegressionDataSet}. An exception
+     * will be thrown if the original dataset in the file was not a
+     * {@link RegressionDataSet}.
+     *
+     * @param inRaw the input stream, caller should buffer it
+     * @param backingStore the data store to put all data points in
+     * @return a RegressionDataSet object
+     * @throws IOException 
+     * @throws ClassCastException if the original dataset was a not a RegressionDataSet
+     */
+    public static RegressionDataSet loadRegression(InputStream inRaw, DataStore backingStore) throws IOException
+    {
+        return (RegressionDataSet) load(inRaw, backingStore);
     }
     
     /**
@@ -545,8 +609,9 @@ public class JSATData
      * originally written out.<br>
      * <br>
      * This method supports forcing the load to return a {@link SimpleDataSet}. 
+     * <br>
+     * This method uses a {@link RowMajorStore} store for the data. 
      *
-     * @param <Type>
      * @param inRaw the input stream, caller should buffer it
      * @param forceAsStandard {@code true} for for the dataset to be loaded as a
      * {@link SimpleDataSet}, otherwise it will be determined based on the input
@@ -556,6 +621,28 @@ public class JSATData
      */
     @SuppressWarnings("unchecked")
     protected static DataSet<?> load(InputStream inRaw, boolean forceAsStandard) throws IOException
+    {
+        return load(inRaw, forceAsStandard, new RowMajorStore());
+    }
+    /**
+     * This loads a JSAT dataset from an input stream, and will not do any of
+     * its own buffering. The DataSet will be returned as either a
+     * {@link SimpleDataSet}, {@link ClassificationDataSet}, or
+     * {@link RegressionDataSet} depending on what type of dataset was
+     * originally written out.<br>
+     * <br>
+     * This method supports forcing the load to return a {@link SimpleDataSet}. 
+     *
+     * @param inRaw the input stream, caller should buffer it
+     * @param forceAsStandard {@code true} for for the dataset to be loaded as a
+     * {@link SimpleDataSet}, otherwise it will be determined based on the input
+     * streams contents.
+     * @param store the backing mechanism to store all the data in and use for the returned dataset object
+     * @return a dataset
+     * @throws IOException 
+     */
+    @SuppressWarnings("unchecked")
+    protected static DataSet<?> load(InputStream inRaw, boolean forceAsStandard, DataStore store) throws IOException
     {
         DataInputStream in = new DataInputStream(inRaw);
         
@@ -610,20 +697,10 @@ public class JSATData
                 predicting.setOptionName(readString(in), j);
         }
         
+        //used for both numeric and categorical target storage
+        DoubleList targets = new DoubleList();
         
-        DataSet<?> data;
-        
-        switch(marker)
-        {
-            case CLASSIFICATION:
-                data = new ClassificationDataSet(numNumeric, categories, predicting);
-                break;
-            case REGRESSION:
-                data = new RegressionDataSet(numNumeric, categories);
-                break;
-            default:
-                data = new SimpleDataSet(categories, numNumeric);
-        }
+        store.setCategoricalDataInfo(categories);
         
         //read in all the data points
         if(N < 0)
@@ -685,17 +762,15 @@ public class JSATData
                 }
 
                 DataPoint dp = new DataPoint(numericVals, catVals, categories, weight);
+                store.addDataPoint(dp);
 
                 switch(marker)
                 {
                     case CLASSIFICATION:
-                        ((ClassificationDataSet) data).addDataPoint(dp, (int) target);
-                        break;
                     case REGRESSION:
-                        ((RegressionDataSet) data).addDataPoint(dp, target);
-                        break;
+                        targets.add(target);
                     default:
-                        ((SimpleDataSet) data).add(dp);
+                        break;
                 }
             
             }
@@ -706,7 +781,17 @@ public class JSATData
         }
         
         in.close();
-        return data;
+        
+        switch(marker)
+        {
+            case CLASSIFICATION:
+                IntList targets_i = IntList.view(targets.stream().mapToInt(Double::intValue).toArray());
+                return new ClassificationDataSet(store, targets_i, predicting);
+            case REGRESSION:
+                return new RegressionDataSet(store, targets);
+            default:
+                return new SimpleDataSet(store);
+        }
     }
     
     private static void writeString(String s, DataOutputStream out) throws IOException

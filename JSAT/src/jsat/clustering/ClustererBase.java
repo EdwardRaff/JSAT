@@ -36,7 +36,7 @@ public abstract class ClustererBase implements Clusterer
     {
         List<List<DataPoint>> clusterings = new ArrayList<>();
         
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             while(clusterings.size() <= assignments[i])
                 clusterings.add(new ArrayList<>());
@@ -62,7 +62,7 @@ public abstract class ClustererBase implements Clusterer
     {
         List<DataPoint> list = new ArrayList<>();
         int pos = 0;
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
             if(assignments[i] == c)
             {
                 list.add(dataSet.getDataPoint(i));

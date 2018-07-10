@@ -160,11 +160,11 @@ public class LinearBatchTest
         warm.train(train, warmModel);
         
         int origErrors = 0;
-        for(int i = 0; i < train.getSampleSize(); i++)
+        for(int i = 0; i < train.size(); i++)
             if(notWarm.classify(train.getDataPoint(i)).mostLikely() != train.getDataPointCategory(i))
                 origErrors++;
         int warmErrors = 0;
-        for(int i = 0; i < train.getSampleSize(); i++)
+        for(int i = 0; i < train.size(); i++)
             if(warm.classify(train.getDataPoint(i)).mostLikely() != train.getDataPointCategory(i))
                 warmErrors++;
 

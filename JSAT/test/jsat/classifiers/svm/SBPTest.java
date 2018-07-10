@@ -55,10 +55,10 @@ public class SBPTest
 
         for(SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
         {
-            SBP classifier = new SBP(new RBFKernel(0.5), cacheMode, trainSet.getSampleSize(), 0.01);
+            SBP classifier = new SBP(new RBFKernel(0.5), cacheMode, trainSet.size(), 0.01);
             classifier.train(trainSet, true);
 
-            for (int i = 0; i < testSet.getSampleSize(); i++)
+            for (int i = 0; i < testSet.size(); i++)
                 assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
         }
     }
@@ -73,10 +73,10 @@ public class SBPTest
 
         for(SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
         {
-            SBP classifier = new SBP(new RBFKernel(0.5), cacheMode, trainSet.getSampleSize(), 0.01);
+            SBP classifier = new SBP(new RBFKernel(0.5), cacheMode, trainSet.size(), 0.01);
             classifier.train(trainSet);
 
-            for (int i = 0; i < testSet.getSampleSize(); i++)
+            for (int i = 0; i < testSet.size(); i++)
                 assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
         }
     }

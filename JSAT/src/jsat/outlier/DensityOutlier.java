@@ -86,7 +86,7 @@ public class DensityOutlier implements Outlier
     public void fit(DataSet d, boolean parallel)
     {
         density.setUsingData(d, parallel);
-        double[] scores = new double[d.getSampleSize()];
+        double[] scores = new double[d.size()];
         ParallelUtils.run(parallel, scores.length, (start, end)->
         {
             for(int i = start; i < end; i++)

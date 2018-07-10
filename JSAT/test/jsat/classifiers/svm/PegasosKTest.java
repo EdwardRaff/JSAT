@@ -56,10 +56,10 @@ public class PegasosKTest
 
         for(SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
         {
-            PegasosK classifier = new PegasosK(1e-6, trainSet.getSampleSize(), new RBFKernel(0.5), cacheMode);
+            PegasosK classifier = new PegasosK(1e-6, trainSet.size(), new RBFKernel(0.5), cacheMode);
             classifier.train(trainSet, true);
 
-            for (int i = 0; i < testSet.getSampleSize(); i++)
+            for (int i = 0; i < testSet.size(); i++)
                 assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
         }
     }
@@ -74,10 +74,10 @@ public class PegasosKTest
 
         for(SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
         {
-            PegasosK classifier = new PegasosK(1e-6, trainSet.getSampleSize(), new RBFKernel(0.5), cacheMode);
+            PegasosK classifier = new PegasosK(1e-6, trainSet.size(), new RBFKernel(0.5), cacheMode);
             classifier.train(trainSet);
 
-            for (int i = 0; i < testSet.getSampleSize(); i++)
+            for (int i = 0; i < testSet.size(); i++)
                 assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
         }
     }

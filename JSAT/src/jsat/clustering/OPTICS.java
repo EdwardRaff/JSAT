@@ -515,7 +515,7 @@ public class OPTICS extends ClustererBase implements Parameterized
         if(dataSet.getNumNumericalVars() < 1)
             throw new ClusterFailureException("OPTICS requires numeric features, and non are present.");
         
-        final int n = dataSet.getSampleSize();
+        final int n = dataSet.size();
         if(designations == null)
             designations = new int[n];
         
@@ -544,7 +544,7 @@ public class OPTICS extends ClustererBase implements Parameterized
         List<Integer> orderedFile = new IntList(n);
         
         //Main clustering loop
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             if(processed[i])
                 continue;

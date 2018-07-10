@@ -207,21 +207,21 @@ public abstract class KMeans extends KClustererBase implements Parameterized
     @Override
     public int[] cluster(DataSet dataSet, int[] designations)
     {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), designations);
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.size()/2), designations);
     }
 
     @Override
     public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), parallel, designations);
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.size()/2), parallel, designations);
     }
 
     @Override
     public int[] cluster(DataSet dataSet, int clusters, boolean parallel, int[] designations)
     {
         if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
-        if(dataSet.getSampleSize() < clusters)
+            designations = new int[dataSet.size()];
+        if(dataSet.size() < clusters)
             throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         
         means = new ArrayList<>(clusters);
@@ -234,10 +234,10 @@ public abstract class KMeans extends KClustererBase implements Parameterized
     @Override
     public int[] cluster(DataSet dataSet, int lowK, int highK, boolean parallel, int[] designations)
     {
-        if(dataSet.getSampleSize() < highK)
+        if(dataSet.size() < highK)
             throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+            designations = new int[dataSet.size()];
         
         double[] totDistances = new double[highK-lowK+1];
         

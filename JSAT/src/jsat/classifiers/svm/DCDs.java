@@ -313,7 +313,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     {
         if(dataSet.getClassSize() != 2)
             throw new FailedToFitException("SVM only supports binary classificaiton problems");
-        vecs = new Vec[dataSet.getSampleSize()];
+        vecs = new Vec[dataSet.size()];
         alpha = new double[vecs.length];
         y = new double[vecs.length];
         bias = 0;
@@ -321,7 +321,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         
         final double[] U = new double[vecs.length], D = new double[vecs.length];
         
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             final DataPoint dp = dataSet.getDataPoint(i);
             vecs[i] = dp.getNumericalValues();
@@ -516,7 +516,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     @Override
     public void train(RegressionDataSet dataSet, Regressor warmSolution)
     {
-        vecs = new Vec[dataSet.getSampleSize()];
+        vecs = new Vec[dataSet.size()];
         /**
          * Makes the Beta vector in the Algo 4 description 
          */
@@ -527,7 +527,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         
         final double[] U = new double[vecs.length], lambda = new double[vecs.length];
         double v_0 = 0;
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             final DataPoint dp = dataSet.getDataPoint(i);
             vecs[i] = dp.getNumericalValues();

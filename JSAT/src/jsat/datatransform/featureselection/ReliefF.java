@@ -260,7 +260,7 @@ public class ReliefF extends RemoveAttributeTransform
                     Random rand = RandomUtil.getRandom();
                     for(int iter = 0; iter < mm; iter++)
                     {
-                        final int k = rand.nextInt(cds.getSampleSize());
+                        final int k = rand.nextInt(cds.size());
                         final Vec x_k = allVecs.get(k);
                         final int y_k = cds.getDataPointCategory(k);
 

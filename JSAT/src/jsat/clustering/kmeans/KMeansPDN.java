@@ -76,7 +76,7 @@ public class KMeansPDN extends KMeans
     @Override
     public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, 1, (int) Math.min(Math.max(Math.sqrt(dataSet.getSampleSize()), 10), 100), parallel, designations);
+        return cluster(dataSet, 1, (int) Math.min(Math.max(Math.sqrt(dataSet.size()), 10), 100), parallel, designations);
     }
 
     @Override
@@ -86,7 +86,7 @@ public class KMeansPDN extends KMeans
             return cluster(dataSet, lowK, parallel, designations);
         else if(highK < lowK)
             throw new IllegalArgumentException("low value of k (" + lowK + ") must be higher than the high value of k(" + highK + ")");
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         final int D = dataSet.getNumNumericalVars();
         fKs = new double[highK-1];//we HAVE to start from k=2
         fKs[0] = 1.0;//see eq(2)

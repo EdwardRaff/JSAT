@@ -136,9 +136,9 @@ public class KernelPCA extends DataTransformBase
     @Override
     public void fit(DataSet ds)
     {
-        if(ds.getSampleSize() <= basisSize)
+        if(ds.size() <= basisSize)
         {
-            vecs = new Vec[ds.getSampleSize()];
+            vecs = new Vec[ds.size()];
             for(int i = 0; i < vecs.length; i++)
                 vecs[i] = ds.getDataPoint(i).getNumericalValues();
         }

@@ -249,7 +249,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
             throw new FailedToFitException("CSKLR supports only binary classification");
         //First we need to set up the vectors array
 
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         vecs = new ArrayList<Vec>(N);
         alphas = new double[N];
         for(int i = 0; i < N; i++)

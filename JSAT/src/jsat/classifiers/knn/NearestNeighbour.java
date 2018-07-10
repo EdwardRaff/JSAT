@@ -190,7 +190,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
         
         mode = Mode.CLASSIFICATION;
         this.predicting = dataSet.getPredicting();
-        List<VecPaired<Vec, Double>> dataPoints = new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
+        List<VecPaired<Vec, Double>> dataPoints = new ArrayList<VecPaired<Vec, Double>>(dataSet.size());
                 
         //Add all the data points
         for(int i = 0; i < dataSet.getClassSize(); i++)
@@ -251,10 +251,10 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
         
         mode = Mode.REGRESSION;
 
-        List<VecPaired<Vec, Double>> dataPoints = new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
+        List<VecPaired<Vec, Double>> dataPoints = new ArrayList<VecPaired<Vec, Double>>(dataSet.size());
                 
         //Add all the data points
-        for (int i = 0; i < dataSet.getSampleSize(); i++)
+        for (int i = 0; i < dataSet.size(); i++)
         {
             DataPointPair<Double> dpp = dataSet.getDataPointPair(i);
 

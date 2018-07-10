@@ -244,7 +244,7 @@ public class Stacking implements Classifier, Regressor
         List<ClassificationDataSet> dataFolds = dataSet.cvSet(folds);
         //iterate in the order of the folds so we get the right dataum weights
         for(ClassificationDataSet cds : dataFolds)
-            for(int i = 0; i < cds.getSampleSize(); i++)
+            for(int i = 0; i < cds.size(); i++)
                 metaSet.addDataPoint(new DenseVector(weightsPerModel*models), cds.getDataPointCategory(i), cds.getDataPoint(i).getWeight());
         
         //create the meta training set
@@ -258,7 +258,7 @@ public class Stacking implements Classifier, Regressor
                 ClassificationDataSet test = dataFolds.get(f);
                 cl.train(train, parallel);
                 
-                for(int i = 0; i < test.getSampleSize(); i++)//evaluate and mark each point in the held out fold.
+                for(int i = 0; i < test.size(); i++)//evaluate and mark each point in the held out fold.
                 {
                     CategoricalResults pred  = cl.classify(test.getDataPoint(i));
                     if(C == 2)
@@ -315,7 +315,7 @@ public class Stacking implements Classifier, Regressor
         List<RegressionDataSet> dataFolds = dataSet.cvSet(folds);
         //iterate in the order of the folds so we get the right dataum weights
         for(RegressionDataSet rds : dataFolds)
-            for(int i = 0; i < rds.getSampleSize(); i++)
+            for(int i = 0; i < rds.size(); i++)
                 metaSet.addDataPoint(new DataPoint(new DenseVector(weightsPerModel*models), rds.getDataPoint(i).getWeight()), rds.getTargetValue(i));
         
         //create the meta training set
@@ -328,7 +328,7 @@ public class Stacking implements Classifier, Regressor
                 RegressionDataSet train = RegressionDataSet.comineAllBut(dataFolds, f);
                 RegressionDataSet test = dataFolds.get(f);
                 reg.train(train, parallel);
-                for(int i = 0; i < test.getSampleSize(); i++)//evaluate and mark each point in the held out fold.
+                for(int i = 0; i < test.size(); i++)//evaluate and mark each point in the held out fold.
                 {
                     double pred  = reg.regress(test.getDataPoint(i));
                     

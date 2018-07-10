@@ -89,7 +89,7 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
     @Override
     public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        double[] deci = new double[dataSet.getSampleSize()];//array of SVM decision values
+        double[] deci = new double[dataSet.size()];//array of SVM decision values
         boolean[] label = new boolean[deci.length];//array of booleans: is the example labeled +1?
         int len = label.length;
         
@@ -103,7 +103,7 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
                 ClassificationDataSet train = ClassificationDataSet.comineAllBut(foldList, i);
                 base.train(train, parallel);
                 
-                for(int j = 0; j < test.getSampleSize(); j++)
+                for(int j = 0; j < test.size(); j++)
                 {
                     deci[pos] = base.getScore(test.getDataPoint(j));
                     label[pos] = test.getDataPointCategory(j) == 1;
@@ -123,13 +123,13 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
             ClassificationDataSet test = new ClassificationDataSet(wholeSet.subList(splitMark, wholeSet.size()), dataSet.getPredicting());
             
             base.train(train, parallel);
-            for(int i = 0; i < test.getSampleSize(); i++)
+            for(int i = 0; i < test.size(); i++)
             {
                 deci[i] = base.getScore(test.getDataPoint(i));
                 label[i] = test.getDataPointCategory(i) == 1;
             }
             
-            len = test.getSampleSize();
+            len = test.size();
             
             base.train(dataSet, parallel);
         }

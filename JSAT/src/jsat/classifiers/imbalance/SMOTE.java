@@ -240,7 +240,7 @@ public class SMOTE implements Classifier, Parameterized
         IntList[] classIndex = new IntList[dataSet.getClassSize()];
         for(int i = 0; i < classIndex.length; i++)
             classIndex[i] = new IntList();
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
             classIndex[dataSet.getDataPointCategory(i)].add(i);
         
         double[] priors = dataSet.getPriors();
@@ -248,7 +248,7 @@ public class SMOTE implements Classifier, Parameterized
         /**
          * How many samples does it take to reach parity with the majority class
          */
-        final int majorityNum = (int) (dataSet.getSampleSize()*ratios.max());
+        final int majorityNum = (int) (dataSet.size()*ratios.max());
         ratios.mutableDivide(ratios.max());
         
         final List<DataPointPair<Integer>> synthetics = new ArrayList<>();

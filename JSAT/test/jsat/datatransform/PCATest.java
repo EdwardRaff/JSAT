@@ -70,8 +70,8 @@ public class PCATest
     {
         System.out.println("transform");
         GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 1, 1, 1);
-        ClassificationDataSet easyTrain = new ClassificationDataSet(gdg.generateData(80).getBackingList(), 0);
-        ClassificationDataSet easyTest = new ClassificationDataSet(gdg.generateData(10).getBackingList(), 0);
+        ClassificationDataSet easyTrain = new ClassificationDataSet(gdg.generateData(80).getList(), 0);
+        ClassificationDataSet easyTest = new ClassificationDataSet(gdg.generateData(10).getList(), 0);
         
         //lets project the data into a higher dimension
         JLTransform jl = new  JLTransform(30, JLTransform.TransformMode.GAUSS);

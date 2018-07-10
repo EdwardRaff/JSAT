@@ -85,7 +85,7 @@ public class AODE extends BaseUpdateableClassifier
         ParallelUtils.range(odes.length, parallel).forEach(z->
         {
             ODE ode = odes[z];
-            for (int i = 0; i < dataSet.getSampleSize(); i++)
+            for (int i = 0; i < dataSet.size(); i++)
                 ode.update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i));
         });
     }

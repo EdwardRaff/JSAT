@@ -412,14 +412,14 @@ public class CPM implements BinaryScoreClassifier, Classifier, Parameterized
      */
     private void sgdTrain(ClassificationDataSet D, MatrixOfVecs W, Vec b, int sign_mul, boolean parallel)
     {
-        IntList order = new IntList(D.getSampleSize());
-        ListUtils.addRange(order, 0, D.getSampleSize(), 1);
+        IntList order = new IntList(D.size());
+        ListUtils.addRange(order, 0, D.size(), 1);
         
-        final double lambda_adj = lambda/(D.getSampleSize()*epochs);
+        final double lambda_adj = lambda/(D.size()*epochs);
         
         int[] owned = new int[K];//how many points does thsi guy own?
         int assigned_positive_instances = 0;//how many points in the positive class have been assigned?
-        int[] assignments = new int[D.getSampleSize()];//who owns each data point
+        int[] assignments = new int[D.size()];//who owns each data point
         Arrays.fill(assignments, -1);//Starts out that no one is assigned! 
         
         Vec dots = new DenseVector(W.rows());

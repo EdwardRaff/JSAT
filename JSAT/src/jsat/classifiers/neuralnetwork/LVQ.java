@@ -501,7 +501,7 @@ public class LVQ implements Classifier, Parameterized
                 weights[j].copyTo(weightsPrev[j]);
             Arrays.fill(wins, 0);
             double alpha = learningDecay.rate(iteration, iterations, learningRate);
-            for(int i = 0; i < dataSet.getSampleSize(); i++)
+            for(int i = 0; i < dataSet.size(); i++)
             {
                 Vec x = dataSet.getDataPoint(i).getNumericalValues();
                 int closestClass = -1;

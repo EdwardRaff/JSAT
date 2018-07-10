@@ -237,7 +237,7 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
     @Override
     public void train(ClassificationDataSet dataSet, boolean parallel)
     {
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         vecs = dataSet.getDataVectors();
         early_models = new ConcurrentHashMap<>();
 //        weights = dataSet.getDataWeights();
@@ -296,7 +296,7 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
             clusters = new ElkanKernelKMeans(getKernel());
             clusters.setMaximumIterations(100);
 //            System.out.println("Finding " + k_l + " clusters");
-            k_l = Math.min(k_l, toCluster.getSampleSize()/2);//Few support vectors? Make clustering smaller then
+            k_l = Math.min(k_l, toCluster.size()/2);//Few support vectors? Make clustering smaller then
             int[] sub_results;
             if(k_l <= 1)//dont run cluster, we are doing final refinement step!
             {
@@ -374,7 +374,7 @@ public class DCSVM extends SupportVectorLearner implements Classifier, Parameter
         {
             SVMnoBias svm = new SVMnoBias(getKernel());
             if (cache_size > 0)
-                svm.setCacheSize(dataSet.getSampleSize(), cache_size );
+                svm.setCacheSize(dataSet.size(), cache_size );
             else
                 svm.setCacheMode(CacheMode.NONE);
             svm.train(dataSet, Arrays.copyOf(this.alphas, this.alphas.length), parallel);

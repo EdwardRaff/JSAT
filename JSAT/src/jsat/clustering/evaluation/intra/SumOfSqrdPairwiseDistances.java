@@ -81,7 +81,7 @@ public class SumOfSqrdPairwiseDistances implements IntraClusterEvaluation
         if (dm instanceof EuclideanDistance)//special case, can compute in O(N) isntead
         {
             Vec mean = new DenseVector(X.get(0).length());
-            for (int i = 0; i < dataSet.getSampleSize(); i++)
+            for (int i = 0; i < dataSet.size(); i++)
             {
                 if (designations[i] != clusterID)
                     continue;
@@ -91,7 +91,7 @@ public class SumOfSqrdPairwiseDistances implements IntraClusterEvaluation
             mean.mutableDivide((N + 1e-10));//1e-10 incase N=0
 
             List<Double> qi = dm.getQueryInfo(mean);
-            for (int i = 0; i < dataSet.getSampleSize(); i++)
+            for (int i = 0; i < dataSet.size(); i++)
             {
                 if (designations[i] == clusterID)
                     sum += Math.pow(dm.dist(i, mean, qi, X, cache), 2);
@@ -101,13 +101,13 @@ public class SumOfSqrdPairwiseDistances implements IntraClusterEvaluation
         }
         //regulare case, O(N^2)
 
-        for (int i = 0; i < dataSet.getSampleSize(); i++)
+        for (int i = 0; i < dataSet.size(); i++)
         {
             if (designations[i] != clusterID)
                 continue;
             N++;
 
-            for (int j = i + 1; j < dataSet.getSampleSize(); j++)
+            for (int j = i + 1; j < dataSet.size(); j++)
             {
                 if (designations[j] == clusterID)
                     sum += 2*Math.pow(dm.dist(i, j, X, cache), 2);

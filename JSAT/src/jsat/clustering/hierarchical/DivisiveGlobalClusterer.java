@@ -67,7 +67,7 @@ public class DivisiveGlobalClusterer extends KClustererBase
     @Override
     public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()), parallel, designations);
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.size()), parallel, designations);
     }
 
     @Override
@@ -80,11 +80,11 @@ public class DivisiveGlobalClusterer extends KClustererBase
     public int[] cluster(DataSet dataSet, int lowK, int highK, boolean parallel, int[] designations)
     {
         if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+            designations = new int[dataSet.size()];
         /**
          * Is used to copy the value of designations and then alter to test the quality of a potential new clustering
          */
-        int[] fakeWorld = new int[dataSet.getSampleSize()];
+        int[] fakeWorld = new int[dataSet.size()];
         
         /**
          * For each current cluster, we store the clustering results if we 
@@ -96,13 +96,13 @@ public class DivisiveGlobalClusterer extends KClustererBase
         /**
          * Stores the index from the sub data set into the full data set
          */
-        final int[][] originalPositions = new int[highK][dataSet.getSampleSize()];
+        final int[][] originalPositions = new int[highK][dataSet.size()];
         /**
          * List of Lists for holding the data points of each cluster in
          */
         List<List<DataPoint>> pointsInCluster = new ArrayList<>(highK);
         for(int i = 0; i < highK; i++)
-            pointsInCluster.add(new ArrayList<>(dataSet.getSampleSize()));
+            pointsInCluster.add(new ArrayList<>(dataSet.size()));
         
         
         /**
@@ -140,7 +140,7 @@ public class DivisiveGlobalClusterer extends KClustererBase
                 {//Need to compute a split for that cluster & set up helper structures
                     List<DataPoint> clusterPointsZ = pointsInCluster.get(z);
                     clusterPointsZ.clear();
-                    for (int i = 0; i < dataSet.getSampleSize(); i++)
+                    for (int i = 0; i < dataSet.size(); i++)
                     {
                         if (designations[i] != z)
                             continue;

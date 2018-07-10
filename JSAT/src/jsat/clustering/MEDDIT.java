@@ -82,7 +82,7 @@ public class MEDDIT extends PAM
         
         List<Vec> X = data.getDataVectors();
         final List<Double> accel;
-        final int N = data.getSampleSize();
+        final int N = data.size();
         
         if(doInit)
         {
@@ -95,7 +95,7 @@ public class MEDDIT extends PAM
         
         double tol;
         if(tolerance < 0)
-            tol = 1.0/data.getSampleSize();
+            tol = 1.0/data.size();
         else
             tol = tolerance;
 

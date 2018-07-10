@@ -81,7 +81,7 @@ public class MutualInfoFSTest
         MutualInfoFS minFS = new MutualInfoFS(4, MutualInfoFS.NumericalHandeling.BINARY).clone();
         minFS.fit(cds);
         
-        for(int i = 0; i < cds.getSampleSize(); i++)
+        for(int i = 0; i < cds.size(); i++)
         {
             DataPoint dp =  cds.getDataPoint(i);
             

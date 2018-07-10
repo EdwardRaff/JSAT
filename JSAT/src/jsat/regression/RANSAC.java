@@ -112,9 +112,9 @@ public class RANSAC implements Regressor, Parameterized
         @Override
         public RANSACWorker call() throws Exception
         {
-            bestConsensusSet = new boolean[dataset.getSampleSize()];
+            bestConsensusSet = new boolean[dataset.size()];
             
-            boolean[] working_set = new boolean[dataset.getSampleSize()];
+            boolean[] working_set = new boolean[dataset.size()];
             
             Set<Integer> maybe_inliers = new IntSet(initialTrainSize*2);
             

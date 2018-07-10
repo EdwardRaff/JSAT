@@ -387,7 +387,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      */
     public static Distribution guessRegularization(DataSet d)
     {
-        double T2 = d.getSampleSize();
+        double T2 = d.size();
         T2*=T2;
         
         return new LogUniform(Math.pow(2, -3)/T2, Math.pow(2, 3)/T2);

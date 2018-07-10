@@ -317,9 +317,9 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      */
     protected void trainC(ClassificationDataSet dataSet, Set<Integer> options, boolean parallel)
     {
-        if(dataSet.getSampleSize() < minSamples)
+        if(dataSet.size() < minSamples)
             throw new FailedToFitException("There are only " + 
-                    dataSet.getSampleSize() + 
+                    dataSet.size() + 
                     " data points in the sample set, at least " + minSamples + 
                     " are needed to make a tree");
         this.predicting = dataSet.getPredicting();

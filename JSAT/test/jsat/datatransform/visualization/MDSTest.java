@@ -99,7 +99,7 @@ public class MDSTest
         
         Matrix proj_data = orig_dim.multiply(s);
         
-        SimpleDataSet proj = new SimpleDataSet(new CategoricalData[0], proj_data.cols());
+        SimpleDataSet proj = new SimpleDataSet(proj_data.cols(), new CategoricalData[0]);
         for(int i = 0; i < proj_data.rows(); i++)
             proj.add(new DataPoint(proj_data.getRow(i)));
         

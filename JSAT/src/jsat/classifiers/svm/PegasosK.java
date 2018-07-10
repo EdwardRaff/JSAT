@@ -205,12 +205,12 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
             throw new FailedToFitException("Pegasos only supports binary classification problems");
 
         Random rand = RandomUtil.getRandom();
-        final int m = dataSet.getSampleSize();
+        final int m = dataSet.size();
 
         alphas = new double[m];
         int[] sign = new int[m];
         vecs = new ArrayList<>(m);
-        for (int i = 0; i < dataSet.getSampleSize(); i++)
+        for (int i = 0; i < dataSet.size(); i++)
         {
             vecs.add(dataSet.getDataPoint(i).getNumericalValues());
             sign[i] = dataSet.getDataPointCategory(i) == 1 ? 1 : -1;

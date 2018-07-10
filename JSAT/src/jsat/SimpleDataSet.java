@@ -19,60 +19,62 @@ import jsat.regression.RegressionDataSet;
  */
 public class SimpleDataSet extends DataSet<SimpleDataSet>
 {
-    protected List<DataPoint> dataPoints;
-
-    public SimpleDataSet(List<DataPoint> dataPoints)
+   
+    /**
+     * Creates a new dataset containing the given datapoints. 
+     * 
+     * @param datapoints the collection of data points to create a dataset from
+     */
+    public SimpleDataSet(List<DataPoint> datapoints)
     {
-        if(dataPoints.isEmpty())
-            throw new RuntimeException("Can not create empty data set");
-        this.dataPoints = dataPoints;
-        this.categories =  dataPoints.get(0).getCategoricalData();
-        this.numNumerVals = dataPoints.get(0).numNumericalValues();
-        this.numericalVariableNames = new ArrayList<String>(this.numNumerVals);
-        for(int i = 0; i < getNumNumericalVars(); i++)
-            this.numericalVariableNames.add("Numeric Input " + (i+1));
-    }
-
-    public SimpleDataSet(CategoricalData[] categories, int numNumericalValues)
-    {
-        this.categories = categories;
-        this.numNumerVals = numNumericalValues;
-        this.dataPoints = new ArrayList<DataPoint>();
+        super(datapoints);
     }
     
-    @Override
-    public DataPoint getDataPoint(int i)
+    /**
+     * Creates a new dataset containing the given datapoints. The number of
+     * features and categorical data information will be obtained from the
+     * DataStore.
+     *
+     * @param datapoints the collection of data points to create a dataset from
+     */
+    public SimpleDataSet(DataStore datapoints) 
     {
-        return dataPoints.get(i);
+        super(datapoints);
     }
 
-    @Override
-    public void setDataPoint(int i, DataPoint dp)
+    /**
+     * Creates a new empty data set
+     *
+     * @param numerical the number of numerical features for points in this
+     * dataset
+     * @param categories the information and number of categorical features in
+     * this dataset
+     */
+    public SimpleDataSet(int numerical, CategoricalData[] categories)
     {
-        dataPoints.set(i, dp);
-        columnVecCache.clear();
+        super(numerical, categories);
     }
     
     /**
      * Adds a new datapoint to this set. 
      * @param dp the datapoint to add
      */
+    @Override
     public void add(DataPoint dp)
     {
-        dataPoints.add(dp);
-        columnVecCache.clear();
+        datapoints.addDataPoint(dp);
     }
 
     @Override
-    public int getSampleSize()
+    public int size()
     {
-        return dataPoints.size();
+        return datapoints.size();
     }
     
     @Override
     protected SimpleDataSet getSubset(List<Integer> indicies)
     {
-        SimpleDataSet newData = new SimpleDataSet(categories, numNumerVals);
+        SimpleDataSet newData = new SimpleDataSet(numNumerVals, categories);
         for(int i : indicies)
             newData.add(getDataPoint(i));
         return newData;
@@ -118,23 +120,22 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
         else if(index >= getNumNumericalVars())
             throw new IllegalArgumentException("Index " + index + " i larger than number of numeric features " + getNumNumericalVars());
         
-        return new RegressionDataSet(this.dataPoints, index);
+        return new RegressionDataSet(this.datapoints.toList(), index);
     }
     
-    
-    /**
-     * 
-     * @return direct access to the list that backs this data set. 
+        /**
+     *
+     * @return access to a list of the list that backs this data set. May or may
+     * not be backed by the original data.
      */
-    public List<DataPoint> getBackingList()
-    {
-        return dataPoints;
+    public List<DataPoint> getList() {
+        return datapoints.toList();
     }
 
     @Override
     public SimpleDataSet shallowClone()
     {
-        return new SimpleDataSet(new ArrayList<DataPoint>(this.dataPoints));
+        return new SimpleDataSet(new ArrayList<>(this.datapoints.toList()));
     }
 
     @Override

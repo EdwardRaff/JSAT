@@ -74,12 +74,12 @@ public abstract class AbstractClusterDissimilarity implements ClusterDissimilari
      */
     public static double[][] createDistanceMatrix(DataSet dataSet, ClusterDissimilarity cd)
     {
-        double[][] distances = new double[dataSet.getSampleSize()][];
+        double[][] distances = new double[dataSet.size()][];
 
 
         for (int i = 0; i < distances.length; i++)
         {
-            distances[i] = new double[dataSet.getSampleSize() - i - 1];
+            distances[i] = new double[dataSet.size() - i - 1];
             for (int j = i + 1; j < distances.length; j++)
                 distances[i][j - i - 1] = cd.distance(dataSet.getDataPoint(i), dataSet.getDataPoint(j));
         }

@@ -552,7 +552,7 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
     @Override
     public void train(ClassificationDataSet dataSet)
     {
-        final int n = dataSet.getSampleSize();
+        final int n = dataSet.size();
         final double N = n;
         final int d = dataSet.getNumNumericalVars();
         if(d < 1)

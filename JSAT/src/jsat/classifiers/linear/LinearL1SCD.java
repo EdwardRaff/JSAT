@@ -142,7 +142,7 @@ public class LinearL1SCD extends StochasticSTLinearL1
         if(sparse)
             Arrays.fill(obvMin, 0.0);
         
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             Vec x = dataSet.getDataPoint(i).getNumericalValues();
             for(IndexValue iv : x)
@@ -166,7 +166,7 @@ public class LinearL1SCD extends StochasticSTLinearL1
     public void train(RegressionDataSet dataSet)
     {
         boolean sparse = dataSet.getDataPoint(0).getNumericalValues().isSparse();
-        int m = dataSet.getSampleSize();
+        int m = dataSet.size();
         
         Vec[] featureVals = new Vec[dataSet.getNumNumericalVars()];
         for(int i = 0; i < featureVals.length; i++)
@@ -177,7 +177,7 @@ public class LinearL1SCD extends StochasticSTLinearL1
         featureScaleCheck(featureVals, m);
         
         double[] target = new double[m];
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
             target[i] = dataSet.getTargetValue(i);
         
         train(featureVals, target);
@@ -195,7 +195,7 @@ public class LinearL1SCD extends StochasticSTLinearL1
         if(dataSet.getClassSize() != 2)
             throw new FailedToFitException("Only binary classification problems are supported");
         boolean sparse = dataSet.getDataPoint(0).getNumericalValues().isSparse();
-        int m = dataSet.getSampleSize();
+        int m = dataSet.size();
         Vec[] featureVals = new Vec[dataSet.getNumNumericalVars()];
         
         setUpFeatureVals(featureVals, sparse, m, dataSet);
@@ -203,7 +203,7 @@ public class LinearL1SCD extends StochasticSTLinearL1
         featureScaleCheck(featureVals, m);
         
         double[] target = new double[m];
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
             target[i] = dataSet.getDataPointCategory(i)*2-1;
 
         train(featureVals, target);

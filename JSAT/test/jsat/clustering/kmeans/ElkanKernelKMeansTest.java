@@ -109,11 +109,11 @@ public class ElkanKernelKMeansTest
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new XORWOW(1238962356), 2);
         ClassificationDataSet toCluster = gdg.generateData(200).asClassificationDataSet(0);
         //make the LAST data point so far out it will screw everything up, UNLCESS you understand that it has a tiny weight
-        toCluster.getDataPoint(toCluster.getSampleSize()-1).getNumericalValues().set(0, 1.9e100);
+        toCluster.getDataPoint(toCluster.size()-1).getNumericalValues().set(0, 1.9e100);
         Random rand = new XORWOW(897654);
-        for(int i = 0; i < toCluster.getSampleSize(); i++)
+        for(int i = 0; i < toCluster.size(); i++)
             toCluster.getDataPoint(i).setWeight(0.5+5*rand.nextDouble());
-        toCluster.getDataPoint(toCluster.getSampleSize()-1).setWeight(1e-200);
+        toCluster.getDataPoint(toCluster.size()-1).setWeight(1e-200);
         
         int[] result = kmeans.cluster(toCluster, 2, (int[])null);
         //make sure each cluster has points from only 1 class. If true then everyone is good

@@ -131,7 +131,7 @@ public class MutualInfoFS extends RemoveAttributeTransform
         if(!(data instanceof ClassificationDataSet))
             throw new FailedToFitException("MutualInfoFS only works for classification data sets, not " + data.getClass().getSimpleName());
         ClassificationDataSet dataSet = (ClassificationDataSet) data;
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         double[] classPriors = dataSet.getPriors();
         double[] logClassPriors = new double[classPriors.length];
         for(int i = 0; i < logClassPriors.length; i++)
@@ -173,7 +173,7 @@ public class MutualInfoFS extends RemoveAttributeTransform
         }
         
         double weightSum = 0.0;
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             DataPoint dp = dataSet.getDataPoint(i);
             int trueClass = dataSet.getDataPointCategory(i);

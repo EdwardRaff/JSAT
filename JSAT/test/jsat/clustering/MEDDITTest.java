@@ -114,7 +114,7 @@ public class MEDDITTest
         GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.1), RandomUtil.getRandom(), 2, 2, 2, 2);
         SimpleDataSet data = gdg.generateData(500);
         
-        long N = data.getSampleSize();
+        long N = data.size();
         newMethod.setStoreMedoids(true);
         oldMethod.setStoreMedoids(true);
         

@@ -349,7 +349,7 @@ public class SOM implements Classifier, Parameterized
         /**
          * this array is used to access the data in a random order to improve convergence
          */
-        final int[] pointAccessOrder = new int[dataSet.getSampleSize()];
+        final int[] pointAccessOrder = new int[dataSet.size()];
         for(int i = 0; i < pointAccessOrder.length; i++)
             pointAccessOrder[i] = i;
         
@@ -418,11 +418,11 @@ public class SOM implements Classifier, Parameterized
             else//parallel 
             {
                 int pos = 0;
-                final int size = dataSet.getSampleSize() / SystemInfo.LogicalCores;
-                int extra = dataSet.getSampleSize() % SystemInfo.LogicalCores;
+                final int size = dataSet.size() / SystemInfo.LogicalCores;
+                int extra = dataSet.size() % SystemInfo.LogicalCores;
                 final CountDownLatch cdl = new CountDownLatch(SystemInfo.LogicalCores);
                 
-                while(pos < dataSet.getSampleSize())
+                while(pos < dataSet.size())
                 {
                     final int to = (extra-- > 0 ? 1 : 0) + pos + size;
                     final int start = pos;
@@ -502,7 +502,7 @@ public class SOM implements Classifier, Parameterized
             for(int i = 0; i < crWeightPairs.length; i++)
                 crWeightPairs[i] = new CategoricalResults(dataSet.getClassSize());
 
-            for(int i = 0; i < dataSet.getSampleSize(); i++)
+            for(int i = 0; i < dataSet.size(); i++)
             {
                 DataPoint dp = dataSet.getDataPoint(i);
 

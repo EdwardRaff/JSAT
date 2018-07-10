@@ -147,7 +147,7 @@ public class Isomap implements VisualizationTransform
     @Override
     public <Type extends DataSet> Type transform(DataSet<Type> d, boolean parallel)
     {
-        final int N = d.getSampleSize();
+        final int N = d.size();
         final Matrix delta = new DenseMatrix(N, N);
         for (int i = 0; i < N; i++)
             for (int j = 0; j < N; j++)

@@ -146,19 +146,19 @@ public class ArcX4 implements Classifier, Parameterized
     {
         //Create a low memory clone that only has different dataPoint Objects to save space
         ClassificationDataSet cds = dataSet.shallowClone();
-        for(int i = 0; i < cds.getSampleSize(); i++)
+        for(int i = 0; i < cds.size(); i++)
         {
             DataPoint dp = cds.getDataPoint(i);
             cds.setDataPoint(i, new DataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), dp.getCategoricalData()));
         }
         
         //Everyone starts with no errors
-        int[] errors = new int[cds.getSampleSize()];
+        int[] errors = new int[cds.size()];
         
         hypoths = new Classifier[iterations];
         for(int t = 0; t < hypoths.length; t++)
         {
-            for(int i = 0; i < cds.getSampleSize(); i++)
+            for(int i = 0; i < cds.size(); i++)
                 cds.getDataPoint(i).setWeight(1+coef*Math.pow(errors[i], expo));
             
             Classifier hypoth = weakLearner.clone();

@@ -55,7 +55,7 @@ public class LinearTools
             Vec x = X.get(i);
             delta_L.mutableAdd(D_part_i * y_i, x);
         }
-        return max(abs(delta_L.max()), abs(delta_L.min())) / (cds.getSampleSize());
+        return max(abs(delta_L.max()), abs(delta_L.min())) / (cds.size());
     }
     
     /**

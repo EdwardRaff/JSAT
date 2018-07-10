@@ -190,7 +190,7 @@ public class PAM implements KClusterer
             changes.reset();
             totalDistance.reset();
             
-            ParallelUtils.run(parallel, data.getSampleSize(), (start, end)->
+            ParallelUtils.run(parallel, data.size(), (start, end)->
             {
                 for(int i = start; i < end; i++)
                 {
@@ -220,14 +220,14 @@ public class PAM implements KClusterer
             //TODO this update may be faster by using more memory, and actually moiving people about in the assignment loop above
             //Update the medoids
             Arrays.fill(bestMedCandDist, Double.MAX_VALUE);
-            for(int i = 0; i < data.getSampleSize(); i++)
+            for(int i = 0; i < data.size(); i++)
             {
                 double thisCandidateDistance;
                 final int clusterID = assignments[i];
                 final int medCandadate = i;
                 
                 final int ii = i;
-                thisCandidateDistance = ParallelUtils.range(data.getSampleSize(), parallel)
+                thisCandidateDistance = ParallelUtils.range(data.size(), parallel)
                         .filter(j -> j != ii && assignments[j] == clusterID)
                         .mapToDouble(j -> Math.pow(dm.dist(medCandadate, j, X, accel), 2))
                         .sum();
@@ -248,14 +248,14 @@ public class PAM implements KClusterer
     @Override
     public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), parallel, designations);
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.size()/2), parallel, designations);
     }
     
     @Override
     public int[] cluster(DataSet dataSet, int clusters, boolean parallel, int[] designations)
     {
         if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+            designations = new int[dataSet.size()];
         medoids = new int[clusters];
         
         cluster(dataSet, true, medoids, designations, null, parallel);
@@ -276,7 +276,7 @@ public class PAM implements KClusterer
     public int[] cluster(DataSet dataSet, int lowK, int highK, boolean parallel, int[] designations)
     {
         if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+            designations = new int[dataSet.size()];
         
         double[] totDistances = new double[highK-lowK+1];
         

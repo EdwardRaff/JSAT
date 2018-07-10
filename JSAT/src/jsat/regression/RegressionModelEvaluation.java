@@ -292,7 +292,7 @@ public class RegressionModelEvaluation
 //            }
 //        }
         
-        ParallelUtils.run(parallel, testSet.getSampleSize(), (start, end)->
+        ParallelUtils.run(parallel, testSet.size(), (start, end)->
         {
             //create a local set of scores to update
             long localPredictionTime = 0;

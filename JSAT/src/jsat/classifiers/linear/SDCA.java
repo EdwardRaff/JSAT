@@ -318,7 +318,7 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
         if(dataSet.getPredicting().getNumOfCategories() !=2)
             throw new RuntimeException("Current SDCA implementation only support binary classification problems");
         
-        double[] targets = new double[dataSet.getSampleSize()];
+        double[] targets = new double[dataSet.size()];
         for(int i = 0; i < targets.length; i++)
             targets[i] = dataSet.getDataPointCategory(i)*2-1;
         
@@ -340,7 +340,7 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
         if(dataSet.getPredicting().getNumOfCategories() !=2)
             throw new RuntimeException("Current SDCA implementation only support binary classification problems");
         
-        double[] targets = new double[dataSet.getSampleSize()];
+        double[] targets = new double[dataSet.size()];
         for(int i = 0; i < targets.length; i++)
             targets[i] = dataSet.getDataPointCategory(i)*2-1;
         
@@ -356,7 +356,7 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
     @Override
     public void train(RegressionDataSet dataSet)
     {
-        double[] targets = new double[dataSet.getSampleSize()];
+        double[] targets = new double[dataSet.size()];
         for(int i = 0; i < targets.length; i++)
             targets[i] = dataSet.getTargetValue(i);
         
@@ -372,7 +372,7 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
     @Override
     public void train(RegressionDataSet dataSet, Regressor warmSolution)
     {
-        double[] targets = new double[dataSet.getSampleSize()];
+        double[] targets = new double[dataSet.size()];
         for(int i = 0; i < targets.length; i++)
             targets[i] = dataSet.getTargetValue(i);
         
@@ -381,7 +381,7 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
     
     private void trainProxSDCA(DataSet dataSet, double[] targets, double[] warm_alphas)
     {
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         final int D = dataSet.getNumNumericalVars();
         
         ws = new Vec[]{new DenseVector(D)};
@@ -627,7 +627,7 @@ public class SDCA implements Classifier, Regressor, Parameterized, SimpleWeightV
      */
     public static Distribution guessLambda(DataSet d)
     {
-        int N = d.getSampleSize();
+        int N = d.size();
         return new LogUniform(1.0/(N*50), Math.min(1.0/(N/50), 1.0));
     }
     

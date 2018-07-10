@@ -147,7 +147,7 @@ public class SMIDAS extends StochasticSTLinearL1
             if(min != 0)
                 allZeroMins = false;
         double[] target = new double[x.length];
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             //Copy and scale each value
             if(allZeroMins && minScaled == 0.0)
@@ -189,7 +189,7 @@ public class SMIDAS extends StochasticSTLinearL1
             if(min != 0)
                 allZeroMins = false;
         double[] target = new double[x.length];
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             if(allZeroMins && minScaled == 0.0)
             {
@@ -288,8 +288,8 @@ public class SMIDAS extends StochasticSTLinearL1
         Arrays.fill(obvMin, Double.POSITIVE_INFINITY);
         obvMax = new double[dataSet.getNumNumericalVars()];
         Arrays.fill(obvMax, Double.NEGATIVE_INFINITY);
-        Vec[] x = new Vec[dataSet.getSampleSize()];    
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        Vec[] x = new Vec[dataSet.size()];    
+        for(int i = 0; i < dataSet.size(); i++)
         {
             x[i] = dataSet.getDataPoint(i).getNumericalValues();
 

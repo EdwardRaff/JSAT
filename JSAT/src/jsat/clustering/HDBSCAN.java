@@ -211,7 +211,7 @@ public class HDBSCAN implements Clusterer, Parameterized
     public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
         if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+            designations = new int[dataSet.size()];
         
         @SuppressWarnings("unchecked")
         final List<Vec> X = dataSet.getDataVectors();

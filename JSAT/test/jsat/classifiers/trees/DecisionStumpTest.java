@@ -64,11 +64,11 @@ public class DecisionStumpTest
     {
         stump = new DecisionStump();
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2);
-        easyNumAtTrain = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
-        easyNumAtTest = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
+        easyNumAtTrain = new ClassificationDataSet(gdg.generateData(40).getList(), 0);
+        easyNumAtTest = new ClassificationDataSet(gdg.generateData(40).getList(), 0);
         
-        easyCatAtTrain = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
-        easyCatAtTest = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
+        easyCatAtTrain = new ClassificationDataSet(gdg.generateData(40).getList(), 0);
+        easyCatAtTest = new ClassificationDataSet(gdg.generateData(40).getList(), 0);
         NumericalToHistogram nth = new NumericalToHistogram(easyCatAtTrain, 2);
         easyCatAtTrain.applyTransform(nth);
         easyCatAtTest.applyTransform(nth);
@@ -94,7 +94,7 @@ public class DecisionStumpTest
     {
         System.out.println("trainC(ClassificationDataSet, ExecutorService)");
         stump.train(easyNumAtTrain, parallel);
-        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
+        for(int i = 0; i < easyNumAtTest.size(); i++)
             assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
     }
     
@@ -105,12 +105,12 @@ public class DecisionStumpTest
         ClassificationDataSet toTrain = easyNumAtTrain.shallowClone();
         toTrain.applyTransform(new InsertMissingValuesTransform(0.25));
         stump.train(toTrain, parallel);
-        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
+        for(int i = 0; i < easyNumAtTest.size(); i++)
             assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
         
         //test applying missing values, just make sure no error since we can/t pred if only feat is missing
         easyNumAtTest.applyTransform(new InsertMissingValuesTransform(0.5));
-        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
+        for(int i = 0; i < easyNumAtTest.size(); i++)
             stump.classify(easyNumAtTest.getDataPoint(i));
     }
     
@@ -121,13 +121,13 @@ public class DecisionStumpTest
         ClassificationDataSet toTrain = easyCatAtTrain.shallowClone();
         toTrain.applyTransform(new InsertMissingValuesTransform(0.25));
         stump.train(toTrain, parallel);
-        for(int i = 0; i < easyCatAtTest.getSampleSize(); i++)
+        for(int i = 0; i < easyCatAtTest.size(); i++)
             assertEquals(easyCatAtTest.getDataPointCategory(i), stump.classify(easyCatAtTest.getDataPoint(i)).mostLikely());
         
         
         //test applying missing values, just make sure no error since we can/t pred if only feat is missing
         easyCatAtTest.applyTransform(new InsertMissingValuesTransform(0.5));
-        for(int i = 0; i < easyCatAtTest.getSampleSize(); i++)
+        for(int i = 0; i < easyCatAtTest.size(); i++)
             stump.classify(easyCatAtTest.getDataPoint(i));
     }
     
@@ -139,7 +139,7 @@ public class DecisionStumpTest
     {
         System.out.println("trainC(ClassificationDataSet)");
         stump.train(easyNumAtTrain);
-        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
+        for(int i = 0; i < easyNumAtTest.size(); i++)
             assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
     }
     
@@ -150,12 +150,12 @@ public class DecisionStumpTest
         RegressionDataSet toTrain = easyNumAtTrain_R.shallowClone();
         toTrain.applyTransform(new InsertMissingValuesTransform(0.25));
         stump.train(toTrain, parallel);
-        for(int i = 0; i < easyNumAtTest_R.getSampleSize(); i++)
+        for(int i = 0; i < easyNumAtTest_R.size(); i++)
             assertEquals(easyNumAtTest_R.getTargetValue(i), stump.regress(easyNumAtTest_R.getDataPoint(i)), 0.2);
         
         //test applying missing values, just make sure no error since we can/t pred if only feat is missing
         easyNumAtTest_R.applyTransform(new InsertMissingValuesTransform(0.5));
-        for(int i = 0; i < easyNumAtTest_R.getSampleSize(); i++)
+        for(int i = 0; i < easyNumAtTest_R.size(); i++)
             stump.regress(easyNumAtTest_R.getDataPoint(i));
     }
     
@@ -166,12 +166,12 @@ public class DecisionStumpTest
         RegressionDataSet toTrain = easyCatAtTrain_R.shallowClone();
         toTrain.applyTransform(new InsertMissingValuesTransform(0.25));
         stump.train(toTrain, parallel);
-        for(int i = 0; i < easyCatAtTest_R.getSampleSize(); i++)
+        for(int i = 0; i < easyCatAtTest_R.size(); i++)
             assertEquals(easyCatAtTest_R.getTargetValue(i), stump.regress(easyCatAtTest_R.getDataPoint(i)), 0.2);
         
         //test applying missing values, just make sure no error since we can/t pred if only feat is missing
         easyCatAtTest_R.applyTransform(new InsertMissingValuesTransform(0.5));
-        for(int i = 0; i < easyCatAtTest_R.getSampleSize(); i++)
+        for(int i = 0; i < easyCatAtTest_R.size(); i++)
             stump.regress(easyCatAtTest_R.getDataPoint(i));
     }
 
@@ -184,7 +184,7 @@ public class DecisionStumpTest
         System.out.println("trainC(List<DataPointPair>, Set<integer>)");
         stump.setPredicting(easyNumAtTrain.getPredicting());
         stump.trainC(easyNumAtTrain.getAsDPPList(), new IntSet(Arrays.asList(0)));
-        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
+        for(int i = 0; i < easyNumAtTest.size(); i++)
             assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
     }
 
@@ -207,7 +207,7 @@ public class DecisionStumpTest
         System.out.println("clone");
         Classifier clone = stump.clone();
         clone.train(easyNumAtTrain);
-        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
+        for(int i = 0; i < easyNumAtTest.size(); i++)
             assertEquals(easyNumAtTest.getDataPointCategory(i), clone.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
         try
         {
@@ -221,7 +221,7 @@ public class DecisionStumpTest
         clone = null;
         stump.train(easyNumAtTrain);
         clone = stump.clone();
-        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
+        for(int i = 0; i < easyNumAtTest.size(); i++)
             assertEquals(easyNumAtTest.getDataPointCategory(i), clone.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
     }
 

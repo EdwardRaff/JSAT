@@ -236,14 +236,14 @@ public class ClassificationModelEvaluation
         if(keepModels)
             keptModels = new Classifier[lcds.size()];
         
-        setUpResults(dataSet.getSampleSize());
-        int end = dataSet.getSampleSize();
+        setUpResults(dataSet.size());
+        int end = dataSet.size();
         for (int i = lcds.size() - 1; i >= 0; i--)
         {
             ClassificationDataSet trainSet = trainCombinations.get(i);
             ClassificationDataSet testSet = lcds.get(i);
             evaluationWork(trainSet, testSet, i);
-            int testSize = testSet.getSampleSize();
+            int testSize = testSet.size();
             if (keepPredictions)
             {
                 System.arraycopy(predictions, 0, predictions, end - testSize, testSize);
@@ -265,7 +265,7 @@ public class ClassificationModelEvaluation
         int numOfClasses = dataSet.getClassSize();
         sumOfWeights = 0.0;
         confusionMatrix = new double[numOfClasses][numOfClasses];
-        setUpResults(testSet.getSampleSize());
+        setUpResults(testSet.size());
         totalTrainingTime = totalClassificationTime = 0;
         evaluationWork(dataSet, testSet, 0);
     }
@@ -307,7 +307,7 @@ public class ClassificationModelEvaluation
             scoresToUpdate.put(score, score);
         }
 
-        ParallelUtils.run(parallel, testSet.getSampleSize(), (start, end) ->
+        ParallelUtils.run(parallel, testSet.size(), (start, end) ->
         {
             //create a local set of scores to update
             double localCorrect = 0;

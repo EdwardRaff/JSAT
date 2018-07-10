@@ -319,7 +319,7 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
         //paper uses n= #features so we will follow their lead
         final int n = dataSet.getNumNumericalVars();
         //l = # data points
-        final int l = dataSet.getSampleSize();
+        final int l = dataSet.size();
         
         if(useInit)
         {
@@ -960,7 +960,7 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
     public static Distribution guessC(DataSet d)
     {
         double maxLambda = LinearTools.maxLambdaLogisticL1((ClassificationDataSet) d);
-        double minC = 1/(2*maxLambda*d.getSampleSize());
+        double minC = 1/(2*maxLambda*d.size());
         return new LogUniform(minC*10, minC*1000);
     }
 }

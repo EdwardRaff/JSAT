@@ -58,7 +58,7 @@ public class CLARATest
     {
         System.out.println("cluster(dataset, int)");
         CLARA toUse = algo.clone();
-        toUse.setSampleSize(easyData10.getSampleSize()/2);
+        toUse.setSampleSize(easyData10.size()/2);
         List<List<DataPoint>> clusters = toUse.cluster(easyData10, 6);
         assertEquals(6, clusters.size());
         Set<Integer> seenBefore = new IntSet();
@@ -77,7 +77,7 @@ public class CLARATest
         System.out.println("cluster(dataset, int, ExecutorService)");
         CLARA toUse = algo.clone();
         toUse.setSampleCount(6);
-        toUse.setSampleSize(easyData10.getSampleSize()/2);
+        toUse.setSampleSize(easyData10.size()/2);
         List<List<DataPoint>> clusters = toUse.cluster(easyData10, 6, true);
         assertEquals(6, clusters.size());
         Set<Integer> seenBefore = new IntSet();

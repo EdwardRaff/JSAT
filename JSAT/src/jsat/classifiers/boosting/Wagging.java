@@ -209,7 +209,7 @@ public class Wagging implements Classifier, Regressor, Parameterized
             this.latch = latch;
             
             //point at different objects so we can adjsut weights independently
-            for(int i = 0; i < this.ds.getSampleSize(); i++)
+            for(int i = 0; i < this.ds.size(); i++)
             {
                 DataPoint dp = this.ds.getDataPoint(i);
                 this.ds.setDataPoint(i, new DataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), dp.getCategoricalData()));
@@ -224,7 +224,7 @@ public class Wagging implements Classifier, Regressor, Parameterized
                 ClassificationDataSet cds = (ClassificationDataSet) ds;
                 for (int i = start; i < end; i++)
                 {
-                    for (int j = 0; j < ds.getSampleSize(); j++)
+                    for (int j = 0; j < ds.size(); j++)
                     {
                         double newWeight = Math.max(1e-6, dist.invCdf(rand.nextDouble()));
                         ds.getDataPoint(j).setWeight(newWeight);
@@ -239,7 +239,7 @@ public class Wagging implements Classifier, Regressor, Parameterized
                 RegressionDataSet rds = (RegressionDataSet) ds;
                 for (int i = start; i < end; i++)
                 {
-                    for (int j = 0; j < ds.getSampleSize(); j++)
+                    for (int j = 0; j < ds.size(); j++)
                         ds.getDataPoint(i).setWeight(Math.max(1e-6, dist.invCdf(rand.nextDouble())));
                     Regressor hypot = weakR.clone();
                     hypot.train(rds);

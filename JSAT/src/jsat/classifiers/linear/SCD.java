@@ -173,7 +173,7 @@ public class SCD implements Classifier, Regressor, Parameterized, SingleWeightVe
     @Override
     public void train(ClassificationDataSet dataSet)
     {
-        double[] targets = new double[dataSet.getSampleSize()];
+        double[] targets = new double[dataSet.size()];
         for (int i = 0; i < targets.length; i++)
             targets[i] = dataSet.getDataPointCategory(i) * 2 - 1;
         train(dataSet.getNumericColumns(), targets);

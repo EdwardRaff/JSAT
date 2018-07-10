@@ -188,15 +188,15 @@ public class LSDBC extends ClustererBase implements Parameterized
     public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
         if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+            designations = new int[dataSet.size()];
      
         //Compute all k-NN 
         List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> knnVecList;
 
         //Set up
-        List<VecPaired<Vec, Integer>> vecs = new ArrayList<>(dataSet.getSampleSize());
+        List<VecPaired<Vec, Integer>> vecs = new ArrayList<>(dataSet.size());
 
-        for (int i = 0; i < dataSet.getSampleSize(); i++)
+        for (int i = 0; i < dataSet.size(); i++)
             vecs.add(new VecPaired<>(dataSet.getDataPoint(i).getNumericalValues(), i));
 
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, parallel);

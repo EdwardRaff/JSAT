@@ -563,7 +563,7 @@ public class OnlineLDAsvi implements Parameterized
             ex = new FakeExecutor();
         //Use notation same as original paper
         setK(topics);
-        setD(dataSet.getSampleSize());
+        setD(dataSet.size());
         setVocabSize(dataSet.getNumNumericalVars());
         
         final List<Vec> docs = dataSet.getDataVectors();

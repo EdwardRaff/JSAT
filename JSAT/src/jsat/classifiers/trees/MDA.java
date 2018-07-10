@@ -62,7 +62,7 @@ public class MDA implements TreeFeatureImportanceInference
             ClassificationDataSet cds = (ClassificationDataSet) data;
             ClassificationScore cs = cs_base.clone();
             cs.prepare(cds.getPredicting());
-            for(int i = 0; i < cds.getSampleSize(); i++)
+            for(int i = 0; i < cds.size(); i++)
             {
                 DataPoint dp = cds.getDataPoint(i);
                 cs.addResult(((Classifier)model).classify(dp), cds.getDataPointCategory(i), dp.getWeight());
@@ -76,7 +76,7 @@ public class MDA implements TreeFeatureImportanceInference
             {
                 cs.prepare(cds.getPredicting());
                 
-                for(int i = 0; i < cds.getSampleSize(); i++)
+                for(int i = 0; i < cds.size(); i++)
                 {
                     DataPoint dp = cds.getDataPoint(i);
                     int true_label = cds.getDataPointCategory(i);
@@ -95,7 +95,7 @@ public class MDA implements TreeFeatureImportanceInference
             RegressionDataSet rds = (RegressionDataSet) data;
             RegressionScore rs = rs_base.clone();
             rs.prepare();
-            for(int i = 0; i < rds.getSampleSize(); i++)
+            for(int i = 0; i < rds.size(); i++)
             {
                 DataPoint dp = rds.getDataPoint(i);
                 rs.addResult(((Regressor)model).regress(dp), rds.getTargetValue(i), dp.getWeight());
@@ -109,7 +109,7 @@ public class MDA implements TreeFeatureImportanceInference
             {
                 rs.prepare();
                 
-                for(int i = 0; i < rds.getSampleSize(); i++)
+                for(int i = 0; i < rds.size(); i++)
                 {
                     DataPoint dp = rds.getDataPoint(i);
                     double true_label = rds.getTargetValue(i);

@@ -155,7 +155,7 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
     {
         double count = 1;
         
-        for(int i = 0; i < D.getSampleSize(); i++)
+        for(int i = 0; i < D.size(); i++)
         {
             DataPoint dp = D.getDataPoint(i);
             //Use j to break early (set value) or indicate success (j == classes.length)

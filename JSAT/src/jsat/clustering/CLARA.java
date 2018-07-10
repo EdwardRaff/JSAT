@@ -133,7 +133,7 @@ public class CLARA extends PAM
         List<Vec> X = data.getDataVectors();
         
         
-        if(sampleSize >= data.getSampleSize())//Then we might as well just do one round of PAM
+        if(sampleSize >= data.size())//Then we might as well just do one round of PAM
         {
             return super.cluster(data, true, medioids, assignments, cacheAccel, parallel);
         }
@@ -164,7 +164,7 @@ public class CLARA extends PAM
             
             while (samplePoints.size() < sampSize)
             {
-                int indx = rand.nextInt(data.getSampleSize());
+                int indx = rand.nextInt(data.size());
                 if (!samplePoints.containsValue(indx))
                     samplePoints.put(samplePoints.size(), indx);
             }
@@ -186,7 +186,7 @@ public class CLARA extends PAM
             
             //Now apply the sample medoids to the full data set
             double sqrdDist = 0.0;
-            for(int j = 0; j < data.getSampleSize(); j++)
+            for(int j = 0; j < data.size(); j++)
             {
                 double smallestDist = Double.MAX_VALUE;
                 int assignment = -1;

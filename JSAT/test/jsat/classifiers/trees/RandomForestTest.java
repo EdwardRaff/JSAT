@@ -246,30 +246,30 @@ public class RandomForestTest
             double errors = 0;
             RandomForest result = instance.clone();
             errors = 0;
-            for(int i = 0; i < t1.getSampleSize(); i++)
+            for(int i = 0; i < t1.size(); i++)
                 if(t1.getDataPointCategory(i) != result.classify(t1.getDataPoint(i)).mostLikely())
                     errors++;
-            assertEquals(0.0, errors/t1.getSampleSize(), 0.02);
+            assertEquals(0.0, errors/t1.size(), 0.02);
             result = TestTools.deepCopy(instance);
             errors = 0;
-            for(int i = 0; i < t1.getSampleSize(); i++)
+            for(int i = 0; i < t1.size(); i++)
                 if(t1.getDataPointCategory(i) != result.classify(t1.getDataPoint(i)).mostLikely())
                     errors++;
-            assertEquals(0.0, errors/t1.getSampleSize(), 0.02);
+            assertEquals(0.0, errors/t1.size(), 0.02);
             result.train(t2);
 
             errors = 0;
-            for(int i = 0; i < t1.getSampleSize(); i++)
+            for(int i = 0; i < t1.size(); i++)
                 if(t1.getDataPointCategory(i) != instance.classify(t1.getDataPoint(i)).mostLikely())
                     errors++;
-            assertEquals(0.0, errors/t1.getSampleSize(), 0.02);
+            assertEquals(0.0, errors/t1.size(), 0.02);
 
             
             errors = 0;
-            for(int i = 0; i < t2.getSampleSize(); i++)
+            for(int i = 0; i < t2.size(); i++)
                 if(t2.getDataPointCategory(i) != result.classify(t2.getDataPoint(i)).mostLikely())
                     errors++;
-            assertEquals(0.0, errors/t2.getSampleSize(), 0.02);
+            assertEquals(0.0, errors/t2.size(), 0.02);
         }
     }
     

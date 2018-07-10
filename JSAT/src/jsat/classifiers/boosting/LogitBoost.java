@@ -152,7 +152,7 @@ public class LogitBoost implements Classifier, Parameterized
         List<DataPointPair<Double>> dataPoints = dataSet.getAsFloatDPPList();
         
         baseLearners = new ArrayList<>(maxIterations);
-        int N = dataSet.getSampleSize();
+        int N = dataSet.size();
         
         for(int m = 0; m < maxIterations; m++)
         {

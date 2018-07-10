@@ -36,7 +36,7 @@ public class NormalizedMutualInformation implements ClusterEvaluation
         
         DoubleList kPriors = new DoubleList();
         
-        for(int i= 0; i < cds.getSampleSize(); i++)
+        for(int i= 0; i < cds.size(); i++)
         {
             int ki = designations[i];
             if(ki < 0)//outlier, not clustered
@@ -62,7 +62,7 @@ public class NormalizedMutualInformation implements ClusterEvaluation
         
         double[][] ck = new double[cPriors.length][kPriors.size()];
         
-        for(int i = 0; i < cds.getSampleSize(); i++)
+        for(int i = 0; i < cds.size(); i++)
         {
             int ci = cds.getDataPointCategory(i);
             int kj = designations[i];

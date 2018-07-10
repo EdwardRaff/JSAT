@@ -474,7 +474,7 @@ public class LIBSVMLoader
     public static void write(ClassificationDataSet data, OutputStream os)
     {
         PrintWriter writer = new PrintWriter(os);
-        for(int i = 0; i < data.getSampleSize(); i++)
+        for(int i = 0; i < data.size(); i++)
         {
             int pred = data.getDataPointCategory(i);
             Vec vals = data.getDataPoint(i).getNumericalValues();
@@ -502,7 +502,7 @@ public class LIBSVMLoader
     public static void write(RegressionDataSet data, OutputStream os)
     {
         PrintWriter writer = new PrintWriter(os);
-        for(int i = 0; i < data.getSampleSize(); i++)
+        for(int i = 0; i < data.size(); i++)
         {
             double pred = data.getTargetValue(i);
             Vec vals = data.getDataPoint(i).getNumericalValues();

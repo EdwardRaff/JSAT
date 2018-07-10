@@ -54,13 +54,13 @@ public class PriorityHAC extends KClustererBase
     @Override
     public int[] cluster(DataSet dataSet, int[] designations)
     {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()), designations);
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.size()), designations);
     }
 
     @Override
     public int[] cluster(DataSet dataSet, boolean parallel, int[] designations)
     {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()), parallel, designations);
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.size()), parallel, designations);
     }
 
     @Override
@@ -139,7 +139,7 @@ public class PriorityHAC extends KClustererBase
     public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
     {
         this.curDataSet = dataSet;
-        merges = new int[dataSet.getSampleSize()*2-2];
+        merges = new int[dataSet.size()*2-2];
         /**
          * Keeps track of the current cluster size for the data point. If zero, 
          * the data point has been merged and is no longer a candidate for 
@@ -147,7 +147,7 @@ public class PriorityHAC extends KClustererBase
          * points in its implicit cluster. All points start out in their own 
          * implicit cluster. 
          */
-        int[] I = new int[dataSet.getSampleSize()];
+        int[] I = new int[dataSet.size()];
         Arrays.fill(I, 1);
         this.curDataSet = dataSet;
         
@@ -212,7 +212,7 @@ public class PriorityHAC extends KClustererBase
         }
         reverseMergeArray();
         if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+            designations = new int[dataSet.size()];
         designations = assignClusterDesignations(designations, clusterSize);
         
         
@@ -279,7 +279,7 @@ public class PriorityHAC extends KClustererBase
     {
         if(!hasStoredClustering())
             return null;
-        int[] assignments = new int[curDataSet.getSampleSize()];
+        int[] assignments = new int[curDataSet.size()];
         return createClusterListFromAssignmentArray(assignments, curDataSet);
     }
 

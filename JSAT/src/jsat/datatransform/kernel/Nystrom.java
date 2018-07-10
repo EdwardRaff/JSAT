@@ -175,7 +175,7 @@ public class Nystrom extends DataTransformBase
 
         if(ridge < 0)
             throw new IllegalArgumentException("ridge must be positive, not " + ridge);
-        final int N = dataset.getSampleSize();
+        final int N = dataset.size();
         final int D = dataset.getNumNumericalVars();
         final List<Vec> X = dataset.getDataVectors();
 
@@ -254,7 +254,7 @@ public class Nystrom extends DataTransformBase
     public static List<Vec> sampleBasisVectors(KernelTrick k, DataSet dataset, final List<Vec> X, SamplingMethod method, int basisSize, boolean sampleWithReplacment, Random rand)
     {
         List<Vec> basisVecs = new ArrayList<Vec>(basisSize);
-        final int N = dataset.getSampleSize();
+        final int N = dataset.size();
         switch (method)
         {
             case DIAGONAL:

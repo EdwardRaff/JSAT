@@ -73,7 +73,7 @@ public class SDCATest
                 SDCA sdca = new SDCA();
                 sdca.setLoss(loss);
                 sdca.setTolerance(1e-10);
-                sdca.setLambda(1.0/train.getSampleSize());
+                sdca.setLambda(1.0/train.size());
                 sdca.setAlpha(alpha);
                 sdca.train(train);
 
@@ -109,7 +109,7 @@ public class SDCATest
 
                 SDCA sdca = new SDCA();
                 sdca.setLoss(loss);
-                sdca.setLambda(1.0/train.getSampleSize());
+                sdca.setLambda(1.0/train.size());
                 sdca.setAlpha(alpha);
                 sdca.train(train, true);
 
@@ -134,7 +134,7 @@ public class SDCATest
 
                 SDCA sdca = new SDCA();
                 sdca.setLoss(loss);
-                sdca.setLambda(1.0/train.getSampleSize());
+                sdca.setLambda(1.0/train.size());
                 sdca.setAlpha(alpha);
                 sdca.train(train);
 
@@ -158,7 +158,7 @@ public class SDCATest
             
             sdca.setUseBias(false);//bias term makes scaling non-trivial, so remove from this test
             sdca.setLoss(new LogisticLoss());
-            sdca.setLambda(1.0 / train.getSampleSize());
+            sdca.setLambda(1.0 / train.size());
             sdca.setAlpha(0.0);
             
             ClassificationDataSet t = train.shallowClone();
@@ -327,7 +327,7 @@ public class SDCATest
         truth.setAlpha(0.5);
         truth.setLoss(new LogisticLoss());
         truth.setTolerance(1e-10);
-        truth.setLambda(1.0/train.getSampleSize());
+        truth.setLambda(1.0/train.size());
         truth.train(train);
         
         SDCA warm = new SDCA();
@@ -335,7 +335,7 @@ public class SDCATest
         warm.setLoss(new LogisticLoss());
         warm.setAlpha(0.5);
         warm.setTolerance(1e-7);
-        warm.setLambda(1.0/train.getSampleSize());
+        warm.setLambda(1.0/train.size());
         warm.train(train, truth);
         
         assertEquals(0, warm.getRawWeight(0).subtract(truth.getRawWeight(0)).pNorm(2), 1e-4);

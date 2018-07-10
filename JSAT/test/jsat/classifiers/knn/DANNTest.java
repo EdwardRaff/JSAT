@@ -37,8 +37,8 @@ public class DANNTest
     public static void setUpClass()
     {
         GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2);
-        easyTrain = new ClassificationDataSet(gdg.generateData(80).getBackingList(), 0);
-        easyTest = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
+        easyTrain = new ClassificationDataSet(gdg.generateData(80).getList(), 0);
+        easyTest = new ClassificationDataSet(gdg.generateData(40).getList(), 0);
     }
     
     @AfterClass
@@ -62,7 +62,7 @@ public class DANNTest
     {
         System.out.println("trainC");
         dann.train(easyTrain);
-        for(int i = 0; i < easyTest.getSampleSize(); i++)
+        for(int i = 0; i < easyTest.size(); i++)
             assertEquals(easyTest.getDataPointCategory(i), dann.classify(easyTest.getDataPoint(i)).mostLikely());
     }
 
@@ -72,7 +72,7 @@ public class DANNTest
         System.out.println("clone");
         dann.train(easyTrain);
         Classifier clone = dann.clone();
-        for(int i = 0; i < easyTest.getSampleSize(); i++)
+        for(int i = 0; i < easyTest.size(); i++)
             assertEquals(easyTest.getDataPointCategory(i), clone.classify(easyTest.getDataPoint(i)).mostLikely());
     }
 
@@ -81,7 +81,7 @@ public class DANNTest
     {
         System.out.println("trainC");
         dann.train(easyTrain, true);
-        for(int i = 0; i < easyTest.getSampleSize(); i++)
+        for(int i = 0; i < easyTest.size(); i++)
             assertEquals(easyTest.getDataPointCategory(i), dann.classify(easyTest.getDataPoint(i)).mostLikely());
     }
 }

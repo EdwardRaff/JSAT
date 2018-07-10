@@ -194,7 +194,7 @@ public class ModifiedOWLQNTest
         {
             double sum = 0;
             double weightSum = 0;
-            for (int i = 0; i < D.getSampleSize(); i++)
+            for (int i = 0; i < D.size(); i++)
             {
                 DataPoint dp = D.getDataPoint(i);
                 Vec x = dp.getNumericalValues();
@@ -226,7 +226,7 @@ public class ModifiedOWLQNTest
                 s = w.clone();
             s.zeroOut();
             double weightSum = 0;
-            for (int i = 0; i < D.getSampleSize(); i++)
+            for (int i = 0; i < D.size(); i++)
             {
                 DataPoint dp = D.getDataPoint(i);
                 Vec x = dp.getNumericalValues();

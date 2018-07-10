@@ -50,7 +50,7 @@ public class SoSCentroidDistance implements IntraClusterEvaluation
         Vec mean = new DenseVector(dataSet.getNumNumericalVars());
         
         int clusterSize = 0;
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
             if(designations[i] == clusterID)
             {
                 clusterSize++;
@@ -61,7 +61,7 @@ public class SoSCentroidDistance implements IntraClusterEvaluation
         
         double score = 0.0;
         
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
             if(designations[i] == clusterID)
                 score += Math.pow(dm.dist(dataSet.getDataPoint(i).getNumericalValues(), mean), 2);
         

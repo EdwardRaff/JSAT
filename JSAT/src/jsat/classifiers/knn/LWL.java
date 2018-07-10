@@ -245,8 +245,8 @@ public class LWL implements Classifier, Regressor, Parameterized
     private List<VecPaired<Vec, Double>> getVecList(ClassificationDataSet dataSet)
     {
         List<VecPaired<Vec, Double>> trainList = 
-                new ArrayList<>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+                new ArrayList<>(dataSet.size());
+        for(int i = 0; i < dataSet.size(); i++)
             trainList.add(new VecPaired<>(
                     dataSet.getDataPoint(i).getNumericalValues(), 
                     new Double(dataSet.getDataPointCategory(i))));
@@ -256,8 +256,8 @@ public class LWL implements Classifier, Regressor, Parameterized
     private List<VecPaired<Vec, Double>> getVecList(RegressionDataSet dataSet)
     {
         List<VecPaired<Vec, Double>> trainList = 
-                new ArrayList<>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+                new ArrayList<>(dataSet.size());
+        for(int i = 0; i < dataSet.size(); i++)
             trainList.add(new VecPaired<>(
                     dataSet.getDataPoint(i).getNumericalValues(), 
                     dataSet.getTargetValue(i)));
@@ -343,6 +343,6 @@ public class LWL implements Classifier, Regressor, Parameterized
      */
     public static Distribution guessNeighbors(DataSet d)
     {
-        return new UniformDiscrete(25, Math.min(200, d.getSampleSize()/5));
+        return new UniformDiscrete(25, Math.min(200, d.size()/5));
     }
 }

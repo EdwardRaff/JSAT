@@ -132,7 +132,7 @@ public class KernelRidgeRegression implements Regressor, Parameterized
     @Override
     public void train(RegressionDataSet dataSet, boolean parallel)
     {   
-        final int N = dataSet.getSampleSize();
+        final int N = dataSet.size();
         vecs = new ArrayList<>(N);
         //alphas initalized later
         Vec Y = dataSet.getTargetValues();

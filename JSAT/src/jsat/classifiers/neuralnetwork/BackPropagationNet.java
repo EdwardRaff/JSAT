@@ -172,8 +172,8 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
             }
         }
         
-        IntList iterOrder = new IntList(dataSet.getSampleSize());
-        ListUtils.addRange(iterOrder, 0, dataSet.getSampleSize(), 1);
+        IntList iterOrder = new IntList(dataSet.size());
+        ListUtils.addRange(iterOrder, 0, dataSet.size(), 1);
         
         final double bSizeInv = 1.0/batchSize;
         
@@ -182,9 +182,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
             Collections.shuffle(iterOrder);
             final double eta = learningRateDecay.rate(epoch, epochs, initialLearningRate);//learningRate;
             double error = 0.0;
-            for(int iter = 0; iter < dataSet.getSampleSize(); iter+=batchSize)
+            for(int iter = 0; iter < dataSet.size(); iter+=batchSize)
             {
-                if(dataSet.getSampleSize() - iter < batchSize)
+                if(dataSet.size() - iter < batchSize)
                     continue;//we have run out of enough sampels to do an update
                 
                 cur_x.clear();
@@ -524,7 +524,7 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
     {
         targetMax = Double.NEGATIVE_INFINITY;
         targetMin = Double.POSITIVE_INFINITY;
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.size(); i++)
         {
             double val = dataSet.getTargetValue(i);
             targetMax = Math.max(targetMax, val);

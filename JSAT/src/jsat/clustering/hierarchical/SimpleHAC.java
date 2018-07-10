@@ -52,7 +52,7 @@ public class SimpleHAC extends KClustererBase
     @Override
     public int[] cluster(DataSet dataSet, int[] designations)
     {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()), designations);
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.size()), designations);
     }
 
     @Override
@@ -83,14 +83,14 @@ public class SimpleHAC extends KClustererBase
     public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
     {
         if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+            designations = new int[dataSet.size()];
         
         //Keep track of the average dis when merging, stop when it becomes abnormaly large
         OnLineStatistics disChange = new OnLineStatistics();
         
         //Represent each cluster by a set of indices, intialy each data point is its own cluster
-        List<Set<Integer>> clusters = new ArrayList<Set<Integer>>(dataSet.getSampleSize());
-        for(int i =0; i < dataSet.getSampleSize(); i++)
+        List<Set<Integer>> clusters = new ArrayList<Set<Integer>>(dataSet.size());
+        for(int i =0; i < dataSet.size(); i++)
         {
             Set<Integer> set = new IntSet();
             set.add(i);

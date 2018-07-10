@@ -3,23 +3,16 @@ package jsat;
 
 import java.lang.ref.SoftReference;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
 import jsat.datatransform.InPlaceTransform;
 import jsat.linear.*;
 import jsat.math.OnLineStatistics;
-import jsat.utils.FakeExecutor;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
-import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 
 /**
  * This is the base class for representing a data set. A data set contains multiple samples,
@@ -27,6 +20,7 @@ import jsat.utils.random.XORWOW;
  * {@link DataPoint} represents a row in the data set, and the attributes form the columns. 
  * 
  * @author Edward Raff
+ * @param <Type>
  */
 public abstract class DataSet<Type extends DataSet>
 {
@@ -39,22 +33,59 @@ public abstract class DataSet<Type extends DataSet>
      */
     protected CategoricalData[] categories;
     /**
-     * The list, in order, of the names of the numeric variables. 
-     * This should be filled with default values on construction,
-     * that can then be changed later. 
+     * The map of the names of the numeric variables.
      */
-    protected List<String> numericalVariableNames;
+    protected Map<Integer, String> numericalVariableNames;
+    
+    protected DataStore datapoints;
+
+    /**
+     * Creates a new dataset containing the given datapoints. 
+     * 
+     * @param datapoints the collection of data points to create a dataset from
+     */
+    public DataSet(List<DataPoint> datapoints) 
+    {
+        this(new RowMajorStore(datapoints));
+    }
     
     /**
-     * This cache is used to hold a reference to the column vectors that are 
-     * returned. It is often the case that the column could be requested 
-     * multiple times, especially if someone is doing a grid search, and there 
-     * is no need to do the work over again. If the GC is low on memory it can 
-     * still collect our cache since we use soft references<br>
-     * <br>
-     * This map should be cleared whenever the data set as a whole is mutated
+     * Creates a new dataset containing the given datapoints. The number of
+     * features and categorical data information will be obtained from the
+     * DataStore.
+     *
+     * @param datapoints the collection of data points to create a dataset from
      */
-    protected Map<Integer, SoftReference<Vec>> columnVecCache = new HashMap<Integer, SoftReference<Vec>>();
+    public DataSet(DataStore datapoints) 
+    {
+        datapoints.finishAdding();
+        this.datapoints = datapoints;
+        this.numNumerVals = datapoints.numNumeric();
+        this.categories = datapoints.getCategoricalDataInfo();
+        if(this.numNumerVals == 0 && (this.categories == null || this.categories.length == 0 ))
+            throw new IllegalArgumentException("Input must have a non-zero number of features defined");
+        this.numericalVariableNames = new HashMap<>();
+    }
+
+    /**
+     * Creates a new empty data set
+     *
+     * @param numerical the number of numerical features for points in this
+     * dataset
+     * @param categories the information and number of categorical features in
+     * this dataset
+     */
+    public DataSet(int numerical, CategoricalData[] categories)
+    {
+        this.categories = categories;
+        this.numNumerVals = numerical;
+        this.datapoints = new RowMajorStore(numNumerVals, categories);
+        this.numericalVariableNames = new HashMap<>();
+    }
+    
+    
+    
+    
     
     /**
      * Sets the unique name associated with the <tt>i</tt>'th numeric attribute. All strings will be converted to lower case first. 
@@ -65,12 +96,8 @@ public abstract class DataSet<Type extends DataSet>
      */
     public boolean setNumericName(String name, int i)
     {
-        name = name.toLowerCase();
-        
-        if(numericalVariableNames.contains(name))
-            return false;
-        else if(i < getNumNumericalVars() && i >= 0)
-            numericalVariableNames.set(i, name);
+        if(i < getNumNumericalVars() && i >= 0)
+            numericalVariableNames.put(i, name);
         else
             return false;
         
@@ -85,7 +112,7 @@ public abstract class DataSet<Type extends DataSet>
     public String getNumericName(int i )
     {
         if(i < getNumNumericalVars() && i >= 0)
-            return numericalVariableNames == null ? null : numericalVariableNames.get(i);
+            return numericalVariableNames.getOrDefault(i, "Numeric Feature " + i);
         else
             throw new IndexOutOfBoundsException("Can not acces variable for invalid index  " + i );
     }
@@ -158,22 +185,18 @@ public abstract class DataSet<Type extends DataSet>
         if (mutate && dt instanceof InPlaceTransform)
         {
             final InPlaceTransform ipt = (InPlaceTransform) dt;
-            ParallelUtils.range(getSampleSize(), parallel)
+            ParallelUtils.range(size(), parallel)
                     .forEach(i->ipt.mutableTransform(getDataPoint(i)));
         }
         else
-            ParallelUtils.range(getSampleSize(), parallel).forEach(i->setDataPoint(i, dt.transform(getDataPoint(i))));
+            ParallelUtils.range(size(), parallel).forEach(i->setDataPoint(i, dt.transform(getDataPoint(i))));
         
-        columnVecCache.clear();
         //TODO this should be added to DataTransform
         numNumerVals = getDataPoint(0).numNumericalValues();
         categories = getDataPoint(0).getCategoricalData();
         if (this.numericalVariableNames != null)
-        {
             this.numericalVariableNames.clear();
-            for (int i = 0; i < getNumNumericalVars(); i++)
-                numericalVariableNames.add("TN" + (i + 1));
-        }
+        
     }
     
     /**
@@ -185,7 +208,7 @@ public abstract class DataSet<Type extends DataSet>
      */
     public void replaceNumericFeatures(List<Vec> newNumericFeatures)
     {
-        if(this.getSampleSize() != newNumericFeatures.size())
+        if(this.size() != newNumericFeatures.size())
             throw new RuntimeException("Input list does not have the same not of dataums as the dataset");
         
         for(int i = 0; i < newNumericFeatures.size(); i++)
@@ -196,11 +219,17 @@ public abstract class DataSet<Type extends DataSet>
         
         this.numNumerVals = getDataPoint(0).numNumericalValues();
         if (this.numericalVariableNames != null)
-            {
-                this.numericalVariableNames.clear();
-                for (int i = 0; i < getNumNumericalVars(); i++)
-                    numericalVariableNames.add("TN" + (i + 1));
-            }
+            this.numericalVariableNames.clear();
+            
+    }
+    
+    /**
+     * Adds a new datapoint to this set. 
+     * @param dp the datapoint to add
+     */
+    protected void add(DataPoint dp)
+    {
+        
     }
     
     /**
@@ -210,7 +239,10 @@ public abstract class DataSet<Type extends DataSet>
      * @param i the <tt>i</tt>'th data point in this set
      * @return the <tt>i</tt>'th data point in this set
      */
-    abstract public DataPoint getDataPoint(int i);
+    public DataPoint getDataPoint(int i)
+    {
+        return datapoints.getDataPoint(i);
+    }
     
     /**
      * Replaces an already existing data point with the one given. 
@@ -220,7 +252,10 @@ public abstract class DataSet<Type extends DataSet>
      * @param i the <tt>i</tt>'th dataPoint to set.
      * @param dp the data point to set at the specified index
      */
-    abstract public void setDataPoint(int i, DataPoint dp);
+    public void setDataPoint(int i, DataPoint dp)
+    {
+        datapoints.setDataPoint(i, dp);
+    }
     
     /**
      * Returns summary statistics computed in an online fashion for each numeric
@@ -279,8 +314,8 @@ public abstract class DataSet<Type extends DataSet>
     public OnLineStatistics getOnlineDenseStats()
     {
         OnLineStatistics stats = new OnLineStatistics();
-        double N = getNumNumericalVars();;
-        for(int i = 0; i < getSampleSize(); i++)
+        double N = getNumNumericalVars();
+        for(int i = 0; i < size(); i++)
             stats.add(getDataPoint(i).getNumericalValues().nnz()/N);
         return stats;
     }
@@ -323,7 +358,7 @@ public abstract class DataSet<Type extends DataSet>
         Iterator<DataPoint> iteData = new Iterator<DataPoint>() 
         {
             int cur = 0;
-            int to = getSampleSize();
+            int to = size();
 
             @Override
             public boolean hasNext()
@@ -351,7 +386,20 @@ public abstract class DataSet<Type extends DataSet>
      * Returns the number of data points in this data set
      * @return the number of data points in this data set 
      */
-    abstract public int getSampleSize();
+    public int size()
+    {
+        return datapoints.size();
+    }
+    
+    /**
+     * Returns the number of data points in this data set
+     * @return the number of data points in this data set 
+     * @deprecated see {@link #size() }.
+     */
+    public int getSampleSize()
+    {
+        return size();
+    }
     
     /**
      * Returns the number of categorical variables for each data point in the set
@@ -402,7 +450,7 @@ public abstract class DataSet<Type extends DataSet>
     public Type getMissingDropped()
     {
         List<Integer> hasNoMissing = new IntList();
-        for (int i = 0; i < getSampleSize(); i++)
+        for (int i = 0; i < size(); i++)
         {
             DataPoint dp = getDataPoint(i);
             boolean missing =  dp.getNumericalValues().countNaNs() > 0;
@@ -429,8 +477,8 @@ public abstract class DataSet<Type extends DataSet>
     {
         if(splits.length < 1)
             throw new IllegalArgumentException("Input array of split fractions must be non-empty");
-        IntList randOrder = new IntList(getSampleSize());
-        ListUtils.addRange(randOrder, 0, getSampleSize(), 1);
+        IntList randOrder = new IntList(size());
+        ListUtils.addRange(randOrder, 0, size(), 1);
         Collections.shuffle(randOrder, rand);
         
         
@@ -444,7 +492,7 @@ public abstract class DataSet<Type extends DataSet>
             stops[i] = (int) Math.round(sum*randOrder.size());
         }
         
-        List<Type> datasets = new ArrayList<Type>(splits.length);
+        List<Type> datasets = new ArrayList<>(splits.length);
         
         int prev = 0;
         for(int i = 0; i < stops.length; i++)
@@ -509,8 +557,8 @@ public abstract class DataSet<Type extends DataSet>
      */
     public List<DataPoint> getDataPoints()
     {
-        List<DataPoint> list = new ArrayList<>(getSampleSize());
-        for(int i = 0; i < getSampleSize(); i++)
+        List<DataPoint> list = new ArrayList<>(size());
+        for(int i = 0; i < size(); i++)
             list.add(getDataPoint(i));
         return list;
     }
@@ -521,8 +569,8 @@ public abstract class DataSet<Type extends DataSet>
      */
     public List<Vec> getDataVectors()
     {
-        List<Vec> vecs = new ArrayList<>(getSampleSize());
-        for(int i = 0; i < getSampleSize(); i++)
+        List<Vec> vecs = new ArrayList<>(size());
+        for(int i = 0; i < size(); i++)
             vecs.add(getDataPoint(i).getNumericalValues());
         return vecs;
     }
@@ -535,31 +583,16 @@ public abstract class DataSet<Type extends DataSet>
      * This vector can be altered and will not effect any of the values in the data set
      * 
      * @param i the <tt>i</tt>'th numerical variable to obtain all values of
-     * @return a Vector of length {@link #getSampleSize() }
+     * @return a Vector of length {@link #size() }
      */
     public Vec getNumericColumn(int i )
     {
         if(i < 0 || i >= getNumNumericalVars())
             throw new IndexOutOfBoundsException("There is no index for column " + i);
 
-        SoftReference<Vec> cachedRef = columnVecCache.get(i);
-        if (cachedRef != null)
-        {
-            Vec v = cachedRef.get();
-            if (v != null)
-                return v;
-        }
-        //no cache, so make it
-        DenseVector dv = new DenseVector(getSampleSize());
-        for (int j = 0; j < getSampleSize(); j++)
-            dv.set(j, getDataPoint(j).getNumericalValues().get(i));
-        Vec toRet;
-        if (getSparsityStats().getMean() < 0.6)
-            toRet = new SparseVector(dv);
-        else
-            toRet = dv;
-        columnVecCache.put(i, new SoftReference<>(toRet));
-        return toRet;
+        Set<Integer> toSkip = new HashSet<>(ListUtils.range(0, numNumerVals));
+        toSkip.remove(i);
+        return getNumericColumns(toSkip)[i];
     }
     
     /**
@@ -569,7 +602,7 @@ public abstract class DataSet<Type extends DataSet>
     public long countMissingValues()
     {
         long missing = 0;
-        for (int i = 0; i < getSampleSize(); i++)
+        for (int i = 0; i < size(); i++)
         {
             DataPoint dp = getDataPoint(i);
             missing += dp.getNumericalValues().countNaNs();
@@ -624,41 +657,7 @@ public abstract class DataSet<Type extends DataSet>
      */
     public Vec[] getNumericColumns(Set<Integer> skipColumns)
     {
-        boolean sparse = getSparsityStats().getMean() < 0.6;
-        Vec[] cols = new Vec[getNumNumericalVars()];
-        boolean[] dontSet = new boolean [cols.length];
-        Arrays.fill(dontSet, false);
-        for(int i = 0; i < cols.length; i++)
-            if(!skipColumns.contains(i))
-            {
-                SoftReference<Vec> cachedRef = columnVecCache.get(i);
-                if(cachedRef != null )
-                {
-                    Vec v = cachedRef.get();
-                    if(v != null)
-                    {
-                        cols[i] = v;
-                        dontSet[i] = true;
-                    }
-                    else
-                        columnVecCache.put(i, new SoftReference<>(cols[i] = sparse ? new SparseVector(getSampleSize()) : new DenseVector(getSampleSize())));
-                }
-                else
-                    columnVecCache.put(i, new SoftReference<>(cols[i] = sparse ? new SparseVector(getSampleSize()) : new DenseVector(getSampleSize())));
-            }
-        for(int i = 0; i < getSampleSize(); i++)
-        {
-            Vec v = getDataPoint(i).getNumericalValues();
-            
-            for(IndexValue iv : v)
-            {
-                int col = iv.getIndex();
-                if(cols[col] != null && !dontSet[col])
-                    cols[col].set(i, iv.getValue());
-            }
-        }
-            
-        return cols;
+        return datapoints.getNumericColumns(skipColumns);
     }
 
     /**
@@ -671,10 +670,10 @@ public abstract class DataSet<Type extends DataSet>
      */
     public Matrix getDataMatrix()
     {
-        if(this.getSampleSize() > 0 && this.getDataPoint(0).getNumericalValues().isSparse())
+        if(this.size() > 0 && this.getDataPoint(0).getNumericalValues().isSparse())
         {
-            SparseVector[] vecs = new SparseVector[this.getSampleSize()];
-            for(int i = 0; i < getSampleSize(); i++)
+            SparseVector[] vecs = new SparseVector[this.size()];
+            for(int i = 0; i < size(); i++)
             {
                 Vec row = getDataPoint(i).getNumericalValues();
                 vecs[i] = new SparseVector(row);
@@ -684,9 +683,9 @@ public abstract class DataSet<Type extends DataSet>
         }
         else
         {
-            DenseMatrix matrix = new DenseMatrix(this.getSampleSize(), this.getNumNumericalVars());
+            DenseMatrix matrix = new DenseMatrix(this.size(), this.getNumNumericalVars());
 
-            for(int i = 0; i < getSampleSize(); i++)
+            for(int i = 0; i < size(); i++)
             {
                 Vec row = getDataPoint(i).getNumericalValues();
                 for(int j = 0; j < row.length(); j++)
@@ -743,7 +742,7 @@ public abstract class DataSet<Type extends DataSet>
     public DataSet getTwiceShallowClone()
     {
         DataSet clone = shallowClone();
-        for(int i = 0; i < clone.getSampleSize(); i++)
+        for(int i = 0; i < clone.size(); i++)
         {
             DataPoint d = getDataPoint(i);
             DataPoint sd = new DataPoint(d.getNumericalValues(), d.getCategoricalValues(), d.getCategoricalData());
@@ -762,7 +761,7 @@ public abstract class DataSet<Type extends DataSet>
     public OnLineStatistics getSparsityStats()
     {
         OnLineStatistics stats = new OnLineStatistics();
-        for(int i = 0; i < getSampleSize(); i++)
+        for(int i = 0; i < size(); i++)
         {
             Vec v = getDataPoint(i).getNumericalValues();
             if(v.isSparse())
@@ -784,7 +783,7 @@ public abstract class DataSet<Type extends DataSet>
      */
     public Vec getDataWeights()
     {
-        final int N = this.getSampleSize();
+        final int N = this.size();
         if(N == 0)
             return new DenseVector(0);
         //assume everyone has the same weight until proven otherwise.
@@ -806,7 +805,7 @@ public abstract class DataSet<Type extends DataSet>
         }
         
         if(weights == null)
-            return new ConstantVector(weight, getSampleSize());
+            return new ConstantVector(weight, size());
         else
             return new DenseVector(weights);
     }

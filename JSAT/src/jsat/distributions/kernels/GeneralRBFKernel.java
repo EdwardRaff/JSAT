@@ -126,9 +126,9 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
         //to avoid n^2 work for this, we will use a sqrt(n) sized sample as n increases so that we only do O(n) work
         List<Vec> allVecs = d.getDataVectors();
 
-        int toSample = d.getSampleSize();
+        int toSample = d.size();
         if (toSample > 5000)
-            toSample = 5000 + (int) Math.floor(Math.sqrt(d.getSampleSize() - 5000));
+            toSample = 5000 + (int) Math.floor(Math.sqrt(d.size() - 5000));
 
         DoubleList vals = new DoubleList(toSample*toSample);
 
@@ -137,8 +137,8 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
             ClassificationDataSet cdata = (ClassificationDataSet) d;
             List<Vec> class0 = new ArrayList<Vec>(toSample / 2);
             List<Vec> class1 = new ArrayList<Vec>(toSample / 2);
-            IntList randOrder = new IntList(d.getSampleSize());
-            ListUtils.addRange(randOrder, 0, d.getSampleSize(), 1);
+            IntList randOrder = new IntList(d.size());
+            ListUtils.addRange(randOrder, 0, d.size(), 1);
             Collections.shuffle(randOrder);
             //collet a random sample of data
             for (int i = 0; i < randOrder.size(); i++)
@@ -160,7 +160,7 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
         else
         {
             Collections.shuffle(allVecs);
-            if (d.getSampleSize() > 5000)
+            if (d.size() > 5000)
                 allVecs = allVecs.subList(0, toSample);
 
             List<Double> cache = dist.getAccelerationCache(allVecs);
