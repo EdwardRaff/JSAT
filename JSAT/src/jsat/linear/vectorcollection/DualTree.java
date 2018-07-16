@@ -237,16 +237,8 @@ public interface DualTree<V extends Vec> extends VectorCollection<V>
         distances.clear();
         for(int i = 0; i < Q.size(); i++)
         {
-            if(parallel)
-            {
-                neighbors.add(Collections.synchronizedList(new IntList()));
-                distances.add(Collections.synchronizedList(new DoubleList()));
-            }
-            else
-            {
-                neighbors.add(new IntList());
-                distances.add(new DoubleList());
-            }
+            neighbors.add(new IntList());
+            distances.add(new DoubleList());
         }
         
         ///For simplicity and fast calculations, lets combine acceleration caches into one view
@@ -268,8 +260,11 @@ public interface DualTree<V extends Vec> extends VectorCollection<V>
             double d = dm.dist(r_indx, N_r+q_indx, allVecs, wholeCache);
             if(r_min <= d && d <= r_max)
             {
-                neighbors.get(q_indx).add(r_indx);
-                distances.get(q_indx).add(d);
+                synchronized(neighbors.get(q_indx))
+                {
+                    neighbors.get(q_indx).add(r_indx);
+                    distances.get(q_indx).add(d);
+                }
             }
             return d;
         };
@@ -291,12 +286,17 @@ public interface DualTree<V extends Vec> extends VectorCollection<V>
                 for(Iterator<Integer> iter = query.DescendantIterator(); iter.hasNext(); )
                     q_dec.add(iter.next());
                 for(int i : r_dec)
+                {
                     for(int j : q_dec)
                     {
                         double d = dm.dist(i, N_r+j, allVecs, wholeCache);
-                        neighbors.get(j).add(i);
-                        distances.get(j).add(d);
+                        synchronized(neighbors.get(j))
+                        {
+                            neighbors.get(j).add(i);
+                            distances.get(j).add(d);
+                        }
                     }
+                }
                 //Return NaN so that search stops, we added everyone!
                 return Double.NaN;
             }
