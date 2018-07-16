@@ -160,12 +160,15 @@ public interface DualTree<V extends Vec> extends VectorCollection<V>
         for(int p = 0; p < query.numPoints(); p++)
         {
             BoundedSortedList<IndexDistPair> D_p = allPriorities.get(query.getPoint(p));
-            if(D_p.size() == numNeighbors)//has enough neighbors to return a meaningful boun
-                bound_1 = max(bound_1, D_p.last().dist);
-            else//can't bound
+            synchronized(D_p)
             {
-                bound_1 = Double.POSITIVE_INFINITY;
-                break;
+                if(D_p.size() == numNeighbors)//has enough neighbors to return a meaningful boun
+                    bound_1 = max(bound_1, D_p.last().dist);
+                else//can't bound
+                {
+                    bound_1 = Double.POSITIVE_INFINITY;
+                    break;
+                }
             }
         }
         if(Double.isInfinite(bound_1))//cant bound
@@ -183,8 +186,12 @@ public interface DualTree<V extends Vec> extends VectorCollection<V>
         for(int i = 0; i < query.numPoints(); i++)
         {
             int qi_indx = query.getPoint(i);
-            if(allPriorities.get(qi_indx).size() >= numNeighbors)
-                bound_2i = min(bound_2i, allPriorities.get(qi_indx).last().dist);
+            BoundedSortedList<IndexDistPair> pqi = allPriorities.get(qi_indx);
+            synchronized(pqi)
+            {
+                if(pqi.size() >= numNeighbors)
+                    bound_2i = min(bound_2i, pqi.last().dist);
+            }
         }
         //then add the remaining 2 terms, which are constant for a given Node Q. If no valid points, bound remains infinite
         bound_2i += query.furthestPointDistance() +  query.furthestDescendantDistance();
