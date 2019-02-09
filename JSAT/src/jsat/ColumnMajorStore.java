@@ -34,6 +34,9 @@ import jsat.utils.DoubleList;
 import jsat.utils.IntList;
 
 /**
+ * This data store represents datasets in a column major fashion. This store
+ * should be preferred when an algorithm needs to access only columns of the
+ * dataset in an efficient manner.
  *
  * @author Edward Raff
  */
