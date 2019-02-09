@@ -26,9 +26,6 @@ import jsat.linear.Vec;
 import jsat.math.OnLineStatistics;
 
 /**
- * A data store defines an abstraction for accessing the rows and / or columns
- * of a dataset. Different data stores may have different performance
- * characteristics.
  *
  * @author Edward Raff
  */
@@ -118,10 +115,6 @@ public interface DataStore
         return list;
     }
     
-    /**
-     * returns the number of data points contained within this store. 
-     * @return the number of data points contained within this store. 
-     */
     public int size();
     
     /**

@@ -29,7 +29,7 @@ import jsat.linear.Vec;
 import jsat.math.OnLineStatistics;
 
 /**
- * This structure stores datasets in row-major order in memory. 
+ *
  * @author Edward Raff
  */
 public class RowMajorStore implements DataStore
