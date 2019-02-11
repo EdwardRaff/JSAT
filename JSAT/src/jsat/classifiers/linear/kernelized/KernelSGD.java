@@ -334,7 +334,7 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(DataPoint dataPoint, double weight, int targetClass)
     {
         final Vec x = dataPoint.getNumericalValues();
         final List<Double> qi = kernel.getQueryInfo(x);
@@ -362,7 +362,7 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
     }
     
     @Override
-    public void update(DataPoint dataPoint, double targetValue)
+    public void update(DataPoint dataPoint, double weight, double targetValue)
     {
         final Vec x = dataPoint.getNumericalValues();
         final List<Double> qi = kernel.getQueryInfo(x);

@@ -15,8 +15,7 @@ import jsat.linear.Vec;
 public class DataPoint implements Cloneable, Serializable
 {
 
-	private static final long serialVersionUID = -1363327591317639955L;
-	private double weight;
+    private static final long serialVersionUID = -1363327591317639945L;
     protected Vec numericalValues;
     protected int[] categoricalValues;
     protected CategoricalData[] categoricalData;
@@ -24,7 +23,7 @@ public class DataPoint implements Cloneable, Serializable
     private static final CategoricalData[] emptyData = new CategoricalData[0];
 
     /**
-     *  Creates a new data point with the default weight of 1.0
+     * Creates a new data point 
      * 
      * @param numericalValues a vector containing the numerical values for this data point
      * @param categoricalValues an array of the category values for this data point
@@ -32,69 +31,19 @@ public class DataPoint implements Cloneable, Serializable
      */
     public DataPoint(Vec numericalValues, int[] categoricalValues, CategoricalData[] categoricalData)
     {
-        this(numericalValues, categoricalValues, categoricalData, 1);
-    }
-    
-    /**
-     * Creates a new data point 
-     * 
-     * @param numericalValues a vector containing the numerical values for this data point
-     * @param categoricalValues an array of the category values for this data point
-     * @param categoricalData an array of the category information of this data point
-     * @param weight a double indicating how much weight this data point has, 1.0 
-     * being the standard weight. Not all algorithms make use of data points that
-     * have different weights. 
-     */
-    public DataPoint(Vec numericalValues, int[] categoricalValues, CategoricalData[] categoricalData, double weight)
-    {
         this.numericalValues = numericalValues;
         this.categoricalValues = categoricalValues;
         this.categoricalData = categoricalData;
-        this.weight = weight;
     }
     
     /**
      * Creates a new data point that has no categorical variables
      * 
      * @param numericalValues a vector containing the numerical values for this data point
-     * @param weight a double indicating how much weight this data point has, 1.0 
-     * being the standard weight. Not all algorithms make use of data points that
-     * have different weights. 
-     */
-    public DataPoint(Vec numericalValues, double weight)
-    {
-        this(numericalValues, emptyInt, emptyData, weight);
-    }
-    
-     /**
-     * Creates a new data point that has no categorical variables and a weight of 1.0
-     * 
-     * @param numericalValues a vector containing the numerical values for this data point
      */
     public DataPoint(Vec numericalValues)
     {
         this(numericalValues, emptyInt, emptyData);
-    }
-
-    /**
-     * Returns the weight that this data point carries. 
-     * @return the weight that this data point carries. 
-     */
-    public double getWeight()
-    {
-        return weight;
-    }
-
-    /**
-     * Set the weight that this data point should carry. The norm is 1.0
-     * @param weight the new weight value
-     * @throws ArithmeticException if the weight value is not a number &gt; 0
-     */
-    public void setWeight(double weight)
-    {
-        if(Double.isNaN(weight) || Double.isInfinite(weight) || weight <= 0)
-            throw new ArithmeticException("Invalid weight assignment of  " + weight);
-        this.weight = weight;
     }
     
     /**
@@ -208,7 +157,6 @@ public class DataPoint implements Cloneable, Serializable
     {
         return new DataPoint(numericalValues.clone(), 
                 Arrays.copyOf(categoricalValues, categoricalValues.length),
-                CategoricalData.copyOf(categoricalData),
-                weight);
+                CategoricalData.copyOf(categoricalData));
     }
 }

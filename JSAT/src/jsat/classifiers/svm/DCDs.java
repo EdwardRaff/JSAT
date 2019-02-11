@@ -326,8 +326,8 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
             final DataPoint dp = dataSet.getDataPoint(i);
             vecs[i] = dp.getNumericalValues();
             y[i] = dataSet.getDataPointCategory(i)*2-1;
-            U[i] = getU(dp.getWeight());
-            D[i] = getD(dp.getWeight());
+            U[i] = getU(dataSet.getWeight(i));
+            D[i] = getD(dataSet.getWeight(i));
             Qhs[i] = vecs[i].dot(vecs[i])+D[i];
             if(useBias)//+1 for implicit bias term
                 Qhs[i]++;
@@ -532,8 +532,8 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
             final DataPoint dp = dataSet.getDataPoint(i);
             vecs[i] = dp.getNumericalValues();
             y[i] = dataSet.getTargetValue(i);
-            U[i] = getU(dp.getWeight());
-            lambda[i] = getD(dp.getWeight());
+            U[i] = getU(dataSet.getWeight(i));
+            lambda[i] = getD(dataSet.getWeight(i));
             Qhs[i] = vecs[i].dot(vecs[i])+lambda[i];
             if (useBias)
                 Qhs[i] += 1.0;

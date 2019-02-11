@@ -177,7 +177,7 @@ public class MutualInfoFS extends RemoveAttributeTransform
         {
             DataPoint dp = dataSet.getDataPoint(i);
             int trueClass = dataSet.getDataPointCategory(i);
-            double weight = dp.getWeight();
+            double weight = dataSet.getWeight(i);
             weightSum += weight;
             
             int[] catVals = dp.getCategoricalValues();

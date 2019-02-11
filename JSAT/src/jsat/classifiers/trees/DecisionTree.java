@@ -23,6 +23,7 @@ import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.*;
 import jsat.utils.concurrent.ParallelUtils;
+import jsat.utils.random.RandomUtil;
 
 /**
  * Creates a decision tree from {@link DecisionStump DecisionStumps}. How this
@@ -78,7 +79,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     public void train(RegressionDataSet dataSet, Set<Integer> options, boolean parallel)
     {
         ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
-        root = makeNodeR(dataSet.getDPPList(), options, 0, parallel, mcdl);
+        root = makeNodeR(dataSet, options, 0, parallel, mcdl);
         try
         {
             mcdl.await();
@@ -326,23 +327,24 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         
         ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
         
-        List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
-        List<DataPointPair<Integer>> testPoints = new ArrayList<>();
+        ClassificationDataSet train = dataSet;
+	ClassificationDataSet test = null;
+	
+	
         
         if(pruningMethod != PruningMethod.NONE && testProportion != 0.0)//Then we need to set aside a testing set
         {
-            if(testProportion != 1)
+            if(testProportion < 1)
             {
-                int testSize = (int) (dataPoints.size()*testProportion);
-                Random rand = new Random(testSize);
-                for(int i = 0; i < testSize; i++)
-                    testPoints.add(dataPoints.remove(rand.nextInt(dataPoints.size())));
+		List<ClassificationDataSet> split = dataSet.randomSplit(RandomUtil.getRandom(), 1-testProportion, testProportion);
+                train = split.get(0);
+		test = split.get(1);
             }
             else
-                testPoints.addAll(dataPoints);
+                test = train;
         }
         
-        this.root = makeNodeC(dataPoints, options, 0, parallel, mcdl);
+        this.root = makeNodeC(dataSet, options, 0, parallel, mcdl);
         
         try
         {
@@ -357,11 +359,11 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         if(root == null)//fitting issure, most likely too few datums. try just a stump 
         {
             DecisionStump stump = new DecisionStump();
-            stump.train(dataSet, parallel);
+            stump.train(train, parallel);
             root = new Node(stump);
         }
         else
-            prune(root, pruningMethod, testPoints);
+            prune(root, pruningMethod, test);
     }
     
     /**
@@ -373,7 +375,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * @param mcdl count down latch 
      * @return the node created, or null if no node was created
      */
-    protected Node makeNodeC(List<DataPointPair<Integer>> dataPoints, final Set<Integer> options, final int depth,
+    protected Node makeNodeC(ClassificationDataSet dataPoints, final Set<Integer> options, final int depth,
             final boolean parallel, final ModifiableCountDownLatch mcdl)
     {
         //figure out what level of parallelism we are going to use, feature wise or depth wise
@@ -387,7 +389,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         }
         DecisionStump stump = baseStump.clone();
         stump.setPredicting(this.predicting);
-        final List<List<DataPointPair<Integer>>> splits;
+        final List<ClassificationDataSet> splits;
         if(mePara)
             splits = stump.trainC(dataPoints, options, parallel);
         else 
@@ -398,7 +400,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
             for(int i = 0; i < node.paths.length; i++)
             {
                 final int ii = i;
-                final List<DataPointPair<Integer>> splitI = splits.get(i);
+                final ClassificationDataSet splitI = splits.get(i);
                 mcdl.countUp();
                 if(depthPara)
                 {
@@ -424,7 +426,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * @param mcdl count down latch 
      * @return the node created, or null if no node was created
      */
-    protected Node makeNodeR(List<DataPointPair<Double>> dataPoints, final Set<Integer> options, final int depth,
+    protected Node makeNodeR(RegressionDataSet dataPoints, final Set<Integer> options, final int depth,
             final boolean parallel, final ModifiableCountDownLatch mcdl)
     {
         //figure out what level of parallelism we are going to use, feature wise or depth wise
@@ -437,7 +439,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
             return null;
         }
         DecisionStump stump = baseStump.clone();
-        final List<List<DataPointPair<Double>>> splits;
+        final List<RegressionDataSet> splits;
         if(mePara)
             splits = stump.trainR(dataPoints, options, parallel);
         else 
@@ -453,7 +455,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
             for(int i = 0; i < node.paths.length; i++)
             {
                 final int ii = i;
-                final List<DataPointPair<Double>> splitI = splits.get(i);
+                final RegressionDataSet splitI = splits.get(i);
                 mcdl.countUp();
                 if(depthPara)
                 {

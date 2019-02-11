@@ -72,7 +72,7 @@ public class MultipleLinearRegression implements Regressor, SingleWeightVectorMo
             //The sqrt(weight) vector can be applied to X and Y, and then QR can procede as normal 
             Vec weights = new DenseVector(dataSet.size());
             for(int i = 0; i < dataSet.size(); i++)
-                weights.set(i, Math.sqrt(dataSet.getDataPoint(i).getWeight()));
+                weights.set(i, Math.sqrt(dataSet.getWeight(i)));
             
             Matrix.diagMult(weights, X);
             Y.mutablePairwiseMultiply(weights);

@@ -26,6 +26,7 @@ import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 import jsat.math.FastMath;
 import jsat.math.SpecialMath;
+import jsat.utils.IntList;
 import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
@@ -74,7 +75,7 @@ public class IsolationForest implements Outlier
         //Build all the trees
         ParallelUtils.streamP(roots.stream(), parallel).forEach(r->
         {
-            r.build(0, l, d.getDataPoints(), new double[D], new double[D]);
+            r.build(0, l, d, IntList.range(d.size()), new double[D], new double[D]);
         });
     }
 
@@ -127,14 +128,14 @@ public class IsolationForest implements Outlier
             return new iTreeNode(this);
         }
         
-        public void build(int e, int l, List<DataPoint> X, double[] minVals, double[] maxVals)
+        public void build(int e, int l, DataSet source, IntList X, double[] minVals, double[] maxVals)
         {
             if(e >= l || X.size() <= 1)
             {
                 if(X.isEmpty())//super rare, rng guesses the min value itself
                     this.size = 1;
                 else//use average
-                    this.size = X.stream().mapToDouble(s->s.getWeight()).sum();
+                    this.size = X.stream().mapToDouble(s->source.getWeight(s)).sum();
                     
                 //else, size stays zero
                 return;
@@ -142,14 +143,14 @@ public class IsolationForest implements Outlier
             //else
             
             
-            int D =X.get(0).getNumericalValues().length();
+            int D = source.getNumNumericalVars();
             Arrays.fill(minVals, 0.0);
             Arrays.fill(maxVals, 0.0);
                         
             //find the min-max range for each feature
             X.stream().forEach(d->
             {
-                for(IndexValue iv : d.getNumericalValues())
+                for(IndexValue iv : source.getDataPoint(d).getNumericalValues())
                 {
                     int i = iv.getIndex();
                     minVals[i] = Math.min(minVals[i], iv.getValue());
@@ -177,19 +178,19 @@ public class IsolationForest implements Outlier
             splitVal = RandomUtil.getLocalRandom().nextDouble();
             splitVal = minVals[q] + (maxVals[q]-minVals[q])*splitVal;
             
-            List<DataPoint> X_l = new ArrayList<>();
-            List<DataPoint> X_r = new ArrayList<>();
-            for(DataPoint x : X)
-                if(x.getNumericalValues().get(q) < splitVal)
+            IntList X_l = new IntList();
+            IntList X_r = new IntList();
+            for(int x : X)
+                if(source.getDataPoint(x).getNumericalValues().get(q) < splitVal)
                     X_l.add(x);
                 else
                     X_r.add(x);
             splitAtt = q;
             
             this.leftChild = new iTreeNode();
-            this.leftChild.build(e+1, l, X_l, minVals, maxVals);
+            this.leftChild.build(e+1, l, source, X_l, minVals, maxVals);
             this.rightChild = new iTreeNode();
-            this.rightChild.build(e+1, l, X_r, minVals, maxVals);
+            this.rightChild.build(e+1, l, source, X_r, minVals, maxVals);
         }
         
         

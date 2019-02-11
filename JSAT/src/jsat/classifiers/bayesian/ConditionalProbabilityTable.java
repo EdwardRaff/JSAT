@@ -29,8 +29,8 @@ import jsat.utils.IntSet;
 public class ConditionalProbabilityTable implements Classifier
 {
 
-	private static final long serialVersionUID = -287709075031023626L;
-	/**
+    private static final long serialVersionUID = -287709075031023626L;
+    /**
      * The predicting target class
      */
     private CategoricalData predicting;
@@ -194,7 +194,7 @@ public class ConditionalProbabilityTable implements Classifier
                     cordinate[j] = dp.getCategoricalValue(realIndexToCatIndex[j]);
                 else
                     cordinate[j] = dataSet.getDataPointCategory(i);
-            countArray[cordToIndex(cordinate)]+= dp.getWeight();
+            countArray[cordToIndex(cordinate)]+= dataSet.getWeight(i);
         }
     }
     
@@ -281,7 +281,7 @@ public class ConditionalProbabilityTable implements Classifier
 
     public boolean supportsWeightedData()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return true;
     }
 
     @Override

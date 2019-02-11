@@ -248,7 +248,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(DataPoint dataPoint, double weight, int targetClass)
     {
         time++;
         final Vec x = dataPoint.getNumericalValues();
@@ -260,7 +260,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     }
     
     @Override
-    public void update(DataPoint dataPoint, final double y)
+    public void update(DataPoint dataPoint, double weight, final double y)
     {
         time++;
         final Vec x = dataPoint.getNumericalValues();

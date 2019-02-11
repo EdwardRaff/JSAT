@@ -318,7 +318,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(DataPoint dataPoint, double weight, int targetClass)
     {
         final Vec x_t = dataPoint.getNumericalValues();
         final List<Double> qi = k.getQueryInfo(x_t);

@@ -2,7 +2,6 @@
 package jsat.classifiers;
 
 import java.util.Collections;
-import java.util.concurrent.ExecutorService;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 
@@ -21,7 +20,7 @@ public abstract class BaseUpdateableClassifier implements UpdateableClassifier
 {
 
     private static final long serialVersionUID = 3138493999362400767L;
-    private int epochs = 1;
+    protected int epochs = 1;
 
     /**
      * Default constructor that does nothing
@@ -92,7 +91,7 @@ public abstract class BaseUpdateableClassifier implements UpdateableClassifier
         {
             Collections.shuffle(randomOrder);
             for (int i : randomOrder)
-                toTrain.update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i));
+                toTrain.update(dataSet.getDataPoint(i), dataSet.getWeight(i), dataSet.getDataPointCategory(i));
         }
     }
 

@@ -265,7 +265,7 @@ public class TSNE implements VisualizationTransform
                 for(int k = 0; k < s; k++)
                     dv.set(k, y[i*2+k]);
                 
-                return new DataPoint(dv, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+                return new DataPoint(dv, dp.getCategoricalValues(), dp.getCategoricalData());
             }
 
             @Override

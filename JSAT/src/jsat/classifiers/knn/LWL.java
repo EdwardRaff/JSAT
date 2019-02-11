@@ -164,20 +164,16 @@ public class LWL implements Classifier, Regressor, Parameterized
         List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knn = 
                 vc.search(data.getNumericalValues(), k);
        
-        List<DataPointPair<Integer>> localPoints = new ArrayList<DataPointPair<Integer>>(knn.size());
+	ClassificationDataSet localSet = new ClassificationDataSet(knn.get(0).length(), new CategoricalData[0], predicting);
         
         double maxD = knn.get(knn.size()-1).getPair();
         for(int i = 0; i < knn.size(); i++)
         {
             VecPaired<VecPaired<Vec, Double>, Double> v = knn.get(i);
-            DataPoint dp = new DataPoint(v, new int[0], new CategoricalData[0], 
-                    kf.k(v.getPair()/maxD));
-            
-            localPoints.add(new DataPointPair<Integer>(dp, v.getVector().getPair().intValue()));
+
+	    localSet.addDataPoint(v, v.getVector().getPair().intValue(), kf.k(v.getPair()/maxD));
         }
 
-        ClassificationDataSet localSet = new ClassificationDataSet(localPoints, predicting);
-        
         Classifier localClassifier = classifier.clone();
         localClassifier.train(localSet);
         
@@ -209,18 +205,16 @@ public class LWL implements Classifier, Regressor, Parameterized
         List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knn = 
                 vc.search(data.getNumericalValues(), k);
        
-        List<DataPointPair<Double>> localPoints = new ArrayList<DataPointPair<Double>>(knn.size());
+        RegressionDataSet localSet = new RegressionDataSet(knn.get(0).length(), new CategoricalData[0]);
         double maxD = knn.get(knn.size()-1).getPair();
         for(int i = 0; i < knn.size(); i++)
         {
             VecPaired<VecPaired<Vec, Double>, Double> v = knn.get(i);
-            DataPoint dp = new DataPoint(v, new int[0], new CategoricalData[0], 
-                    kf.k(v.getPair()/maxD));
-            localPoints.add(new DataPointPair<Double>(dp, v.getVector().getPair()));
+
+	    localSet.addDataPoint(v, v.getVector().getPair());
+	    localSet.setWeight(i, kf.k(v.getPair()/maxD));
         }
-        
-        RegressionDataSet localSet = new RegressionDataSet(localPoints);
-        
+                
         Regressor localRegressor = regressor.clone();
         localRegressor.train(localSet);
         

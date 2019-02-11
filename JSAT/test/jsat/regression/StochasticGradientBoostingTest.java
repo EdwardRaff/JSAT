@@ -20,6 +20,7 @@ package jsat.regression;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.FixedProblems;
+import jsat.classifiers.trees.DecisionStump;
 import jsat.classifiers.trees.DecisionTree;
 import jsat.datatransform.LinearTransform;
 import jsat.utils.SystemInfo;

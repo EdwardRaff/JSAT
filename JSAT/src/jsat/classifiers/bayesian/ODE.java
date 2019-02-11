@@ -22,8 +22,8 @@ import jsat.exceptions.FailedToFitException;
 public class ODE extends BaseUpdateableClassifier 
 {
 
-	private static final long serialVersionUID = -7732070257669428977L;
-	/**
+    private static final long serialVersionUID = -7732070257669428977L;
+    /**
      * The attribute we will be dependent on
      */
     protected int dependent;
@@ -146,10 +146,9 @@ public class ODE extends BaseUpdateableClassifier
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(DataPoint dataPoint, double weight, int targetClass)
     {
         int[] catVals = dataPoint.getCategoricalValues();
-        double weight = dataPoint.getWeight();
         for (int j = 0; j < catVals.length; j++)
             if (j == dependent)
                 continue;

@@ -263,8 +263,7 @@ public class PCA implements DataTransform
         DataPoint newDP = new DataPoint(
                 P.multiply(dp.getNumericalValues()), 
                 Arrays.copyOf(dp.getCategoricalValues(), dp.numCategoricalValues()), 
-                CategoricalData.copyOf(dp.getCategoricalData()),
-                dp.getWeight());
+                CategoricalData.copyOf(dp.getCategoricalData()));
         return newDP;
     }
 

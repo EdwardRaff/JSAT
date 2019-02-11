@@ -25,10 +25,9 @@ import static jsat.math.SpecialMath.*;
 public class K2NetworkLearner extends DiscreteBayesNetwork
 {
 
+    private static final long serialVersionUID = -9681177007308829L;
 
-	private static final long serialVersionUID = -9681177007308829L;
-
-	public K2NetworkLearner()
+    public K2NetworkLearner() 
     {
         super();
     }
@@ -172,7 +171,7 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
             }
             
             if(j == classes.length)
-                count+=dp.getWeight();
+                count+=D.getWeight(i);
         }
         
         return count;

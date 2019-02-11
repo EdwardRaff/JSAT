@@ -4,7 +4,6 @@ package jsat.classifiers.boosting;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
 import jsat.classifiers.linear.LinearBatch;
 import jsat.linear.DenseVector;
@@ -39,10 +38,9 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
      * settle in a littl ebefore we start updating the aggregator off their 
      * predictions
      */
-    
 
-	private static final long serialVersionUID = -5111303510263114862L;
-	/**
+    private static final long serialVersionUID = -5111303510263114862L;
+    /**
      * The number of weights needed per model
      */
     private int weightsPerModel;
@@ -151,17 +149,16 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        return aggregatingClassifier.classify(getPredVecC(data, 1.0));
+        return aggregatingClassifier.classify(getPredVecC(data));
     }
 
     /**
      * Gets the predicted vector wrapped in a new DataPoint from a data point 
      * assuming we are doing classification 
      * @param data the data point to get the classifier from
-     * @param weight the weight to use for the data point object
      * @return the vector of predictions from each classifier
      */
-    private DataPoint getPredVecC(DataPoint data, double weight)
+    private DataPoint getPredVecC(DataPoint data)
     {
         Vec w = new DenseVector(weightsPerModel*baseClassifiers.size());
         if(weightsPerModel == 1)
@@ -177,22 +174,21 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
             }
                     
         }
-        return new DataPoint(w, weight);
+        return new DataPoint(w);
     }
     
     /**
      * Gets the predicted vector wrapped in a new DataPoint from a data point 
      * assuming we are doing regression 
      * @param data the data point to get the classifier from
-     * @param weight the weight to use for the data point object
      * @return the vector of predictions from each regressor
      */
-    private DataPoint getPredVecR(DataPoint data, double weight)
+    private DataPoint getPredVecR(DataPoint data)
     {
         Vec w = new DenseVector(baseRegressors.size());
         for (int i = 0; i < baseRegressors.size(); i++)
             w.set(i, baseRegressors.get(i).regress(data));
-        return new DataPoint(w, weight);
+        return new DataPoint(w);
     }
     
     @Override
@@ -207,10 +203,10 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(DataPoint dataPoint, double weight, int targetClass)
     {
         //predate first, gives an unbiased udpdate for the aggregator
-        aggregatingClassifier.update(getPredVecC(dataPoint, dataPoint.getWeight()), targetClass);
+        aggregatingClassifier.update(getPredVecC(dataPoint), weight, targetClass);
         //now update the base models
         for(UpdateableClassifier uc : baseClassifiers)
             uc.update(dataPoint, targetClass);
@@ -227,10 +223,10 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
     }
 
     @Override
-    public void update(DataPoint dataPoint, double targetValue)
+    public void update(DataPoint dataPoint, double weight, double targetValue)
     {
         //predate first, gives an unbiased udpdate for the aggregator
-        aggregatingRegressor.update(getPredVecR(dataPoint, dataPoint.getWeight()), targetValue);
+        aggregatingRegressor.update(getPredVecR(dataPoint), weight, targetValue);
         //now update the base models
         for(UpdateableRegressor ur : baseRegressors)
             ur.update(dataPoint, targetValue);
@@ -260,7 +256,7 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
     @Override
     public double regress(DataPoint data)
     {
-        return aggregatingRegressor.regress(getPredVecR(data, 1.0));
+        return aggregatingRegressor.regress(getPredVecR(data));
     }
 
     @Override

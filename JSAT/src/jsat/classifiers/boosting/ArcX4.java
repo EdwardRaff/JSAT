@@ -1,16 +1,11 @@
 package jsat.classifiers.boosting;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.parameters.Parameterized;
-import jsat.utils.FakeExecutor;
-import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.ParallelUtils;
 
 /**
@@ -146,11 +141,6 @@ public class ArcX4 implements Classifier, Parameterized
     {
         //Create a low memory clone that only has different dataPoint Objects to save space
         ClassificationDataSet cds = dataSet.shallowClone();
-        for(int i = 0; i < cds.size(); i++)
-        {
-            DataPoint dp = cds.getDataPoint(i);
-            cds.setDataPoint(i, new DataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), dp.getCategoricalData()));
-        }
         
         //Everyone starts with no errors
         int[] errors = new int[cds.size()];
@@ -159,7 +149,7 @@ public class ArcX4 implements Classifier, Parameterized
         for(int t = 0; t < hypoths.length; t++)
         {
             for(int i = 0; i < cds.size(); i++)
-                cds.getDataPoint(i).setWeight(1+coef*Math.pow(errors[i], expo));
+                cds.setWeight(i, 1+coef*Math.pow(errors[i], expo));
             
             Classifier hypoth = weakLearner.clone();
             

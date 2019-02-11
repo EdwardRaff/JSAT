@@ -183,7 +183,7 @@ public class DecisionStumpTest
     {
         System.out.println("trainC(List<DataPointPair>, Set<integer>)");
         stump.setPredicting(easyNumAtTrain.getPredicting());
-        stump.trainC(easyNumAtTrain.getAsDPPList(), new IntSet(Arrays.asList(0)));
+        stump.trainC(easyNumAtTrain, new IntSet(Arrays.asList(0)));
         for(int i = 0; i < easyNumAtTest.size(); i++)
             assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
     }

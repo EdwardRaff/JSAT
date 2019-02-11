@@ -38,6 +38,12 @@ public abstract class DataSet<Type extends DataSet>
     protected Map<Integer, String> numericalVariableNames;
     
     protected DataStore datapoints;
+    
+    /**
+     * Store all the weights for each data point. If null, indicates an implicit
+     * value of 1.0 for each datumn.
+     */
+    protected double[] weights;
 
     /**
      * Creates a new dataset containing the given datapoints. 
@@ -62,6 +68,7 @@ public abstract class DataSet<Type extends DataSet>
         this.datapoints = datapoints;
         this.numNumerVals = datapoints.numNumeric();
         this.categories = datapoints.getCategoricalDataInfo();
+        this.weights = null;
         if(this.numNumerVals == 0 && (this.categories == null || this.categories.length == 0 ))
             throw new IllegalArgumentException("Input must have a non-zero number of features defined");
         this.numericalVariableNames = new HashMap<>();
@@ -81,6 +88,7 @@ public abstract class DataSet<Type extends DataSet>
         this.numNumerVals = numerical;
         this.datapoints = new RowMajorStore(numNumerVals, categories);
         this.numericalVariableNames = new HashMap<>();
+        this.weights = null;
     }
     
     
@@ -214,7 +222,7 @@ public abstract class DataSet<Type extends DataSet>
         for(int i = 0; i < newNumericFeatures.size(); i++)
         {
             DataPoint dp_i = getDataPoint(i);
-            setDataPoint(i, new DataPoint(newNumericFeatures.get(i), dp_i.getCategoricalValues(), dp_i.getCategoricalData(), dp_i.getWeight()));
+            setDataPoint(i, new DataPoint(newNumericFeatures.get(i), dp_i.getCategoricalValues(), dp_i.getCategoricalData()));
         }
         
         this.numNumerVals = getDataPoint(0).numNumericalValues();
@@ -224,12 +232,16 @@ public abstract class DataSet<Type extends DataSet>
     }
     
     /**
-     * Adds a new datapoint to this set. 
+     * Adds a new datapoint to this set.This method is protected, as not all
+     * datasets will be satisfied by adding just a data point.
+     *
      * @param dp the datapoint to add
+     * @param weight weight of the point to add
      */
-    protected void add(DataPoint dp)
+    protected void base_add(DataPoint dp, double weight)
     {
-        
+        datapoints.addDataPoint(dp);
+        setWeight(size()-1, weight);
     }
     
     /**
@@ -279,12 +291,13 @@ public abstract class DataSet<Type extends DataSet>
          * We got to skip nans, count their weight in each column so that we can still fast count zeros
          */
         double[] nanWeight = new double[numNumerVals];
+        int pos = 0;
         
         for(Iterator<DataPoint> iter = getDataPointIterator(); iter.hasNext(); )
         {
             DataPoint dp = iter.next();
             
-            double weight = useWeights ? dp.getWeight() : 1;
+            double weight = useWeights ? getWeight(pos++): 1;
             totalSoW += weight;
 
             Vec v = dp.getNumericalValues();
@@ -389,6 +402,15 @@ public abstract class DataSet<Type extends DataSet>
     public int size()
     {
         return datapoints.size();
+    }
+    
+    /**
+     * 
+     * @return <tt>true</tt> if there are no data points in this set currently. 
+     */
+    public boolean isEmpty()
+    {
+	return size() == 0;
     }
     
     /**
@@ -728,6 +750,12 @@ public abstract class DataSet<Type extends DataSet>
     abstract public DataSet<Type> shallowClone();
     
     /**
+     * Returns a new dataset of the same type to hold the same data, but is empty. 
+     * @return a new dataset of the same type to hold the same data, but is empty. 
+     */
+    abstract public DataSet<Type> emptyClone();
+    
+    /**
      * Returns a new version of this data set that is of the same type, and
      * contains a different listing pointing to shallow data point copies. 
      * Because the data point object contains the weight itself, the weight 
@@ -772,6 +800,51 @@ public abstract class DataSet<Type extends DataSet>
         
         return stats;
     }
+    
+    /**
+     * Sets the weight of a given datapoint within this data set. 
+     * @param i the index to change the weight of
+     * @param w the new weight value. 
+     */
+    public void setWeight(int i, double w)
+    {
+        if(i >= size() || i < 0)
+            throw new IndexOutOfBoundsException("Dataset has only " + size() + " members, can't access index " + i );
+        else if(Double.isNaN(w) || Double.isInfinite(w) || w < 0)
+            throw new ArithmeticException("Invalid weight assignment of  " + w);
+        
+        if(w == 1 && weights == null)
+            return;//nothing to do, already handled implicitly
+        
+        if(weights == null)//need to init?
+        {
+            weights = new double[size()];
+            Arrays.fill(weights, 1.0);
+        }
+        
+        //make sure we have enouh space
+        if (weights.length <= i)
+            weights = Arrays.copyOfRange(weights, 0, Math.max(weights.length*2, i+1));
+        
+        weights[i] = w;
+    }
+    
+    /**
+     * Returns the weight of the specified data point
+     * @param i the data point index to get the weight of
+     * @return the weight of the requested data point
+     */
+    public double getWeight(int i)
+    {
+        if(i >= size() || i < 0)
+            throw new IndexOutOfBoundsException("Dataset has only " + size() + " members, can't access index " + i );
+        
+        if(weights == null)
+            return 1;
+        else if(weights.length <= i)
+            return 1;
+        else return weights[i];
+    }
 
     /**
      * This method returns the weight of each data point in a single Vector.
@@ -787,26 +860,26 @@ public abstract class DataSet<Type extends DataSet>
         if(N == 0)
             return new DenseVector(0);
         //assume everyone has the same weight until proven otherwise.
-        double weight = getDataPoint(0).getWeight();
-        double[] weights = null;
+        double weight = getWeight(0);
+        double[] weights_copy = null;
         
         for(int i = 1; i < N; i++)
         {
-            double w_i = getDataPoint(i).getWeight();
-            if(weights != null || weight != w_i)
+            double w_i = getWeight(i);
+            if(weights_copy != null || weight != w_i)
             {
-                if(weights==null)//need to init storage place
+                if(weights_copy==null)//need to init storage place
                 {
-                    weights = new double[N];
-                    Arrays.fill(weights, 0, i, weight);
+                    weights_copy = new double[N];
+                    Arrays.fill(weights_copy, 0, i, weight);
                 }
-                weights[i] = w_i;
+                weights_copy[i] = w_i;
             }
         }
         
-        if(weights == null)
+        if(weights_copy == null)
             return new ConstantVector(weight, size());
         else
-            return new DenseVector(weights);
+            return new DenseVector(weights_copy);
     }
 }

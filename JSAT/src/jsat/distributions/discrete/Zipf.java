@@ -162,16 +162,10 @@ public class Zipf extends DiscreteDistribution
         if (x >= cardinality)
             return 1;
         
-        if(Double.isInfinite(cardinality))
-        {
-            //HarmonicNumber[x,1+skew]/Zeta[1+skew]
-            return harmonic(x, 1+skew)/denomCache;
-        }
-        else
-        {
-            //HarmonicNumber[x,1+skew]/HarmonicNumber[cardinality,1+skew]
-            return harmonic(x, 1+skew)/denomCache;
-        }
+        //Both inf and finite case have same numerator. We've cached the denominator. So just return it. 
+        //HarmonicNumber[x,1+skew]/Zeta[1+skew]
+        //HarmonicNumber[x,1+skew]/HarmonicNumber[cardinality,1+skew]
+        return harmonic(x, 1+skew)/denomCache;
     }
 
     @Override
@@ -214,6 +208,7 @@ public class Zipf extends DiscreteDistribution
         
         //Normally would use Zero-in, but Zipf has bad behavior and it just degrades to bisection + overhead 
         double toRet = Bisection.root(tol, a, b, cdfInterpolated);
+//        System.out.println(toRet + " vs " + a);
         return Math.min(Math.round(toRet), cardinality);
     }
 

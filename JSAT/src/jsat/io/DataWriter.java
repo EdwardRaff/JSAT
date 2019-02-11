@@ -42,7 +42,7 @@ public abstract class DataWriter implements Closeable
     /**
      * The list of all local buffers, used to make sure all data makes it out when {@link #finish() } is called. 
      */
-    protected List<ByteArrayOutputStream> all_buffers = Collections.synchronizedList(new ArrayList<ByteArrayOutputStream>());
+    protected List<ByteArrayOutputStream> all_buffers = Collections.synchronizedList(new ArrayList<>());
     /**
      * The destination to ultimately write the dataset to
      */
@@ -94,11 +94,27 @@ public abstract class DataWriter implements Closeable
      * {@link DataSetType#SIMPLE} set, this value will be ignored. If
      * {@link DataSetType#CLASSIFICATION}, the value will be assumed to be an
      * integer class label.
+     * @throws java.io.IOException
      */
     public void writePoint(DataPoint dp, double label) throws IOException
     {
+	writePoint(1.0, dp, label);
+    }
+    
+    /**
+     * Write out the given data point to the output stream
+     * @param weight weight of the given data point to write out
+     * @param dp the data point to write to the file
+     * @param label The associated label for this dataum. If {@link #type} is a
+     * {@link DataSetType#SIMPLE} set, this value will be ignored. If
+     * {@link DataSetType#CLASSIFICATION}, the value will be assumed to be an
+     * integer class label.
+     * @throws java.io.IOException
+     */
+    public void writePoint(double weight, DataPoint dp, double label) throws IOException
+    {
         ByteArrayOutputStream baos = local_baos.get();
-        pointToBytes(dp, label, baos);
+        pointToBytes(weight, dp, label, baos);
         if(baos.size() >= LOCAL_BUFFER_SIZE)//We've got a big chunk of data, lets dump it
             synchronized(out)
             {
@@ -109,11 +125,12 @@ public abstract class DataWriter implements Closeable
     
     /**
      * This method converts a datapoint into the sequence of bytes used by the underlying file format. 
+     * @param weight weight of the given data point to write out
      * @param dp the data point to be converted to set of bytes
      * @param label the label of the point to convert to the set of bytes
      * @param byteOut the location to write the bytes to.
      */
-    abstract protected void pointToBytes(DataPoint dp, double label, ByteArrayOutputStream byteOut);
+    abstract protected void pointToBytes(double weight, DataPoint dp, double label, ByteArrayOutputStream byteOut);
     
     /**
      * To be called after all threads are done calling {@link #writePoint(jsat.classifiers.DataPoint, double) }. 

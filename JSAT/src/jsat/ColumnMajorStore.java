@@ -43,10 +43,6 @@ public class ColumnMajorStore implements DataStore
     int size = 0;
     List<Vec> columns;
     List<IntList> cat_columns;
-    /**
-     * weight for each data point
-     */
-    DoubleList weights;
     CategoricalData[] cat_info;
 
     /**
@@ -94,7 +90,6 @@ public class ColumnMajorStore implements DataStore
             this.columns.add(sparse ? new SparseVector(10) : new DenseVector(10));
         this.cat_info = cat_info;
         this.cat_columns = new ArrayList<>();
-        this.weights = new DoubleList();
         for(int i = 0; i < (cat_info == null ? 0 : cat_info.length); i++)
             this.cat_columns.add(new IntList());
         
@@ -117,8 +112,6 @@ public class ColumnMajorStore implements DataStore
             this.cat_info = CategoricalData.copyOf(toCopy.cat_info);
         this.size = toCopy.size;
         this.sparse = toCopy.sparse;
-        
-        this.weights = new DoubleList(toCopy.weights);
     }
 
     @Override
@@ -199,9 +192,6 @@ public class ColumnMajorStore implements DataStore
             while(col.size() <= pos)//fill missing values with missing value indicator
                 col.add(-1);
         }
-        
-        weights.add(dp.getWeight());
-        
     }
     
     @Override
@@ -229,7 +219,7 @@ public class ColumnMajorStore implements DataStore
         if(sparse && x.nnz() > d_n/2)
             x = new DenseVector(x);//denseify
         
-        return new DataPoint(x, cat, cat_info, weights.getD(i));
+        return new DataPoint(x, cat, cat_info);
     }
 
     @Override

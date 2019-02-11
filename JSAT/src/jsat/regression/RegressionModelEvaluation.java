@@ -3,16 +3,11 @@ package jsat.regression;
 import static java.lang.Math.*;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.classifiers.*;
 import jsat.datatransform.DataTransformProcess;
 import jsat.exceptions.UntrainedModelException;
 import jsat.math.OnLineStatistics;
 import jsat.regression.evaluation.RegressionScore;
-import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
@@ -312,9 +307,9 @@ public class RegressionModelEvaluation
                 double sqrdError = pow(trueVal - predVal, 2);
 
                 for (RegressionScore score : localScores)
-                    score.addResult(predVal, trueVal, di.getWeight());
+                    score.addResult(predVal, trueVal, testSet.getWeight(i));
 
-                localSqrdErrors.add(sqrdError, di.getWeight());
+                localSqrdErrors.add(sqrdError, testSet.getWeight(i));
             }
 
             synchronized (sqrdErrorStats)

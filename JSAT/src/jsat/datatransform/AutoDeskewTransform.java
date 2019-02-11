@@ -177,7 +177,7 @@ public class AutoDeskewTransform implements InPlaceTransform
         for (int i = 0; i < dataSet.size(); i++)
         {
             Vec x = dataSet.getDataPoint(i).getNumericalValues();
-            double weight = dataSet.getDataPoint(i).getWeight();
+            double weight = dataSet.getWeight(i);
 
             int lastIndx = -1;
             for (IndexValue iv : x)

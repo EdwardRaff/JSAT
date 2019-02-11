@@ -116,7 +116,7 @@ public class Imputer implements InPlaceTransform
         for(int sample = 0; sample < d.size(); sample++)
         {
             DataPoint dp = d.getDataPoint(sample);
-            final double weights = dp.getWeight();
+            final double weights = d.getWeight(sample);
             
             int[] cats = dp.getCategoricalValues();
             for(int i = 0; i < cats.length; i++)

@@ -12,6 +12,7 @@ import jsat.classifiers.*;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
+import jsat.utils.DoubleList;
 
 /**
  * Class for loading ARFF files. ARFF is a human readable file format used by
@@ -52,15 +53,16 @@ public class ARFFLoader
      */
     public static SimpleDataSet loadArffFile(Reader input) 
     {
-        ArrayList<DataPoint> list = new ArrayList<DataPoint>();
+        ArrayList<DataPoint> list = new ArrayList<>();
+        DoubleList weights = new DoubleList();
         
         BufferedReader br = new BufferedReader(input);
         
         int numOfVars = 0;
         int numReal = 0;
-        List<Boolean> isReal = new ArrayList<Boolean>();
-        List<String> variableNames = new ArrayList<String>();
-        List<HashMap<String, Integer>> catVals = new  ArrayList<HashMap<String, Integer>>();
+        List<Boolean> isReal = new ArrayList<>();
+        List<String> variableNames = new ArrayList<>();
+        List<HashMap<String, Integer>> catVals = new  ArrayList<>();
         String line = null;
         CategoricalData[] categoricalData = null;
         try
@@ -183,7 +185,8 @@ public class ARFFLoader
                         }
                     }
                     
-                    list.add(new DataPoint(vec, cats, categoricalData, weight)); 
+                    list.add(new DataPoint(vec, cats, categoricalData)); 
+                    weights.add(weight);
                 }
             }
         }
@@ -193,6 +196,8 @@ public class ARFFLoader
         }
         
         SimpleDataSet dataSet =  new SimpleDataSet(list);
+        for(int i = 0; i < weights.size(); i++)
+            dataSet.setWeight(i, weights.getD(i));
         int k = 0;
         for (int i = 0; i < isReal.size(); i++)
             if (isReal.get(i))

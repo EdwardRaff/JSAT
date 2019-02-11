@@ -161,10 +161,10 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
         double[] D_inv = new double[N];
         double[] D = new double[N];
         
-        List<DataPointPair<Integer>> dataPoints = dataSet.getTwiceShallowClone().getAsDPPList();
+        ClassificationDataSet cds = dataSet.shallowClone();
         Arrays.fill(D, 1.0/N);
-        for(DataPointPair<Integer> dpp : dataPoints)
-            dpp.getDataPoint().setWeight(D[0]);//Scaled, they are all 1 
+        for(int i = 0; i < N; i++)
+            cds.setWeight(i, D[0]);//Scaled, they are all 1 
         double weightSum = 1;
         
         double[] H_cur = new double[N];
@@ -172,7 +172,7 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
         for(int t = 0; t < maxIterations; t++)
         {
             Classifier weak = weakLearner.clone();
-            weak.train(new ClassificationDataSet(dataPoints, predicting), parallel);
+            weak.train(cds, parallel);
             
             double invSum = 0;
             for(int i = 0; i < N; i++)
@@ -184,11 +184,9 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
             
             for(int i = 0; i < N; i++)
             {
-                DataPointPair<Integer> dpp = dataPoints.get(i);
-                
-                H_cur[i] = (weak.classify(dpp.getDataPoint()).getProb(1)*2-1);
+                H_cur[i] = (weak.classify(cds.getDataPoint(i)).getProb(1)*2-1);
                 double outPut = Math.signum(H_cur[i]);
-                int c = dpp.getPair();
+                int c = cds.getDataPointCategory(i);
                 if(c == 1)//positive example case
                 {
                     p_d  += outPut * D[i];
@@ -210,24 +208,19 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
             weightSum = 0;
             for(int i = 0; i < N; i++)
             {
-                DataPoint dp = dataPoints.get(i).getDataPoint();
-                double w_i = dp.getWeight();
-                int y_i = dataPoints.get(i).getPair()*2-1;
+                double w_i = cds.getWeight(i);
+                int y_i = cds.getDataPointCategory(i)*2-1;
                 w_i *= Math.exp(-y_i*alpha_m*H_cur[i]);
                 if(Double.isInfinite(w_i))
                     w_i = 1;//Let it grow back
                 else if(w_i <= 0)
                     w_i = 1e-3/N;//Dont let it go quit to zero
                 weightSum += w_i;
-                dp.setWeight(w_i);
+                cds.setWeight(i, w_i);
             }
             
             for(int i = 0; i < N; i++)
-            {
-                DataPoint dp = dataPoints.get(i).getDataPoint();
-                double w_i = dp.getWeight();
-                dp.setWeight(Math.max(w_i/weightSum, 1e-10));//no zeros allowed
-            }
+		cds.setWeight(i, Math.max(cds.getWeight(i)/weightSum, 1e-10));
             
             hypWeights.add(alpha_m);
             hypoths.add(weak);

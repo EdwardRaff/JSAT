@@ -320,27 +320,28 @@ public class ClassificationModelEvaluation
             {
                 DataPoint dp = testSet.getDataPoint(i);
                 dp = curProcess.transform(dp);
+                double w_i = testSet.getWeight(i);
                 long stratClass = System.currentTimeMillis();
                 CategoricalResults result = classifierToUse.classify(dp);
                 localClassificationTime += (System.currentTimeMillis() - stratClass);
 
                 for (ClassificationScore score : localScores)
-                    score.addResult(result, testSet.getDataPointCategory(i), dp.getWeight());
+                    score.addResult(result, testSet.getDataPointCategory(i), w_i);
 
                 if (predictions != null)
                 {
                     predictions[i] = result;
                     truths[i] = testSet.getDataPointCategory(i);
-                    pointWeights[i] = dp.getWeight();
+                    pointWeights[i] = w_i;
                 }
                 final int trueCat = testSet.getDataPointCategory(i);
                 synchronized (confusionMatrix[trueCat])
                 {
-                    confusionMatrix[trueCat][result.mostLikely()] += dp.getWeight();
+                    confusionMatrix[trueCat][result.mostLikely()] += w_i;
                 }
                 if (trueCat == result.mostLikely())
-                    localCorrect += dp.getWeight();
-                localSumOfWeights += dp.getWeight();
+                    localCorrect += w_i;
+                localSumOfWeights += w_i;
             }
 
             synchronized (confusionMatrix)

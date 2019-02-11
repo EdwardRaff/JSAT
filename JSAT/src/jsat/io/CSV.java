@@ -787,7 +787,7 @@ public class CSV
             }
             
             @Override
-            protected void pointToBytes(DataPoint dp, double label, ByteArrayOutputStream byteOut)
+            protected void pointToBytes(double weight, DataPoint dp, double label, ByteArrayOutputStream byteOut)
             {
                 PrintWriter writer = new PrintWriter(byteOut);
                 boolean nothingWrittenYet = true;

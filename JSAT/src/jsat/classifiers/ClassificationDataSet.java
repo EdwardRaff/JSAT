@@ -40,6 +40,8 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         //Fix up numeric names
         for(int i = 0; i < getNumNumericalVars(); i++)
             this.numericalVariableNames.put(i, dataSet.getNumericName(i));
+	for(int i = 0; i < dataSet.size(); i++)
+	    this.setWeight(i, dataSet.getWeight(i));
     }
 
     /**
@@ -77,7 +79,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
                 if(i != predicting)
                     newCats[k++] = prevCats[i];
             }
-            DataPoint newPoint = new DataPoint(dp.getNumericalValues(), newCats, categories, dp.getWeight());
+            DataPoint newPoint = new DataPoint(dp.getNumericalValues(), newCats, categories);
             datapoints.addDataPoint(newPoint);
             targets.add(prevCats[predicting]);
         }
@@ -337,7 +339,8 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
             if(!categories[i].isValidCategory(classes[i]) && classes[i] >= 0) // >= so that missing values (negative) are allowed
                 throw new IllegalArgumentException("Categoriy value given is invalid");
         
-        datapoints.addDataPointCheck(new DataPoint(v, classes, categories, weight));
+        datapoints.addDataPointCheck(new DataPoint(v, classes, categories));
+        setWeight(size()-1, weight);
         targets.add(classification);
     }
     
@@ -347,6 +350,17 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param classification the label for this data point
      */
     public void addDataPoint(DataPoint dp, int classification)
+    {
+	addDataPoint(dp, classification, 1.0);
+    }
+    
+    /**
+     * Creates a new data point and add it
+     * @param dp the data point to add to this set
+     * @param classification the label for this data point
+     * @param weight the weight for the added data point
+     */
+    public void addDataPoint(DataPoint dp, int classification, double weight)
     {
         if(dp.getNumericalValues().length() != numNumerVals)
             throw new RuntimeException("Data point does not contain enough numerical data points");
@@ -362,6 +376,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         
         datapoints.addDataPointCheck(dp);
         targets.add(classification);
+	setWeight(size()-1, weight);
     }
     
     /**
@@ -456,7 +471,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         double sum = 0.0;
         for(int i = 0; i < size(); i++)
         {
-            double w = datapoints.getDataPoint(i).getWeight();
+            double w = getWeight(i);
             priors[targets.getI(i)] += w;
             sum += w;
         }
@@ -496,6 +511,15 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         for(int i = 0; i < size(); i++)
             clone.datapoints.addDataPoint(getDataPoint(i));
         clone.targets.addAll(this.targets);
+	if(this.weights != null)
+	    clone.weights = Arrays.copyOf(this.weights, this.weights.length);
+        return clone;
+    }
+
+    @Override
+    public ClassificationDataSet emptyClone()
+    {
+	ClassificationDataSet clone = new ClassificationDataSet(numNumerVals, categories, predicting.clone());
         return clone;
     }
     

@@ -86,12 +86,12 @@ public class AODE extends BaseUpdateableClassifier
         {
             ODE ode = odes[z];
             for (int i = 0; i < dataSet.size(); i++)
-                ode.update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i));
+                ode.update(dataSet.getDataPoint(i), dataSet.getWeight(i), dataSet.getDataPointCategory(i));
         });
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(DataPoint dataPoint, double weight, int targetClass)
     {
         for(ODE ode : odes)
             ode.update(dataPoint, targetClass);

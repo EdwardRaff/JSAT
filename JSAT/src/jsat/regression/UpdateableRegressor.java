@@ -41,9 +41,20 @@ public interface UpdateableRegressor extends Regressor
     /**
      * Updates the classifier by giving it a new data point to learn from. 
      * @param dataPoint the data point to learn
+     * @param weight weight of the data point to use in update
      * @param targetValue the target value of the data point
      */
-    public void update(DataPoint dataPoint, double targetValue);
+    public void update(DataPoint dataPoint, double weight, double targetValue);
+    
+    /**
+     * Updates the classifier by giving it a new data point to learn from. 
+     * @param dataPoint the data point to learn
+     * @param targetValue the target value of the data point
+     */
+    default public void update(DataPoint dataPoint, double targetValue)
+    {
+	update(dataPoint, 1.0, targetValue);
+    }
 
     @Override
     public UpdateableRegressor clone();

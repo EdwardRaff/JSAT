@@ -160,7 +160,7 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(DataPoint dataPoint, double weight, int targetClass)
     {
         Vec x = dataPoint.getNumericalValues();
         double wx = w.dot(x)+bias;

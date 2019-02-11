@@ -3,15 +3,12 @@ package jsat.classifiers.bayesian;
 
 import static java.lang.Math.exp;
 import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 import jsat.math.MathTricks;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 
 /**
@@ -36,8 +33,8 @@ import jsat.parameters.Parameterized;
 public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements Parameterized
 {
 
-	private static final long serialVersionUID = -469977945722725478L;
-	private double[][][] apriori;
+    private static final long serialVersionUID = -469977945722725478L;
+    private double[][][] apriori;
     private double[][] wordCounts;
     private double[] totalWords;
     
@@ -232,11 +229,10 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(DataPoint dataPoint, double weight, int targetClass)
     {
         if(finalized)
             throw new FailedToFitException("Model has already been finalized, and can no longer be updated");
-        final double weight = dataPoint.getWeight();
         final Vec x = dataPoint.getNumericalValues();
         
         //Categorical value updates

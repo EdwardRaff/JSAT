@@ -149,7 +149,7 @@ public class LogitBoost implements Classifier, Parameterized
         /**
          * The data points paired with what we will use to store the target regression values. 
          */
-        List<DataPointPair<Double>> dataPoints = dataSet.getAsFloatDPPList();
+        RegressionDataSet rds = new RegressionDataSet(dataSet.getAsFloatDPPList());
         
         baseLearners = new ArrayList<>(maxIterations);
         int N = dataSet.size();
@@ -158,7 +158,7 @@ public class LogitBoost implements Classifier, Parameterized
         {
             for(int i = 0; i < N; i++)
             {
-                DataPoint dp = dataPoints.get(i).getDataPoint();
+                DataPoint dp = rds.getDataPoint(i);
                 double pi = P(dp);
                 double zi;
                 if(dataSet.getDataPointCategory(i) == 1)
@@ -167,12 +167,12 @@ public class LogitBoost implements Classifier, Parameterized
                     zi = Math.max(-zMax, -1.0/(1.0-pi));
                 double wi = Math.max(pi*(1-pi), 2*1e-15);
 
-                dp.setWeight(wi);
-                dataPoints.get(i).setPair(zi);
+                rds.setWeight(i, wi);
+		rds.setTargetValue(i, zi);
             }
             
             Regressor f = baseLearner.clone();
-            f.train(new RegressionDataSet(dataPoints));
+            f.train(rds);
             baseLearners.add(f);
         }
         

@@ -52,7 +52,7 @@ public class PriorClassifier implements Classifier
     {
         cr = new CategoricalResults(dataSet.getPredicting().getNumOfCategories());
         for(int i = 0; i < dataSet.size(); i++)
-            cr.incProb(dataSet.getDataPointCategory(i), dataSet.getDataPoint(i).getWeight());
+            cr.incProb(dataSet.getDataPointCategory(i), dataSet.getWeight(i));
         cr.normalize();
     }
 

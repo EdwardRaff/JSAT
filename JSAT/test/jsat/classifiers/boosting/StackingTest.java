@@ -157,7 +157,7 @@ public class StackingTest
     {
         System.out.println("regression MT");
         
-        Stacking stacking = new Stacking((Regressor)new LinearBatch(new AbsoluteLoss(), 1e-10), new LinearBatch(new SquaredLoss(), 1e-15), new LinearBatch(new AbsoluteLoss(), 100), new LinearBatch(new HuberLoss(), 1e1));
+        Stacking stacking = new Stacking((Regressor)new LinearBatch(new AbsoluteLoss(), 1e-10), new LinearBatch(new SquaredLoss(), 1e-15), new LinearBatch(new AbsoluteLoss(), 1e-1), new LinearBatch(new HuberLoss(), 1e-2));
         RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
         
         stacking = stacking.clone();

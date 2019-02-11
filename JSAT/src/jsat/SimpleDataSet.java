@@ -59,16 +59,9 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
      * Adds a new datapoint to this set. 
      * @param dp the datapoint to add
      */
-    @Override
     public void add(DataPoint dp)
     {
-        datapoints.addDataPoint(dp);
-    }
-
-    @Override
-    public int size()
-    {
-        return datapoints.size();
+        base_add(dp, 1.0);
     }
     
     @Override
@@ -120,7 +113,10 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
         else if(index >= getNumNumericalVars())
             throw new IllegalArgumentException("Index " + index + " i larger than number of numeric features " + getNumNumericalVars());
         
-        return new RegressionDataSet(this.datapoints.toList(), index);
+        RegressionDataSet rds = new RegressionDataSet(this.datapoints.toList(), index);
+	for(int i = 0; i < size(); i++)
+	    rds.setWeight(i, this.getWeight(i));
+	return rds;
     }
     
         /**
@@ -136,6 +132,13 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
     public SimpleDataSet shallowClone()
     {
         return new SimpleDataSet(new ArrayList<>(this.datapoints.toList()));
+    }
+
+    @Override
+    public SimpleDataSet emptyClone()
+    {
+	SimpleDataSet sds = new SimpleDataSet(numNumerVals, categories);
+	return sds;
     }
 
     @Override

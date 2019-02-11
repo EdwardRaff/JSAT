@@ -307,7 +307,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
             if(sampledCounts[i] <= 0)
                 continue;
             DataPoint dp = dataSet.getDataPoint(i);
-            destination.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), dataSet.getDataPointCategory(i), dp.getWeight()*sampledCounts[i]);
+            destination.addDataPoint(dp, dataSet.getDataPointCategory(i), dataSet.getWeight(i)*sampledCounts[i]);
         }
 
         return destination;
@@ -351,8 +351,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
             if(sampledCounts[i] <= 0)
                 continue;
             DataPoint dp = dataSet.getDataPoint(i);
-            DataPoint reWeighted = new DataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight()*sampledCounts[i]);
-            destination.addDataPoint(reWeighted, dataSet.getTargetValue(i));
+            destination.addDataPoint(dp, dataSet.getTargetValue(i), dataSet.getWeight(i)*sampledCounts[i]);
         }
 
         return destination;

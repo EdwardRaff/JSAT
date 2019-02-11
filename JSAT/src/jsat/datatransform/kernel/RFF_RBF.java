@@ -156,7 +156,7 @@ public class RFF_RBF extends DataTransformBase
         for(int i = 0; i < newX.length(); i++)
             newX.set(i, Math.cos(newX.get(i)+offsets.get(i))*coef);
         
-        return new DataPoint(newX, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+        return new DataPoint(newX, dp.getCategoricalValues(), dp.getCategoricalData());
     }
 
     @Override

@@ -56,7 +56,7 @@ public class DenseSparceTransform implements DataTransform
                 if(orig.get(i) != 0)
                     sv.set(i, orig.get(i));
 
-            return new DataPoint(sv, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+            return new DataPoint(sv, dp.getCategoricalValues(), dp.getCategoricalData());
         }
         else//make dense
         {
@@ -69,7 +69,7 @@ public class DenseSparceTransform implements DataTransform
                 IndexValue indexValue = iter.next();
                 dv.set(indexValue.getIndex(), indexValue.getValue());
             }
-            return new DataPoint(dv, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+            return new DataPoint(dv, dp.getCategoricalValues(), dp.getCategoricalData());
         }
     }
 

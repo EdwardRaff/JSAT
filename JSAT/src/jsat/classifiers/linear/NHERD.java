@@ -238,7 +238,7 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(DataPoint dataPoint, double weight, int targetClass)
     {
         Vec x_t = dataPoint.getNumericalValues();
         double y_t = targetClass*2-1;

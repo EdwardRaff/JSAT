@@ -10,9 +10,9 @@ import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
-import jsat.classifiers.DataPointPair;
 import jsat.classifiers.OneVSAll;
 import jsat.exceptions.FailedToFitException;
+import jsat.linear.Vec;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 
@@ -152,24 +152,26 @@ public class AdaBoostM1 implements Classifier, Parameterized
         hypWeights = new DoubleList(maxIterations);
         hypoths = new ArrayList<>(maxIterations);
         
-        List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
+	
+	Vec origWeights = dataSet.getDataWeights();
+	
         //Initialization step, set up the weights  so they are all 1 / size of dataset
-        for(DataPointPair<Integer> dpp : dataPoints)
-            dpp.getDataPoint().setWeight(1.0);//Scaled, they are all 1 
-        double scaledBy = dataPoints.size();
+        for(int i = 0; i < dataSet.size(); i++)
+	    dataSet.setWeight(i, 1.0);
+        double scaledBy = dataSet.size();
         
         
         //Rather then reclasify points, we just save this list
-        boolean[] wasCorrect = new boolean[dataPoints.size()];
+        boolean[] wasCorrect = new boolean[dataSet.size()];
         
         for(int t = 0; t < maxIterations; t++)
         {
-            weakLearner.train(new ClassificationDataSet(dataPoints, predicting), parallel);
+            weakLearner.train(dataSet, parallel);
 
             double error = 0.0;
-            for(int i = 0; i < dataPoints.size(); i++)
-                if( !(wasCorrect[i] = weakLearner.classify(dataPoints.get(i).getDataPoint()).mostLikely() == dataPoints.get(i).getPair()) )
-                    error += dataPoints.get(i).getDataPoint().getWeight();
+            for(int i = 0; i < dataSet.size(); i++)
+                if( !(wasCorrect[i] = weakLearner.classify(dataSet.getDataPoint(i)).mostLikely() == dataSet.getDataPointCategory(i)) )
+                    error += dataSet.getWeight(i);
             error /= scaledBy;
             if(error > 0.5 || error == 0.0)
                 return;
@@ -181,25 +183,28 @@ public class AdaBoostM1 implements Classifier, Parameterized
             double newScale = scaledBy;//Not scaled
             for(int i = 0; i < wasCorrect.length; i++)
             {
-                DataPoint dp = dataPoints.get(i).getDataPoint();
+                DataPoint dp = dataSet.getDataPoint(i);
                 if(wasCorrect[i])//Put less weight on the points we got correct
                 {
-                    double w = dp.getWeight()*bt;
-                    dp.setWeight(w);
+                    double w = dataSet.getWeight(i)*bt;
+                    dataSet.setWeight(i, w);
                 }
-                double trueWeight = dp.getWeight()/scaledBy;
+                double trueWeight = dataSet.getWeight(i)/scaledBy;
                 if(1.0/trueWeight > newScale)
                     newScale = 1.0/trueWeight;
-                Zt += dp.getWeight()/scaledBy;//Sum the values
+                Zt += dataSet.getWeight(i)/scaledBy;//Sum the values
             }
             
-            for(DataPointPair dpp : dataPoints)//Normalize so the weights make a distribution
-                dpp.getDataPoint().setWeight(dpp.getDataPoint().getWeight()/scaledBy*newScale/Zt);
+            for(int i = 0; i < dataSet.size(); i++)//Normalize so the weights make a distribution
+                dataSet.setWeight(i, dataSet.getWeight(i)/scaledBy*newScale/Zt);
             scaledBy = newScale;
             
             hypoths.add(weakLearner.clone());
             hypWeights.add(Math.log(1/bt));
         }
+	
+	for(int i = 0; i < dataSet.size(); i++)
+	    dataSet.setWeight(i, origWeights.get(i));
     }
 
     @Override

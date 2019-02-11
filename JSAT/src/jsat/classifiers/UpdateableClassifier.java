@@ -41,9 +41,20 @@ public interface UpdateableClassifier extends Classifier
     /**
      * Updates the classifier by giving it a new data point to learn from. 
      * @param dataPoint the data point to learn
+     * @param weight weight of the given data point being added
      * @param targetClass the target class of the data point
      */
-    public void update(DataPoint dataPoint, int targetClass);
+    public void update(DataPoint dataPoint, double weight, int targetClass);
+    
+    /**
+     * Updates the classifier by giving it a new data point to learn from. 
+     * @param dataPoint the data point to learn
+     * @param targetClass the target class of the data point
+     */
+    default public void update(DataPoint dataPoint, int targetClass)
+    {
+        update(dataPoint, 1.0, targetClass);
+    }
 
     @Override
     public UpdateableClassifier clone();

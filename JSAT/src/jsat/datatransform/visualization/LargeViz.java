@@ -18,11 +18,7 @@ package jsat.datatransform.visualization;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
@@ -31,11 +27,9 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 
 /**
  * LargeViz is an algorithm for creating low dimensional embeddings for
@@ -398,7 +392,7 @@ public class LargeViz implements VisualizationTransform
             {
                 int i = indexMap.get(dp);
                 
-                return new DataPoint(embeded.get(i), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+                return new DataPoint(embeded.get(i), dp.getCategoricalValues(), dp.getCategoricalData());
             }
 
             @Override

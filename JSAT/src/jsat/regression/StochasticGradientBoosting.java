@@ -2,19 +2,15 @@
 package jsat.regression;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.exceptions.UntrainedModelException;
-import jsat.linear.Vec;
-import jsat.math.Function;
 import jsat.math.Function1D;
 import jsat.math.rootfinding.RootFinder;
 import jsat.math.rootfinding.Zeroin;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
-import jsat.utils.FakeExecutor;
+import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 import jsat.utils.random.RandomUtil;
 
@@ -235,16 +231,16 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     public void train(RegressionDataSet dataSet, boolean parallel)
     {
         //use getAsDPPList to get coppies of the data points, so we can safely alter this set
-        final List<DataPointPair<Double>> backingResidsList = dataSet.getAsDPPList();
+        final RegressionDataSet resids = dataSet.shallowClone();
         
-        F = new ArrayList<Regressor>(maxIterations);
+        F = new ArrayList<>(maxIterations);
         coef = new DoubleList(maxIterations);
         
         //Add the first learner. Either an instance of the weak learner, or a strong initial estimate
         Regressor lastF = strongLearner == null ? weakLearner.clone() : strongLearner.clone();
         lastF.train(dataSet, parallel);
         F.add(lastF);
-        coef.add(learningRate*getMinimizingErrorConst(backingResidsList, lastF));
+        coef.add(learningRate*getMinimizingErrorConst(dataSet, lastF));
         
         /**
          * Instead of recomputing previous weak learner's output, keep track of 
@@ -253,16 +249,10 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
         final double[] currPredictions = new double[dataSet.size()];
         
         
-        
-        /**
-         * The residuals
-         */
-        RegressionDataSet resids = RegressionDataSet.usingDPPList(backingResidsList);
-        
-        
         final int randSampleSize = (int) Math.round(resids.size()*trainingProportion);
-        final List<DataPointPair<Double>> randSampleList = new ArrayList<DataPointPair<Double>>(randSampleSize);
+        final List<DataPointPair<Double>> randSampleList = new ArrayList<>(randSampleSize);
         final Random rand = RandomUtil.getRandom();
+	IntList randOrder = IntList.range(resids.size());
 
         for(int iter = 0; iter < maxIterations; iter++)
         {
@@ -279,24 +269,26 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
                 //The next set of residuals could be computed from the previous,
                 //but its more stable to just take the total residuals fromt he 
                 //source each time
-                resids.setTargetValue(j, dataSet.getTargetValue(j)-currPredictions[j]);
+                resids.setTargetValue(j, (dataSet.getTargetValue(j)-currPredictions[j]));
             }
             
             
             
             //Take a random sample
-            randSampleList.clear();
-            ListUtils.randomSample(backingResidsList, randSampleList, randSampleSize, rand);
+            Collections.shuffle(randOrder, rand);
+            RegressionDataSet subSet = resids.shallowClone();
+	    for(int i : randOrder.subList(0, randSampleSize))
+		subSet.addDataPoint(resids.getDataPoint(i), resids.getTargetValue(i), resids.getWeight(i));
             
             final Regressor h = weakLearner.clone();
-            final RegressionDataSet tmpDataSet = RegressionDataSet.usingDPPList(randSampleList);
             
-            h.train(tmpDataSet, parallel);
-            double y = getMinimizingErrorConst( backingResidsList, h);
+            h.train(subSet, parallel);
+            double y = getMinimizingErrorConst( resids, h);
             
             F.add(h);
             coef.add(learningRate*y);
         }
+	System.out.println();
     }
     
     /**
@@ -307,7 +299,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
      * @param h the regressor that is having the error of its output minimized
      * @return the constant <tt>y</tt> that minimizes the squared error of the regressor on the training set. 
      */
-    private double getMinimizingErrorConst(final List<DataPointPair<Double>> backingResidsList, final Regressor h)
+    private double getMinimizingErrorConst(final RegressionDataSet backingResidsList, final Regressor h)
     {
         //Find the coeficent that minimized the residual error by finding the zero of its derivative (local minima)
         Function1D fhPrime = getDerivativeFunc(backingResidsList, h);
@@ -325,7 +317,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
      * @param h the regressor that is having the error of its output minimized
      * @return a Function object approximating the derivative of the squared error
      */
-    private Function1D getDerivativeFunc(final List<DataPointPair<Double>> backingResidsList, final Regressor h)
+    private Function1D getDerivativeFunc(final RegressionDataSet backingResidsList, final Regressor h)
     {
         final Function1D fhPrime = (double x) ->
         {
@@ -358,10 +350,10 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
             * in one pass of the data
             */
             
-            for (DataPointPair<Double> dpp : backingResidsList)
+            for(int i = 0; i < backingResidsList.size(); i++)
             {
-                double hEst = h.regress(dpp.getDataPoint());
-                double target = dpp.getPair();
+                double hEst = h.regress(backingResidsList.getDataPoint(i));
+                double target = backingResidsList.getTargetValue(i);
                 
                 result += hEst * (c1Pc2 * hEst - 2 * target);
             }

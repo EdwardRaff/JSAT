@@ -45,7 +45,7 @@ public class AdjustedRandIndex implements ClusterEvaluation
             if(cluster < 0)
                 continue;//noisy point 
             int label = cds.getDataPointCategory(i);
-            double weight = cds.getDataPoint(i).getWeight();
+            double weight = cds.getWeight(i);
             table[cluster][label] += weight;
             truthSums[label] += weight;
             clusterSums[cluster] += weight;

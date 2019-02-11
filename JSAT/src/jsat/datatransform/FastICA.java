@@ -418,7 +418,7 @@ public class FastICA implements InvertibleTransform
         Vec newX = x.multiply(unmixing);
 
         //we know that zeroMean wont impact cat values or weight
-        return new DataPoint(newX, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+        return new DataPoint(newX, dp.getCategoricalValues(), dp.getCategoricalData());
     }
     
     @Override
@@ -427,7 +427,7 @@ public class FastICA implements InvertibleTransform
         Vec x = dp.getNumericalValues();
         x = x.multiply(mixing);
         
-        DataPoint toRet = new DataPoint(x, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+        DataPoint toRet = new DataPoint(x, dp.getCategoricalValues(), dp.getCategoricalData());
         if(zeroMean != null)
             zeroMean.mutableInverse(toRet);
         

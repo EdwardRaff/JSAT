@@ -293,7 +293,7 @@ public class SOM implements Classifier, Parameterized
 
     private List<VecPaired<Vec, Integer>> setUpVectorCollection(boolean parallel)
     {
-        List<VecPaired<Vec, Integer>> vecList = new ArrayList<VecPaired<Vec, Integer>>(somWidth*somHeight);
+        List<VecPaired<Vec, Integer>> vecList = new ArrayList<>(somWidth*somHeight);
         for(int i = 0; i < weights.length; i++)
             for(int j = 0; j < weights[i].length; j++)
                 vecList.add(new VecPaired<>(weights[i][j], vecList.size()));
@@ -358,15 +358,15 @@ public class SOM implements Classifier, Parameterized
         
         if(execServ != null)//Create parallel structures
         {
-            weightUpdates = new ArrayList<List<List<DataPoint>>>(somHeight);
+            weightUpdates = new ArrayList<>(somHeight);
             
             for(int i = 0; i < somHeight; i++)
             {
-                ArrayList<List<DataPoint>> subList = new ArrayList<List<DataPoint>>(somWidth);
+                ArrayList<List<DataPoint>> subList = new ArrayList<>(somWidth);
                 weightUpdates.add(subList);
                 for(int j = 0; j < somWidth; j++)
                 {
-                    subList.add(Collections.synchronizedList(new ArrayList<DataPoint>()));
+                    subList.add(Collections.synchronizedList(new ArrayList<>()));
                 }
             }
             
@@ -463,8 +463,9 @@ public class SOM implements Classifier, Parameterized
                                 double denom = 0.0;
                                 for(DataPoint dp : dataList)
                                 {
-                                    denom += dp.getWeight();
-                                    mean.mutableAdd(dp.getWeight(), dp.getNumericalValues());
+				    //TODO, fix by just re-writing old and poorly done SOM class
+                                    denom += 1;
+                                    mean.mutableAdd(1, dp.getNumericalValues());
                                 }
                                 if(denom > 0)
                                     mean.mutableDivide(denom);
@@ -511,7 +512,7 @@ public class SOM implements Classifier, Parameterized
 
                 int index = vpBMU.getPair();
 
-                crWeightPairs[index].incProb(dataSet.getDataPointCategory(i), dp.getWeight());
+                crWeightPairs[index].incProb(dataSet.getDataPointCategory(i), dataSet.getWeight(i));
             }
 
             for(int i = 0; i < crWeightPairs.length; i++)

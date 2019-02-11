@@ -119,7 +119,7 @@ public class MatrixStatistics
         for(int i = 0; i < dataSet.size(); i++)
         {
             DataPoint dp = dataSet.getDataPoint(i);
-            double w = dp.getWeight();
+            double w = dataSet.getWeight(i);
             sumOfWeights += w;
             mean.mutableAdd(w, dp.getNumericalValues());
         }
@@ -206,14 +206,14 @@ public class MatrixStatistics
      * @param dataSet the set of data points that contain vectors 
      * @param covariance the zeroed matrix to store the result in. Its values will be altered.
      */
-    public static void covarianceMatrix(Vec mean, List<DataPoint> dataSet, Matrix covariance)
+    public static void covarianceMatrix(Vec mean, DataSet dataSet, Matrix covariance)
     {
         double sumOfWeights = 0.0, sumOfSquaredWeights = 0.0;
         
-        for(DataPoint dp : dataSet)
+        for(int i = 0; i < dataSet.size(); i++)
         {
-            sumOfWeights += dp.getWeight();
-            sumOfSquaredWeights += Math.pow(dp.getWeight(), 2);
+            sumOfWeights += dataSet.getWeight(i);
+            sumOfSquaredWeights += Math.pow(dataSet.getWeight(i), 2);
         }
         
         covarianceMatrix(mean, dataSet, covariance, sumOfWeights, sumOfSquaredWeights);
@@ -230,99 +230,13 @@ public class MatrixStatistics
      * @param sumOfWeights the sum of each weight in <tt>dataSet</tt>
      * @param sumOfSquaredWeights  the sum of the squared weights in <tt>dataSet</tt>
      */
-    public static void covarianceMatrix(Vec mean, List<DataPoint> dataSet, Matrix covariance, double sumOfWeights, double sumOfSquaredWeights)
-    {
-        if (!covariance.isSquare())
-            throw new ArithmeticException("Storage for covariance matrix must be square");
-        else if (covariance.rows() != mean.length())
-            throw new ArithmeticException("Covariance Matrix size and mean size do not agree");
-        else if (dataSet.isEmpty())
-            throw new ArithmeticException("No data points to compute covariance from");
-        else if (mean.length() != dataSet.get(0).getNumericalValues().length())
-            throw new ArithmeticException("Data vectors do not agree with mean and covariance matrix");
-
-        /**
-         * Weighted definition of the covariance matrix 
-         * 
-         *          n
-         *        =====
-         *        \
-         *         >    w
-         *        /      i          n
-         *        =====           =====                      T
-         *        i = 1           \        /     _\  /     _\
-         * ----------------------  >    w  |x  - x|  |x  - x|
-         *           2            /      i \ i    /  \ i    /
-         * /  n     \      n      =====
-         * |=====   |    =====    i = 1
-         * |\       |    \      2
-         * | >    w |  -  >    w
-         * |/      i|    /      i
-         * |=====   |    =====
-         * \i = 1   /    i = 1
-         */
-
-        Vec scratch = new DenseVector(mean.length());
-
-        for (int i = 0; i < dataSet.size(); i++)
-        {
-            DataPoint dp = dataSet.get(i);
-            Vec x = dp.getNumericalValues();
-            x.copyTo(scratch);
-            scratch.mutableSubtract(mean);
-            Matrix.OuterProductUpdate(covariance, scratch, scratch, dp.getWeight());
-        }
-        covariance.mutableMultiply(sumOfWeights / (Math.pow(sumOfWeights, 2) - sumOfSquaredWeights));
-    }
-    
-    /**
-     * Computes the weighted covariance matrix of the data set
-     * @param mean the mean of the data set
-     * @param dataSet the dataset to compute the covariance of
-     * @return the covariance matrix of the data set
-     */
-    public static Matrix covarianceMatrix(Vec mean, DataSet dataSet)
-    {
-        Matrix covariance = new DenseMatrix(mean.length(), mean.length());
-        covarianceMatrix(mean, dataSet, covariance);
-        return covariance;
-    }
-    
-    /**
-     * Computes the weighted covariance matrix of the given data set. 
-     * @param mean the mean of the data set
-     * @param dataSet the dataset to compute the covariance of
-     * @param covariance the zeroed out matrix to store the result into 
-     */
-    public static void covarianceMatrix(Vec mean, DataSet dataSet, Matrix covariance)
-    {
-        double sumOfWeights = 0.0, sumOfSquaredWeights = 0.0;
-        
-        for(int i = 0; i < dataSet.size(); i++)
-        {
-            DataPoint dp = dataSet.getDataPoint(i);
-            sumOfWeights += dp.getWeight();
-            sumOfSquaredWeights += Math.pow(dp.getWeight(), 2);
-        }
-        
-        covarianceMatrix(mean, dataSet, covariance, sumOfWeights, sumOfSquaredWeights);
-    }
-
-    /**
-     * Computes the weighted covariance matrix of the given data set. Superfluous calculations are avoided by having the call provide information. 
-     * @param mean the mean of the data set
-     * @param dataSet the dataset to compute the covariance of
-     * @param covariance the zeroed out matrix to store the result into 
-     * @param sumOfWeights the sum of the weights for each data point in the dataset
-     * @param sumOfSquaredWeights the sum of the squared weights for each data point in the data set
-     */
     public static void covarianceMatrix(Vec mean, DataSet dataSet, Matrix covariance, double sumOfWeights, double sumOfSquaredWeights)
     {
         if (!covariance.isSquare())
             throw new ArithmeticException("Storage for covariance matrix must be square");
         else if (covariance.rows() != mean.length())
             throw new ArithmeticException("Covariance Matrix size and mean size do not agree");
-        else if (dataSet.size() == 0)
+        else if (dataSet.isEmpty())
             throw new ArithmeticException("No data points to compute covariance from");
         else if (mean.length() != dataSet.getNumNumericalVars())
             throw new ArithmeticException("Data vectors do not agree with mean and covariance matrix");
@@ -356,9 +270,22 @@ public class MatrixStatistics
             Vec x = dp.getNumericalValues();
             x.copyTo(scratch);
             scratch.mutableSubtract(mean);
-            Matrix.OuterProductUpdate(covariance, scratch, scratch, dp.getWeight());
+            Matrix.OuterProductUpdate(covariance, scratch, scratch, dataSet.getWeight(i));
         }
         covariance.mutableMultiply(sumOfWeights / (Math.pow(sumOfWeights, 2) - sumOfSquaredWeights));
+    }
+    
+    /**
+     * Computes the weighted covariance matrix of the data set
+     * @param mean the mean of the data set
+     * @param dataSet the dataset to compute the covariance of
+     * @return the covariance matrix of the data set
+     */
+    public static Matrix covarianceMatrix(Vec mean, DataSet dataSet)
+    {
+        Matrix covariance = new DenseMatrix(mean.length(), mean.length());
+        covarianceMatrix(mean, dataSet, covariance);
+        return covariance;
     }
     
     /**
@@ -380,7 +307,7 @@ public class MatrixStatistics
         for(int i = 0; i < n; i++)
         {
             DataPoint dp = dataset.getDataPoint(i);
-            double w = dp.getWeight();
+            double w = dataset.getWeight(i);
             sumOfWeights += w;
             Vec x = dataset.getDataPoint(i).getNumericalValues();
             for(IndexValue iv : x)

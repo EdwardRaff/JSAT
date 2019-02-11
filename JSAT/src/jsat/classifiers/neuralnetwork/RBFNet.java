@@ -259,7 +259,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         if(sv.nnz() > sv.length()/2)//at this point we would be using more memory than needed. Just switch to dense
             sv = new DenseVector(sv);
         
-        return new DataPoint(sv, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+        return new DataPoint(sv, dp.getCategoricalValues(), dp.getCategoricalData());
     }
     /**
      * The first phase of learning a  RBF Neural Network is to determine the 

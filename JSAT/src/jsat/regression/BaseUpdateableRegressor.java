@@ -19,8 +19,8 @@ import jsat.utils.ListUtils;
 public abstract class BaseUpdateableRegressor implements UpdateableRegressor
 {
 
-	private static final long serialVersionUID = -679467882721432240L;
-	private int epochs = 1;
+    private static final long serialVersionUID = -679467882721432240L;
+    private int epochs = 1;
 
     /**
      * Sets the number of whole iterations through the training set that will be
@@ -74,7 +74,7 @@ public abstract class BaseUpdateableRegressor implements UpdateableRegressor
         {
             Collections.shuffle(randomOrder);
             for (int i : randomOrder)
-                toTrain.update(dataSet.getDataPoint(i), dataSet.getTargetValue(i));
+                toTrain.update(dataSet.getDataPoint(i), dataSet.getWeight(i), dataSet.getTargetValue(i));
         }
     }
 

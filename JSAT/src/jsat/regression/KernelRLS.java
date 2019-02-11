@@ -3,12 +3,10 @@ package jsat.regression;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.*;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
@@ -30,8 +28,8 @@ import jsat.utils.ListUtils;
 public class KernelRLS implements UpdateableRegressor, Parameterized
 {
 
-	private static final long serialVersionUID = -7292074388953854317L;
-	@ParameterHolder
+    private static final long serialVersionUID = -7292074388953854317L;
+    @ParameterHolder
     private KernelTrick k;
     private double errorTolerance;
     
@@ -164,7 +162,7 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
         IntList randOrder = new IntList(dataSet.size());
         ListUtils.addRange(randOrder, 0, dataSet.size(), 1);
         for(int i : randOrder)
-            update(dataSet.getDataPoint(i), dataSet.getTargetValue(i));
+            update(dataSet.getDataPoint(i), dataSet.getWeight(i), dataSet.getTargetValue(i));
     }
 
     @Override
@@ -199,7 +197,7 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
     }
 
     @Override
-    public void update(DataPoint dataPoint, final double y_t)
+    public void update(DataPoint dataPoint, double weight, final double y_t)
     {
         /*
          * TODO a lot of temporary allocations are done in this code, but 

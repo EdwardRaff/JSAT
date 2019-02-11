@@ -213,7 +213,7 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
     }
     
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(DataPoint dataPoint, double weight, int targetClass)
     {
         Vec x = dataPoint.getNumericalValues();
         

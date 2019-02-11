@@ -90,7 +90,7 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
                 else//iv.getIndex() > index
                     newVec.set(iv.getIndex() - 1, iv.getValue());
 
-            DataPoint newDp = new DataPoint(newVec, dp.getCategoricalValues(), categories, dp.getWeight());
+            DataPoint newDp = new DataPoint(newVec, dp.getCategoricalValues(), categories);
             
             datapoints.addDataPoint(newDp);
             targets.add(target);
@@ -176,7 +176,23 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         addDataPoint(dp, val);
     }
     
+    /**
+     * 
+     * @param dp the data to add
+     * @param val the target value for this data point
+     */
     public void addDataPoint(DataPoint dp, double val)
+    {
+	addDataPoint(dp, val, 1.0);
+    }
+    
+    /**
+     * 
+     * @param dp the data to add
+     * @param val the target value for this data point
+     * @param weight the weight for this data point
+     */
+    public void addDataPoint(DataPoint dp, double val, double weight)
     {
         if(dp.numNumericalValues() != getNumNumericalVars() || dp.numCategoricalValues() != getNumCategoricalVars())
             throw new RuntimeException("The added data point does not match the number of values and categories for the data set");
@@ -185,6 +201,7 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         
         datapoints.addDataPoint(dp);
         targets.add(val);
+	setWeight(size()-1, weight);
     }
     
     public void addDataPointPair(DataPointPair<Double> pair)
@@ -305,6 +322,12 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         for(int i = 0; i < size(); i++)
             clone.addDataPointPair(getDataPointPair(i));
         return clone;
+    }
+
+    @Override
+    public RegressionDataSet emptyClone()
+    {
+	return new RegressionDataSet(numNumerVals, categories);
     }
 
     @Override

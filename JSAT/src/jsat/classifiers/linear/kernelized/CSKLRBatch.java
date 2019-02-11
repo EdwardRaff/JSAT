@@ -3,9 +3,7 @@ package jsat.classifiers.linear.kernelized;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
@@ -17,12 +15,10 @@ import jsat.distributions.LogUniform;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.Vec;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 
 /**
  * An implementation of Conservative Stochastic Kernel Logistic Regression. This
@@ -270,7 +266,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
             
             for(int i : sampleOrder)
             {
-                final double weight = dataSet.getDataPoint(i).getWeight();
+                final double weight = dataSet.getWeight(i);
                 final double y_t = dataSet.getDataPointCategory(i)*2-1;
                 final Vec x_t = vecs.get(i);
                 final double pre = getPreScore(x_t);

@@ -69,16 +69,6 @@ public class ImpurityScore implements Cloneable
     
     /**
      * Removes one point from the impurity score
-     * @param dp the data point to add
-     * @param targetClass the class of the point to add
-     */
-    public void removePoint(DataPoint dp, int targetClass)
-    {
-        removePoint(dp.getWeight(), targetClass);
-    }
-    
-    /**
-     * Removes one point from the impurity score
      * @param weight the weight of the point to add
      * @param targetClass the class of the point to add
      */
@@ -87,17 +77,7 @@ public class ImpurityScore implements Cloneable
         counts[targetClass] -= weight;
         sumOfWeights -= weight;
     }
-
-    /**
-     * Adds one more point to the impurity score
-     * @param dp the data point to add
-     * @param targetClass the class of the point to add
-     */
-    public void addPoint(DataPoint dp, int targetClass)
-    {
-        addPoint(dp.getWeight(), targetClass);
-    }
-    
+   
     /**
      * Adds one more point to the impurity score
      * @param weight the weight of the point to add

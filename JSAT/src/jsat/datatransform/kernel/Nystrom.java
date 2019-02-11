@@ -354,7 +354,7 @@ public class Nystrom extends DataTransformBase
         Vec kVec = new DenseVector(basisVecs.size());
         for(int i = 0; i < basisVecs.size(); i++)
             kVec.set(i, k.eval(i, x, qi, basisVecs, accelCache));
-        return new DataPoint(kVec.multiply(transform), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+        return new DataPoint(kVec.multiply(transform), dp.getCategoricalValues(), dp.getCategoricalData());
     }
 
     @Override

@@ -349,7 +349,7 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(DataPoint dataPoint, double weight, int targetClass)
     {
         final double eta_t = decay.rate(time++, eta);
         Vec x = dataPoint.getNumericalValues();
@@ -399,7 +399,7 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
     }
     
     @Override
-    public void update(DataPoint dataPoint, double targetValue)
+    public void update(DataPoint dataPoint, double weight, double targetValue)
     {
         final double eta_t = decay.rate(time++, eta);
         Vec x = dataPoint.getNumericalValues();

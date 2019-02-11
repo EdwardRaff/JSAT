@@ -175,7 +175,7 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
     
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(DataPoint dataPoint, double weight, int targetClass)
     {
         final Vec x_t = dataPoint.getNumericalValues();
         final double y_t = targetClass*2-1;

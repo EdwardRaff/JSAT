@@ -234,7 +234,7 @@ public class JSATData
                     Iterator<FloatStorageMethod> iter = storageCandidates.iterator();
                     while (iter.hasNext())
                     {
-                        if (!iter.next().noLoss(dp.getWeight()))
+                        if (!iter.next().noLoss(data.getWeight(i)))
                             iter.remove();
                     }
                     if (storageCandidates.size() == 1)
@@ -349,7 +349,7 @@ public class JSATData
                 label = ((ClassificationDataSet) dataset).getDataPointCategory(i);
             else if (dataset instanceof RegressionDataSet)
                 label = ((RegressionDataSet) dataset).getTargetValue(i);
-            dw.writePoint(dataset.getDataPoint(i), label);
+            dw.writePoint(dataset.getWeight(i), dataset.getDataPoint(i), label);
         }
         
         dw.finish();
@@ -424,12 +424,12 @@ public class JSATData
             }
             
             @Override
-            protected void pointToBytes(DataPoint dp, double label, ByteArrayOutputStream byteOut)
+            protected void pointToBytes(double weight, DataPoint dp, double label, ByteArrayOutputStream byteOut)
             {
                 try
                 {
                     DataOutputStream data_out = new DataOutputStream(byteOut);
-                    fpStore.writeFP(dp.getWeight(), data_out);
+                    fpStore.writeFP(weight, data_out);
                     for(int val : dp.getCategoricalValues())
                         data_out.writeInt(val);
                     if(type == DataWriter.DataSetType.CLASSIFICATION)
@@ -699,7 +699,7 @@ public class JSATData
         
         //used for both numeric and categorical target storage
         DoubleList targets = new DoubleList();
-        
+        DoubleList weights = new DoubleList();
         store.setCategoricalDataInfo(categories);
         
         //read in all the data points
@@ -761,7 +761,8 @@ public class JSATData
                     target = fpStore.readFP(in);
                 }
 
-                DataPoint dp = new DataPoint(numericVals, catVals, categories, weight);
+                DataPoint dp = new DataPoint(numericVals, catVals, categories);
+		weights.add(weight);
                 store.addDataPoint(dp);
 
                 switch(marker)
@@ -782,16 +783,22 @@ public class JSATData
         
         in.close();
         
+	DataSet toRet;
         switch(marker)
         {
             case CLASSIFICATION:
                 IntList targets_i = IntList.view(targets.stream().mapToInt(Double::intValue).toArray());
-                return new ClassificationDataSet(store, targets_i, predicting);
+                toRet =  new ClassificationDataSet(store, targets_i, predicting);
+		break;
             case REGRESSION:
-                return new RegressionDataSet(store, targets);
+                toRet =  new RegressionDataSet(store, targets);
+		break;
             default:
-                return new SimpleDataSet(store);
+                toRet =  new SimpleDataSet(store);
         }
+	for(int i = 0; i < weights.size(); i++)
+	    toRet.setWeight(i, weights.getD(i));
+	return toRet;
     }
     
     private static void writeString(String s, DataOutputStream out) throws IOException

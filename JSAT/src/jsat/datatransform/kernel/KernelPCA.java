@@ -255,7 +255,7 @@ public class KernelPCA extends DataTransformBase
             newVec.set(i, val);
         }
 
-        return new DataPoint(newVec, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+        return new DataPoint(newVec, dp.getCategoricalValues(), dp.getCategoricalData());
     }
 
     @Override

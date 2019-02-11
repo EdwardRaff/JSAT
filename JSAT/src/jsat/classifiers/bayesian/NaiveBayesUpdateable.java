@@ -23,8 +23,8 @@ import jsat.math.MathTricks;
 public class NaiveBayesUpdateable extends BaseUpdateableClassifier
 {
 
-	private static final long serialVersionUID = 1835073945715343486L;
-	/**
+    private static final long serialVersionUID = 1835073945715343486L;
+    /**
      * Counts for each option
      */
     private double[][][] apriori;
@@ -121,9 +121,8 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(DataPoint dataPoint, double weight, int targetClass)
     {
-        double weight = dataPoint.getWeight();
         Vec x = dataPoint.getNumericalValues();
         if (sparseInput)
             for (IndexValue iv : x)

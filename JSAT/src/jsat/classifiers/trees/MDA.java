@@ -28,7 +28,6 @@ import jsat.regression.Regressor;
 import jsat.regression.evaluation.MeanSquaredError;
 import jsat.regression.evaluation.RegressionScore;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 
 /**
  * Mean Decrease in Accuracy (MDA) measures feature importance by applying the
@@ -65,7 +64,7 @@ public class MDA implements TreeFeatureImportanceInference
             for(int i = 0; i < cds.size(); i++)
             {
                 DataPoint dp = cds.getDataPoint(i);
-                cs.addResult(((Classifier)model).classify(dp), cds.getDataPointCategory(i), dp.getWeight());
+                cs.addResult(((Classifier)model).classify(dp), cds.getDataPointCategory(i), cds.getWeight(i));
             }
             baseScore = cs.getScore();
             percentIncrease = cs.lowerIsBetter();
@@ -82,7 +81,7 @@ public class MDA implements TreeFeatureImportanceInference
                     int true_label = cds.getDataPointCategory(i);
                     TreeNodeVisitor curNode = walkCorruptedPath(model, dp, j, rand);
                     
-                    cs.addResult(curNode.localClassify(dp), true_label, dp.getWeight());
+                    cs.addResult(curNode.localClassify(dp), true_label, cds.getWeight(i));
                 }
                 
                 double newScore = cs.getScore();
@@ -98,7 +97,7 @@ public class MDA implements TreeFeatureImportanceInference
             for(int i = 0; i < rds.size(); i++)
             {
                 DataPoint dp = rds.getDataPoint(i);
-                rs.addResult(((Regressor)model).regress(dp), rds.getTargetValue(i), dp.getWeight());
+                rs.addResult(((Regressor)model).regress(dp), rds.getTargetValue(i), rds.getWeight(i));
             }
             baseScore = rs.getScore();
             percentIncrease = rs.lowerIsBetter();
@@ -115,7 +114,7 @@ public class MDA implements TreeFeatureImportanceInference
                     double true_label = rds.getTargetValue(i);
                     TreeNodeVisitor curNode = walkCorruptedPath(model, dp, j, rand);
                     
-                    rs.addResult(curNode.localRegress(dp), true_label, dp.getWeight());
+                    rs.addResult(curNode.localRegress(dp), true_label, rds.getWeight(i));
                 }
                 
                 double newScore = rs.getScore();

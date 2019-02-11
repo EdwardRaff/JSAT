@@ -90,24 +90,4 @@ public class PerceptronTest
             assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
     }
 
-    /**
-     * Test of trainCOnline method, of class Perceptron.
-     */
-    @Test
-    public void testTrainCOnline()
-    {
-        System.out.println("trainCOnline");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
-
-        Perceptron instance = new Perceptron();
-        instance = instance.clone();
-        instance.trainCOnline(train);
-        instance = instance.clone();
-
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, RandomUtil.getRandom());
-
-        for (DataPointPair<Integer> dpp : test.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
-    }
-
 }

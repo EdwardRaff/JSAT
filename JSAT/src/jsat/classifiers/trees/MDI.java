@@ -24,6 +24,7 @@ import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
+import jsat.utils.IntList;
 
 /**
  * Determines the importance of features by measuring the decrease in impurity
@@ -74,15 +75,15 @@ public class MDI implements TreeFeatureImportanceInference
         List<DataPointPair<Integer>> allData = ((ClassificationDataSet)data).getAsDPPList();
         final int K = ((ClassificationDataSet)data).getClassSize();
         ImpurityScore score = new ImpurityScore(K, im);
-        for(DataPointPair<Integer> d : allData)
-            score.addPoint(d.getDataPoint(), d.getPair());
+        for(int i = 0; i < data.size(); i++)
+            score.addPoint(data.getWeight(i), ((ClassificationDataSet)data).getDataPointCategory(i));
         
-        visit(model.getTreeNodeVisitor(), score, allData, features, score.getSumOfWeights(), K);
+        visit(model.getTreeNodeVisitor(), score, (ClassificationDataSet) data, IntList.range(data.size()), features, score.getSumOfWeights(), K);
         
         return features;
     }
     
-    private void visit(TreeNodeVisitor node, ImpurityScore score, List<DataPointPair<Integer>> data, final double[] features , final double N, final int K)
+    private void visit(TreeNodeVisitor node, ImpurityScore score, ClassificationDataSet data, IntList subset, final double[] features , final double N, final int K)
     {
         if (node == null || node.isLeaf() )//invalid path or no split, so skip
             return;
@@ -91,30 +92,31 @@ public class MDI implements TreeFeatureImportanceInference
         double curN = score.getSumOfWeights();
         
         //working space to split data up into new subsets
-        List<List<DataPointPair<Integer>>> splitsData = new ArrayList<List<DataPointPair<Integer>>>(node.childrenCount());
-        List<ImpurityScore> splitScores = new ArrayList<ImpurityScore>(node.childrenCount());
-        splitsData.add(data);
+        List<IntList> splitsData = new ArrayList<>(node.childrenCount());
+        List<ImpurityScore> splitScores = new ArrayList<>(node.childrenCount());
+        splitsData.add(subset);
         splitScores.add(score);
         for(int i = 0; i < node.childrenCount()-1; i++)
         {
-            splitsData.add(new ArrayList<DataPointPair<Integer>>());
+            splitsData.add(new IntList());
             splitScores.add(new ImpurityScore(K, im));
         }
         
         //loop through and split up our data
-        for(ListIterator<DataPointPair<Integer>> iter = data.listIterator(); iter.hasNext();)
+        for(ListIterator<Integer> iter = subset.listIterator(); iter.hasNext();)
         {
-            DataPointPair<Integer> curPoint = iter.next();
-            final int tc = curPoint.getPair();
-            DataPoint dp = curPoint.getDataPoint();
+	    int indx = iter.next();
+            final int tc = data.getDataPointCategory(indx);
+            DataPoint dp = data.getDataPoint(indx);
+	    double w = data.getWeight(indx);
             int path = node.getPath(dp);
             if(path < 0)//NaN will cause -1
-                score.removePoint(dp, tc);
+                score.removePoint(w, tc);
             else if(path > 0)//0 will be cur data and score obj, else we move to right location
             {
-                score.removePoint(dp, tc);
-                splitScores.get(path).addPoint(dp, tc);
-                splitsData.get(path).add(curPoint);
+                score.removePoint(w, tc);
+                splitScores.get(path).addPoint(w, tc);
+                splitsData.get(path).add(indx);
                 iter.remove();
             }
         }
@@ -130,7 +132,7 @@ public class MDI implements TreeFeatureImportanceInference
 
         //now visit our children
         for(int path = 0; path < splitScores.size(); path++)
-            visit(node.getChild(path), splitScores.get(path), splitsData.get(path), features, N, K);
+            visit(node.getChild(path), splitScores.get(path), data, splitsData.get(path), features, N, K);
     }
     
 }

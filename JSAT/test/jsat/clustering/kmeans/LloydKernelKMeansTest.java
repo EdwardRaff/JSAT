@@ -108,8 +108,8 @@ public class LloydKernelKMeansTest
         toCluster.getDataPoint(toCluster.size()-1).getNumericalValues().set(0, 1.9e100);
         Random rand = new XORWOW(897654);
         for(int i = 0; i < toCluster.size(); i++)
-            toCluster.getDataPoint(i).setWeight(0.5+5*rand.nextDouble());
-        toCluster.getDataPoint(toCluster.size()-1).setWeight(1e-200);
+            toCluster.setWeight(i, 0.5+5*rand.nextDouble());
+        toCluster.setWeight(toCluster.size()-1, 1e-200);
         
         int[] result = kmeans.cluster(toCluster, 2, (int[])null);
         //make sure each cluster has points from only 1 class. If true then everyone is good

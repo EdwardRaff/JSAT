@@ -9,7 +9,6 @@ import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
-import jsat.classifiers.DataPointPair;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 
@@ -85,32 +84,32 @@ public class SAMME implements Classifier, Parameterized
     {
         predicting = dataSet.getPredicting();
         hypWeights = new DoubleList(maxIterations);
-        hypoths = new ArrayList<Classifier>();
+        hypoths = new ArrayList<>();
         /**
          * The number of classes we are predicting
          */
         int K = predicting.getNumOfCategories();
         double logK = Math.log(K-1.0)/Math.log(2);
         
-        List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
+        ClassificationDataSet cds = dataSet.shallowClone();
         //Initialization step, set up the weights  so they are all 1 / size of dataset
-        for(DataPointPair<Integer> dpp : dataPoints)
-            dpp.getDataPoint().setWeight(1.0);//Scaled, they are all 1 
-        double sumOfWeights = dataPoints.size();
+        for(int i = 0; i < cds.size(); i++)
+	    cds.setWeight(i, 1.0);//Scaled, they are all 1 
+        double sumOfWeights = cds.size();
         
         
         //Rather then reclasify points, we just save this list
-        boolean[] wasCorrect = new boolean[dataPoints.size()];
+        boolean[] wasCorrect = new boolean[cds.size()];
         
         for(int t = 0; t < maxIterations; t++)
         {
-            weakLearner.train(new ClassificationDataSet(dataPoints, predicting), parallel);
+            weakLearner.train(cds, parallel);
 
             //Error is the same as in AdaBoost.M1
             double error = 0.0;
-            for(int i = 0; i < dataPoints.size(); i++)
-                if( !(wasCorrect[i] = weakLearner.classify(dataPoints.get(i).getDataPoint()).mostLikely() == dataPoints.get(i).getPair()) )
-                    error += dataPoints.get(i).getDataPoint().getWeight();
+            for(int i = 0; i < cds.size(); i++)
+                if( !(wasCorrect[i] = weakLearner.classify(cds.getDataPoint(i)).mostLikely() == cds.getDataPointCategory(i)) )
+                    error += cds.getWeight(i);
             error /= sumOfWeights;
             if(error >= (1.0-1.0/K) || error == 0.0)///Diference, we only need to be better then random guessing classes 
                 return;
@@ -120,13 +119,14 @@ public class SAMME implements Classifier, Parameterized
             //Update Distribution weights 
             for(int i = 0; i < wasCorrect.length; i++)
             {
-                DataPoint dp = dataPoints.get(i).getDataPoint();
                 if(!wasCorrect[i])
                 {
-                    double w = dp.getWeight();
+                    double w = cds.getWeight(i);
                     double newW = w*Math.exp(am);
+		    if(Double.isInfinite(newW))//weight explosoin! Force it back down
+			newW = 1.0;
                     sumOfWeights += (newW-w);
-                    dp.setWeight(newW);
+                    cds.setWeight(i, newW);
                 }
             }
             
@@ -149,7 +149,7 @@ public class SAMME implements Classifier, Parameterized
             clone.hypWeights = new DoubleList(this.hypWeights);
         if(this.hypoths != null)
         {
-            clone.hypoths = new ArrayList<Classifier>(this.hypoths.size());
+            clone.hypoths = new ArrayList<>(this.hypoths.size());
             for(int i = 0; i < this.hypoths.size(); i++)
                 clone.hypoths.add(this.hypoths.get(i).clone());
         }

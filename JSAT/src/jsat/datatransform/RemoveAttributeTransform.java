@@ -267,7 +267,7 @@ public class RemoveAttributeTransform implements DataTransform
                     newNumVals.set(i, numVals.get(numIndexMap[i]));
             }
         }
-        return new DataPoint(newNumVals, newCatVals, newCatData, dp.getWeight());
+        return new DataPoint(newNumVals, newCatVals, newCatData);
     }
 
     @Override

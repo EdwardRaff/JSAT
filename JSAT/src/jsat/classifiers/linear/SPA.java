@@ -217,7 +217,7 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized, Simp
     }
     
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(DataPoint dataPoint, double weight, int targetClass)
     {
         Vec x = dataPoint.getNumericalValues();
         final double w_y_dot_x = w[targetClass].dot(x) + bias[targetClass];

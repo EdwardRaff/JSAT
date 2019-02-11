@@ -88,7 +88,8 @@ public class JSATDataTest
                 numeric[rand.nextInt(numeric.length)] = rand.nextDouble();
             }
             
-            simpleData.add(new DataPoint(new DenseVector(numeric), catVals, categories, rand.nextDouble()));
+            simpleData.add(new DataPoint(new DenseVector(numeric), catVals, categories));
+	    simpleData.setWeight(simpleData.size()-1, rand.nextDouble());
         }
         
         
@@ -108,7 +109,8 @@ public class JSATDataTest
                 numeric[rand.nextInt(numeric.length)] = rand.nextInt(Byte.MAX_VALUE);
             }
             
-            byteIntegerData.add(new DataPoint(new DenseVector(numeric), catVals, categories, rand.nextInt(Byte.MAX_VALUE)));
+            byteIntegerData.add(new DataPoint(new DenseVector(numeric), catVals, categories));
+	    byteIntegerData.setWeight(byteIntegerData.size()-1, rand.nextInt(Byte.MAX_VALUE-1)+1);
         }
     }
     
@@ -274,7 +276,7 @@ public class JSATDataTest
         for(DataStore store : new DataStore[]{new RowMajorStore(), new ColumnMajorStore()})
         {
             //use the last categorical feature as the read target so that forcing as a standard dataset produces the same expected result as the original simple dataset
-            RegressionDataSet rds = new RegressionDataSet(simpleData.getList(), simpleData.getNumNumericalVars()-1);
+            RegressionDataSet rds = simpleData.asRegressionDataSet(simpleData.getNumNumericalVars()-1);
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             JSATData.writeData(rds, baos);
@@ -359,7 +361,7 @@ public class JSATDataTest
 //            assertTrue(og_vec.isSparse() == cp_vec.isSparse());
             assertTrue(og_vec.equals(cp_vec));
             
-            assertEquals(og.getWeight(), cp.getWeight(), 0.0);
+            assertEquals(ogData.getWeight(i), cpData.getWeight(i), 0.0);
             
         }
         

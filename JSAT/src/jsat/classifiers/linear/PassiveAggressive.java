@@ -261,7 +261,7 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(DataPoint dataPoint, double weight, int targetClass)
     {
         Vec x = dataPoint.getNumericalValues();
         final int y_t = targetClass*2-1;
@@ -277,7 +277,7 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     }
     
     @Override
-    public void update(DataPoint dataPoint, double targetValue)
+    public void update(DataPoint dataPoint, double weight, double targetValue)
     {
         Vec x = dataPoint.getNumericalValues();
         final double y_t = targetValue;

@@ -229,13 +229,13 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
     {
         predicting = dataSet.getPredicting();
         hypWeights = new DoubleList(maxIterations);
-        hypoths = new ArrayList<Classifier>(maxIterations);
+        hypoths = new ArrayList<>(maxIterations);
         final int N = dataSet.size();
         
-        List<DataPointPair<Integer>> dataPoints = dataSet.getTwiceShallowClone().getAsDPPList();
+        ClassificationDataSet cds = dataSet.shallowClone();
         //Initialization step, set up the weights  so they are all 1 / size of dataset
-        for(DataPointPair<Integer> dpp : dataPoints)
-            dpp.getDataPoint().setWeight(1.0/N);//Scaled, they are all 1 
+        for(int i = 0; i < cds.size(); i++)
+            cds.setWeight(i, 1.0/N);//Scaled, they are all 1 
         double weightSum = 1;
         
         
@@ -246,15 +246,15 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
         for(int t = 0; t < maxIterations; t++)
         {
             Classifier weak = weakLearner.clone();
-            weak.train(new ClassificationDataSet(dataPoints, predicting), parallel);
+            weak.train(cds, parallel);
             
             double error = 0.0;
-            for(int i = 0; i < dataPoints.size(); i++)
+            for(int i = 0; i < cds.size(); i++)
             {
-                DataPointPair<Integer> dpp = dataPoints.get(i);
-                double y_hat = H_cur[i] = H(weak, dpp.getDataPoint());
-                double y_true = dpp.getPair()*2-1;//{-1 or 1}
-                error += dpp.getDataPoint().getWeight()*y_hat*y_true;
+                DataPoint dp = cds.getDataPoint(i);
+                double y_hat = H_cur[i] = H(weak, dp);
+                double y_true = cds.getDataPointCategory(i)*2-1;//{-1 or 1}
+                error += cds.getWeight(i)*y_hat*y_true;
             }
             
             
@@ -265,29 +265,24 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
             
             weightSum = 0;
             
-            for(int i = 0; i < dataPoints.size(); i++)
+            for(int i = 0; i < cds.size(); i++)
             {
                 curH_Result[i] += alpha_m * H_cur[i];
                 double f_t = curH_Result[i];
                 
-                DataPointPair<Integer> dpp = dataPoints.get(i);
-                DataPoint dp = dpp.getDataPoint();
-                double y_true = dpp.getPair()*2-1;
+                DataPoint dp = cds.getDataPoint(i);
+                double y_true = cds.getDataPointCategory(i)*2-1;
 
                 double w_i = Math.exp(lambda*Math.pow(f_t-y_true, 2) - (1-lambda)*f_t*f_t);
                 if(Double.isInfinite(w_i))
                     w_i = 50;//Let it grow back isntead of bizaro huge values
                 weightSum += w_i;
-                dp.setWeight(w_i);
+                cds.setWeight(i, w_i);
             }
             
-            for(int i = 0; i < dataPoints.size(); i++)
-            {
-                DataPointPair<Integer> dpp = dataPoints.get(i);
-                DataPoint dp = dpp.getDataPoint();
-                dp.setWeight(dp.getWeight()/weightSum);
-            }
-            
+            for(int i = 0; i < cds.size(); i++)
+		cds.setWeight(i, cds.getWeight(i)/weightSum);
+                        
             hypoths.add(weak);
             hypWeights.add(alpha_m);
         }

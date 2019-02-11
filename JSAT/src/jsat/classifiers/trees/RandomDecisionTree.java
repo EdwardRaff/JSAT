@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPointPair;
+import jsat.regression.RegressionDataSet;
 import jsat.utils.ModifiableCountDownLatch;
 import jsat.utils.random.RandomUtil;
 
@@ -81,29 +83,29 @@ public class RandomDecisionTree extends DecisionTree
     {
         return numFeatures;
     }
-    
+
     @Override
-    protected Node makeNodeC(List<DataPointPair<Integer>> dataPoints, Set<Integer> options, int depth, boolean parallel, ModifiableCountDownLatch mcdl)
+    protected Node makeNodeC(ClassificationDataSet dataPoints, Set<Integer> options, int depth, boolean parallel, ModifiableCountDownLatch mcdl)
     {
-        if(dataPoints.isEmpty())
+	if(dataPoints.isEmpty())
         {
             mcdl.countDown();
             return null;
         }
-        final int featureCount = dataPoints.get(0).getDataPoint().numCategoricalValues()+dataPoints.get(0).getDataPoint().numNumericalValues();
+        final int featureCount = dataPoints.getNumFeatures();
         fillWithRandomFeatures(options, featureCount);
         return super.makeNodeC(dataPoints, options, depth, parallel, mcdl); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected Node makeNodeR(List<DataPointPair<Double>> dataPoints, Set<Integer> options, int depth, boolean parallel, ModifiableCountDownLatch mcdl)
+    protected Node makeNodeR(RegressionDataSet dataPoints, Set<Integer> options, int depth, boolean parallel, ModifiableCountDownLatch mcdl)
     {
-        if(dataPoints.isEmpty())
+	if(dataPoints.isEmpty())
         {
             mcdl.countDown();
             return null;
         }
-        final int featureCount = dataPoints.get(0).getDataPoint().numCategoricalValues()+dataPoints.get(0).getDataPoint().numNumericalValues();
+        final int featureCount = dataPoints.getNumFeatures();
         fillWithRandomFeatures(options, featureCount);
         return super.makeNodeR(dataPoints, options, depth, parallel, mcdl); //To change body of generated methods, choose Tools | Templates.
     }

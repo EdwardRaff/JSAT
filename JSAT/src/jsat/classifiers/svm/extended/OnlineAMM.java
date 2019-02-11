@@ -258,7 +258,7 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
     }
 
     @Override
-    public void update(DataPoint dataPoint, final int y_t)
+    public void update(DataPoint dataPoint, double weight, final int y_t)
     {
         update(dataPoint, y_t, Integer.MIN_VALUE);
     }

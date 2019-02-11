@@ -9,10 +9,8 @@ import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.Vec;
-import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
-import jsat.utils.random.XORWOW;
 import static java.lang.Math.*;
 import jsat.DataSet;
 import jsat.distributions.Distribution;
@@ -50,8 +48,8 @@ import jsat.utils.random.RandomUtil;
 public class CSKLR extends BaseUpdateableClassifier implements Parameterized
 {
 
-	private static final long serialVersionUID = 2325605193408720811L;
-	private double eta;
+    private static final long serialVersionUID = 2325605193408720811L;
+    private double eta;
     private DoubleList alpha;
     private List<Vec> vecs;
     private double curNorm;
@@ -407,7 +405,7 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(DataPoint dataPoint, double weight, int targetClass)
     {
         double y_t = targetClass*2-1;
         Vec x_t = dataPoint.getNumericalValues();
@@ -426,7 +424,7 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
         }
         
         
-        double alpha_i = -eta*y_t*mode.grad(y_t, score, pre, gamma)*dataPoint.getWeight();
+        double alpha_i = -eta*y_t*mode.grad(y_t, score, pre, gamma)*weight;
 
         alpha.add(alpha_i);
         vecs.add(x_t);

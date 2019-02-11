@@ -217,7 +217,7 @@ public class JLTransform extends DataTransformBase
         newVec = R.multiply(newVec);
 
         DataPoint newDP = new DataPoint(newVec, dp.getCategoricalValues(), 
-                dp.getCategoricalData(), dp.getWeight());
+                dp.getCategoricalData());
         
         return newDP;
     }

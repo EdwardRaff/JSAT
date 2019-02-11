@@ -125,7 +125,7 @@ public class NaiveKMeansTest
         
         SimpleDataSet data2 = easyData10.getTwiceShallowClone();
         for(int i = 0; i < data2.size(); i++)
-            data2.getDataPoint(i).setWeight(15.0);
+            data2.setWeight(i, 15.0);
         
         int[] assignment = new int[easyData10.size()];
         List<Vec> orig_seeds = new ArrayList<Vec>();
@@ -157,7 +157,7 @@ public class NaiveKMeansTest
         
         Random rand = new XORWOW(897654);
         for(int i = 0; i < data2.size(); i++)
-            data2.getDataPoint(i).setWeight(0.5+5*rand.nextDouble());
+            data2.setWeight(i, 0.5+5*rand.nextDouble());
         kMeans.cluster(easyData10, null, 10, seeds, assignment, true, true, true, null);
         kMeans2.cluster(data2, null, 10, seeds2, assignment, true, true, true, null);
         

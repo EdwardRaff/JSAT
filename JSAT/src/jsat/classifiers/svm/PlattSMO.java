@@ -218,8 +218,8 @@ public class PlattSMO extends SupportVectorLearner implements BinaryScoreClassif
         {
             DataPoint dataPoint = dataSet.getDataPoint(i);
             vecs.add(dataPoint.getNumericalValues());
-            weights.set(i, dataPoint.getWeight());
-            if(dataPoint.getWeight() != 1)
+            weights.set(i,  dataSet.getWeight(i));
+            if( dataSet.getWeight(i) != 1)
                 allWeightsAreOne = false;
             if(dataSet.getDataPointCategory(i) == 0)
             {
@@ -1253,8 +1253,8 @@ public class PlattSMO extends SupportVectorLearner implements BinaryScoreClassif
             DataPoint dataPoint = dataSet.getDataPoint(i);
             vecs.add(dataPoint.getNumericalValues());
             fcache[i] = label[i] = dataSet.getTargetValue(i);
-            weights.set(i, dataPoint.getWeight());
-            if(dataPoint.getWeight() != 1)
+            weights.set(i, dataSet.getWeight(i));
+            if(dataSet.getWeight(i) != 1)
                 allWeightsAreOne = false;
         }
         if(allWeightsAreOne)//if everything == 1, don't waste the memory storying it

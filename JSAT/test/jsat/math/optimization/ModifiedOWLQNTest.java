@@ -199,8 +199,8 @@ public class ModifiedOWLQNTest
                 DataPoint dp = D.getDataPoint(i);
                 Vec x = dp.getNumericalValues();
                 double y = D.getDataPointCategory(i) * 2 - 1;
-                sum += loss.getLoss(w.dot(x), y) * dp.getWeight();
-                weightSum += dp.getWeight();
+                sum += loss.getLoss(w.dot(x), y) * D.getWeight(i);
+                weightSum += D.getWeight(i);
             }
 
             return sum / weightSum;
@@ -231,8 +231,8 @@ public class ModifiedOWLQNTest
                 DataPoint dp = D.getDataPoint(i);
                 Vec x = dp.getNumericalValues();
                 double y = D.getDataPointCategory(i) * 2 - 1;
-                s.mutableAdd(loss.getDeriv(w.dot(x), y) * dp.getWeight(), x);
-                weightSum += dp.getWeight();
+                s.mutableAdd(loss.getDeriv(w.dot(x), y) * D.getWeight(i), x);
+                weightSum += D.getWeight(i);
             }
             s.mutableDivide(weightSum);
             return s;

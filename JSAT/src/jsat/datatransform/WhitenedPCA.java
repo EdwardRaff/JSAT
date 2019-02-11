@@ -203,7 +203,7 @@ public class WhitenedPCA extends DataTransformBase
     {
         Vec newVec = transform.multiply(dp.getNumericalValues());
         
-        DataPoint newDp = new DataPoint(newVec, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+        DataPoint newDp = new DataPoint(newVec, dp.getCategoricalValues(), dp.getCategoricalData());
         
         return newDp;
     }

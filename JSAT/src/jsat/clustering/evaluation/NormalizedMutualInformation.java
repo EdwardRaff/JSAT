@@ -43,7 +43,7 @@ public class NormalizedMutualInformation implements ClusterEvaluation
                 continue;
             while(kPriors.size() <= ki)
                 kPriors.add(0.0);
-            kPriors.set(ki, kPriors.get(ki)+cds.getDataPoint(i).getWeight());
+            kPriors.set(ki, kPriors.get(ki)+cds.getWeight(i));
         }
         
         double N = 0.0;
@@ -69,7 +69,7 @@ public class NormalizedMutualInformation implements ClusterEvaluation
             if(kj < 0)//outlier, ignore
                 continue;
             
-            ck[ci][kj] += cds.getDataPoint(i).getWeight();
+            ck[ci][kj] += cds.getWeight(i);
         }
         
         for(int i = 0; i < cPriors.length; i++)

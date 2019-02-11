@@ -75,7 +75,7 @@ public class PolynomialTransform implements DataTransform
         while(setTo[x.length()-1] <= degree);
         
         return new DataPoint(new DenseVector(newVec), dp.getCategoricalValues(),
-                dp.getCategoricalData(), dp.getWeight());
+                dp.getCategoricalData());
     }
     
     /**

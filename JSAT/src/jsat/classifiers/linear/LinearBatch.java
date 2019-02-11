@@ -527,8 +527,8 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
                     DataPoint dp = D.getDataPoint(i);
                     Vec x = dp.getNumericalValues();
                     double y = getTargetY(D, i);
-                    sum.add(loss.getLoss(w.dot(x), y)*dp.getWeight());
-                    weightSum.add(dp.getWeight());
+                    sum.add(loss.getLoss(w.dot(x), y)*D.getWeight(i));
+                    weightSum.add(D.getWeight(i));
                 }
             });
             
@@ -573,8 +573,8 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
                     DataPoint dp = D.getDataPoint(i);
                     Vec x = dp.getNumericalValues();
                     double y = getTargetY(D, i);
-                    s_l.mutableAdd(loss.getDeriv(w.dot(x), y)*dp.getWeight(), x);
-                    weightSum.add(dp.getWeight());
+                    s_l.mutableAdd(loss.getDeriv(w.dot(x), y)*D.getWeight(i), x);
+                    weightSum.add(D.getWeight(i));
                 }
                 
                 return s_l;
@@ -621,8 +621,8 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
                         pred_local.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
                     loss.process(pred_local, pred_local);
                     int y = D.getDataPointCategory(i);
-                    sum.add(loss.getLoss(pred_local, y)*dp.getWeight());
-                    weightSum.add(dp.getWeight());
+                    sum.add(loss.getLoss(pred_local, y)*D.getWeight(i));
+                    weightSum.add(D.getWeight(i));
                 }
             });
             if(lambda0 > 0 )
@@ -671,8 +671,8 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
                     int y = D.getDataPointCategory(i);
                     loss.deriv(pred_local, pred_local, y);
                     for(int k = 0; k < pred_local.length(); k++)
-                        new SubVector(k*subWSize, subWSize, s_l).mutableAdd(pred_local.get(k)*dp.getWeight(), x);
-                    weightSum.add(dp.getWeight());
+                        new SubVector(k*subWSize, subWSize, s_l).mutableAdd(pred_local.get(k)*D.getWeight(i), x);
+                    weightSum.add(D.getWeight(i));
                 }
                 return s_l;
             }, (a,b)->a.add(b)).copyTo(s);

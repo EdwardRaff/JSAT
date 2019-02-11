@@ -31,8 +31,8 @@ import jsat.regression.Regressor;
 public class Stacking implements Classifier, Regressor
 {
 
-	private static final long serialVersionUID = -6173323872903232074L;
-	private int folds;
+    private static final long serialVersionUID = -6173323872903232074L;
+    private int folds;
     /**
      * The number of weights needed per model
      */
@@ -243,9 +243,12 @@ public class Stacking implements Classifier, Regressor
         
         List<ClassificationDataSet> dataFolds = dataSet.cvSet(folds);
         //iterate in the order of the folds so we get the right dataum weights
-        for(ClassificationDataSet cds : dataFolds)
-            for(int i = 0; i < cds.size(); i++)
-                metaSet.addDataPoint(new DenseVector(weightsPerModel*models), cds.getDataPointCategory(i), cds.getDataPoint(i).getWeight());
+        for (ClassificationDataSet cds : dataFolds)
+	    for (int i = 0; i < cds.size(); i++)
+	    {
+		metaSet.addDataPoint(new DenseVector(weightsPerModel * models), cds.getDataPointCategory(i));
+		metaSet.setWeight(i, cds.getWeight(i));
+	    }
         
         //create the meta training set
         for(int c = 0; c < baseClassifiers.size(); c++)
@@ -314,9 +317,12 @@ public class Stacking implements Classifier, Regressor
         
         List<RegressionDataSet> dataFolds = dataSet.cvSet(folds);
         //iterate in the order of the folds so we get the right dataum weights
-        for(RegressionDataSet rds : dataFolds)
-            for(int i = 0; i < rds.size(); i++)
-                metaSet.addDataPoint(new DataPoint(new DenseVector(weightsPerModel*models), rds.getDataPoint(i).getWeight()), rds.getTargetValue(i));
+        for (RegressionDataSet rds : dataFolds)
+	    for (int i = 0; i < rds.size(); i++)
+	    {
+		metaSet.addDataPoint(new DataPoint(new DenseVector(weightsPerModel * models)), rds.getTargetValue(i));
+		metaSet.setWeight(i, rds.getWeight(i));
+	    }
         
         //create the meta training set
         for(int c = 0; c < baseRegressors.size(); c++)
