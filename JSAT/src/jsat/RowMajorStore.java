@@ -160,6 +160,16 @@ public class RowMajorStore implements DataStore
     }
 
     @Override
+    public void setNumNumeric(int d)
+    {
+        if(d < 0)
+            throw new RuntimeException("Can not store a negative number of features (" +d + ")");
+        if(size() != 0)
+            throw new RuntimeException("Can not chang the number of numeric dimensions after data has already been added");
+        num_numeric = d;
+    }
+
+    @Override
     public int numCategorical() 
     {
         return num_cat;

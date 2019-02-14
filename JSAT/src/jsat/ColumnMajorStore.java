@@ -63,6 +63,7 @@ public class ColumnMajorStore implements DataStore
         this(0, null);
     }
 
+    @Override
     public CategoricalData[] getCategoricalDataInfo() 
     {
         return cat_info;
@@ -132,6 +133,24 @@ public class ColumnMajorStore implements DataStore
     {
         return columns.size();
     }
+
+    @Override
+    public void setNumNumeric(int d)
+    {
+        if(d < 0)
+            throw new RuntimeException("Can not store a negative number of features (" +d + ")");
+        if(size() != 0)
+            throw new RuntimeException("Can not chang the number of numeric dimensions after data has already been added");
+        //do we need to add more?
+        while(columns.size() < d)
+            this.columns.add(sparse ? new SparseVector(10) : new DenseVector(10));
+        //or do we need to remove?
+        while(columns.size() > d)
+            columns.remove(columns.size()-1);
+        //now we should be the same length!
+    }
+    
+    
     
     @Override
     public void addDataPoint(DataPoint dp)

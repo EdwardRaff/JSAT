@@ -32,6 +32,12 @@ import jsat.math.OnLineStatistics;
 public interface DataStore 
 {   
     
+    /**
+     * Sets the categorical data information used in this data store
+     *
+     * @param cat_info an array of the number of categorical features, with each
+     * object describing their information.
+     */
     public void setCategoricalDataInfo(CategoricalData[] cat_info);
     
     public CategoricalData[] getCategoricalDataInfo();
@@ -84,6 +90,12 @@ public interface DataStore
      * store.
      */
     public int numNumeric();
+    
+    /**
+     * Sets the number of numerical features that will be stored in this datastore object
+     * @param d the number of numerical features (i.e., dimensions) that should be stored. 
+     */
+    public void setNumNumeric(int d);
 
     /**
      *
