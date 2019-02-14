@@ -1,5 +1,5 @@
 
-package jsat;
+package jsat.io;
 
 import java.io.*;
 import java.util.*;
@@ -8,6 +8,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import jsat.DataSet;
+import jsat.SimpleDataSet;
 import jsat.classifiers.*;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
