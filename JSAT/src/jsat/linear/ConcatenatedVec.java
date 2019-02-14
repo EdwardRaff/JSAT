@@ -197,5 +197,32 @@ public class ConcatenatedVec extends Vec
             basIndex = (-(basIndex)-2);//-1 extra b/c we want to be on the lesser side
         return basIndex;
     }
+
+    @Override
+    public void setLength(int length)
+    {
+        if(length < 0)
+            throw new ArithmeticException("Can not create an array of negative length");
+        int toAdd = length - length();
+        int pos = vecs.length-1;
+        if(toAdd > 0)
+        {
+            vecs[pos].setLength(vecs[pos].length()+toAdd);
+        }
+        else//decreasing
+        {
+            while(Math.abs(toAdd) >= vecs[pos].length())
+            {
+                if(vecs[pos].nnz() > 0)
+                    throw new RuntimeException("Can't decrease the length of this vector from " + length() + " to " + length + " due to non-zero value");
+                toAdd += vecs[pos--].length();
+            }
+            
+            //if we can't do this, it will err at us
+            vecs[pos].setLength(vecs[pos].length()+toAdd);
+            vecs = Arrays.copyOf(vecs, pos+1);
+            
+        }
+    }
     
 }

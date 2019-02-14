@@ -23,9 +23,8 @@ import java.util.Iterator;
  */
 public class ScaledVector extends Vec
 {
-
-	private static final long serialVersionUID = 7357893957632067299L;
-	private double scale;
+    private static final long serialVersionUID = 7357893957632067299L;
+    private double scale;
     private Vec base;
 
     /**
@@ -295,6 +294,12 @@ public class ScaledVector extends Vec
         };
         
         return wrapedIter;
+    }
+
+    @Override
+    public void setLength(int length)
+    {
+        base.setLength(length);
     }
     
 }

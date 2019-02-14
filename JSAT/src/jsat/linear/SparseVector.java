@@ -152,6 +152,7 @@ public class SparseVector extends  Vec
      * 
      * @param length the new length of this vector
      */
+    @Override
     public void setLength(int length)
     {
         if(used > 0 && length < indexes[used-1])

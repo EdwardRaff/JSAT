@@ -630,12 +630,9 @@ public abstract class Matrix implements Cloneable, Serializable
         final Matrix M = this;
         return new Vec() 
         {
-            /**
-			 * 
-			 */
-			private static final long serialVersionUID = 7107290189250645384L;
+            private static final long serialVersionUID = 7107290189250645384L;
 
-			@Override
+            @Override
             public int length()
             {
                 return rows();
@@ -667,6 +664,12 @@ public abstract class Matrix implements Cloneable, Serializable
                 else
                     return new DenseVector(this);
             }
+
+            @Override
+            public void setLength(int length)
+            {
+                throw new UnsupportedOperationException("Vector view can't not extend original matrix"); 
+            }
         };
     }
     
@@ -697,15 +700,11 @@ public abstract class Matrix implements Cloneable, Serializable
     public Vec getRowView(final int r)
     {
         final Matrix M = this;
-        return new Vec() 
+        return new Vec()
         {
+            private static final long serialVersionUID = 8484494698777822563L;
 
-            /**
-			 * 
-			 */
-			private static final long serialVersionUID = 8484494698777822563L;
-
-			@Override
+            @Override
             public int length()
             {
                 return M.cols();
@@ -736,6 +735,12 @@ public abstract class Matrix implements Cloneable, Serializable
                     return new SparseVector(this);
                 else
                     return new DenseVector(this);
+            }
+
+            @Override
+            public void setLength(int length)
+            {
+                throw new UnsupportedOperationException("Vector view can not extend original matrix"); 
             }
         };
     }

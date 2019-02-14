@@ -344,5 +344,11 @@ public class VecPaired<V extends Vec, P> extends Vec
     {
         return vector.isSparse();
     }
+
+    @Override
+    public void setLength(int length)
+    {
+        vector.setLength(length);
+    }
     
 }

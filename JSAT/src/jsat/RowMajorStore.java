@@ -119,16 +119,7 @@ public class RowMajorStore implements DataStore
             Vec nv = v;
             //Check that the number of numeric values match up
             //if short, fill with zeros
-            if(v instanceof SparseVector)
-                ((SparseVector)v).setLength(num_numeric);
-            else if(v.length() < num_numeric)
-            {
-                if(v.isSparse())
-                    nv = new SparseVector(num_numeric, v.nnz());
-                else
-                    nv = new DenseVector(num_numeric);
-                v.copyTo(new SubVector(0, v.length(), nv));
-            }
+            v.setLength(num_numeric);
             
             //Check that the number of categorical values match up
             //if short, fill with missing values

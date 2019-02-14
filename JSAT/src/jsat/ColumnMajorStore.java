@@ -174,17 +174,7 @@ public class ColumnMajorStore implements DataStore
             
             Vec x_d = columns.get(d);
             if(x_d.length() <= pos)//We need to increase the size of x_d
-            {
-                if(x_d instanceof SparseVector)
-                    ((SparseVector)x_d).setLength(size*2);
-                else
-                {
-                    Vec x_d_new = new DenseVector(size*2);
-                    x_d.copyTo(new SubVector(0, x_d.length(), x_d_new));
-                    x_d = x_d_new;
-                    columns.set(d, x_d_new);
-                }
-            }
+                x_d.setLength(size*2);
             //size is now correct, we can set the values
             x_d.set(pos, v);
         }
@@ -277,15 +267,7 @@ public class ColumnMajorStore implements DataStore
         for(int i = 0; i < columns.size(); i++)
         {
             Vec v = columns.get(i);
-            if(v instanceof SparseVector)
-                ((SparseVector)v).setLength(size);
-            else if(v.length() < size)
-            {
-                Vec nv = new DenseVector(size);
-                v.copyTo(new SubVector(0, v.length(), nv));
-                columns.set(i, nv);
-            }
-                
+            v.setLength(size);
         }
     }
 

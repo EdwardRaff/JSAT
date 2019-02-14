@@ -18,8 +18,8 @@ import java.util.Iterator;
 public class VecWithNorm extends Vec
 {
 
-	private static final long serialVersionUID = 3888178071694466561L;
-	final private Vec base;
+    private static final long serialVersionUID = 3888178071694466561L;
+    final private Vec base;
     private double normSqrd;
 
     /**
@@ -173,5 +173,12 @@ public class VecWithNorm extends Vec
     public Iterator<IndexValue> getNonZeroIterator(int start)
     {
         return base.getNonZeroIterator(start);
+    }
+
+    @Override
+    public void setLength(int length)
+    {
+        //b/c addition or removal of zeros does not impact norm, this is easy
+        base.setLength(length);
     }
 }

@@ -17,8 +17,8 @@ import jsat.utils.random.RandomUtil;
 public abstract class RandomVector extends Vec
 {
 
-	private static final long serialVersionUID = -1587968421978707875L;
-	/*
+    private static final long serialVersionUID = -1587968421978707875L;
+    /*
      * Implementation note: It is assumed that the default random object is a
      * PRNG with a single word / long of state. A higher quality PRNG cant be 
      * used if it requires too many words of state, as the initalization will 
@@ -201,4 +201,12 @@ public abstract class RandomVector extends Vec
     {
         return false;
     }
+
+    @Override
+    public void setLength(int length)
+    {
+        this.length = length;
+    }
+    
+    
 }

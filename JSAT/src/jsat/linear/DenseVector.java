@@ -467,4 +467,20 @@ public class DenseVector extends Vec
     {
         return false;
     }
+
+    @Override
+    public void setLength(int length)
+    {
+        if(length < 0)
+            throw new ArithmeticException("Can not create an array of negative length");
+        if(length > length())
+        {
+            if(length < length())//make sure we aren't destroying anything
+                for(int i = length()-length; i < length(); i++)
+                    if(get(i) != 0)
+                        throw new RuntimeException("Can't decrease the length of this vector from " + length() + " to " + length + " due to non-zero value");
+            array = Arrays.copyOf(array, startIndex + length);
+            endIndex = startIndex + length;
+        }
+    }
 }

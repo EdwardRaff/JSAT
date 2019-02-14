@@ -496,6 +496,12 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         {
             return new VecWithBias(w.clone(), Arrays.copyOf(b, b.length));
         }
+
+        @Override
+        public void setLength(int length)
+        {
+            throw new UnsupportedOperationException("Not supported yet."); 
+        }
         
     }
     /**

@@ -25,10 +25,10 @@ import java.util.NoSuchElementException;
 public class Poly2Vec extends Vec
 {
 
-	private static final long serialVersionUID = -5653680966558726340L;
+    private static final long serialVersionUID = -5653680966558726340L;
 
-	private Vec base;
-    
+    private Vec base;
+
     /**
      * This maps values pas the original coefficients (and bias term) shifted to
      * start from zero, to the appropriate value for the fist coefficient. 
@@ -318,6 +318,12 @@ public class Poly2Vec extends Vec
                 throw new UnsupportedOperationException("Not supported yet."); 
             }
         };
+    }
+
+    @Override
+    public void setLength(int length)
+    {
+        throw new UnsupportedOperationException("Poly2Vec can't extend original base vector");
     }
     
 }

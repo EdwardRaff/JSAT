@@ -14,8 +14,8 @@ import java.util.NoSuchElementException;
 public class SubVector extends Vec
 {
 
-	private static final long serialVersionUID = -873882618035700676L;
-	private int startPosition;
+    private static final long serialVersionUID = -873882618035700676L;
+    private int startPosition;
     private int length;
     private Vec vec;
 
@@ -114,6 +114,12 @@ public class SubVector extends Vec
             return new SparseVector(this);
         else
             return new DenseVector(this);
+    }
+
+    @Override
+    public void setLength(int length)
+    {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

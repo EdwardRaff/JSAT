@@ -1163,5 +1163,19 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     {
         return new DenseVector(length);
     }
+    
+    /**
+     * Changes the length of the given vector. The length can always be
+     * extended. The length can be reduced down to the size of the largest non
+     * zero element.<br>
+     * <br>
+     * NOTE: this function is not mandatory. Vectors that are views or implicit
+     * transformations of another vector are unlikely to support this
+     * functionality. Vectors that are base level representations should support
+     * this function.
+     *
+     * @param length the new length for this vector
+     */
+    abstract public void setLength(int length);
 
 }
