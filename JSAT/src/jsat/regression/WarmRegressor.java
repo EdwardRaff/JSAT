@@ -65,5 +65,9 @@ public interface WarmRegressor extends Regressor
      * @param dataSet the data set to train on
      * @param warmSolution the solution to use to warm start this model
      */
-    public void train(RegressionDataSet dataSet, Regressor warmSolution);
+    default public void train(RegressionDataSet dataSet, Regressor warmSolution)
+    {
+        train(dataSet, warmSolution, false);
+    }
+
 }
