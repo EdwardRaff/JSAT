@@ -28,6 +28,7 @@ import static java.lang.Character.isWhitespace;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import jsat.DataStore;
 import jsat.SimpleDataSet;
 import jsat.linear.*;
 import jsat.utils.*;
@@ -582,6 +583,7 @@ public class CSV
         if(cat_target >= 0)
         {
             ClassificationDataSet d = new ClassificationDataSet(totalCols - cat_array.length-1, cat_array, target_data);
+            d.setDataStore(DataStore.DEFAULT_STORE.emptyClone());
             for (int i = 0; i < all_vecs.size(); i++)
                 d.addDataPoint(all_vecs.get(i), all_cats.get(i), catTargets.getI(i));
 
@@ -590,6 +592,7 @@ public class CSV
         else if (numeric_target >= 0)
         {
             RegressionDataSet d = new RegressionDataSet(totalCols - cat_array.length - 1, cat_array);
+            d.setDataStore(DataStore.DEFAULT_STORE.emptyClone());
             for (int i = 0; i < all_vecs.size(); i++)
                 d.addDataPoint(all_vecs.get(i), all_cats.get(i), regressionTargets.getD(i));
 
@@ -598,6 +601,7 @@ public class CSV
         else
         {
             SimpleDataSet d = new SimpleDataSet(totalCols - cat_array.length, cat_array);
+            d.setDataStore(DataStore.DEFAULT_STORE.emptyClone());
             for (int i = 0; i < all_vecs.size(); i++)
                 d.add(new DataPoint(all_vecs.get(i), all_cats.get(i), cat_array));
 

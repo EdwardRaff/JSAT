@@ -3,6 +3,7 @@ package jsat.io;
 import java.io.*;
 import java.util.*;
 import jsat.DataSet;
+import jsat.DataStore;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;
@@ -10,6 +11,7 @@ import jsat.datatransform.DenseSparceTransform;
 import jsat.linear.*;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.DoubleList;
+import jsat.utils.IntList;
 import jsat.utils.StringUtils;
 
 /**
@@ -127,7 +129,26 @@ public class LIBSVMLoader
      */
     public static RegressionDataSet loadR(Reader reader, double sparseRatio, int vectorLength) throws IOException
     {
-        return (RegressionDataSet) loadG(reader, sparseRatio, vectorLength, false);
+        return loadR(reader, sparseRatio, vectorLength, DataStore.DEFAULT_STORE);
+    }
+    
+    /**
+     * Loads a new regression data set from a LIBSVM file, assuming the label is
+     * a numeric target value to predict.
+     * 
+     * @param reader the reader for the file to load
+     * @param sparseRatio the fraction of non zero values to qualify a data 
+     * point as sparse
+     * @param vectorLength the pre-determined length of each vector. If given a 
+     * negative value, the largest non-zero index observed in the data will be 
+     * used as the length. 
+     * @param store the type of store to use for data
+     * @return a regression data set
+     * @throws IOException 
+     */
+    public static RegressionDataSet loadR(Reader reader, double sparseRatio, int vectorLength, DataStore store) throws IOException
+    {
+        return (RegressionDataSet) loadG(reader, sparseRatio, vectorLength, false, store);
     }
     
     /**
@@ -204,12 +225,32 @@ public class LIBSVMLoader
      * @param vectorLength the pre-determined length of each vector. If given a 
      * negative value, the largest non-zero index observed in the data will be 
      * used as the length. 
+     * @param store the type of store to use for the data
      * @return a classification data set
      * @throws IOException if an error occurred reading the input stream
      */
     public static ClassificationDataSet loadC(Reader reader, double sparseRatio, int vectorLength) throws IOException
     {
-        return (ClassificationDataSet) loadG(reader, sparseRatio, vectorLength, true);
+        return loadC(reader, sparseRatio, vectorLength, DataStore.DEFAULT_STORE);
+    }
+    
+    /**
+     * Loads a new classification data set from a LIBSVM file, assuming the 
+     * label is a nominal target value 
+     * 
+     * @param reader the input stream for the file to load
+     * @param sparseRatio the fraction of non zero values to qualify a data 
+     * point as sparse
+     * @param vectorLength the pre-determined length of each vector. If given a 
+     * negative value, the largest non-zero index observed in the data will be 
+     * used as the length. 
+     * @param store the type of store to use for the data
+     * @return a classification data set
+     * @throws IOException if an error occurred reading the input stream
+     */
+    public static ClassificationDataSet loadC(Reader reader, double sparseRatio, int vectorLength, DataStore store) throws IOException
+    {
+        return (ClassificationDataSet) loadG(reader, sparseRatio, vectorLength, true, store);
     }
     
     /**
@@ -222,17 +263,18 @@ public class LIBSVMLoader
      * @return
      * @throws IOException 
      */
-    private static DataSet loadG(Reader reader, double sparseRatio, int vectorLength, boolean classification) throws IOException
+    private static DataSet loadG(Reader reader, double sparseRatio, int vectorLength, boolean classification, DataStore store) throws IOException
     {
         StringBuilder processBuffer = new StringBuilder(20);
         StringBuilder charBuffer = new StringBuilder(1024);
         char[] buffer = new char[1024];
-        List<SparseVector> sparceVecs = new ArrayList<SparseVector>();
+        DataStore sparceVecs = store.emptyClone();
+        sparceVecs.setCategoricalDataInfo(new CategoricalData[0]);
         /**
          * The category "label" for each value loaded in
          */
         List<Double> labelVals = new DoubleList();
-        Map<Double, Integer> possibleCats = new HashMap<Double, Integer>();
+        Map<Double, Integer> possibleCats = new HashMap<>();
         int maxLen= 1;
         
         STATE state = STATE.INITIAL;
@@ -267,11 +309,11 @@ public class LIBSVMLoader
                         possibleCats.put(label, possibleCats.size());
                     labelVals.add(label);
                     
-                    sparceVecs.add(new SparseVector(maxLen, 0));
+                    sparceVecs.addDataPoint(new DataPoint(new SparseVector(maxLen, 0)));
                 }
                 else if(state == STATE.WHITESPACE_AFTER_LABEL)//last line was empty, but we have already eaten the label
                 {
-                    sparceVecs.add(new SparseVector(maxLen, 0));
+                    sparceVecs.addDataPoint(new DataPoint(new SparseVector(maxLen, 0)));
                 }
                 else if(state == STATE.FEATURE_VALUE || state == STATE.WHITESPACE_AFTER_FEATURE)//line ended after a value pair
                 {
@@ -283,7 +325,7 @@ public class LIBSVMLoader
                     tempVec.setLength(maxLen);
                     if (value != 0)
                         tempVec.set(indexProcessing, value);
-                    sparceVecs.add(tempVec.clone());
+                    sparceVecs.addDataPoint(new DataPoint(tempVec.clone()));
                 }
                 else if(state == STATE.NEWLINE)
                 {
@@ -322,7 +364,7 @@ public class LIBSVMLoader
                         if (ch == '\n' || ch == '\r')//empty line, so add a zero vector
                         {
                             tempVec.zeroOut();
-                            sparceVecs.add(new SparseVector(maxLen, 0));
+                            sparceVecs.addDataPoint(new DataPoint(new SparseVector(maxLen, 0)));
                             state = STATE.NEWLINE;
                         }
                         else//just white space
@@ -344,7 +386,7 @@ public class LIBSVMLoader
                         if (ch == '\n' || ch == '\r')
                         {
                             tempVec.zeroOut();
-                            sparceVecs.add(new SparseVector(maxLen, 0));///no features again, add zero vec
+                            sparceVecs.addDataPoint(new DataPoint(new SparseVector(maxLen, 0)));///no features again, add zero vec
                             state = STATE.NEWLINE;
                         }
                         else//normal whie space
@@ -402,7 +444,7 @@ public class LIBSVMLoader
                     {
                         if (ch == '\n' || ch == '\r')
                         {
-                            sparceVecs.add(tempVec.clone());
+                            sparceVecs.addDataPoint(new DataPoint(tempVec.clone()));
                             tempVec.zeroOut();
                             state = STATE.NEWLINE;
                         }
@@ -436,14 +478,15 @@ public class LIBSVMLoader
             Collections.sort(allCatKeys);
             for(int i = 0; i < allCatKeys.size(); i++)
                 possibleCats.put(allCatKeys.get(i), i);
+            //apply to target values now 
+            
+            IntList label_targets = IntList.view(labelVals.stream()
+                    .mapToInt(possibleCats::get)
+                    .toArray());
 
-            ClassificationDataSet cds = new ClassificationDataSet(maxLen, new CategoricalData[0], predicting);
-            for(int i = 0; i < labelVals.size(); i++)
-            {
-                SparseVector vec = sparceVecs.get(i);
-                vec.setLength(maxLen);
-                cds.addDataPoint(vec, new int[0], possibleCats.get(labelVals.get(i)));
-            }
+            sparceVecs.setNumNumeric(maxLen);
+            sparceVecs.finishAdding();
+            ClassificationDataSet cds = new ClassificationDataSet(sparceVecs, label_targets);
 
             cds.applyTransform(new DenseSparceTransform(sparseRatio));
 
@@ -451,14 +494,9 @@ public class LIBSVMLoader
         }
         else//regression
         {
-            RegressionDataSet rds = new RegressionDataSet(maxLen, new CategoricalData[0]);
-            for(int i = 0; i < sparceVecs.size(); i++)
-            {
-                SparseVector sv = sparceVecs.get(i);
-                sv.setLength(maxLen);
-                rds.addDataPoint(sv, new int[0], labelVals.get(i));
-            }
-
+            sparceVecs.setNumNumeric(maxLen);
+            sparceVecs.finishAdding();
+            RegressionDataSet rds = new RegressionDataSet(sparceVecs, labelVals);
             rds.applyTransform(new DenseSparceTransform(sparseRatio));
 
             return rds;

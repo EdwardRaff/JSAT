@@ -18,6 +18,7 @@
 package jsat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import jsat.classifiers.CategoricalData;
@@ -25,6 +26,7 @@ import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
 import jsat.linear.SparseVector;
+import jsat.linear.SubVector;
 import jsat.linear.Vec;
 import jsat.math.OnLineStatistics;
 
@@ -110,7 +112,40 @@ public class RowMajorStore implements DataStore
     @Override
     public void finishAdding() 
     {
-        
+        for(int i = 0; i < datapoints.size(); i++)
+        {
+            DataPoint d = datapoints.get(i);
+            Vec v = d.getNumericalValues();
+            Vec nv = v;
+            //Check that the number of numeric values match up
+            //if short, fill with zeros
+            if(v instanceof SparseVector)
+                ((SparseVector)v).setLength(num_numeric);
+            else if(v.length() < num_numeric)
+            {
+                if(v.isSparse())
+                    nv = new SparseVector(num_numeric, v.nnz());
+                else
+                    nv = new DenseVector(num_numeric);
+                v.copyTo(new SubVector(0, v.length(), nv));
+            }
+            
+            //Check that the number of categorical values match up
+            //if short, fill with missing values
+            int[] c = d.getCategoricalValues();
+            int[] nc = c;
+            if(d.numCategoricalValues() < num_cat)
+            {
+                nc = Arrays.copyOf(c, num_cat);
+                for(int j = c.length; j < nc.length; j++)
+                    nc[j] = -1;//Missing value
+            }
+            
+            if(v != nv || c != nc)//intentionally doing equality check on objects
+            {
+                datapoints.set(i, new DataPoint(nv, nc, cat_info));
+            }
+        }
     }
 
 
@@ -151,6 +186,7 @@ public class RowMajorStore implements DataStore
     public void setCategoricalDataInfo(CategoricalData[] cat_info) 
     {
         this.cat_info = cat_info;
+        this.num_cat = cat_info.length;
     }
 
     @Override
@@ -164,8 +200,6 @@ public class RowMajorStore implements DataStore
     {
         if(d < 0)
             throw new RuntimeException("Can not store a negative number of features (" +d + ")");
-        if(size() != 0)
-            throw new RuntimeException("Can not chang the number of numeric dimensions after data has already been added");
         num_numeric = d;
     }
 

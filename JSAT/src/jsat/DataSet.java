@@ -37,6 +37,9 @@ public abstract class DataSet<Type extends DataSet>
      */
     protected Map<Integer, String> numericalVariableNames;
     
+    /**
+     * The backing store that holds all data points
+     */
     protected DataStore datapoints;
     
     /**
@@ -44,16 +47,6 @@ public abstract class DataSet<Type extends DataSet>
      * value of 1.0 for each datumn.
      */
     protected double[] weights;
-
-    /**
-     * Creates a new dataset containing the given datapoints. 
-     * 
-     * @param datapoints the collection of data points to create a dataset from
-     */
-    public DataSet(List<DataPoint> datapoints) 
-    {
-        this(new RowMajorStore(datapoints));
-    }
     
     /**
      * Creates a new dataset containing the given datapoints. The number of
@@ -64,7 +57,6 @@ public abstract class DataSet<Type extends DataSet>
      */
     public DataSet(DataStore datapoints) 
     {
-        datapoints.finishAdding();
         this.datapoints = datapoints;
         this.numNumerVals = datapoints.numNumeric();
         this.categories = datapoints.getCategoricalDataInfo();
@@ -86,13 +78,37 @@ public abstract class DataSet<Type extends DataSet>
     {
         this.categories = categories;
         this.numNumerVals = numerical;
-        this.datapoints = new RowMajorStore(numNumerVals, categories);
+        this.datapoints = DataStore.DEFAULT_STORE.emptyClone();
+        this.datapoints.setNumNumeric(numerical);
+        this.datapoints.setCategoricalDataInfo(categories);
         this.numericalVariableNames = new HashMap<>();
         this.weights = null;
     }
-    
-    
-    
+
+    /**
+     * This method changes the back-end store used to hold and represent data
+     * points. Changing this may be beneficial for expert users who know how
+     * their data will be accessed, or need to make modifications for more
+     * efficient storage.<br>
+     * If the currently data store is not empty, it's contents will be copied to
+     * the new store. <br>
+     * If the provided data store is not empty, and error will occur.
+     *
+     * @param store the new method for stroing data points
+     */
+    public void setDataStore(DataStore store)
+    {
+        if(store.size() > 0)
+            throw new RuntimeException("A non-empty data store was provided to an already existing dataset object.");
+        store.setCategoricalDataInfo(this.datapoints.getCategoricalDataInfo());
+        store.setNumNumeric(numNumerVals);
+        if(this.datapoints.size() > 0)
+        {
+            for(int i = 0; i < this.datapoints.size(); i++)
+                store.addDataPoint(this.getDataPoint(i));
+        }
+        this.datapoints = store;
+    }
     
     
     /**

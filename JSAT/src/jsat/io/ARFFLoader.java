@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jsat.DataSet;
+import jsat.DataStore;
 import jsat.SimpleDataSet;
 import jsat.classifiers.*;
 import jsat.linear.DenseVector;
@@ -55,7 +56,19 @@ public class ARFFLoader
      */
     public static SimpleDataSet loadArffFile(Reader input) 
     {
-        ArrayList<DataPoint> list = new ArrayList<>();
+       return loadArffFile(input, DataStore.DEFAULT_STORE);
+    }
+    
+    /**
+     * Uses the given reader to load a data set assuming it follows the ARFF 
+     * file format
+     * @param input the reader to load the data set from
+     * @param store the data store to use 
+     * @return the data set from the stream, or null of the file could not be loaded 
+     */
+    public static SimpleDataSet loadArffFile(Reader input, DataStore store) 
+    {
+        DataStore list = store.emptyClone();
         DoubleList weights = new DoubleList();
         
         BufferedReader br = new BufferedReader(input);
@@ -99,6 +112,9 @@ public class ARFFLoader
                             }
                         }
                         
+                        //prept to start reading in data
+                        list.setNumNumeric(numReal);
+                        list.setCategoricalDataInfo(categoricalData);
                         atData = true;
                         continue;
                     }
@@ -187,7 +203,7 @@ public class ARFFLoader
                         }
                     }
                     
-                    list.add(new DataPoint(vec, cats, categoricalData)); 
+                    list.addDataPoint(new DataPoint(vec, cats, categoricalData)); 
                     weights.add(weight);
                 }
             }

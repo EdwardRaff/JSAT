@@ -492,7 +492,7 @@ public class JSATData
      */
     public static DataSet<?> load(InputStream inRaw) throws IOException
     {
-        return load(inRaw, false, new RowMajorStore());
+        return load(inRaw, DataStore.DEFAULT_STORE.emptyClone());
     }
     
     /**
@@ -622,7 +622,7 @@ public class JSATData
     @SuppressWarnings("unchecked")
     protected static DataSet<?> load(InputStream inRaw, boolean forceAsStandard) throws IOException
     {
-        return load(inRaw, forceAsStandard, new RowMajorStore());
+        return load(inRaw, forceAsStandard, DataStore.DEFAULT_STORE.emptyClone());
     }
     /**
      * This loads a JSAT dataset from an input stream, and will not do any of
@@ -701,6 +701,7 @@ public class JSATData
         DoubleList targets = new DoubleList();
         DoubleList weights = new DoubleList();
         store.setCategoricalDataInfo(categories);
+        store.setNumNumeric(numNumeric);
         
         //read in all the data points
         if(N < 0)

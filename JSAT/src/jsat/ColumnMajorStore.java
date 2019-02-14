@@ -138,8 +138,6 @@ public class ColumnMajorStore implements DataStore
     {
         if(d < 0)
             throw new RuntimeException("Can not store a negative number of features (" +d + ")");
-        if(size() != 0)
-            throw new RuntimeException("Can not chang the number of numeric dimensions after data has already been added");
         //do we need to add more?
         while(columns.size() < d)
             this.columns.add(sparse ? new SparseVector(10) : new DenseVector(10));
@@ -254,7 +252,8 @@ public class ColumnMajorStore implements DataStore
        
         for(int j = 0; j < d_n; j++)
         {
-            columns.get(j).set(i, 0);
+            Vec tmp = columns.get(j);
+            tmp.set(i, 0);
         }
         for(IndexValue iv : x)
             columns.get(iv.getIndex()).set(i, iv.getValue());
@@ -275,10 +274,18 @@ public class ColumnMajorStore implements DataStore
             }
         }
         
-        for(Vec v : columns)
+        for(int i = 0; i < columns.size(); i++)
         {
+            Vec v = columns.get(i);
             if(v instanceof SparseVector)
                 ((SparseVector)v).setLength(size);
+            else if(v.length() < size)
+            {
+                Vec nv = new DenseVector(size);
+                v.copyTo(new SubVector(0, v.length(), nv));
+                columns.set(i, nv);
+            }
+                
         }
     }
 

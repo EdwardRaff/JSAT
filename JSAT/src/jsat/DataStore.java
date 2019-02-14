@@ -49,7 +49,13 @@ public interface DataStore
     public CategoricalData[] getCategoricalDataInfo();
     
     /**
-     * Adds the given data point to this data store.
+     * Adds the given data point to this data store. If the given data point has
+     * more features (numeric or categorical) than is expected, the store will
+     * automatically expand to accept the given features.<br>
+     * If you want an error to be thrown on miss-match between current and given
+     * data, use {@link #addDataPointCheck(jsat.classifiers.DataPoint) }.
+     *
+     *
      * @param dp the data point to add
      */
     public void addDataPoint(DataPoint dp);

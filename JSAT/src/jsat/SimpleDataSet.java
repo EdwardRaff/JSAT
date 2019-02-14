@@ -27,7 +27,9 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
      */
     public SimpleDataSet(List<DataPoint> datapoints)
     {
-        super(datapoints);
+        super(datapoints.get(0).numNumericalValues(), datapoints.get(0).getCategoricalData());
+        for(DataPoint dp : datapoints)
+            this.add(dp);
     }
     
     /**
