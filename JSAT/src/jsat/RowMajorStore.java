@@ -197,4 +197,10 @@ public class RowMajorStore implements DataStore
         return new RowMajorStore(this);
     }
 
+    @Override
+    public RowMajorStore emptyClone()
+    {
+        return new RowMajorStore(num_numeric, cat_info);
+    }
+
 }

@@ -31,6 +31,12 @@ import jsat.math.OnLineStatistics;
  */
 public interface DataStore 
 {   
+
+    /**
+     * This is the default data store type that will be used whenever any new
+     * DataSet object is created.
+     */
+    public static DataStore DEFAULT_STORE = new RowMajorStore();
     
     /**
      * Sets the categorical data information used in this data store
@@ -139,4 +145,13 @@ public interface DataStore
     public OnLineStatistics getSparsityStats();
     
     public DataStore clone();
+
+    /**
+     * Creates a new data store that is the same type as this one, but contains
+     * no data points.
+     *
+     * @return a new data store that is the same type as this one, but contains
+     * no data points.
+     */
+    public DataStore emptyClone();
 }

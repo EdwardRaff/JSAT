@@ -19,7 +19,6 @@ package jsat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import jsat.classifiers.CategoricalData;
@@ -322,6 +321,12 @@ public class ColumnMajorStore implements DataStore
     public ColumnMajorStore clone() 
     {
         return new ColumnMajorStore(this);
+    }
+
+    @Override
+    public ColumnMajorStore emptyClone()
+    {
+        return new ColumnMajorStore(columns.size(), cat_info, sparse);
     }
 
 }
