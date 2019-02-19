@@ -368,12 +368,30 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
         float[] y = new float[l];
         double w_norm_1;
         double w_norm_2;
+        
+        List<Vec> columnsOfX = new ArrayList<>(Arrays.asList(dataSet.getNumericColumns()));
+        
         if(useInit)
         {
+            //lets go through all columns to compure w_dot_x values. We could do a row-major version and get
+            //w_dot_x[i] = w.dot(dataSet.getDataPoint(i).getNumericalValues())+b;
+            //but we are a column major algorithm, so lets assume oru data is stored in a colum major fashion
+            //First, add bias term to each value
+            Arrays.fill(w_dot_x, b);
+            //now add contributions one column/feature at a time
+            for(int j = 0; j < n; j++)
+            {
+                Vec col_j = columnsOfX.get(j);
+                double w_j = w.get(j);
+                for(IndexValue iv : col_j)
+                    w_dot_x[iv.getIndex()] += w_j*iv.getValue();
+            }
+            //now w_dot_x should be initailized correctly, and we can go through the rows to prep other values needed
             for(int i = 0; i < l; i++)
             {
                 y[i] = dataSet.getDataPointCategory(i)*2-1;
-                w_dot_x[i] = w.dot(dataSet.getDataPoint(i).getNumericalValues())+b;
+                //this was computed in the above loop over columns
+                //w_dot_x[i] = w.dot(dataSet.getDataPoint(i).getNumericalValues())+b;
                 final double tmp = exp_w_dot_x_plus_dx[i] = exp_w_dot_x[i] = exp(w_dot_x[i]);
                 final double D_part_i = D_part[i]= 1/(1+tmp);
                 D[i] = tmp*D_part_i*D_part_i;
@@ -395,7 +413,7 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
             w_norm_2 = w.pNorm(2);
         }
         
-        List<Vec> columnsOfX = new ArrayList<>(Arrays.asList(dataSet.getNumericColumns()));
+        
         /**
          * sum of all x_j values in the negative class. Used for ∇_j L in trick
          * from LIBLINEAR eq(44)
