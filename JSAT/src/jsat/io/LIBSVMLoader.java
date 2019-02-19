@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 import jsat.DataSet;
 import jsat.DataStore;
+import jsat.RowMajorStore;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;
@@ -488,7 +489,8 @@ public class LIBSVMLoader
             sparceVecs.finishAdding();
             ClassificationDataSet cds = new ClassificationDataSet(sparceVecs, label_targets);
 
-            cds.applyTransform(new DenseSparceTransform(sparseRatio));
+            if(store instanceof RowMajorStore)
+                cds.applyTransform(new DenseSparceTransform(sparseRatio));
 
             return cds;
         }
