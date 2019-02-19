@@ -331,7 +331,6 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
             w = new DenseVector(n);
             b = 0;
         }
-        List<Vec> X = dataSet.getDataVectors();
         
         double first_M_bar = 0;
         double e_in = 1.0;//set later when first_M_bar is set
@@ -374,7 +373,7 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
             for(int i = 0; i < l; i++)
             {
                 y[i] = dataSet.getDataPointCategory(i)*2-1;
-                w_dot_x[i] = w.dot(X.get(i))+b;
+                w_dot_x[i] = w.dot(dataSet.getDataPoint(i).getNumericalValues())+b;
                 final double tmp = exp_w_dot_x_plus_dx[i] = exp_w_dot_x[i] = exp(w_dot_x[i]);
                 final double D_part_i = D_part[i]= 1/(1+tmp);
                 D[i] = tmp*D_part_i*D_part_i;
@@ -396,7 +395,7 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
             w_norm_2 = w.pNorm(2);
         }
         
-        List<Vec> columnsOfX = new ArrayList<Vec>(Arrays.asList(dataSet.getNumericColumns()));
+        List<Vec> columnsOfX = new ArrayList<>(Arrays.asList(dataSet.getNumericColumns()));
         /**
          * sum of all x_j values in the negative class. Used for ∇_j L in trick
          * from LIBLINEAR eq(44)
