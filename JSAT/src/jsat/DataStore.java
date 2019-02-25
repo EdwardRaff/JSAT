@@ -18,12 +18,14 @@
 package jsat;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.linear.Vec;
 import jsat.math.OnLineStatistics;
+import jsat.utils.ListUtils;
 
 /**
  *
@@ -122,6 +124,38 @@ public interface DataStore
      * @param dp 
      */
     public void setDataPoint(int i, DataPoint dp);
+   
+    /**
+     * The data set can be seen as a NxM matrix, were each row is a data point,
+     * and each column the values for a particular variable. This method grabs
+     * all the numerical values for a 'column' and returns it as one vector.
+     * <br>
+     * This vector can be altered and will not effect any of the values in the
+     * data set
+     *
+     * @param i the <tt>i</tt>'th numerical variable to obtain all values of
+     * @return a Vector of length {@link #size() }
+     */
+    default public Vec getNumericColumn(int i)
+    {
+        if (i < 0 || i >= numNumeric())
+            throw new IndexOutOfBoundsException("There is no index for column " + i);
+
+        Set<Integer> toSkip = new HashSet<>(ListUtils.range(0, numNumeric()));
+        toSkip.remove(i);
+        return getNumericColumns(toSkip)[i];
+    }
+    
+    /**
+     * This method grabs all the categorical values for a 'column' and returns it as an array.
+     * <br>
+     * This array can be altered and will not effect any of the values in the
+     * data set
+     *
+     * @param i the <tt>i</tt>'th categorical variable to obtain all values of
+     * @return an array
+     */
+    public int[] getCatColumn(int i);
     
     /**
      * 

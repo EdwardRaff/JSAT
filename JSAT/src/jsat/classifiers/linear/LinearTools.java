@@ -5,6 +5,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
+import jsat.linear.IndexValue;
 
 /**
  * This class provides static helper methods that may be useful for various
@@ -48,12 +49,28 @@ public class LinearTools
         final double D_part_i = 0.5;
         final int n = cds.getNumNumericalVars();
         Vec delta_L = new DenseVector(n);
-        List<Vec> X = cds.getDataVectors();
-        for (int i = 0; i < X.size(); i++)
+        if(cds.rowMajor())
         {
-            double y_i = cds.getDataPointCategory(i) * 2 - 1;
-            Vec x = X.get(i);
-            delta_L.mutableAdd(D_part_i * y_i, x);
+            List<Vec> X = cds.getDataVectors();
+            for (int i = 0; i < X.size(); i++)
+            {
+                double y_i = cds.getDataPointCategory(i) * 2 - 1;
+                Vec x = X.get(i);
+                delta_L.mutableAdd(D_part_i * y_i, x);
+            }
+        }
+        else
+        {
+            for(int j = 0; j < cds.getNumNumericalVars(); j++)
+            {
+                Vec X_j = cds.getNumericColumn(j);
+                for(IndexValue iv : X_j)
+                {
+                    int i = iv.getIndex();
+                    double y_i = cds.getDataPointCategory(i) * 2 - 1;
+                    delta_L.increment(i, D_part_i*y_i*iv.getValue());
+                }
+            }
         }
         return max(abs(delta_L.max()), abs(delta_L.min())) / (cds.size());
     }

@@ -228,4 +228,15 @@ public class RowMajorStore implements DataStore
         return new RowMajorStore(num_numeric, cat_info);
     }
 
+    @Override
+    public int[] getCatColumn(int i)
+    {
+        if (i < 0 || i >= numCategorical())
+            throw new IndexOutOfBoundsException("There is no index for column " + i);
+        int[] toRet = new int[size()];
+        for(int z = 0; z < size(); z++)
+            toRet[z] = datapoints.get(z).getCategoricalValue(i);
+        return toRet;
+    }
+
 }

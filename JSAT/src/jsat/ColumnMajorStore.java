@@ -324,4 +324,12 @@ public class ColumnMajorStore implements DataStore
         return new ColumnMajorStore(columns.size(), cat_info, sparse);
     }
 
+    @Override
+    public int[] getCatColumn(int i)
+    {
+        if (i < 0 || i >= numCategorical())
+            throw new IndexOutOfBoundsException("There is no index for column " + i);
+        return Arrays.copyOf(cat_columns.get(i).streamInts().toArray(), size());
+    }
+
 }

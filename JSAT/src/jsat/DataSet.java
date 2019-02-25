@@ -3,6 +3,8 @@ package jsat;
 
 import java.lang.ref.SoftReference;
 import java.util.*;
+import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
@@ -635,12 +637,7 @@ public abstract class DataSet<Type extends DataSet>
      */
     public Vec getNumericColumn(int i )
     {
-        if(i < 0 || i >= getNumNumericalVars())
-            throw new IndexOutOfBoundsException("There is no index for column " + i);
-
-        Set<Integer> toSkip = new HashSet<>(ListUtils.range(0, numNumerVals));
-        toSkip.remove(i);
-        return getNumericColumns(toSkip)[i];
+        return datapoints.getNumericColumn(i);
     }
     
     /**
@@ -650,13 +647,23 @@ public abstract class DataSet<Type extends DataSet>
     public long countMissingValues()
     {
         long missing = 0;
-        for (int i = 0; i < size(); i++)
+        if(rowMajor())
         {
-            DataPoint dp = getDataPoint(i);
-            missing += dp.getNumericalValues().countNaNs();
-            for(int c : dp.getCategoricalValues())
-                if(c < 0)
-                    missing++;
+            for (int i = 0; i < size(); i++)
+            {
+                DataPoint dp = getDataPoint(i);
+                missing += dp.getNumericalValues().countNaNs();
+                for(int c : dp.getCategoricalValues())
+                    if(c < 0)
+                        missing++;
+            }
+        }
+        else
+        {
+            for(int j = 0; j < getNumNumericalVars(); j++)
+                missing += datapoints.getNumericColumn(j).countNaNs();
+            for(int j = 0; j < getNumCategoricalVars(); j++)
+                missing += IntStream.of(datapoints.getCatColumn(j)).filter(z->z<0).count();
         }
         return missing;
     }
@@ -814,31 +821,7 @@ public abstract class DataSet<Type extends DataSet>
      */
     public OnLineStatistics getSparsityStats()
     {
-        OnLineStatistics stats = new OnLineStatistics();
-        if(rowMajor())
-        {
-            for(int i = 0; i < size(); i++)
-            {
-                Vec v = getDataPoint(i).getNumericalValues();
-                if(v.isSparse())
-                    stats.add(v.nnz() / (double)v.length());
-                else
-                    stats.add(1.0);
-            }
-        }
-        else
-        {
-            for(int i = 0; i < getNumNumericalVars(); i++)
-            {
-                Vec v = getNumericColumn(i);
-                if(v.isSparse())
-                    stats.add(v.nnz() / (double)v.length());
-                else
-                    stats.add(1.0);
-            }
-        }
-        
-        return stats;
+        return datapoints.getSparsityStats();
     }
     
     /**
