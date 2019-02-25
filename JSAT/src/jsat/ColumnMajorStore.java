@@ -115,6 +115,12 @@ public class ColumnMajorStore implements DataStore
     }
 
     @Override
+    public boolean rowMajor()
+    {
+        return false;
+    }
+
+    @Override
     public void setCategoricalDataInfo(CategoricalData[] cat_info) 
     {
         this.cat_info = cat_info;

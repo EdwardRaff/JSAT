@@ -139,6 +139,17 @@ public interface DataStore
         return list;
     }
     
+    /**
+     * 
+     * @return {@code true} if row-major traversal should be the preferred
+     * iteration order for this data store, or {@code false} if column-major
+     * should be preferred.
+     */
+    default public boolean rowMajor()
+    {
+        return true;
+    }
+    
     public int size();
     
     /**

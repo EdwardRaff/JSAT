@@ -110,6 +110,16 @@ public abstract class DataSet<Type extends DataSet>
         this.datapoints = store;
     }
     
+    /**
+     * 
+     * @return {@code true} if row-major traversal should be the preferred
+     * iteration order for this data store, or {@code false} if column-major
+     * should be preferred.
+     */
+    public boolean rowMajor()
+    {
+        return datapoints.rowMajor();
+    }
     
     /**
      * Sets the unique name associated with the <tt>i</tt>'th numeric attribute. All strings will be converted to lower case first. 
@@ -805,13 +815,27 @@ public abstract class DataSet<Type extends DataSet>
     public OnLineStatistics getSparsityStats()
     {
         OnLineStatistics stats = new OnLineStatistics();
-        for(int i = 0; i < size(); i++)
+        if(rowMajor())
         {
-            Vec v = getDataPoint(i).getNumericalValues();
-            if(v.isSparse())
-                stats.add(v.nnz() / (double)v.length());
-            else
-                stats.add(1.0);
+            for(int i = 0; i < size(); i++)
+            {
+                Vec v = getDataPoint(i).getNumericalValues();
+                if(v.isSparse())
+                    stats.add(v.nnz() / (double)v.length());
+                else
+                    stats.add(1.0);
+            }
+        }
+        else
+        {
+            for(int i = 0; i < getNumNumericalVars(); i++)
+            {
+                Vec v = getNumericColumn(i);
+                if(v.isSparse())
+                    stats.add(v.nnz() / (double)v.length());
+                else
+                    stats.add(1.0);
+            }
         }
         
         return stats;
