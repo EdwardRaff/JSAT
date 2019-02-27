@@ -174,7 +174,7 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements Incremen
     public void build(boolean parallel, List<V> collection, DistanceMetric dm)
     {
         clear();
-        setDistanceMetric(distanceMetric);
+        setDistanceMetric(dm);
         addAll(collection);
     }
 }

@@ -130,6 +130,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
         this.k = k;
         this.weighted = weighted;
         this.distanceMetric = distanceMetric;
+	this.vecCollection.setDistanceMetric(distanceMetric);
     }
 
     @Override
