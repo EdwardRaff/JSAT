@@ -68,7 +68,7 @@ public class LinearTools
                 {
                     int i = iv.getIndex();
                     double y_i = cds.getDataPointCategory(i) * 2 - 1;
-                    delta_L.increment(i, D_part_i*y_i*iv.getValue());
+                    delta_L.increment(j, D_part_i*y_i*iv.getValue());
                 }
             }
         }
