@@ -9,6 +9,7 @@ import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import jsat.utils.random.RandomUtil;
+import jsat.utils.random.XORWOW;
 import org.junit.*;
 import static org.junit.Assert.*;
 
@@ -128,6 +129,35 @@ public class IntSortedSetTest
         assertEquals(4, set.size());
     }
     
+    
+    @Test
+    public void testLinearAdd()
+    {
+        //this test exists b/c IntSortedSet has a hot path for adding in this fashion
+        System.out.println("testLinearAdd");
+
+        SortedSet<Integer> groundTruth = new TreeSet<Integer>();
+        IntSortedSet testSet = new IntSortedSet();
+
+        XORWOW rand = new XORWOW();
+        
+        int cur = rand.nextInt(10);
+        
+        groundTruth.add(cur);
+        testSet.add(cur);
+        
+        assertSameContent(groundTruth, testSet);
+        
+        for(int i = 0; i < 1000; i++)
+        {
+            cur = cur + rand.nextInt(10);
+            groundTruth.add(cur);
+            testSet.add(cur);
+
+            assertSameContent(groundTruth, testSet);
+        }
+
+    }
     
     @Test
     public void testSubSet()

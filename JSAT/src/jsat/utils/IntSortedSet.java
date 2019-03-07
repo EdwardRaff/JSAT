@@ -33,8 +33,21 @@ public class IntSortedSet extends AbstractSet<Integer> implements Serializable, 
     public IntSortedSet(Set<Integer> set)
     {
         this(set.size());
-        for(Integer integer : set)
-            this.add(integer);
+        batch_insert(set, false);
+    }
+    
+    
+    /**
+     * Creates a new set of integers from the given set
+     *
+     * @param set the set of integers to create a copy of
+     * @param parallel {@code true} if sorting should be done in parallel, or
+     * {@code false} for serial sorting.
+     */
+    public IntSortedSet(Collection<Integer> set, boolean parallel)
+    {
+        this(set.size());
+        batch_insert(set, parallel);
     }
     
     /**
@@ -43,9 +56,26 @@ public class IntSortedSet extends AbstractSet<Integer> implements Serializable, 
      */
     public IntSortedSet(Collection<Integer> collection)
     {
-        this();
-        for(Integer integer : collection)
-            this.add(integer);
+        this(collection.size());
+        batch_insert(collection, false);
+    }
+    
+
+    /**
+     * more efficient insertion of many items by placing them all into the
+     * backing store, and then doing one large sort.
+     *
+     * @param set
+     * @param parallel
+     */
+    private void batch_insert(Collection<Integer> set, boolean parallel)
+    {
+        for(int i : set)
+            store[size++] = i;
+        if(parallel)
+            Arrays.parallelSort(store, 0, size);
+        else
+            Arrays.sort(store, 0, size);
     }
     
     /**
@@ -58,6 +88,18 @@ public class IntSortedSet extends AbstractSet<Integer> implements Serializable, 
         return new IntSortedSet(IntList.view(ints, ints.length));
     }
     
+    /**
+     * This method provides direct access to the integer array used to store all
+     * ints in this object. Altering this will alter the set, and may cause
+     * incorrect behavior if the sorted order is violated.
+     *
+     * @return the sorted int array used to back this current object. 
+     */
+    public int[] getBackingStore()
+    {
+        return store;
+    }
+    
     public IntSortedSet()
     {
         this(defaultSize);
@@ -68,15 +110,26 @@ public class IntSortedSet extends AbstractSet<Integer> implements Serializable, 
     {
         if(e == null)
             return false;
+        
+        //Increase store size if needed
+        //checking here means we will actually expand 1 value early, but avoids a double check later
+        //so small cost, I'll take it to simplify code
+        if(size >= store.length)
+            store = Arrays.copyOf(store, Math.max(1, store.length)*2);
+        
+        //fast path for when we are filling a set, and iterating from smallest to largest index. 
+        //avoids needlessly expensive binary search for common insertion pattern
+        if(size > 0 && store[size-1] < e)
+        {
+            store[size++] = e;
+            return true;
+        }
+        //else, do a search to find where we should be placing this value
         int insertionPoint = Arrays.binarySearch(store, 0, size, e);
         if(insertionPoint >= 0 )
             return false;//Already in the set
         //Fix up to where we would like to place it
         insertionPoint = (-(insertionPoint) - 1);
-        
-        //Increase store size if needed
-        if(size >= store.length)
-            store = Arrays.copyOf(store, Math.max(1, store.length)*2);
         
         for(int i = size; i > insertionPoint; i--)
             store[i] = store[i-1];
