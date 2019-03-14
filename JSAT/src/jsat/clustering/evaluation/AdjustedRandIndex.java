@@ -83,6 +83,13 @@ public class AdjustedRandIndex implements ClusterEvaluation
     }
 
     @Override
+    public double naturalScore(double evaluate_score)
+    {
+	//returns values int he range of [1, -1], with 1=best, and -1=worst
+	return -evaluate_score+1;
+    }
+
+    @Override
     public double evaluate(List<List<DataPoint>> dataSets)
     {
         throw new UnsupportedOperationException("Adjusted Rand Index requires the true data set"

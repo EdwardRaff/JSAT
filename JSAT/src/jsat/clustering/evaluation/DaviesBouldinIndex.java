@@ -104,6 +104,13 @@ public class DaviesBouldinIndex implements ClusterEvaluation
     }
 
     @Override
+    public double naturalScore(double evaluate_score)
+    {
+	//DB already satisfies this
+	return evaluate_score;
+    }
+
+    @Override
     public DaviesBouldinIndex clone()
     {
         return new DaviesBouldinIndex(this);

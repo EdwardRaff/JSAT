@@ -43,6 +43,12 @@ public class IntraClusterSumEvaluation extends ClusterEvaluationBase
     }
 
     @Override
+    public double naturalScore(double evaluate_score)
+    {
+	return evaluate_score;
+    }
+
+    @Override
     public IntraClusterSumEvaluation clone()
     {
         return new IntraClusterSumEvaluation(this);

@@ -78,6 +78,12 @@ public class DunnIndex implements ClusterEvaluation
     }
 
     @Override
+    public double naturalScore(double evaluate_score)
+    {
+	return 1/evaluate_score-1;
+    }
+
+    @Override
     public DunnIndex clone()
     {
         return new DunnIndex(this);

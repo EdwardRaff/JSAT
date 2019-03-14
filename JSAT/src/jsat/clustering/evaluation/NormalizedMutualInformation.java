@@ -95,6 +95,12 @@ public class NormalizedMutualInformation implements ClusterEvaluation
     }
 
     @Override
+    public double naturalScore(double evaluate_score)
+    {
+	return -evaluate_score+1;
+    }
+
+    @Override
     public double evaluate(List<List<DataPoint>> dataSets)
     {
         throw new UnsupportedOperationException("NMI requires the true data set"
