@@ -81,6 +81,8 @@ public class JLTransformTest
         {
             JLTransform jl = new JLTransform(k, mode, true);
             jl.fit(ds);
+            
+            jl = jl.clone();
 
             transformed.clear();
             for(int i = 0; i < ds.size(); i++)

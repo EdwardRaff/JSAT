@@ -98,6 +98,7 @@ public class JLTransform extends DataTransformBase
     {
         this.mode = transform.mode;
         this.R = transform.R.clone();
+        this.k = transform.k;
         if(transform.sparse_jl_map != null)
         {
             this.sparse_jl_map = new ArrayList<>(transform.sparse_jl_map.size());
@@ -328,7 +329,7 @@ public class JLTransform extends DataTransformBase
     }
 
     @Override
-    public DataTransform clone()
+    public JLTransform clone()
     {
         return new JLTransform(this);
     }
@@ -338,6 +339,13 @@ public class JLTransform extends DataTransformBase
         private static final long serialVersionUID = 2009377824896155918L;
         public double cnst;
         private TransformMode mode;
+
+        public RandomMatrixJL(RandomMatrixJL toCopy) 
+        {
+            super(toCopy);
+            this.cnst = toCopy.cnst;
+            this.mode = toCopy.mode;
+        }
         
         public RandomMatrixJL(int rows, int cols, long XORSeed, TransformMode mode)
         {
@@ -374,6 +382,12 @@ public class JLTransform extends DataTransformBase
             }
             else
                 throw new RuntimeException("BUG: Please report");
+        }
+
+        @Override
+        public RandomMatrixJL clone() 
+        {
+            return new RandomMatrixJL(this);
         }
         
     }
