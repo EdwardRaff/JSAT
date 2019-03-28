@@ -1,17 +1,22 @@
 package jsat.datatransform;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.Distribution;
 import jsat.distributions.LogUniform;
 import jsat.linear.DenseMatrix;
+import jsat.linear.DenseVector;
+import jsat.linear.IndexValue;
 import jsat.linear.Matrix;
 import jsat.linear.RandomMatrix;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.utils.IntList;
 import jsat.utils.random.RandomUtil;
-import jsat.utils.random.XORWOW;
 
 /**
  * The Johnson-Lindenstrauss (JL) Transform is a type of random projection down 
@@ -34,9 +39,8 @@ import jsat.utils.random.XORWOW;
 public class JLTransform extends DataTransformBase
 {
 
-    private static final long serialVersionUID = -8621368067861343912L;
+    private static final long serialVersionUID = -8621368067861343913L;
 
-    //TODO for SPARSE, avoid unecessary computations for 0 values
     /**
      * Determines which distribution to construct the transform matrix from
      */
@@ -53,11 +57,34 @@ public class JLTransform extends DataTransformBase
          */
         BINARY, 
         /**
-         * The transform matrix values are sparse. NOTE: this sparsity 
-         * is not currently taken advantage of
+         * The transform matrix values are sparse, using the original "Data Base
+         * Friendly" transform approach.
          */
-        SPARSE
+        SPARSE,
+        /**
+         * The transform matrix is sparser, making it faster to apply. For most
+         * all datasets should provide results of equal quality to
+         * {@link #SPARSE} option while being faster.
+         */
+        SPARSE_SQRT,
+        /**
+         * The transform matrix is highly sparse, making it exceptionally fast
+         * for larger datasets. However, accuracy may be reduced for some
+         * problems.
+         */
+        SPARSE_LOG
     }
+    
+    /**
+     * This is used to make the Sparse JL option run faster by avoiding FLOPS.
+     * <br>
+     * There will be one IntList for every feature in the feature set. Each
+     * IntList value, abs(j), indicates which of the transformed indecies
+     * feature i will contribute value to. The sign of sign(j) indicates if it
+     * should be additive or subtractive.
+     */
+    private List<IntList> sparse_jl_map;
+    private double sparse_jl_cnst;
     
     private TransformMode mode;
     
@@ -71,13 +98,19 @@ public class JLTransform extends DataTransformBase
     {
         this.mode = transform.mode;
         this.R = transform.R.clone();
+        if(transform.sparse_jl_map != null)
+        {
+            this.sparse_jl_map = new ArrayList<>(transform.sparse_jl_map.size());
+            for(IntList a : transform.sparse_jl_map)
+                this.sparse_jl_map.add(new IntList(a));
+        }
+        this.sparse_jl_cnst = transform.sparse_jl_cnst;
     }
 
     /**
      * Creates a new JL Transform that uses a target dimension of 50 features.
      * This may not be optimal for any particular dataset.
      *
-     * @param k the target dimension size
      */
     public JLTransform()
     {
@@ -90,7 +123,7 @@ public class JLTransform extends DataTransformBase
      */
     public JLTransform(final int k)
     {
-        this(k, TransformMode.SPARSE);
+        this(k, TransformMode.SPARSE_SQRT);
     }
     
     /**
@@ -104,6 +137,9 @@ public class JLTransform extends DataTransformBase
         this(k, mode, true);
     }
     
+    /**
+     * Target dimension size
+     */
     private int k;
     private boolean inMemory;
     
@@ -128,11 +164,52 @@ public class JLTransform extends DataTransformBase
         Random rand = RandomUtil.getRandom();
         Matrix oldR = R = new RandomMatrixJL(k, d, rand.nextLong(), mode);
 
-        if(inMemory)
+        if(mode == TransformMode.GAUSS)
         {
-            R = new DenseMatrix(k, d);
-            R.mutableAdd(oldR);
+            if(inMemory)
+            {
+                R = new DenseMatrix(k, d);
+                R.mutableAdd(oldR);
+            }
         }
+        else//Sparse case! Lets do this smarter
+        {
+            int s;
+            switch(mode)
+            {
+                case SPARSE_SQRT:
+                    s = (int) Math.round(Math.sqrt(d+1));
+                    break;
+                case SPARSE_LOG:
+                    s = (int) Math.round(d/Math.log(d+1));
+                    break;
+                default://default case, use original SPARSE JL algo
+                    s = 3;
+            }
+            
+            sparse_jl_cnst = Math.sqrt(s);
+            
+            //Lets set up some random mats. 
+            sparse_jl_map = new ArrayList<>(d);
+            IntList all_embed_dims = IntList.range(0, k);
+            int nnz = k/s;
+            for(int j = 0; j < d; j++)
+            {
+                Collections.shuffle(all_embed_dims, rand);
+                IntList x_j_map = new IntList(nnz);
+                //First 1/(2 s) become the positives
+                for(int i = 0; i < nnz; i++)
+                    x_j_map.add(i);
+                //Second 1/(2 s) become the negatives
+                for(int i = nnz/2; i < nnz; i++)
+                    x_j_map.add(-i);
+                //Sort this after so that the later use of this iteration order is better behaved for CPU cache & prefetching
+                Collections.sort(x_j_map, (Integer o1, Integer o2) -> Integer.compare(Math.abs(o1), Math.abs(o2)));
+                
+                sparse_jl_map.add(x_j_map);
+            }
+        }
+        
     }
 
     /**
@@ -213,8 +290,36 @@ public class JLTransform extends DataTransformBase
     @Override
     public DataPoint transform(DataPoint dp)
     {
-        Vec newVec = dp.getNumericalValues();
-        newVec = R.multiply(newVec);
+        Vec newVec;
+        switch(mode)
+        {
+            case SPARSE:
+            case SPARSE_SQRT:
+            case SPARSE_LOG:
+                //Sparse JL case, do adds and final mul
+                newVec = new DenseVector(k);
+                
+                for(IndexValue iv : dp.getNumericalValues())
+                {
+                    double x_i = iv.getValue();
+                    int i = iv.getIndex();
+                    
+                    for(int j : sparse_jl_map.get(i))
+                    {
+                        if(j >= 0)
+                            newVec.increment(j, x_i);
+                        else
+                            newVec.increment(-j, -x_i);
+                    }
+                    newVec.mutableMultiply(sparse_jl_cnst);
+                }
+                
+                break;
+            default://default case, do the explicity mat-mul
+                newVec = dp.getNumericalValues();
+                newVec = R.multiply(newVec);
+        }
+        
 
         DataPoint newDP = new DataPoint(newVec, dp.getCategoricalValues(), 
                 dp.getCategoricalData());
@@ -231,7 +336,7 @@ public class JLTransform extends DataTransformBase
     private static class RandomMatrixJL extends RandomMatrix
     {
         private static final long serialVersionUID = 2009377824896155918L;
-        private double cnst;
+        public double cnst;
         private TransformMode mode;
         
         public RandomMatrixJL(int rows, int cols, long XORSeed, TransformMode mode)
