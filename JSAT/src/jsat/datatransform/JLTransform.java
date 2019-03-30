@@ -203,7 +203,7 @@ public class JLTransform extends DataTransformBase
                     x_j_map.add(i);
                 //Second 1/(2 s) become the negatives
                 for(int i = nnz/2; i < nnz; i++)
-                    x_j_map.add(-i);
+                    x_j_map.add(-(i+1));//+1 b/c -0 would be a problem, since it does not exist
                 //Sort this after so that the later use of this iteration order is better behaved for CPU cache & prefetching
                 Collections.sort(x_j_map, (Integer o1, Integer o2) -> Integer.compare(Math.abs(o1), Math.abs(o2)));
                 
@@ -310,7 +310,7 @@ public class JLTransform extends DataTransformBase
                         if(j >= 0)
                             newVec.increment(j, x_i);
                         else
-                            newVec.increment(-j, -x_i);
+                            newVec.increment(-j-1, -x_i);
                     }
                     newVec.mutableMultiply(sparse_jl_cnst);
                 }
