@@ -1,5 +1,6 @@
 package jsat.utils;
 
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -15,6 +16,22 @@ public class ArrayUtils
      */
     private ArrayUtils()
     {
+    }
+    
+    /**
+     * Converts the return value from binarySearch code such as {@link Arrays#binarySearch(double[], double)
+     * } into a value that is guaranteed to be positive. It will be the either
+     * the index that had the exact value, or the next position at which the
+     * search value should be inserted.
+     *
+     * @param indx
+     * @return 
+     */
+    public static int bsIndex2Insert(int indx)
+    {
+	if (indx < 0)
+	    indx = -indx - 1;
+	return indx;
     }
     
     /**
