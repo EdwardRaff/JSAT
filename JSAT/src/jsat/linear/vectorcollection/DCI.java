@@ -39,6 +39,7 @@ import jsat.utils.DoubleList;
 import jsat.utils.IndexTable;
 import jsat.utils.Pair;
 import jsat.utils.Tuple3;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  *
@@ -65,7 +66,7 @@ public class DCI<V extends Vec> implements VectorCollection<V>
     /**
      * ﻿m*L empty binary search trees or skip lists
      */
-    private List<List<NearestIterator>> T;
+    private NearestIterator[][] T;
     
     private List<V> vecs;
     private List<Double> cache;
@@ -88,16 +89,15 @@ public class DCI<V extends Vec> implements VectorCollection<V>
 	if(toCopy.u != null)
 	{
 	    this.u = new Vec[m][L];
-	    this.T = new ArrayList<>(m);
+	    this.T = new NearestIterator[m][L];
 	    this.vecs = new ArrayList<>(toCopy.vecs);
 	    this.cache = new DoubleList(toCopy.cache);
 	    for(int j = 0; j < m; j++)
 	    {
-		this.T.add(new ArrayList<>());
 		for(int l = 0; l < L; l++)
 		{
 		    this.u[j][l] = toCopy.u[j][l].clone();
-		    this.T.get(j).add(toCopy.T.get(j).get(l).clone());
+		    this.T[j][l] = toCopy.T[j][l].clone();
 		}
 	    }
 	}
@@ -126,29 +126,31 @@ public class DCI<V extends Vec> implements VectorCollection<V>
 	    }
 	
 	//Init T
-	T = new ArrayList<>(m);
-	for(int j = 0; j < m; j++)
-	{
-	    List<NearestIterator> T_j = new ArrayList<>(L);
-	    T.add(T_j);
-	}
+	T = new NearestIterator[m][L];
 	
+	
+	//TODO, add more complex logic to balance parallelization over m&l loop as well as inner most loop
 	//Insertions
 	for(int j = 0; j < m; j++)
 	{
 	    for(int l = 0; l < L; l++)
 	    {
+		Vec u_jl = u[j][l];
+		
 		double[] keys = new double[n];
 		int[] vals = new int[n];
-		for(int i = 0; i < n; i++)
-		{
-		    double p_bar = collection.get(i).dot(u[j][l]);
-//		    T.get(j).get(l).put(p_bar, i);
-		    keys[i] = p_bar;
-		    vals[i] = i;
-		}
 		
-		T.get(j).add(new NearestIterator(keys, vals));
+		ParallelUtils.run(parallel, n, (start, end)->
+		{
+		    for(int i = start; i < end; i++)
+		    {
+			double p_bar = vecs.get(i).dot(u_jl);
+			keys[i] = p_bar;
+			vals[i] = i;
+		    }
+		});
+		
+		T[j][l] = new NearestIterator(keys, vals);
 	    }
 	}
 	
@@ -188,7 +190,7 @@ public class DCI<V extends Vec> implements VectorCollection<V>
 	    List<Iterator<Pair<Double, Integer>>> iter_m = new ArrayList<>(L);
 	    for(int l = 0; l < L; l++)
 	    {
-		iter_m.add(T.get(j).get(l).nnWalk(q_bar[j][l]));
+		iter_m.add(T[j][l].nnWalk(q_bar[j][l]));
 	    }
 	    q_iters.add(iter_m);
 	}
@@ -267,7 +269,7 @@ public class DCI<V extends Vec> implements VectorCollection<V>
 	    List<Iterator<Pair<Double, Integer>>> iter_m = new ArrayList<>(L);
 	    for(int l = 0; l < L; l++)
 	    {
-		iter_m.add(T.get(j).get(l).nnWalk(q_bar[j][l]));
+		iter_m.add(T[j][l].nnWalk(q_bar[j][l]));
 	    }
 	    q_iters.add(iter_m);
 	}
