@@ -262,6 +262,7 @@ public class IndexTable implements Serializable
      * Applies this index table to the specified target, putting {@code target} 
      * into the same ordering as this IndexTable. 
      * 
+     * @param target the array to re-order into the sorted order defined by this index table
      * @throws RuntimeException if the length of the target array is not the same as the index table
      */
     public void apply(double[] target)
@@ -274,6 +275,20 @@ public class IndexTable implements Serializable
      * Applies this index table to the specified target, putting {@code target} 
      * into the same ordering as this IndexTable. 
      * 
+     * @param target the array to re-order into the sorted order defined by this index table
+     * @throws RuntimeException if the length of the target array is not the same as the index table
+     */
+    public void apply(int[] target)
+    {
+        //use DoubleList view b/d we are only using set ops, so we wont run into an issue of re-allocating the array
+        apply(IntList.view(target, target.length), new IntList(target.length));
+    }
+    
+    /**
+     * Applies this index table to the specified target, putting {@code target} 
+     * into the same ordering as this IndexTable. 
+     * 
+     * @param target the list to re-order into the sorted order defined by this index table
      * @throws RuntimeException if the length of the target List is not the same as the index table
      */
     public void apply(List target)
