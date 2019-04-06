@@ -19,16 +19,14 @@ package jsat.linear.vectorcollection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import javax.security.auth.login.FailedLoginException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
@@ -42,6 +40,24 @@ import jsat.utils.Tuple3;
 import jsat.utils.concurrent.ParallelUtils;
 
 /**
+ * This class implements the Dynamic Continuous Indexing algorithm for nearest
+ * neighbor search in the {@link EuclideanDistance Euclidean} space only, which
+ * avoids doing brute force distance computations for the majority of the
+ * dataset, and requires limited memory. For k-NN search, DCI will return
+ * approximately correct nearest neighbors, but the mistaken neighbors should
+ * still be near the query. For radius search, DCI will return the exactly
+ * correct results.<br>
+ * <br>
+ * See:
+ * <ul>
+ * <li>﻿Li, K., & Malik, J. (2017). <i>Fast k-Nearest Neighbour Search via
+ * Prioritized DCI</i>. In Thirty-fourth International Conference on Machine
+ * Learning (ICML). </li>
+ * <li>﻿Li, K., & Malik, J. (2016). <i>Fast k-Nearest Neighbour Search via
+ * Dynamic Continuous Indexing</i>. In M. F. Balcan & K. Q. Weinberger (Eds.),
+ * Proceedings of The 33rd International Conference on Machine Learning (Vol.
+ * 48, pp. 671–679). New York, New York, USA: PMLR.</li>
+ * </ul>
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  * @param <V>
@@ -53,11 +69,11 @@ public class DCI<V extends Vec> implements VectorCollection<V>
     /**
      * ﻿the number of simple indices ﻿that constitute a composite index
      */
-    int m;
+    private int m;
     /**
      * ﻿the number of composite indices
      */
-    int L;
+    private int L;
     
     /**
      * ﻿m*L random unit vectors in R^d
@@ -71,17 +87,33 @@ public class DCI<V extends Vec> implements VectorCollection<V>
     private List<V> vecs;
     private List<Double> cache;
 
+    /**
+     * Creates a new DCI object, that should provide relatively good result
+     * quality.
+     */
     public DCI()
     {
-	this(10, 3);
+	this(15, 3);
     }
 
+    /**
+     * Creates a new DCI object, result quality depends on the number of simple
+     * and composite indices
+     *
+     * @param m the number of simple indices per composite index (10-15 are
+     *          common values)
+     * @param L the number of composite indices (2-3 are common values)
+     */
     public DCI(int m, int L)
     {
 	this.m = m;
 	this.L = L;
     }
     
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
     public DCI(DCI<V> toCopy)
     {
 	this.m = toCopy.m;
@@ -224,9 +256,17 @@ public class DCI<V extends Vec> implements VectorCollection<V>
 	
 	neighbors.clear();
 	distances.clear();
-	Set<Integer> candidates = new HashSet<>();
+	//the projected distance is a lower bound. So if its truley in range, 
+	//it must be present in all subsets
+	Map<Integer, Integer> unionCounter = new HashMap<>();
 	for(Set<Integer> S_l : S)
-	    candidates.addAll(S_l);
+	    for(int i : S_l)
+		unionCounter.put(i, unionCounter.getOrDefault(i, 0)+1);
+	
+	Set<Integer> candidates = new HashSet<>();
+	for(Map.Entry<Integer, Integer> entry : unionCounter.entrySet())
+	    if(entry.getValue() == S.size())//you occured in every group? You are a candidate!
+		candidates.add(entry.getKey());
 	
 	List<Double> qi = euclid.getQueryInfo(query);
 	for(int i : candidates)
@@ -366,7 +406,7 @@ public class DCI<V extends Vec> implements VectorCollection<V>
     {
 	return new DCI<>(this);
     }
-    
+
     /**
      * We need to be able to store a pair of tuples <Double, Integer>, and given
      * a query double q, iterate through the points in the collection based on
