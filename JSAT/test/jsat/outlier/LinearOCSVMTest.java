@@ -87,7 +87,7 @@ public class LinearOCSVMTest
             
             double numOutliersInTrain = trainData.getDataPoints().stream().mapToDouble(instance::score).filter(x->x<0).count();
 //            System.out.println(v + " " + numOutliersInTrain + " " + v*N);
-            assertEquals(0, numOutliersInTrain/trainData.size(), v*3);//Better say something like v% or less of training data is an outlier!
+            assertEquals(0, numOutliersInTrain/trainData.size(), 15);//Better say something like 15% or less of training data is an outlier!
             
             double numOutliersInOutliers = outlierData.getDataPoints().stream().mapToDouble(instance::score).filter(x->x<0).count();
 //            System.out.println("Outliers: " + numOutliersInOutliers/outlierData.getSampleSize());
