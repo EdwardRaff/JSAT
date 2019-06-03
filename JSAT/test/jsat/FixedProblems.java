@@ -132,6 +132,18 @@ public class FixedProblems
     }
     
     /**
+     * Generates a 2D regression problem that can be solved by linear regression methods
+     * @param dataSetSize the number of data points to get
+     * @param rand the randomness to use
+     * @return a regression data set
+     */
+    public static RegressionDataSet get2DLinearRegression(int dataSetSize, Random rand)
+    {
+        return getLinearRegression(dataSetSize, rand, DenseVector.toDenseVec(0.8, -0.15));
+    }
+    
+    
+    /**
      * Generates a regression problem that can be solved by linear regression methods
      * @param dataSetSize the number of data points to get
      * @param rand the randomness to use

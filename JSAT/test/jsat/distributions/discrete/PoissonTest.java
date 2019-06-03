@@ -167,10 +167,10 @@ public class PoissonTest
             System.out.println(instance.mean());
             Vec samples = instance.sampleVec(10000, RandomUtil.getRandom());
         
-            assertEquals(instance.mean(), samples.mean(), 2e-1);
-            assertEquals(instance.median(), samples.median(), 2e-1);
+            assertEquals(instance.mean(), samples.mean(), instance.getLambda()*2e-1);
+            assertEquals(instance.median(), samples.median(), instance.getLambda()*2e-1);
             assertEquals(0.0, (instance.standardDeviation()-samples.standardDeviation())/instance.standardDeviation(), 0.1);
-            assertEquals(instance.skewness(), samples.skewness(), 2e-1);
+            assertEquals(instance.skewness(), samples.skewness(), instance.getLambda()*2e-1);
         }
         
     }

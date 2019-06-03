@@ -10,6 +10,8 @@ import jsat.classifiers.svm.DCDs;
 import jsat.datatransform.LinearTransform;
 import jsat.lossfunctions.*;
 import jsat.math.OnLineStatistics;
+import jsat.math.optimization.LBFGS;
+import jsat.math.optimization.WolfeNWLineSearch;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.RandomUtil;
@@ -228,6 +230,8 @@ public class LinearBatchTest
             LinearBatch linearBatch = new LinearBatch(new SquaredLoss(), 1e-4);
             RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
 
+	    linearBatch.setOptimizer(new LBFGS(10, 10000, new WolfeNWLineSearch()));
+	    linearBatch.setTolerance(1e-4);
             linearBatch.setUseBiasTerm(useBias);
             linearBatch.train(train, true);
 

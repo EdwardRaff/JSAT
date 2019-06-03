@@ -10,6 +10,7 @@ import jsat.classifiers.DataPointPair;
 import jsat.classifiers.OneVSAll;
 import jsat.classifiers.linear.LinearBatch;
 import jsat.classifiers.linear.LogisticRegressionDCD;
+import jsat.classifiers.svm.DCDs;
 import jsat.lossfunctions.AbsoluteLoss;
 import jsat.lossfunctions.HuberLoss;
 import jsat.lossfunctions.SoftmaxLoss;
@@ -134,7 +135,7 @@ public class StackingTest
     {
         System.out.println("regression");
         
-        Stacking stacking = new Stacking((Regressor)new LinearBatch(new AbsoluteLoss(), 1e-10), new LinearBatch(new SquaredLoss(), 1e-15), new LinearBatch(new AbsoluteLoss(), 100), new LinearBatch(new HuberLoss(), 1e1));
+        Stacking stacking = new Stacking((Regressor)new DCDs(1000, true), new DCDs(1000, false), new DCDs(1000, 1e-3, 0.5, true));
         RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
         
         stacking = stacking.clone();
@@ -157,14 +158,14 @@ public class StackingTest
     {
         System.out.println("regression MT");
         
-        Stacking stacking = new Stacking((Regressor)new LinearBatch(new AbsoluteLoss(), 1e-10), new LinearBatch(new SquaredLoss(), 1e-15), new LinearBatch(new AbsoluteLoss(), 1e-1), new LinearBatch(new HuberLoss(), 1e-2));
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, RandomUtil.getRandom());
+        Stacking stacking = new Stacking((Regressor)new DCDs(1000, true), new DCDs(1000, false), new DCDs(1000, 1e-3, 0.5, true));
+        RegressionDataSet train = FixedProblems.get2DLinearRegression(500, RandomUtil.getRandom());
         
         stacking = stacking.clone();
         stacking.train(train, true);
         stacking = stacking.clone();
         
-        RegressionDataSet test = FixedProblems.getLinearRegression(200, RandomUtil.getRandom());
+        RegressionDataSet test = FixedProblems.get2DLinearRegression(200, RandomUtil.getRandom());
         
         for(DataPointPair<Double> dpp : test.getAsDPPList())
         {

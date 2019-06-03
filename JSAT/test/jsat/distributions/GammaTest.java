@@ -71,8 +71,8 @@ public class GammaTest {
         {
             
             Vec sample = d.sampleVec(1000000, rand);
-            assertEquals(d.mean(), sample.mean(), 1e-2);
-            assertEquals(d.standardDeviation(), sample.standardDeviation(), 1e-2);
+            assertEquals(d.mean(), sample.mean(), 1e-1);
+            assertEquals(d.standardDeviation(), sample.standardDeviation(), 1e-1);
         }
     }
 
