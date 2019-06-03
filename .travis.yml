@@ -7,6 +7,9 @@ jdk:
 env:
   - JSAT_SOURCE_DIR=JSAT
 
+before_script:
+  - echo "MAVEN_OPTS='-Xmx2g -XX:MaxPermSize=512m'" > ~/.mavenrc
+
 script:
   - cd $JSAT_SOURCE_DIR 
   - mvn clean install
