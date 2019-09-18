@@ -23,7 +23,7 @@ You can download JSAT from maven central, add the below to your pom file
 </dependencies>
 ```
 
-If you want to use the bleeding edge, but don't want to bother building yourself, I recomend you look at [jitpack.io](https://jitpack.io/#EdwardRaff/JSAT). It can build a POM repo for you for any specific commit version. Click on "Commits" in the link and then click "get it" for the commit version you want. 
+If you want to use the bleeding edge, but don't want to bother building yourself, I recommend you look at [jitpack.io](https://jitpack.io/#EdwardRaff/JSAT). It can build a POM repo for you for any specific commit version. Click on "Commits" in the link and then click "get it" for the commit version you want. 
 
 If you want to read the javadoc's online, you can find them hosted [on my website here](http://www.edwardraff.com/jsat_docs/JSAT-0.0.8-javadoc/). 
 
@@ -31,7 +31,7 @@ If you want to read the javadoc's online, you can find them hosted [on my websit
 
 For research and specialized needs, JSAT has one of the largest collections of algorithms available in any framework. See an incomplete list [here](https://github.com/EdwardRaff/JSAT/wiki/Algorithms). 
 
-Additional, there are unfortunately not as many ML tools for Java as there are for other lanagues. Compared to Weka, JSAT is [usually faster](http://jsatml.blogspot.com/2015/03/jsat-vs-weka-on-mnist.html). 
+Additional, there are unfortunately not as many ML tools for Java as there are for other languages. Compared to Weka, JSAT is [usually faster](http://jsatml.blogspot.com/2015/03/jsat-vs-weka-on-mnist.html). 
 
 If you want to use JSAT and the GPL is not something that will work for you, let me know and we can discuss the issue.
 
@@ -43,7 +43,7 @@ Updates to JSAT may be slowed as I begin a PhD program in Computer Science. The 
 
 ## Citations
 
-If you use JSAT and find it helpful, citations are appreciated! Please cite the [JSAT paper](http://www.jmlr.org/papers/v18/16-131.html) published at JMLR. If your feeling a little lazy, the bibtex is below:
+If you use JSAT and find it helpful, citations are appreciated! Please cite the [JSAT paper](http://www.jmlr.org/papers/v18/16-131.html) published at JMLR. If you'r feeling a little lazy, the bibtex is below:
 
 ```
 @article{JMLR:v18:16-131,
