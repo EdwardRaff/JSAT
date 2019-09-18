@@ -43,7 +43,7 @@ Updates to JSAT may be slowed as I begin a PhD program in Computer Science. The 
 
 ## Citations
 
-If you use JSAT and find it helpful, citations are appreciated! Please cite the [JSAT paper](http://www.jmlr.org/papers/v18/16-131.html) published at JMLR. If you'r feeling a little lazy, the bibtex is below:
+If you use JSAT and find it helpful, citations are appreciated! Please cite the [JSAT paper](http://www.jmlr.org/papers/v18/16-131.html) published at JMLR. If you're feeling a little lazy, the bibtex is below:
 
 ```
 @article{JMLR:v18:16-131,
