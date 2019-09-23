@@ -29,9 +29,9 @@ import static jsat.utils.SystemInfo.*;
 public abstract class Matrix implements Cloneable, Serializable
 {
 
-	private static final long serialVersionUID = 6888360415978051714L;
+    private static final long serialVersionUID = 6888360415978051714L;
 
-	/**
+    /**
      * Creates a new Matrix that stores the result of {@code A+B}
      * @param B the matrix to add this <i>this</i>
      * @return {@code A+B}
@@ -871,6 +871,21 @@ public abstract class Matrix implements Cloneable, Serializable
         else
             for (int j = 0; j < b.length(); j++)
                 this.increment(i, j, c * b.get(j));
+    }
+    
+    /**
+     * Computes the Frobenius norm of the given matrix
+     * @return the Frobenius norm of the given matrix
+     */
+    public double frobenius()
+    {
+        double f = 0;
+        
+        for(int i = 0; i < this.rows(); i++)
+            for(IndexValue iv : this.getRowView(i))
+                f += Math.pow(iv.getValue(), 2);
+        
+        return Math.sqrt(f+1e-15);
     }
 
     /**
