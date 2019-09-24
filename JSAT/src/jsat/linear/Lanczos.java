@@ -34,13 +34,14 @@ public class Lanczos implements Serializable
     {
         Random rand = RandomUtil.getRandom();
         
-        int extra_ranks = Math.max(2*k+1, 2);
+        int dims = A_AT ? A.rows() : A.cols();
+        
         /**
          * The rank that we will perform computations too
          */
-        int k_work = Math.min(k + extra_ranks, A.rows());
+        int k_work = Math.min(k*2+1, dims);
+        int extra_ranks = k_work-k;
         
-        int dims = A_AT ? A.rows() : A.cols();
         Vec v_prev = new ConstantVector(0.0, dims);
         //1. Let v_{1} be an arbitrary vector with Euclidean norm 1.
         Vec v_next = new DenseVector(dims);//init to 1/sqrt(n)

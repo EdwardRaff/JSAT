@@ -57,7 +57,7 @@ public class LanczosTest {
         Vec relative_diffs = expected.subtract(result).pairwiseDivide(expected);
         
         for(int i = 0; i < k; i++)
-            assertEquals(0, relative_diffs.get(i), 0.05);
+            assertEquals(0, relative_diffs.get(i), 0.1);
         
         Lanczos ATA_explicit = new Lanczos(AT_A, k, false, true);
         Lanczos ATA_implicit = new Lanczos(A, k, false, false);
@@ -68,7 +68,7 @@ public class LanczosTest {
         relative_diffs = expected.subtract(result).pairwiseDivide(expected);
         
         for(int i = 0; i < k; i++)
-            assertEquals(0, relative_diffs.get(i), 0.05);
+            assertEquals(0, relative_diffs.get(i), 0.1);
         
     }
 
@@ -99,9 +99,32 @@ public class LanczosTest {
         Lanczos lanczos = new Lanczos(A, k, false, true);
         
         Vec eigen_values = lanczos.getEigenValues();
-        System.out.println(eigen_values);
         for(int i = 0; i < k; i ++)
             assertEquals(D.get(i, i), eigen_values.get(i), 0.05);
+        
+        //Do the eigen values match up too? 
+        for(int j = 0; j < V.rows(); j++)
+        {
+            Vec expected  = new SubVector(0, k, V.getRow(j));
+            Vec result = lanczos.getEigenVectors().getRow(j);
+
+            expected.applyFunction(Math::abs);
+            result.applyFunction(Math::abs);
+
+            Vec relative_diffs = expected.subtract(result).pairwiseDivide(expected);
+            for(int i = 0; i < k; i++)
+                assertEquals(0, relative_diffs.get(i), 0.1);
+        }
+        
+        
+        //Test full decomposition for sanity
+        lanczos = new Lanczos(A, A.rows(), false, true);
+        Matrix A_rec = lanczos.getEigenVectors().clone();
+        Matrix.diagMult(A_rec, lanczos.getEigenValues());
+        A_rec = A_rec.multiplyTranspose(lanczos.getEigenVectors());
+        // diff in norms should be relatively near zero, adjusted for magnitud of input
+        assertEquals(0.0, A.subtract(A_rec).frobenius()/A.frobenius(), 0.01);
+        
     }
     
 }
