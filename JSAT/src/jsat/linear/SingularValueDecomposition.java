@@ -22,8 +22,8 @@ import static jsat.linear.RowColumnOps.*;
 public class SingularValueDecomposition implements Cloneable, Serializable
 {
 
-	private static final long serialVersionUID = 1711766946748622002L;
-	private Matrix U, V;
+    private static final long serialVersionUID = 1711766946748622002L;
+    private Matrix U, V;
     /**
      * Stores the diagonal values of the S matrix, and contains the bidiagonal values of A during initial steps. 
      */
