@@ -245,32 +245,28 @@ public class SeedSelectionMethods
         indices[0] = rand.nextInt(d.size());
 
         final double[] closestDist = new double[d.size()];
+        Arrays.fill(closestDist, Double.POSITIVE_INFINITY);
         final List<Vec> X = d.getDataVectors();
 
         for (int j = 1; j < k; j++)
         {
             //Compute the distance from each data point to the closest mean
             final int newMeanIndx = indices[j - 1];//Only the most recently added mean needs to get distances computed. 
-
-            final boolean forceCompute = j == 1;
             
             double sqrdDistSum = ParallelUtils.run(parallel, X.size(), (start, end) ->
             {
-                double sqrdDistChanges = 0.0;
+                double partial_sqrd_dist = 0.0;
                 for (int i = start; i < end; i++)
                 {
                     double newDist = dm.dist(newMeanIndx, i, X, accelCache);
 
                     newDist *= newDist;
-                    if (newDist < closestDist[i] || forceCompute)
-                    {
-                        sqrdDistChanges -= closestDist[i];//on inital, -= 0  changes nothing. on others, removed the old value
-                        sqrdDistChanges += newDist;
+                    if (newDist < closestDist[i])
                         closestDist[i] = newDist;
-                    }
+                    partial_sqrd_dist += closestDist[i];
                 }
 
-                return sqrdDistChanges;
+                return partial_sqrd_dist;
             }, 
            (t, u) -> t + u);
             
