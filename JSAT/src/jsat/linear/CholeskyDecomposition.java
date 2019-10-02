@@ -191,6 +191,21 @@ public class CholeskyDecomposition implements Serializable
             det *= L.get(i, i);
         return det;
     }
+    
+    /**
+     * Computes the log of the determinant of A. It is more numerically stable
+     * than explicitly calling {@link Math#log(double) } on the value returned
+     * by {@link #getDet() }.
+     *
+     * @return the log of the determinant of A.
+     */
+    public double getLogDet()
+    {
+        double log_det = 0;
+        for(int i = 0; i < L.rows(); i++)
+            log_det += Math.log(L.get(i, i));
+        return log_det;
+    }
 
     private double computeLJJ(final Matrix A, final int j)
     {

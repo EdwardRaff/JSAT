@@ -4,17 +4,13 @@ package jsat.distributions.multivariate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import jsat.classifiers.DataPoint;
 import jsat.linear.CholeskyDecomposition;
-import jsat.linear.DenseMatrix;
 import jsat.linear.DenseVector;
-import jsat.linear.LUPDecomposition;
 import jsat.linear.Matrix;
 import jsat.linear.MatrixStatistics;
 import jsat.linear.SingularValueDecomposition;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
-import static jsat.linear.MatrixStatistics.*;
 
 /**
  * Class for the multivariate Normal distribution. It is often called the Multivariate Gaussian distribution. 
@@ -55,6 +51,10 @@ public class NormalM extends MultivariateDistributionSkeleton
      * Lower triangular cholesky decomposition used for sampling such that L * L<sup>T</sup> = Covariance Matrix
      */
     private Matrix L;
+    /**
+     * The determinant of the covariance matrix. 
+     */
+    private double log_det;
 
     public NormalM(Vec mean, Matrix covariance)
     {
@@ -104,22 +104,25 @@ public class NormalM extends MultivariateDistributionSkeleton
         L = cd.getLT();
         L.mutableTranspose();
         
-        LUPDecomposition lup = new LUPDecomposition(covMatrix.clone());
         int k = mean.length();
-        double det = lup.det();
-        if(Double.isNaN(det) || det < 1e-10)
+        if(Double.isNaN(log_det) || log_det < log(1e-10))
         {
             //Numerical unstable or sub rank matrix. Use the SVD to work with the more stable pesudo matrix
             SingularValueDecomposition svd = new SingularValueDecomposition(covMatrix.clone());
             //We need the rank deficient PDF and pesude inverse
-            this.logPDFConst = 0.5*log(svd.getPseudoDet() * pow(2*PI, svd.getRank()));
+            this.logPDFConst = 0.5*log(svd.getPseudoDet()) + svd.getRank()*0.5*log(2*PI);
             this.invCovariance = svd.getPseudoInverse();
         }
         else
         {
-            this.logPDFConst = (-k*log(2*PI)-log(det))*0.5;
-            this.invCovariance = lup.solve(Matrix.eye(k));
+            this.logPDFConst = (-k*log(2*PI)-log_det)*0.5;
+            this.invCovariance = cd.solve(Matrix.eye(k));
         }
+    }
+
+    public Vec getMean() 
+    {
+        return mean;
     }
 
     @Override
@@ -132,7 +135,7 @@ public class NormalM extends MultivariateDistributionSkeleton
         double xDependent = xMinusMean.dot(invCovariance.multiply(xMinusMean))*-0.5;
         return logPDFConst + xDependent;
     }
-
+    
     @Override
     public double pdf(Vec x)
     {
