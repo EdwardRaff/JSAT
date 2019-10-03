@@ -338,6 +338,18 @@ public class VBGMM implements Clusterer, MultivariateDistribution
         int final_k = still_active;
         
         //We've got clusters, lets do some pruning now
+        {
+            int cur_pos = 0;
+            for(int k = 0; k < k_max; k++)
+                if(active[k])
+                {
+                    normals[cur_pos] = normals[k];
+                    log_pi[cur_pos++] = log_pi[k];
+                }
+            
+            normals = Arrays.copyOf(normals, final_k);
+            log_pi = Arrays.copyOf(log_pi, final_k);
+        }
         for(int n = 0; n < N; n++)
         {
             int cur_pos = 0;
@@ -347,8 +359,6 @@ public class VBGMM implements Clusterer, MultivariateDistribution
             for(int k = 0; k < k_max; k++)
                 if(active[k])
                 {
-                    normals[cur_pos] = normals[k];
-                    log_pi[cur_pos] = log_pi[k];
                     if((r[n][cur_pos] = r[n][k]) > k_max_value)
                     {
                         k_max_indx = cur_pos;
@@ -361,8 +371,7 @@ public class VBGMM implements Clusterer, MultivariateDistribution
             r[n] = Arrays.copyOf(r[n], final_k);
         }
         
-        normals = Arrays.copyOf(normals, final_k);
-        log_pi = Arrays.copyOf(log_pi, final_k);
+        
         
         return designations;
     }
