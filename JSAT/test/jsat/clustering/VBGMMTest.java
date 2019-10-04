@@ -58,28 +58,30 @@ public class VBGMMTest {
         GridDataGenerator gdg = new GridDataGenerator(new NormalClampedSample(0, 0.05), RandomUtil.getRandom(), 2, 2);
         SimpleDataSet easyData = gdg.generateData(500);
 
-        for (boolean parallel : new boolean[]{true, false})
-        {
-            VBGMM em = new VBGMM();
+        for(VBGMM.COV_FIT_TYPE cov_type : VBGMM.COV_FIT_TYPE.values())
+//        for(VBGMM.COV_FIT_TYPE cov_type : Arrays.asList(VBGMM.COV_FIT_TYPE.DIAG))//if I want to test a specific cov
+            for (boolean parallel : new boolean[]{true, false})
+            {
+                VBGMM em = new VBGMM(cov_type);
 
-            List<List<DataPoint>> clusters = em.cluster(easyData, parallel);
-            assertEquals(4, clusters.size());
-            
-            em = em.clone();
+                List<List<DataPoint>> clusters = em.cluster(easyData, parallel);
+                assertEquals(4, clusters.size());
 
-            List<Vec> means = Arrays.stream(em.normals).map(n->n.getMean()).collect(Collectors.toList());
-            //we should have 1 mean at each of the coordinates of our 2x2 grid
-            //(0,0), (0,1), (1,0), (1,1)
+                em = em.clone();
 
-            List<Vec> expectedMeans = new ArrayList<>();
-            expectedMeans.add(DenseVector.toDenseVec(0,0));
-            expectedMeans.add(DenseVector.toDenseVec(0,1));
-            expectedMeans.add(DenseVector.toDenseVec(1,0));
-            expectedMeans.add(DenseVector.toDenseVec(1,1));
+                List<Vec> means = Arrays.stream(em.normals).map(n->n.getMean()).collect(Collectors.toList());
+                //we should have 1 mean at each of the coordinates of our 2x2 grid
+                //(0,0), (0,1), (1,0), (1,1)
 
-            for(Vec expected : expectedMeans)
-                assertEquals(1, means.stream().filter(f->f.subtract(expected).pNorm(2) < 0.05).count());
-        }
+                List<Vec> expectedMeans = new ArrayList<>();
+                expectedMeans.add(DenseVector.toDenseVec(0,0));
+                expectedMeans.add(DenseVector.toDenseVec(0,1));
+                expectedMeans.add(DenseVector.toDenseVec(1,0));
+                expectedMeans.add(DenseVector.toDenseVec(1,1));
+
+                for(Vec expected : expectedMeans)
+                    assertEquals(1, means.stream().filter(f->f.subtract(expected).pNorm(2) < 0.05).count());
+            }
     }
     
 }

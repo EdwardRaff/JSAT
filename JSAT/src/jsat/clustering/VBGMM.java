@@ -64,8 +64,212 @@ public class VBGMM implements Clusterer, MultivariateDistribution
     protected int max_k = 200;
     
     private int maxIterations = 2000;
+    
+    protected COV_FIT_TYPE cov_type = COV_FIT_TYPE.FULL;
+    
+    static public enum COV_FIT_TYPE
+    {
+        /**
+         * Estimates only the diagonal of the covariance matrix. This saves both
+         * computational time and memory, and is easier to estimate than the
+         * full covariance matrix if there are many features. However, it can
+         * not represent as many distribution shapes as a full covariance
+         * matrix.
+         */
+        DIAG
+        {
+            @Override
+            public void fit(List<Vec> X, Matrix S_k, double[] contrib, Vec xk, double Nk) 
+            {
+                int N = contrib.length;
+                int d = xk.length();
+                S_k.zeroOut();
+                Vec diag = S_k.getRowView(0);
+                //(10.53) in Bishop, but only the diagonal - which is just the variance of each variable
+                
+                for(int n = 0; n < N; n++)
+                {
+                    //double r_nk = r[k][n];
+                    double r_nk = contrib[n];
+                    Vec x_n = X.get(n);
+                    for(int j = 0; j < d; j++)
+                        diag.increment(j, r_nk*Math.pow(xk.get(j)-x_n.get(j), 2));
+                }
+                diag.mutableDivide(Nk + 1e-6);
+            }
 
-    public VBGMM() {
+            @Override
+            public void updateWishart(Matrix W_inv_0, Matrix W_inv_k, Matrix S_k, Vec xk, double Nk, Vec m_0, double beta_0, double beta_k, double nu_k)
+            {
+                int d = W_inv_0.cols();
+                //(10.62) in Bishop
+                W_inv_0.copyTo(W_inv_k);
+                W_inv_k.mutableAdd(Nk, S_k);
+                Vec W_inv_k_diag = W_inv_k.getRowView(0);
+                //adding small value to diagonal to make cov stable
+                W_inv_k_diag.mutableAdd(1e-6);
+
+                //note (beta_0 + Nk) denominator is same as (10.60)
+                double β0_Nk_over_β0_plus_Nk = beta_0 * Nk / beta_k ;
+                Vec tmp = xk.clone();
+                tmp.mutableSubtract(m_0);
+                tmp.applyFunction(v->v*v);//squared, b/c outer product would be x*x along the diag
+//                Matrix.OuterProductUpdate(W_inv_k, tmp, tmp, β0_Nk_over_β0_plus_Nk);
+                W_inv_k_diag.mutableAdd(β0_Nk_over_β0_plus_Nk, tmp);
+
+                //Normalize the covariance matrix now so that we don't have to 
+                //multiply by nu_k later in in (10.64), makig it easier to re-use
+                //the NormalM class
+                W_inv_k_diag.mutableDivide(nu_k + 1e-6);
+            }
+
+            @Override
+            public Matrix allocate(int d) 
+            {
+                //stored in a single row of a matrix
+                return new DenseMatrix(1, d);
+            }
+
+            @Override
+            public NormalM asNormal(Vec mean, Matrix cov) 
+            {
+                //"cov" is actually the diagonal, so make a real matrix
+                Matrix real_cov = new DenseMatrix(mean.length(), mean.length());
+                for(int i = 0; i < real_cov.rows(); i++)
+                    real_cov.increment(i, i, cov.get(0, i));
+                //TODO, make NormalM take a diagonal cov option
+                return new NormalM(mean, real_cov);
+            }
+            
+        },
+        /**
+         * Estimates a full covariance matrix for each cluster. This is the
+         * standard method presented in textbooks and papers. If you have more
+         * features than data points, you may not be able to reliably estimate
+         * this information.
+         */
+        FULL
+        {
+            @Override
+            public void fit(List<Vec> X, Matrix S_k, double[] contrib, Vec xk, double Nk) 
+            {
+                int N = contrib.length;
+                int d = xk.length();
+                S_k.zeroOut();
+                //(10.53) in Bishop
+                DenseVector tmp = new DenseVector(d);
+                for(int n = 0; n < N; n++)
+                {
+                    //double r_nk = r[k][n];
+                    double r_nk = contrib[n];
+                    X.get(n).copyTo(tmp);
+                    tmp.mutableSubtract(xk);
+
+                    Matrix.OuterProductUpdate(S_k, tmp, tmp, r_nk);
+                }
+                S_k.mutableMultiply(1.0/(Nk + 1e-6));
+            }
+
+            @Override
+            public void updateWishart(Matrix W_inv_0, Matrix W_inv_k, Matrix S_k, Vec xk, double Nk, Vec m_0, double beta_0, double beta_k, double nu_k)
+            {
+                int d = W_inv_0.rows();
+                //(10.62) in Bishop
+                W_inv_0.copyTo(W_inv_k);
+                W_inv_k.mutableAdd(Nk, S_k);
+                //adding small value to diagonal to make cov stable
+                for(int i = 0; i < d; i++)
+                    W_inv_k.increment(i, i, 1e-6);
+                //note (beta_0 + Nk) denominator is same as (10.60)
+                double β0_Nk_over_β0_plus_Nk = beta_0 * Nk / beta_k ;
+                Vec tmp = xk.clone();
+                tmp.mutableSubtract(m_0);
+                Matrix.OuterProductUpdate(W_inv_k, tmp, tmp, β0_Nk_over_β0_plus_Nk);
+                
+                
+                //Normalize the covariance matrix now so that we don't have to 
+                //multiply by nu_k later in in (10.64), makig it easier to re-use
+                //the NormalM class
+                W_inv_k.mutableMultiply(1.0/nu_k);
+            }
+
+            @Override
+            public Matrix allocate(int d) 
+            {
+                return new DenseMatrix(d, d);
+            }
+
+            @Override
+            public NormalM asNormal(Vec mean, Matrix cov) 
+            {
+                return new NormalM(mean, cov);
+            }
+            
+        };
+        
+        /**
+         * 
+         * @param X the entire dataset of vectors
+         * @param S_k the location to store the covariance estimate
+         * @param contrib the weight each data point will contribute to the
+         * covariance estimate
+         * @param xk the mean to use as the current center of the data
+         * @param Nk the total weight of the points under consideration, should
+         * be equal to the sum of all values in <i>contrib</i>
+         */
+        abstract public void fit(List<Vec> X, Matrix S_k, double[] contrib, Vec xk, double Nk);
+        
+        /**
+         * This method performs the Covariance matrix update that corresponds to
+         * the result of the Wishart distrubtional prior in the VBGMM model.
+         * This is equation (10.62) in Bishop's book.
+         *
+         * @param W_inv_0 the prior over the covairances of the whole data
+         * @param W_inv_k the location to store the result of this function call
+         * @param S_k the estimated covariance of the current cluster
+         * @param xk the estimated mean of the current cluster
+         * @param Nk the total weight allocated to the current cluster
+         * @param m_0 the prior over the means of the whole dataset
+         * @param beta_0 the prior weight for the mean prior
+         * @param beta_k the resulting weight estimate for the current cluster
+         * @param nu_k the resulting degress of freedom estimated for the
+         * current cluster
+         */
+        abstract public void updateWishart(Matrix W_inv_0, Matrix W_inv_k, Matrix S_k, Vec xk, double Nk, Vec m_0, double beta_0, double beta_k, double nu_k);
+
+        /**
+         * Allocations a Matrix object that will be used to store the covariance
+         * matrix. The matrix may not be a full d x d matrix if the chosen
+         * covariance type uses a more compact approximation or representation.
+         *
+         * @param d the number of features
+         * @return a matrix that future {@link COV_FIT_TYPE} functions will use
+         * to update and alter.
+         */
+        abstract public Matrix allocate(int d);
+        
+        /**
+         * Returns a normal distribution object that can be used to sample from
+         * for the current cluster.
+         *
+         * @param mean the mean of the cluster
+         * @param cov the covariance matrix as returned by {@link #allocate(int)
+         * } and updated with {@link #updateWishart(jsat.linear.Matrix, jsat.linear.Matrix, jsat.linear.Matrix, jsat.linear.Vec, double, jsat.linear.Vec, double, double, double)
+         * }.
+         * @return a normal distirbution object to use corresponding to samples
+         * from the given parameterization.
+         */
+        abstract public NormalM asNormal(Vec mean, Matrix cov);
+    }
+
+    public VBGMM() 
+    {
+        this(COV_FIT_TYPE.FULL);
+    }
+    
+    public VBGMM(COV_FIT_TYPE cov_type) 
+    {
+        this.cov_type = cov_type;
     }
 
     public VBGMM(VBGMM toCopy) 
@@ -98,7 +302,14 @@ public class VBGMM implements Clusterer, MultivariateDistribution
         boolean[] active = new boolean[k_max];
         Arrays.fill(active, true);
         
-        double[][] r = new double[N][k_max];
+        /**
+         * Information on the response / "contribution" of each data point n to
+         * cluster k. Bishop and others denote this as r_nk. We will transpose
+         * this to be r_kn, because we almost always iterate over all n while
+         * working with a fixed k. Doing this will result in better caching and
+         * pre-fetch behavior.
+         */
+        double[][] r = new double[k_max][N];
         
         
         //(10.51)
@@ -120,14 +331,18 @@ public class VBGMM implements Clusterer, MultivariateDistribution
          */
         Vec m_0 = new DenseVector(d);
         MatrixStatistics.meanVector(m_0, dataSet);
+
+        //using R as a sracth space for a quick init
+        Arrays.fill(r[0], 1.0);
         /**
          * Prior over the covariances of the dataset. Set from the dataset cov,
          * could be given, but not dealing with that. Its inverse because Bishop
          * deals with the precision matrix, which is the inverse of the
          * covariance.
          */
-        Matrix W_inv_0 = new DenseMatrix(d, d);
-        MatrixStatistics.covarianceMatrix(m_0, dataSet, W_inv_0);
+        Matrix W_inv_0 = cov_type.allocate(d);
+        cov_type.fit(X, W_inv_0, r[0], m_0, N);
+        Arrays.fill(r[0], 0.0);//Done using as temp space
         
         /**
          * The estimated mean for each cluster
@@ -140,7 +355,8 @@ public class VBGMM implements Clusterer, MultivariateDistribution
         for(int k = 0; k < k_max; k++)
         {
             m_k[k] = new DenseVector(d);
-            W_inv_k[k] = new DenseMatrix(d, d);
+            W_inv_k[k] = cov_type.allocate(d);
+            S_k[k] = cov_type.allocate(d);
         }
         
         /**
@@ -168,7 +384,7 @@ public class VBGMM implements Clusterer, MultivariateDistribution
         //Everything is set to 0 right now, so assign to closest
         for(int n = 0; n < N; n++)
         {
-            r[n][designations[n]] = 1.0;
+            r[designations[n]][n] = 1.0;
             log_pi[designations[n]] += 1;
         }
         //Set central locations based on k-means
@@ -185,8 +401,7 @@ public class VBGMM implements Clusterer, MultivariateDistribution
         double prevLog = Double.POSITIVE_INFINITY;
         
         for(int iteration = 0; iteration < maxIterations; iteration++)
-        {
-            
+        {   
             //M-Step
             ParallelUtils.run(parallel, k_max, (k)->
             {
@@ -198,7 +413,7 @@ public class VBGMM implements Clusterer, MultivariateDistribution
 
                 for(int n = 0; n < N; n++)
                 {
-                    double r_nk = r[n][k];
+                    double r_nk = r[k][n];
                     Vec x_n = X.get(n);
                     Nk += r_nk;//(10.51) in Bishop
                     xk.mutableAdd(r_nk, x_n);//(10.52) is Bishop
@@ -210,19 +425,8 @@ public class VBGMM implements Clusterer, MultivariateDistribution
                 xk.mutableDivide(Nk + 1e-6);
                 X_bar_k[k] = xk;
 
-                Matrix Sk = new DenseMatrix(d, d);
-                //(10.53) in Bishop
-                DenseVector tmp = new DenseVector(d);
-                for(int n = 0; n < N; n++)
-                {
-                    double r_nk = r[n][k];
-                    X.get(n).copyTo(tmp);
-                    tmp.mutableSubtract(xk);
-
-                    Matrix.OuterProductUpdate(Sk, tmp, tmp, r_nk);
-                }
-                Sk.mutableMultiply(1.0/(Nk + 1e-6));
-                S_k[k] = Sk;
+                //(10.53) in Bishop will be handled in a scenario dependent manner by cov_type
+                cov_type.fit(X, S_k[k], r[k], xk, Nk);
 
                 //(10.58) in Bishop
                 alpha[k] = alpha_0 + Nk;
@@ -233,24 +437,11 @@ public class VBGMM implements Clusterer, MultivariateDistribution
                 m_k[k].mutableAdd(beta_0, m_0);
                 m_k[k].mutableAdd(Nk, xk);
                 m_k[k].mutableDivide(beta[k] + 1e-6);
-                //(10.62) in Bishop
-                W_inv_0.copyTo(W_inv_k[k]);
-                W_inv_k[k].mutableAdd(Nk, Sk);
-                //adding small value to diagonal to make cov stable
-                for(int i = 0; i < d; i++)
-                    W_inv_k[k].increment(i, i, 1e-6);
-                //note (beta_0 + Nk) denominator is same as (10.60)
-                double β0_Nk_over_β0_plus_Nk = beta_0 * Nk / beta[k] ;
-                xk.copyTo(tmp);
-                tmp.mutableSubtract(m_0);
-                Matrix.OuterProductUpdate(W_inv_k[k], tmp, tmp, β0_Nk_over_β0_plus_Nk);
                 //(10.63)
                 nu_k[k] = nu_0 + Nk;
                 
-                //Normalize the covariance matrix now so that we don't have to 
-                //multiply by nu_k later in in (10.64), makig it easier to re-use
-                //the NormalM class
-                W_inv_k[k].mutableMultiply(1.0/nu_k[k]);
+                //(10.62) in Bishop will be handled in a scenario dependent manner
+                cov_type.updateWishart(W_inv_0, W_inv_k[k], S_k[k], xk, Nk, m_0, beta_0, beta[k], nu_k[k]);
 
             });
 
@@ -260,7 +451,9 @@ public class VBGMM implements Clusterer, MultivariateDistribution
             {
                 if(!active[k])
                     return;
-                normals[k] = new NormalM(m_k[k], W_inv_k[k]);
+
+                //Let cov_type create normal, b/c W_inv_k might not actually be a full covariance matrix
+                normals[k] = cov_type.asNormal(m_k[k], W_inv_k[k]);
 
                 //(10.66) in Bishop
                 log_pi[k] = SpecialMath.digamma(alpha[k]) - SpecialMath.digamma(alpha_sum);
@@ -303,7 +496,7 @@ public class VBGMM implements Clusterer, MultivariateDistribution
                     double proj =  normals[k].logPdf(X.get(n));
                     proj -= d/(2*beta[k]);
 
-                    log_prob_contrib += (r[n][k] = proj + log_pi[k] + log_precision[k]);
+                    log_prob_contrib += (r[k][n] = proj + log_pi[k] + log_precision[k]);
                 }
 
                 return log_prob_contrib;
@@ -323,10 +516,10 @@ public class VBGMM implements Clusterer, MultivariateDistribution
                 double sum = 0;
                 for(int k = 0; k < k_max; k++)
                     if(active[k])
-                        sum += (r[n][k] = Math.exp(r[n][k]));
+                        sum += (r[k][n] = Math.exp(r[k][n]));
                 for(int k = 0; k < k_max; k++)
                     if(active[k])
-                        r[n][k] /= sum;
+                        r[k][n] /= sum;
             });
         }
         
@@ -359,19 +552,18 @@ public class VBGMM implements Clusterer, MultivariateDistribution
             for(int k = 0; k < k_max; k++)
                 if(active[k])
                 {
-                    if((r[n][cur_pos] = r[n][k]) > k_max_value)
+                    //we will alter r for now, because maybe we want to use that code later?
+                    //not much real work ontop of finding which index won anyway
+                    if((r[cur_pos][n] = r[k][n]) > k_max_value)
                     {
                         k_max_indx = cur_pos;
-                        k_max_value = r[n][cur_pos];
+                        k_max_value = r[cur_pos][n];
                     }
                     cur_pos++;
                 }
             //Mark final cluster id
             designations[n] = k_max_indx;
-            r[n] = Arrays.copyOf(r[n], final_k);
         }
-        
-        
         
         return designations;
     }
