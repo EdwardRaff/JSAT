@@ -1,9 +1,13 @@
 package jsat.distributions.multivariate;
 
+import java.util.List;
+import java.util.Random;
 import jsat.linear.DenseMatrix;
 import jsat.linear.DenseVector;
 import jsat.linear.Matrix;
+import jsat.linear.MatrixStatistics;
 import jsat.linear.Vec;
+import jsat.utils.random.RandomUtil;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -71,6 +75,32 @@ public class NormalMTest
             }
 
     }
+    
+    @Test
+    public void testDiag()
+    {
+        System.out.println("setCovariance");
+        Vec diag = DenseVector.random(mean.length());
+        Matrix D = Matrix.diag(diag);
+        NormalM normalM_1 = new NormalM(mean, diag);
+        NormalM normalM_2 = new NormalM(mean, D);
+        
+        Random rand = RandomUtil.getRandom();
+        
+        List<Vec> s1 = normalM_1.sample(10000, rand);
+        List<Vec> s2 = normalM_2.sample(10000, rand);
+        
+        Vec x1 = MatrixStatistics.meanVector(s1);
+        Vec x2 = MatrixStatistics.meanVector(s2);
+        assertTrue(x1.equals(x2, 0.05));
+        
+        assertTrue(MatrixStatistics.covarianceMatrix(x1, s1).equals(MatrixStatistics.covarianceMatrix(x2, s2), 0.05));
+        
+        for(Vec x : s1)
+            assertEquals(normalM_2.logPdf(x), normalM_1.logPdf(x), 0.05);
+    }
+    
+    
 
     /**
      * Test of logPdf method, of class NormalM.
@@ -98,6 +128,8 @@ public class NormalMTest
             -7.342396098144846e-001, -3.709787597345088e+001,
         };
 
+        for(int i = 0; i < pVals.length; i++)
+            System.out.println(pVals[i] + " " +  normalM.logPdf(xVals[i]));
         for(int i = 0; i < pVals.length; i++)
             assertEquals(pVals[i], normalM.logPdf(xVals[i]), 1e-12);//Slightly smaller error b/c the absolute error can get large, but relative should still be good
     }

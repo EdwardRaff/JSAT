@@ -11,6 +11,7 @@ import jsat.linear.MatrixStatistics;
 import jsat.linear.SingularValueDecomposition;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
+import jsat.linear.IndexValue;
 
 /**
  * Class for the multivariate Normal distribution. It is often called the Multivariate Gaussian distribution. 
@@ -46,11 +47,13 @@ public class NormalM extends MultivariateDistributionSkeleton
      * When we compute the constant {@link #logPDFConst}, we only need the inverse of the covariance matrix. 
      */
     private Matrix invCovariance;
+    private Vec invCov_diag;
     private Vec mean;
     /**
      * Lower triangular cholesky decomposition used for sampling such that L * L<sup>T</sup> = Covariance Matrix
      */
     private Matrix L;
+    private Vec L_diag;
     /**
      * The determinant of the covariance matrix. 
      */
@@ -59,6 +62,12 @@ public class NormalM extends MultivariateDistributionSkeleton
     public NormalM(Vec mean, Matrix covariance)
     {
         setMeanCovariance(mean, covariance);
+    }
+    
+    public NormalM(Vec mean, Vec diag_covariance)
+    {
+        this.mean = mean.clone();
+        setCovariance(diag_covariance);
     }
 
     public NormalM()
@@ -101,8 +110,10 @@ public class NormalM extends MultivariateDistributionSkeleton
             throw new ArithmeticException("Covariance matrix does not agree with the mean");
         
         CholeskyDecomposition cd = new CholeskyDecomposition(covMatrix.clone());
+        System.out.println();
         L = cd.getLT();
         L.mutableTranspose();
+        log_det = cd.getLogDet();
         
         int k = mean.length();
         if(Double.isNaN(log_det) || log_det < log(1e-10))
@@ -118,6 +129,27 @@ public class NormalM extends MultivariateDistributionSkeleton
             this.logPDFConst = (-k*log(2*PI)-log_det)*0.5;
             this.invCovariance = cd.solve(Matrix.eye(k));
         }
+        this.invCov_diag = null;
+        this.L_diag = null;
+    }
+    
+    public void setCovariance(Vec cov_diag)
+    {
+        if(cov_diag.length()!= this.mean.length())
+            throw new ArithmeticException("Covariance matrix does not agree with the mean");
+        
+        int k = mean.length();
+        
+        log_det = 0;
+        for(IndexValue iv : cov_diag)
+            log_det += Math.log(iv.getValue());
+        L_diag = cov_diag.clone();
+        L_diag.applyFunction(Math::sqrt);//Cholesky is L*L' = C, sicne just diag, that means sqrt
+        invCov_diag = cov_diag.clone();
+        this.logPDFConst = (-k*log(2*PI)-log_det)*0.5;
+        this.invCov_diag.applyFunction(f->f > 0 ? 1/f : 0.0);
+        this.invCovariance = null;
+        this.L = null;
     }
 
     public Vec getMean() 
@@ -132,7 +164,16 @@ public class NormalM extends MultivariateDistributionSkeleton
             throw new ArithmeticException("No mean or variance set");
         Vec xMinusMean = x.subtract(mean);
         //Compute the part that is depdentent on x
-        double xDependent = xMinusMean.dot(invCovariance.multiply(xMinusMean))*-0.5;
+        double xDependent;
+        if(invCov_diag != null)
+        {
+            xDependent = 0;
+            for(IndexValue iv : xMinusMean)
+                xDependent += iv.getValue()*iv.getValue()*invCov_diag.get(iv.getIndex());
+            xDependent *= -0.5;
+        }
+        else
+            xDependent = xMinusMean.dot(invCovariance.multiply(xMinusMean))*-0.5;
         return logPDFConst + xDependent;
     }
     
@@ -181,13 +222,17 @@ public class NormalM extends MultivariateDistributionSkeleton
     public List<Vec> sample(int count, Random rand)
     {
         List<Vec> samples = new ArrayList<>(count);
-        Vec Z = new DenseVector(L.rows());
+        Vec Z = new DenseVector(L == null ? L_diag.length() : L.rows());
         
         for(int i = 0; i < count; i++)
         {
             for(int j = 0; j < Z.length(); j++)
                 Z.set(j, rand.nextGaussian());
-            Vec sample = L.multiply(Z);
+            Vec sample;
+            if(L != null)//full diag
+                sample = L.multiply(Z);
+            else
+                sample = L_diag.pairwiseMultiply(Z);
             sample.mutableAdd(mean);
             samples.add(sample);
         }

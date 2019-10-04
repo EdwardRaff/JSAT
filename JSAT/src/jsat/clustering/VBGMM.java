@@ -133,12 +133,8 @@ public class VBGMM implements Clusterer, MultivariateDistribution
             @Override
             public NormalM asNormal(Vec mean, Matrix cov) 
             {
-                //"cov" is actually the diagonal, so make a real matrix
-                Matrix real_cov = new DenseMatrix(mean.length(), mean.length());
-                for(int i = 0; i < real_cov.rows(); i++)
-                    real_cov.increment(i, i, cov.get(0, i));
-                //TODO, make NormalM take a diagonal cov option
-                return new NormalM(mean, real_cov);
+                //"cov" is actually the diagonal
+                return new NormalM(mean, cov.getRowView(0));
             }
             
         },
