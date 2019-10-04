@@ -186,10 +186,7 @@ public class CholeskyDecomposition implements Serializable
      */
     public double getDet()
     {
-        double det = 1;
-        for(int i = 0; i < L.rows(); i++)
-            det *= 2*L.get(i, i);
-        return det;
+        return Math.exp(getLogDet());
     }
     
     /**
