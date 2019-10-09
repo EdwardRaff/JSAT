@@ -45,8 +45,11 @@ public class TruncatedSVD
             s = u_lanc.d;
             for(int i = 0; i < k; i++)
             {
-                s[i] = Math.sqrt(s[i]+1e-15);
-                invertS.set(i, 1/s[i]);
+                s[i] = Math.sqrt(Math.max(s[i], 0.0));
+                if(s[i] == 0)//numerical issue
+                    invertS.set(i, 0.0);
+                else
+                    invertS.set(i, 1/s[i]);
             }
             //V = (A^T * u * (diag(1/s)))
             V = A.transposeMultiply(U);
@@ -61,8 +64,11 @@ public class TruncatedSVD
             s = v_lanc.d;
             for(int i = 0; i < k; i++)
             {
-                s[i] = Math.sqrt(s[i]+1e-15);
-                invertS.set(i, 1/s[i]);
+                s[i] = Math.sqrt(Math.max(s[i], 0.0));
+                if(s[i] == 0)//numerical issue
+                    invertS.set(i, 0.0);
+                else
+                    invertS.set(i, 1/s[i]);
             }
             //U = (X * diag(1/s) *v)^T
             //TODO this is inefficent, need to add new function to replace
