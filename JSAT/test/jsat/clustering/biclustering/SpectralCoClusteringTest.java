@@ -90,31 +90,37 @@ public class SpectralCoClusteringTest {
             dataSet.addDataPoint(data.get(i), labels.get(i));
         
         
-        boolean parallel = false;
-        SpectralCoClustering instance = new SpectralCoClustering();
-        List<List<Integer>> row_assignments = new ArrayList<>();
-        List<List<Integer>> col_assignments = new ArrayList<>();
-        instance.bicluster(dataSet, true_k, parallel, row_assignments, col_assignments);
-        
-        
-        double score = ConsensusScore.score(parallel, 
-                true_row_assingments, true_col_assingments, 
-                row_assignments, col_assignments);
-        
-        
-        
-//        for(int c = 0; c < true_k; c++)
-//        {
-//            System.out.println(c);
-//            System.out.println(row_assignments.get(c));
-//            System.out.println(col_assignments.get(c));
-//            System.out.println("\n\n");
-//        }
-//        
-//        System.out.println("Score: " + score);
-        
-        //Should be able to get a perfect score
-        assertEquals(1.0, score, 0.0);
+//        boolean parallel = false;
+        for(boolean parallel : new boolean[]{false, true})
+            for(SpectralCoClustering.InputNormalization in : SpectralCoClustering.InputNormalization.values())
+            {
+                System.out.println(in + " " + parallel);
+                SpectralCoClustering instance = new SpectralCoClustering(in);
+                List<List<Integer>> row_assignments = new ArrayList<>();
+                List<List<Integer>> col_assignments = new ArrayList<>();
+                instance.bicluster(dataSet, true_k, parallel, row_assignments, col_assignments);
+
+                assertEquals(true_k, row_assignments.size());
+                assertEquals(true_k, col_assignments.size());
+                double score = ConsensusScore.score(parallel, 
+                        true_row_assingments, true_col_assingments, 
+                        row_assignments, col_assignments);
+
+
+
+        //        for(int c = 0; c < true_k; c++)
+        //        {
+        //            System.out.println(c);
+        //            System.out.println(row_assignments.get(c));
+        //            System.out.println(col_assignments.get(c));
+        //            System.out.println("\n\n");
+        //        }
+        //        
+        //        System.out.println("Score: " + score);
+
+                //Should be able to get a perfect score
+                assertEquals(1.0, score, 0.0);
+            }
         
     }
     
@@ -127,8 +133,8 @@ public class SpectralCoClusteringTest {
         List<Vec> data = new ArrayList<>();
         int true_k = 4;
         int features_per = 3;
-        int n_c = 15;
-        int noisy_features = 20;
+        int n_c = 5;
+        int noisy_features = 0;
         int d = features_per*true_k + noisy_features;
         
         List<List<Integer>> true_row_assingments = new ArrayList<>();
@@ -162,32 +168,38 @@ public class SpectralCoClusteringTest {
             dataSet.addDataPoint(data.get(i), labels.get(i));
         
         
-        boolean parallel = false;
-        SpectralCoClustering instance = new SpectralCoClustering();
         
-        instance.setBaseClusterAlgo(new HDBSCAN(5));
-        
-        List<List<Integer>> row_assignments = new ArrayList<>();
-        List<List<Integer>> col_assignments = new ArrayList<>();
-        instance.bicluster(dataSet, parallel, row_assignments, col_assignments);
-        
-        
-        double score = ConsensusScore.score(parallel, 
-                true_row_assingments, true_col_assingments, 
-                row_assignments, col_assignments);
-                
-//        for(int c = 0; c < row_assignments.size(); c++)
-//        {
-//            System.out.println(c);
-//            System.out.println(row_assignments.get(c));
-//            System.out.println(col_assignments.get(c));
-//            System.out.println("\n\n");
-//        }
-//        
-//        System.out.println("Score: " + score);
-        
-        //Should be able to do pretty well
-        assertEquals(1.0, score, 0.1);
+        for(boolean parallel : new boolean[]{false, true})
+            for(SpectralCoClustering.InputNormalization in : SpectralCoClustering.InputNormalization.values())
+            {
+                System.out.println(in + " " + parallel);
+                SpectralCoClustering instance = new SpectralCoClustering(in);
+
+                instance.setBaseClusterAlgo(new HDBSCAN(5));
+
+                List<List<Integer>> row_assignments = new ArrayList<>();
+                List<List<Integer>> col_assignments = new ArrayList<>();
+                instance.bicluster(dataSet, parallel, row_assignments, col_assignments);
+
+                assertEquals(true_k, row_assignments.size());
+                assertEquals(true_k, col_assignments.size());
+                double score = ConsensusScore.score(parallel, 
+                        true_row_assingments, true_col_assingments, 
+                        row_assignments, col_assignments);
+
+        //        for(int c = 0; c < row_assignments.size(); c++)
+        //        {
+        //            System.out.println(c);
+        //            System.out.println(row_assignments.get(c));
+        //            System.out.println(col_assignments.get(c));
+        //            System.out.println("\n\n");
+        //        }
+        //        
+        //        System.out.println("Score: " + score);
+
+                //Should be able to do pretty well
+                assertEquals(1.0, score, 0.1);
+            }
         
     }
 

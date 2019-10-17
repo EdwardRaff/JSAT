@@ -26,13 +26,115 @@ import jsat.utils.IntList;
  */
 public class SpectralCoClustering implements Bicluster
 {
-    Clusterer baseClusterAlgo = new GMeans();
+    static public enum InputNormalization 
+    {
+        SCALE
+        {
+            @Override
+            protected Matrix normalize(Matrix A, DenseVector R, DenseVector C) 
+            {
+                return row_col_normalize(A, R, C);
+            }
+            
+        },
+        BISTOCHASTIZATION
+        {
+            @Override
+            protected Matrix normalize(Matrix A, DenseVector R, DenseVector C) 
+            {
+                //Init locations to store final normalization vectors
+                //make equal to no normalization at first, and accumulate after every step
+                DenseVector R_tmp = R.clone();
+                R_tmp.zeroOut();
+                R_tmp.mutableAdd(1.0);
+                DenseVector C_tmp = C.clone();
+                C_tmp.zeroOut();
+                C_tmp.mutableAdd(1.0);
+                
+                Matrix A_prev = A;
+                double diff = Double.POSITIVE_INFINITY;
+                int iter = 0;
+                
+                while(iter++ < 1000 && diff > 1e-4)
+                {
+                    A_prev = A;
+                    A = row_col_normalize(A, R, C);
+                    
+                    //Compute the "norm" of the two matricies
+                    //below is not quite the norm of the 2 matricies, but close 
+                    //enough, we just need to know if we have converged
+                    diff = 0;
+                    for(int row = 0; row < A.rows(); row++)
+                        diff += A.getRowView(row).pNormDist(2, A_prev.getRowView(row));
+                    diff /= A.rows();
+                    
+                    R_tmp.mutablePairwiseMultiply(R);
+                    C_tmp.mutablePairwiseMultiply(C);
+                }
+                
+                R_tmp.copyTo(R);
+                C_tmp.copyTo(C);
+                
+                return A;
+            }
+        };
+        
+        /**
+         * Computes a normalization of the input matrix that allows a later SVD
+         * step to better reveal block structure in the underlying data.
+         *
+         * @param A the input matrix to normalize, which will not be altered
+         * @param R the location to store the row normalization matrix to apply
+         * to the original matrix to get the result. This may be filled with
+         * constants if no subsequent use of this should occur in the SVD
+         * decomposition.
+         * @param C the location to store the column normalization matrix to
+         * apply to the original matrix to get the result. This may be filled
+         * with constants if no subsequent use of this should occur in the SVD
+         * decomposition.
+         * @return A new matrix that has been normalized
+         */
+        abstract protected Matrix normalize(Matrix A, DenseVector R, DenseVector C);
+       
+    }
+    
+    private Clusterer baseClusterAlgo;
+    
+    private InputNormalization inputNormalization;
 
-    public void setBaseClusterAlgo(Clusterer baseClusterAlgo) {
+    public SpectralCoClustering() 
+    {
+        this(InputNormalization.SCALE);
+    }
+
+    public SpectralCoClustering(InputNormalization normalization) 
+    {
+        this(normalization, new GMeans(new HamerlyKMeans()));
+    }
+    
+    public SpectralCoClustering(InputNormalization normalization, Clusterer baseCluster) 
+    {
+        setBaseClusterAlgo(baseCluster);
+        setInputNormalization(normalization);
+    }
+
+    public void setInputNormalization(InputNormalization inputNormalization) 
+    {
+        this.inputNormalization = inputNormalization;
+    }
+
+    public InputNormalization getInputNormalization() 
+    {
+        return inputNormalization;
+    }
+
+    public void setBaseClusterAlgo(Clusterer baseClusterAlgo) 
+    {
         this.baseClusterAlgo = baseClusterAlgo;
     }
 
-    public Clusterer getBaseClusterAlgo() {
+    public Clusterer getBaseClusterAlgo() 
+    {
         return baseClusterAlgo;
     }
 
@@ -45,7 +147,7 @@ public class SpectralCoClustering implements Bicluster
         DenseVector R = new DenseVector(A.rows());
         DenseVector C = new DenseVector(A.cols());
         
-        Matrix A_n = row_col_normalize(A, R, C);
+        Matrix A_n = inputNormalization.normalize(A, R, C);
         
         //﻿2. Compute l = ceil(log2 k) singular vectors of A_n, u2, . . . u_l+1 and v2, . . . v_l+1, and form the matrix Z as in (12)
         int l = (int) Math.ceil(Math.log(clusters)/Math.log(2.0));
@@ -53,7 +155,7 @@ public class SpectralCoClustering implements Bicluster
         
         //A_n has r rows and c columns. We are going to make a new data matrix Z
         //Z will have (r+c) rows, and l columns. 
-        SimpleDataSet Z = create_Z_dataset(A_n, l, R, C);//+1 b/c we are going to skip the first SV
+        SimpleDataSet Z = create_Z_dataset(A_n, l, R, C, inputNormalization);//+1 b/c we are going to skip the first SV
         
         KClusterer to_use;
         if(baseClusterAlgo instanceof KClusterer)
@@ -74,14 +176,14 @@ public class SpectralCoClustering implements Bicluster
         DenseVector R = new DenseVector(A.rows());
         DenseVector C = new DenseVector(A.cols());
         
-        Matrix A_n = row_col_normalize(A, R, C);
+        Matrix A_n = inputNormalization.normalize(A, R, C);
         
         //﻿2. Compute l = ceil(log2 k) singular vectors of A_n, u2, . . . u_l+1 and v2, . . . v_l+1, and form the matrix Z as in (12)
         int k_max = Math.min(A.rows(), A.cols());
         int l = (int) Math.ceil(Math.log(k_max)/Math.log(2.0));
         
         
-        SimpleDataSet Z = create_Z_dataset(A_n, l, R, C);
+        SimpleDataSet Z = create_Z_dataset(A_n, l, R, C, inputNormalization);
         
         
         int[] joint_designations = baseClusterAlgo.cluster(Z, parallel, null);
@@ -97,17 +199,23 @@ public class SpectralCoClustering implements Bicluster
         
     }
 
-    private SimpleDataSet create_Z_dataset(Matrix A_n, int l, DenseVector R, DenseVector C) {
+    private SimpleDataSet create_Z_dataset(Matrix A_n, int l, DenseVector R, DenseVector C, InputNormalization inputNormalization) 
+    {
         //A_n has r rows and c columns. We are going to make a new data matrix Z
         //Z will have (r+c) rows, and l columns.
         TruncatedSVD svd = new TruncatedSVD(A_n, l+1);//+1 b/c we are going to skip the first SV
         Matrix U = svd.getU();
         Matrix V = svd.getV().transpose();
-        //Drop the first column, which corresponds to the first SV we don't want
-        U = new SubMatrix(U, 0, 1, U.rows(), l+1);
-        V = new SubMatrix(V, 0, 1, V.rows(), l+1);
-        Matrix.diagMult(R, U);
-        Matrix.diagMult(C, V);
+        //In some cases, Drop the first column, which corresponds to the first SV we don't want
+        int to_skip = 1;
+        U = new SubMatrix(U, 0, to_skip, U.rows(), l+to_skip);
+        V = new SubMatrix(V, 0, to_skip, V.rows(), l+to_skip);
+        if(inputNormalization == InputNormalization.SCALE)
+        {
+            Matrix.diagMult(R, U);
+            Matrix.diagMult(C, V);
+        }
+        
         SimpleDataSet Z = new SimpleDataSet(l, new CategoricalData[0]);
         for(int i = 0; i < U.rows(); i++)
             Z.add(new DataPoint(U.getRow(i)));
@@ -163,6 +271,8 @@ public class SpectralCoClustering implements Bicluster
      */
     protected static Matrix row_col_normalize(Matrix A, Vec R, Vec C) 
     {
+        R.zeroOut();
+        C.zeroOut();
         //A_n = R^{−1/2} A C^{−1/2}
         //Where R and C are diagonal matrix with Row and Column sums
         for (int i = 0; i < A.rows(); i++)
