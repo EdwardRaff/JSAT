@@ -210,6 +210,13 @@ public class SpectralCoClustering implements Bicluster
         int to_skip = 1;
         U = new SubMatrix(U, 0, to_skip, U.rows(), l+to_skip);
         V = new SubMatrix(V, 0, to_skip, V.rows(), l+to_skip);
+        /* Orig paper says to do this multiplication for re-scaling. Why not for
+         * bistochastic? Its very similar! b/c in "﻿Spectral Biclustering of 
+         * Microarray Data: Coclustering Genes and Conditions" where bistochastic
+         * is introduced, on page 710: "﻿Once D1 and D2 are found, we ﻿apply SVD to 
+         * B with no further normalization "
+         * 
+         */
         if(inputNormalization == InputNormalization.SCALE)
         {
             Matrix.diagMult(R, U);
