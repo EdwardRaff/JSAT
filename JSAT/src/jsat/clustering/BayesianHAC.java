@@ -26,6 +26,11 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.function.IntSupplier;
 import java.util.stream.IntStream;
+import jsat.linear.CholeskyDecomposition;
+import jsat.linear.DenseMatrix;
+import jsat.linear.Matrix;
+import jsat.linear.SingularValueDecomposition;
+import jsat.math.OnLineStatistics;
 
 /**
  *
@@ -44,6 +49,22 @@ public class BayesianHAC implements Clusterer
             public Node init(int point, double alpha_prior, List<Vec> data) 
             {
                 return new BernoulliBetaNode(point, alpha_prior, data);
+            }
+        },
+        GAUSSIAN_DIAG
+        {
+            @Override
+            public Node init(int point, double alpha_prior, List<Vec> data) 
+            {
+                return new NormalDiagNode(point, alpha_prior, data);
+            }
+        },
+        GAUSSIAN_FULL
+        {
+            @Override
+            public Node init(int point, double alpha_prior, List<Vec> data) 
+            {
+                return new NormalNode(point, alpha_prior, data);
             }
         };
         
@@ -77,8 +98,9 @@ public class BayesianHAC implements Clusterer
     protected static abstract class Node<Distribution extends Node, HyperParams extends DistPrior>
     {
         int owned;
-        double d;
-        double pi_k;
+        IntList allChilds;
+        double log_d;
+        double log_pi;
         
         /**
          * Stores the value of p(D_k | T_k), assuming this current node is (D_k | T_k)
@@ -95,11 +117,12 @@ public class BayesianHAC implements Clusterer
         public Node(int single_point, double alpha_prior) //used for base case init
         {
             this.owned = single_point;
+            this.allChilds = IntList.view(new int[]{single_point});
             this.log_pdt = 1;
             this.size = 1;
             //﻿initialize each leaf i to have d_i = α, π_i = 1
-            this.d = alpha_prior;
-            this.pi_k = 1.0;
+            this.log_d = log(alpha_prior);
+            this.log_pi = log(1.0);
         }
         
         public Node(Distribution a, Distribution b, double alpha_prior) //MERGE THE NODES
@@ -107,17 +130,23 @@ public class BayesianHAC implements Clusterer
             this.owned = -1;
             this.log_pdt = Double.NaN;
             this.size = a.size + b.size;
+            this.allChilds = new IntList(a.allChilds);
+            this.allChilds.addAll(b.allChilds);
+            Collections.sort(allChilds);
             
             //﻿Figure 3. of paper for equations
-            double tmp = alpha_prior * gamma(this.size);
-            this.d = tmp + a.d * b.d;
-            this.pi_k = tmp/this.d;
+//            double tmp = alpha_prior * gamma(this.size);
+//            this.d = tmp + a.log_d * b.log_d;
+//            this.pi = tmp/this.log_d;
+            double tmp = log(alpha_prior) + lnGamma(this.size);
+            this.log_d = log_exp_sum(tmp, a.log_d+b.log_d);
+            this.log_pi = tmp - this.log_d;
             
             this.left_child = a;
             this.right_child = b;
         }
         
-        public double r(List<Vec> dataset, HyperParams priors)
+        public double logR(List<Vec> dataset, HyperParams priors)
         {
             if(this.size == 1)
             {
@@ -126,14 +155,16 @@ public class BayesianHAC implements Clusterer
                 return 1.0;
             }
             
-            double log_pi = log(this.pi_k);
+//            double log_pi = log(this.log_pi);
             double log_numer = log_pi+this.log_null(dataset, priors);
             //rhight hand side of equation 2
-            double log_rhs = log(1-this.pi_k) + left_child.log_pdt + right_child.log_pdt;
+            double log_neg_pi = log(-Math.expm1(log_pi));
+            double log_rhs = log_neg_pi+ left_child.log_pdt + right_child.log_pdt;
             
             this.log_pdt = log_exp_sum(log_numer, log_rhs);
             
-            return Math.exp(log_numer-this.log_pdt);
+//            return Math.exp(log_numer-this.log_pdt);
+            return log_numer-this.log_pdt;
         }
 
         abstract public Distribution merge(Distribution a, Distribution b, double alpha_prior);
@@ -200,6 +231,127 @@ public class BayesianHAC implements Clusterer
         }
     }
     
+    protected static class WishartDiag implements DistPrior
+    {
+        /**
+         * ﻿v is the degree of freedom
+         */
+        double v;
+        /**
+         * ﻿r is scaling factor on the prior precision of the mean,
+         */
+        double r;
+        
+        /**
+         * ﻿m which is the prior on the mean
+         */
+        Vec m;
+        /**
+         * ﻿S is the prior on the precision matrix.
+         * In our case, S is the diag of it. 
+         * 
+         */
+        Vec S;
+        
+        double log_shared_term;
+        
+        public WishartDiag(List<Vec> dataset) 
+        {
+            int N = dataset.size();
+            int k = dataset.get(0).length();
+            v = k;
+            
+            r = 0.001;
+            
+            m = new DenseVector(k);
+            MatrixStatistics.meanVector(m, dataset);
+            
+            S = new DenseVector(k);
+            MatrixStatistics.covarianceDiag(m, S, dataset);
+            S.mutableDivide(20);
+
+            
+            //Lets get the last term with the prod in it first b/c it contains 
+            //many additions and subtractions
+            log_shared_term = 0;
+            
+
+            double log_det_S = 0;
+            
+            for(int i = 0; i < k; i++)
+                log_det_S += log(S.get(i));
+            log_shared_term += v/2*log_det_S;
+            
+        }
+    }
+    
+    protected static class WishartFull implements DistPrior
+    {
+        /**
+         * ﻿v is the degree of freedom
+         */
+        double v;
+        /**
+         * ﻿r is scaling factor on the prior precision of the mean,
+         */
+        double r;
+        
+        /**
+         * ﻿m which is the prior on the mean
+         */
+        Vec m;
+        /**
+         * ﻿S is the prior on the precision matrix.
+         * In our case, S is the diag of it. 
+         * 
+         */
+        Matrix S;
+        
+        double log_shared_term;
+        
+        public WishartFull(List<Vec> dataset) 
+        {
+            int N = dataset.size();
+            int k = dataset.get(0).length();
+            v = k;
+            
+            r = 0.001;
+            
+            m = new DenseVector(k);
+            MatrixStatistics.meanVector(m, dataset);
+            
+            S = new DenseMatrix(k, k);
+            MatrixStatistics.covarianceMatrix(m, S, dataset);
+            
+
+            SingularValueDecomposition svd = new SingularValueDecomposition(S.clone());
+            if(svd.isFullRank())
+            {
+                S.mutableMultiply(1.0/20);
+            }
+            else
+            {
+                OnLineStatistics var = new OnLineStatistics();
+                for(Vec v : dataset)
+                    for(int i = 0; i < v.length(); i++)
+                        var.add(v.get(i));
+
+                for(int i = 0; i < S.rows(); i++)
+                    S.increment(i, i, 0.1*S.get(i, i) + var.getVarance());
+            }
+
+            
+            //Lets get the last term with the prod in it first b/c it contains 
+            //many additions and subtractions
+            log_shared_term = 0;
+            
+            CholeskyDecomposition cd = new CholeskyDecomposition(S.clone());
+            double log_det_S = cd.getLogDet();
+            log_shared_term += v/2*log_det_S;
+            
+        }
+    }
+    
     protected static class BernoulliBetaNode extends Node<BernoulliBetaNode, BetaConjugate>
     {
         public Vec m;
@@ -251,11 +403,202 @@ public class BayesianHAC implements Clusterer
 
                 
     }
+    
+    protected static class NormalDiagNode extends Node<NormalDiagNode, WishartDiag>
+    {
+        /**
+         * X X^T term is really
+         * X^T X for row, col format like us. 
+         * In diag case, diag(X^T X)_j = \sum_i X_ij^2
+         */
+        Vec XT_X;
+        
+        Vec x_sum;
+        
+
+        public NormalDiagNode(int single_point, double alpha_prior, List<Vec> dataset) 
+        {
+            super(single_point, alpha_prior);
+            
+            Vec x_i = dataset.get(single_point);
+            this.XT_X = x_i.pairwiseMultiply(x_i);
+            this.x_sum = x_i;
+        }
+        
+        public NormalDiagNode(NormalDiagNode a, NormalDiagNode b, double alpha_prior) 
+        {
+            super(a, b, alpha_prior);
+            this.XT_X= a.XT_X.add(b.XT_X);
+            this.x_sum = a.x_sum.add(b.x_sum);
+        }
+
+        @Override
+        public NormalDiagNode merge(NormalDiagNode a, NormalDiagNode b, double alpha_prior) 
+        {
+            NormalDiagNode node = new NormalDiagNode(a, b, alpha_prior);
+            
+            return node;
+        }
+
+        @Override
+        public WishartDiag computeInitialPrior(List<Vec> dataset) 
+        {
+            return new WishartDiag(dataset);
+        }
+
+        @Override
+        public double log_null(List<Vec> dataset, WishartDiag priors) 
+        {
+            int N = this.size;
+            double r = priors.r;
+            int k = priors.m.length();
+            double v = priors.v;
+            
+            
+            //init with first two terms
+            Vec S_prime = priors.S.add(this.XT_X);
+            //
+            // m m^T is the outer-product, but we are just diag, 
+            //so diag(m m^T)_j = m_j^2
+            
+            Vec mm = priors.m.pairwiseMultiply(priors.m);
+            
+            S_prime.mutableAdd(r*N/(N+r), mm);
+            
+            // diag((\sum x) (\sum x)^T )_i = (\sum x)_i^2
+            
+            Vec xsum_xsum = x_sum.pairwiseMultiply(x_sum);
+            
+            S_prime.mutableAdd(-1/(N+r), xsum_xsum);
+            
+            //diag((m * xsum^T + xsum * m^T))_i = m_i * xsum_i * 2
+            
+            Vec mxsum = priors.m.pairwiseMultiply(x_sum).multiply(2);
+            
+            S_prime.mutableAdd(-r/(N+r), mxsum);
+            
+            
+            double v_p = priors.v + N;
+            
+            double log_det_S_p = 0;
+            for(int i = 0; i < S_prime.length(); i++)
+                log_det_S_p += log(S_prime.get(i));
+            
+            double log_prob = priors.log_shared_term + -v_p/2*log_det_S_p;
+            
+            for(int j = 1; j <= k; j++)
+                log_prob += lnGamma((v_p+1-j)/2) - lnGamma((v+1-j)/2);
+            log_prob += v_p*k/2.0*log(2) - v*k/2.0*log(2);
+            
+            log_prob += -N*k/2.0*log(2*Math.PI);
+
+            log_prob += k/2.0 * (log(r) - log(N+r));
+
+            return log_prob;
+        }
+        
+    }
+    
+    protected static class NormalNode extends Node<NormalNode, WishartFull>
+    {
+        /**
+         * X^T X for row, col format like us. 
+         * For incremental updates of X^T X, when we add a new row z, it becomes
+         * X^T X  + z^T z, so we just add the outer product update to X^T X
+         * 
+         */
+        Matrix XT_X;
+        
+        Vec x_sum;
+        
+
+        public NormalNode(int single_point, double alpha_prior, List<Vec> dataset) 
+        {
+            super(single_point, alpha_prior);
+            
+            Vec x_i = dataset.get(single_point);
+            this.XT_X = new DenseMatrix(x_i.length(), x_i.length());
+            Matrix.OuterProductUpdate(XT_X, x_i, x_i, 1.0);
+            this.x_sum = x_i;
+        }
+        
+        public NormalNode(NormalNode a, NormalNode b, double alpha_prior) 
+        {
+            super(a, b, alpha_prior);
+            this.XT_X= a.XT_X.add(b.XT_X);
+            this.x_sum = a.x_sum.add(b.x_sum);
+            
+        }
+
+        @Override
+        public NormalNode merge(NormalNode a, NormalNode b, double alpha_prior) 
+        {
+            NormalNode node = new NormalNode(a, b, alpha_prior);
+            
+            return node;
+        }
+
+        @Override
+        public WishartFull computeInitialPrior(List<Vec> dataset) 
+        {
+            return new WishartFull(dataset);
+        }
+
+        @Override
+        public double log_null(List<Vec> dataset, WishartFull priors) 
+        {
+            int N = this.size;
+            double r = priors.r;
+            int k = priors.m.length();
+            double v = priors.v;
+            
+            
+            //init with first two terms
+            Matrix S_prime = priors.S.add(this.XT_X);
+            //
+            // m m^T is the outer-product,
+            
+            Matrix.OuterProductUpdate(S_prime, priors.m, priors.m, r*N/(N+r));
+            
+            //4th term, outer product update of row sums
+            Matrix.OuterProductUpdate(S_prime, x_sum, x_sum, -1/(N+r));
+            
+            //-r/(N+r) (m * xsum^T + xsum * m^T), lets break it out into two outer
+            //product updates, 
+            
+            Matrix.OuterProductUpdate(S_prime, priors.m, x_sum, -r/(N+r));
+            Matrix.OuterProductUpdate(S_prime, x_sum, priors.m, -r/(N+r));
+            
+            
+            double v_p = priors.v + N;
+            
+            CholeskyDecomposition cd = new CholeskyDecomposition(S_prime);
+            double log_det_S_p = cd.getLogDet();
+            
+            double log_prob = priors.log_shared_term + -v_p/2*log_det_S_p;
+            
+            for(int j = 1; j <= k; j++)
+                log_prob += lnGamma((v_p+1-j)/2) - lnGamma((v+1-j)/2);
+            log_prob += v_p*k/2.0*log(2) - v*k/2.0*log(2);
+            
+            log_prob += -N*k/2.0*log(2*Math.PI);
+
+            log_prob += k/2.0 * (log(r) - log(N+r));
+
+            return log_prob;
+        }
+        
+    }
             
     public BayesianHAC() 
     {
+        this(Distributions.GAUSSIAN_DIAG);
     }
     
+    public BayesianHAC(Distributions dist) 
+    {
+        this.dist = dist;
+    }
     
     
     @Override
@@ -274,14 +617,14 @@ public class BayesianHAC implements Clusterer
             Node n = dist.init(i, alpha_prior, data);
             if(priors == null)
                 priors = n.computeInitialPrior(data);
-            n.r(data, priors);
+            n.logR(data, priors);
             current_nodes.add(n);
         }
         
         
         while(current_nodes.size() > 1)
         {
-            double best_r = 0;
+            double best_r = Double.NEGATIVE_INFINITY;
             int best_i = -1, best_j = -1;
             Node best_merged = null;
             
@@ -294,23 +637,23 @@ public class BayesianHAC implements Clusterer
                     Node D_j = current_nodes.get(j);
                     
                     Node merged = D_i.merge(D_i, D_j, alpha_prior);
-                    double r = merged.r(data, priors);
+                    double log_r = merged.logR(data, priors);
                     
-//                    System.out.println(r + "," + D_i.owned + "," + D_j.owned);
+//                    System.out.println("\t" + log_r + "," + D_i.allChilds + "," + D_j.allChilds);
                     
-                    if(r > best_r)
+                    if(log_r > best_r)
                     {
                         best_i = i;
                         best_j = j;
                         best_merged = merged;
-                        best_r = r;
+                        best_r = log_r;
                     }
                 }
             }
             
-            if(best_r > 0.5)
+//            System.out.println(Math.exp(best_r) + " merge " + current_nodes.get(best_i).allChilds + " " + current_nodes.get(best_j).allChilds + " | " + best_merged.log_pi);
+            if(best_r > log(0.5))
             {
-//                System.out.println(best_r + " merge " + current_nodes.get(best_i).owned + " " + current_nodes.get(best_j).owned);
                 current_nodes.remove(best_j);
                 current_nodes.remove(best_i);
                 current_nodes.add(best_merged);
@@ -318,6 +661,8 @@ public class BayesianHAC implements Clusterer
             else
                 break;
         }
+        
+//        System.out.println("C: " + current_nodes.size());
         
         for(int class_id = 0; class_id < current_nodes.size(); class_id++)
         {
@@ -338,7 +683,8 @@ public class BayesianHAC implements Clusterer
     }
 
     @Override
-    public Clusterer clone() {
+    public Clusterer clone() 
+    {
         return this;
     }
     

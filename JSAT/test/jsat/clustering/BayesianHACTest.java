@@ -3,14 +3,23 @@
  */
 package jsat.clustering;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 import jsat.DataSet;
+import jsat.NormalClampedSample;
 import jsat.SimpleDataSet;
+import jsat.TestTools;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
+import jsat.distributions.multivariate.NormalM;
 import jsat.linear.ConstantVector;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
+import jsat.utils.GridDataGenerator;
 import jsat.utils.random.RandomUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -83,7 +92,7 @@ public class BayesianHACTest {
             sds.add(new DataPoint(x));
         }
         
-        BayesianHAC bhac = new BayesianHAC();
+        BayesianHAC bhac = new BayesianHAC(BayesianHAC.Distributions.BERNOULLI_BETA);
         
         int[] designations = new int[sds.size()];
         bhac.cluster(sds, false, designations);
@@ -101,8 +110,37 @@ public class BayesianHACTest {
         
 //        for(int i = 0; i < designations.length; i++)
 //            System.out.println(designations[i]);
-            
+
+    }
+    
+    @Test
+    public void testClusterGuass() 
+    {
+        System.out.println("cluster_guass");
         
+        Random rand = RandomUtil.getRandom();
+        
+        
+        GridDataGenerator gdg = new GridDataGenerator(new NormalClampedSample(0, 0.05), rand, 2, 2);
+        SimpleDataSet sds = gdg.generateData(10);
+
+        for(BayesianHAC.Distributions cov_type : EnumSet.of(BayesianHAC.Distributions.GAUSSIAN_FULL, BayesianHAC.Distributions.GAUSSIAN_DIAG))
+            for (boolean parallel : new boolean[]{ false})
+            {
+                BayesianHAC em = new BayesianHAC(cov_type);
+
+                int[] designations = new int[sds.size()];
+                em.cluster(sds, parallel);
+                
+
+                List<List<DataPoint>> grouped = ClustererBase.createClusterListFromAssignmentArray(designations, sds);
+//                em = em.clone();
+
+                TestTools.checkClusteringByCat(grouped);
+
+//                for(int i = 0; i < designations.length; i++)
+//                    System.out.println(designations[i]);
+            }
     }
     
 }
