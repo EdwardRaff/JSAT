@@ -3,8 +3,6 @@
  */
 package jsat.clustering;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import jsat.DataSet;
 import jsat.linear.ConstantVector;
@@ -16,16 +14,14 @@ import static  jsat.math.SpecialMath.*;
 import static  java.lang.Math.log;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Set;
 import java.util.Stack;
-import java.util.function.IntSupplier;
-import java.util.stream.IntStream;
+import java.util.stream.Collectors;
+import jsat.distributions.Distribution;
+import jsat.distributions.discrete.Binomial;
+import jsat.distributions.multivariate.IndependentDistribution;
+import jsat.distributions.multivariate.MultivariateDistribution;
+import jsat.distributions.multivariate.NormalM;
 import jsat.linear.CholeskyDecomposition;
 import jsat.linear.DenseMatrix;
 import jsat.linear.Matrix;
@@ -40,6 +36,13 @@ public class BayesianHAC implements Clusterer
 {
     private double alpha_prior = 1.0;
     private Distributions dist = Distributions.BERNOULLI_BETA;
+    
+    /**
+     * After clustering, one possibility is to interpret each found cluster as
+     * its own separate distribution. This list stores the results of that
+     * interpretation.
+     */
+    protected List<MultivariateDistribution> cluster_dists;
 
     static public enum Distributions 
     {
@@ -70,6 +73,32 @@ public class BayesianHAC implements Clusterer
         
         abstract  public Node init(int point, double alpha_prior, List<Vec> data);
     }
+    
+    public BayesianHAC() 
+    {
+        this(Distributions.GAUSSIAN_DIAG);
+    }
+    
+    public BayesianHAC(Distributions dist) 
+    {
+        this.dist = dist;
+    }
+    
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public BayesianHAC(BayesianHAC toCopy) 
+    {
+        this.alpha_prior = toCopy.alpha_prior;
+        this.dist = toCopy.dist;
+        if(toCopy.cluster_dists != null)
+            this.cluster_dists = toCopy.cluster_dists.stream()
+                    .map(MultivariateDistribution::clone).collect(Collectors.toList());
+    }
+    
+    
+    
     
     /**
      * Computes log(exp(a)+exp(b)) in an accurate manner
@@ -110,6 +139,9 @@ public class BayesianHAC implements Clusterer
         Distribution left_child;
         Distribution right_child;
         
+        /**
+         * How many data points belong to this node (inclusive) . 
+         */
         int size;
         
         
@@ -171,6 +203,16 @@ public class BayesianHAC implements Clusterer
         
         abstract public HyperParams computeInitialPrior(List<Vec> dataset);
         
+        /**
+         * Interpreting the current node as a cluster, this method should return
+         * a multivariate distribution object that summarizes the content of
+         * this node, ignoring the rest of the tree.
+         *
+         * @param dataset the original training dataset in the original order
+         * @return a distribution object representing this node.
+         */
+        abstract public MultivariateDistribution toDistribution(List<Vec> dataset);
+        
         public boolean isLeaf()
         {
             return right_child == null && left_child == null;
@@ -211,6 +253,15 @@ public class BayesianHAC implements Clusterer
                     return c.owned;
                 }
             };
+        }
+        
+        public List<Integer> ownedList()
+        {
+            IntList a = new IntList(this.size);
+            Iterator<Integer> iter = this.indxIter();
+            while(iter.hasNext())
+                a.add(iter.next());
+            return a;
         }
     }
     
@@ -401,7 +452,17 @@ public class BayesianHAC implements Clusterer
             return new BernoulliBetaNode(a, b, alpha_prior);
         }
 
-                
+        @Override
+        public MultivariateDistribution toDistribution(List<Vec> dataset) 
+        {
+            //TODO add Bernoulli option and use that. But Binomial with 1 trial is equivalent
+            List<Distribution> dists = new ArrayList<>();
+            double N = this.size;
+            for(int i = 0; i < m.length(); i++)
+                dists.add(new Binomial(1, m.get(i)/N));
+            
+            return new IndependentDistribution(dists);
+        }
     }
     
     protected static class NormalDiagNode extends Node<NormalDiagNode, WishartDiag>
@@ -444,6 +505,18 @@ public class BayesianHAC implements Clusterer
         public WishartDiag computeInitialPrior(List<Vec> dataset) 
         {
             return new WishartDiag(dataset);
+        }
+
+        @Override
+        public MultivariateDistribution toDistribution(List<Vec> dataset) 
+        {
+            List<Integer> ids = this.ownedList();
+            Vec mean = new DenseVector(dataset.get(0).length());
+            MatrixStatistics.meanVector(mean, dataset, ids);
+            Vec cov = new DenseVector(mean.length());
+            MatrixStatistics.covarianceDiag(mean, cov, dataset, ids);
+            
+            return new NormalM(mean, cov);
         }
 
         @Override
@@ -543,6 +616,18 @@ public class BayesianHAC implements Clusterer
         {
             return new WishartFull(dataset);
         }
+        
+        @Override
+        public MultivariateDistribution toDistribution(List<Vec> dataset) 
+        {
+            List<Integer> ids = this.ownedList();
+            Vec mean = new DenseVector(dataset.get(0).length());
+            MatrixStatistics.meanVector(mean, dataset, ids);
+            Matrix cov = new DenseMatrix(mean.length(), mean.length());
+            MatrixStatistics.covarianceMatrix(mean, cov, dataset, ids);
+            
+            return new NormalM(mean, cov);
+        }
 
         @Override
         public double log_null(List<Vec> dataset, WishartFull priors) 
@@ -590,17 +675,7 @@ public class BayesianHAC implements Clusterer
         
     }
             
-    public BayesianHAC() 
-    {
-        this(Distributions.GAUSSIAN_DIAG);
-    }
-    
-    public BayesianHAC(Distributions dist) 
-    {
-        this.dist = dist;
-    }
-    
-    
+
     @Override
     public int[] cluster(DataSet dataSet, boolean parallel, int[] designations) 
     {
@@ -664,26 +739,30 @@ public class BayesianHAC implements Clusterer
         
 //        System.out.println("C: " + current_nodes.size());
         
+        this.cluster_dists = new ArrayList<>(current_nodes.size());
         for(int class_id = 0; class_id < current_nodes.size(); class_id++)
         {
-            Iterator<Integer> owned = current_nodes.get(class_id).indxIter();
+            List<Integer> owned = current_nodes.get(class_id).ownedList();
+                    
             
 //            System.out.println(current_nodes.get(class_id).size);
 //            System.out.print(class_id + ":");
-            while(owned.hasNext())
-            {
-                int pos = owned.next();
-//                System.out.print(pos + "," );
+            for(int pos : owned)
                 designations[pos] = class_id;
-            }
 //            System.out.println();
+            this.cluster_dists.add(current_nodes.get(class_id).toDistribution(data));
         }
         
         return designations;
     }
+    
+    public List<MultivariateDistribution> getClusterDistributions()
+    {
+        return cluster_dists;
+    }
 
     @Override
-    public Clusterer clone() 
+    public BayesianHAC clone() 
     {
         return this;
     }

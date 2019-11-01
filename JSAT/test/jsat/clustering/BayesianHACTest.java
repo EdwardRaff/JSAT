@@ -15,6 +15,7 @@ import jsat.SimpleDataSet;
 import jsat.TestTools;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
+import jsat.distributions.multivariate.MultivariateDistribution;
 import jsat.distributions.multivariate.NormalM;
 import jsat.linear.ConstantVector;
 import jsat.linear.DenseVector;
@@ -68,7 +69,7 @@ public class BayesianHACTest {
         
     }
 
-    @Test
+//    @Test
     public void testBinaryClustering() 
     {
         System.out.println("cluster_BernoulliBeta");
@@ -119,7 +120,7 @@ public class BayesianHACTest {
         System.out.println("cluster_guass");
         
         Random rand = RandomUtil.getRandom();
-        
+
         
         GridDataGenerator gdg = new GridDataGenerator(new NormalClampedSample(0, 0.05), rand, 2, 2);
         SimpleDataSet sds = gdg.generateData(10);
@@ -134,9 +135,24 @@ public class BayesianHACTest {
                 
 
                 List<List<DataPoint>> grouped = ClustererBase.createClusterListFromAssignmentArray(designations, sds);
-//                em = em.clone();
+                em = em.clone();
 
                 TestTools.checkClusteringByCat(grouped);
+                
+                
+                //Check that the found means correspond to expected quadrants
+                List<Vec> found_means = em.getClusterDistributions().stream()
+                        .map(x->((NormalM)x).getMean())
+                        .collect(Collectors.toList());
+                
+                List<Vec> expectedMeans = new ArrayList<>();
+                expectedMeans.add(DenseVector.toDenseVec(0,0));
+                expectedMeans.add(DenseVector.toDenseVec(0,1));
+                expectedMeans.add(DenseVector.toDenseVec(1,0));
+                expectedMeans.add(DenseVector.toDenseVec(1,1));
+
+                for(Vec expected : expectedMeans)
+                    assertEquals(1, found_means.stream().filter(f->f.subtract(expected).pNorm(2) < 0.05).count());
 
 //                for(int i = 0; i < designations.length; i++)
 //                    System.out.println(designations[i]);

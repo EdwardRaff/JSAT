@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.datatransform.UnitVarianceTransform;
+import jsat.linear.DenseVector;
 import jsat.linear.MatrixStatistics;
 import jsat.linear.Vec;
 import jsat.linear.VecOps;
@@ -46,7 +47,9 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     @Override
     public <V extends Vec> void train(List<V> dataSet)
     {
-        invStndDevs = MatrixStatistics.covarianceDiag(MatrixStatistics.meanVector(dataSet), dataSet);
+        Vec mean = MatrixStatistics.meanVector(dataSet);
+        invStndDevs = new DenseVector(mean.length());
+        MatrixStatistics.covarianceDiag(mean, invStndDevs , dataSet);
         invStndDevs.applyFunction((x)->x*x);
         invStndDevs.applyFunction((x)->1/x);
     }

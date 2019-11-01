@@ -92,7 +92,7 @@ public class MatrixStatistics
      * @param <V>
      * @param mean the zeroed out vector to store the mean in. Its contents will be altered
      * @param dataSet the set of data points to compute the mean from
-     * @param subset the indecies of the points in dataSet to take the mean of
+     * @param subset the indices of the points in dataSet to take the mean of
      */
     public static <V extends Vec> void meanVector(Vec mean, List<V> dataSet, Collection<Integer> subset)
     {
@@ -376,16 +376,51 @@ public class MatrixStatistics
      * Computes the diagonal of the covariance matrix, which is the standard 
      * deviations of the columns of all values. 
      * 
+     * @param <V> the type of the vector
+     * @param means the already computed mean of the data set
+     * @param diag the zeroed out vector to store the diagonal in. Its contents 
+     * will be altered
+     * @param dataset the data set to compute the covariance diagonal from
+     * @param subset the indices of the points in dataSet to take the mean of
+     */
+    public static <V extends Vec> void covarianceDiag(Vec means, Vec diag, List<V> dataset, Collection<Integer> subset)
+    {
+        final int n = subset.size();
+        final int d = dataset.get(0).length();
+        
+        int[] nnzCounts = new int[d];
+        for(int i : subset)
+        {
+            Vec x = dataset.get(i);
+            for(IndexValue iv : x)
+            {
+                int indx = iv.getIndex();
+                nnzCounts[indx]++;
+                diag.increment(indx, pow(iv.getValue()-means.get(indx), 2));
+            }
+        }
+        
+        //add zero observations
+        for(int i = 0; i < nnzCounts.length; i++)
+            diag.increment(i, pow(means.get(i), 2)*(n-nnzCounts[i]) );
+        diag.mutableDivide(n);
+    }
+    
+    /**
+     * Computes the diagonal of the covariance matrix, which is the standard 
+     * deviations of the columns of all values. 
+     * 
      * @param <V>
      * @param means the already computed mean of the data set
      * @param dataset the data set to compute the covariance diagonal from
+     * @param subset
      * @return the diagonal of the covariance matrix for the given data 
      */
-    public static <V extends Vec> Vec covarianceDiag(Vec means, List<V> dataset)
+    public static <V extends Vec> Vec covarianceDiag(Vec means, List<V> dataset, List<Integer> subset)
     {
         final int d = dataset.get(0).length();
         DenseVector diag = new DenseVector(d);
-        covarianceDiag(means, diag, dataset);;
+        covarianceDiag(means, diag, dataset);
         return diag;
     }
     
