@@ -65,7 +65,7 @@ public interface DualTree<V extends Vec> extends VectorCollection<V>
         DualTree<V> Q = (DualTree<V>) VC;
         
         //Mpa each node to a cached value. This is used for recursive bound updates
-        Map<IndexNode, Double> query_B_cache = parallel ? new ConcurrentHashMap<>(Q.size()) : new HashMap<>(Q.size());
+        Map<IndexNode, Double> query_B_cache = parallel ? new ConcurrentHashMap<>(Q.size()) : new IdentityHashMap<>(Q.size());
         
         //For each item in Q, we want to find its nearest neighbor in THIS collection. 
         //each item in Q gets a priority queue of k-nns
@@ -78,7 +78,7 @@ public interface DualTree<V extends Vec> extends VectorCollection<V>
         final List<Double> other_cache = Q.getAccelerationCache();
         
         final int N_r = this.size();
-        final List<Double> wholeCache = this_cache == null ? null : ListUtils.mergedView(this_cache, other_cache);
+        final List<Double> wholeCache = this_cache == null ? null : new DoubleList(ListUtils.mergedView(this_cache, other_cache));
         final List<Vec> allVecs = new ArrayList<>(N_r+Q.size());
         for(int i = 0; i < N_r; i++)
             allVecs.add(this.get(i));
@@ -117,12 +117,10 @@ public interface DualTree<V extends Vec> extends VectorCollection<V>
             if(origScore < 0)
                 return ref.minNodeDistance(query);
             double bound_final = computeKnnBound(query, numNeighbors, allPriorities, query_B_cache);
-            
+//            System.out.println(bound_final);
             final double d_min_b = origScore;
             if(Double.isFinite(bound_final))
             {
-                query_B_cache.put(query, bound_final);
-                
                 if(d_min_b > bound_final)//YAY we can prune!
                     return Double.NaN;
             }
@@ -154,72 +152,62 @@ public interface DualTree<V extends Vec> extends VectorCollection<V>
         
     }
 
-    default double computeKnnBound(IndexNode query, int numNeighbors, List<BoundedSortedList<IndexDistPair>> allPriorities, Map<IndexNode, Double> query_B_cache)
+    default public double computeKnnBound(IndexNode query, int numNeighbors, List<BoundedSortedList<IndexDistPair>> allPriorities, Map<IndexNode, Double> query_B_cache)
     {
+        double lambda_q = query.furthestDescendantDistance();
+        
         double bound_1 = Double.NEGATIVE_INFINITY;
+        //bound3 will re-use loop of bound_1 calc
+        double bound_3 = Double.POSITIVE_INFINITY;
+        for(int c = 0; c < query.numChildren(); c++)
+            {
+                IndexNode n_c = query.getChild(c);
+                
+                double B_nc = query_B_cache.getOrDefault(n_c, Double.POSITIVE_INFINITY);
+                bound_1 = max(bound_1, B_nc);
+                bound_3 = min(bound_3, B_nc + 2*max(0, lambda_q-n_c.furthestDescendantDistance()));
+            }
+        
+        //bound 1 & 3 loop over points, lets do bound 2 during same loop
+        ///compute bound 2i. First set to infinity, and find min portion
+        double bound_2i = Double.POSITIVE_INFINITY;
+        
         for(int p = 0; p < query.numPoints(); p++)
         {
             BoundedSortedList<IndexDistPair> D_p = allPriorities.get(query.getPoint(p));
             synchronized(D_p)
             {
-                if(D_p.size() == numNeighbors)//has enough neighbors to return a meaningful boun
-                    bound_1 = max(bound_1, D_p.last().dist);
-                else//can't bound
+                if(D_p.size() == numNeighbors)
+                {
+                    double d = D_p.last().dist;
+                    bound_2i = min(bound_2i, d);
+                    bound_1 = max(bound_1, d);
+                }
+                else//can't bound B_1
                 {
                     bound_1 = Double.POSITIVE_INFINITY;
-                    break;
                 }
             }
         }
         if(Double.isInfinite(bound_1))//cant bound
             bound_1 = Double.POSITIVE_INFINITY;
-        else//can bound, make it correct
-            for(int c = 0; c < query.numChildren(); c++)
-            {
-                double B_nc = query_B_cache.getOrDefault(query.getChild(c), Double.POSITIVE_INFINITY);
-//                if(Double.isInfinite(B_nc))//tighten by recursive search
-//                    B_nc = computeKnnBound(query.getChild(c), numNeighbors, allPriorities, query_B_cache);
-                bound_1 = max(bound_1, B_nc);
-            }
-        ///compute bound 2i. First set to infinity, and find min portion
-        double bound_2i = Double.POSITIVE_INFINITY;
-        for(int i = 0; i < query.numPoints(); i++)
-        {
-            int qi_indx = query.getPoint(i);
-            BoundedSortedList<IndexDistPair> pqi = allPriorities.get(qi_indx);
-            synchronized(pqi)
-            {
-                if(pqi.size() >= numNeighbors)
-                    bound_2i = min(bound_2i, pqi.last().dist);
-            }
-        }
+            
+        
         //then add the remaining 2 terms, which are constant for a given Node Q. If no valid points, bound remains infinite
-        bound_2i += query.furthestPointDistance() +  query.furthestDescendantDistance();
+        bound_2i += query.furthestPointDistance() + lambda_q;
         //Compute 3rd bound
-        double lambda_q = query.furthestDescendantDistance();
-        double bound_3 = Double.POSITIVE_INFINITY;
-        for(int c = 0; c < query.numChildren(); c++)
-        {
-            IndexNode n_c = query.getChild(c);
-            double B_nc = query_B_cache.getOrDefault(n_c, Double.POSITIVE_INFINITY);
-//            if(Double.isInfinite(B_nc))//tighten by recursive search
-//                    B_nc = computeKnnBound(n_c, numNeighbors, allPriorities, query_B_cache);
-            bound_3 = min(bound_3, B_nc + 2*(lambda_q-n_c.furthestDescendantDistance()));
-        }
+        
         IndexNode q_parrent = query.getParrent();
+//        System.out.println(bound_3);
         double bound_4 = q_parrent == null ? Double.POSITIVE_INFINITY : query_B_cache.getOrDefault(q_parrent, Double.POSITIVE_INFINITY);
         final double bound_final = min(min(bound_1, bound_2i), min(bound_3, bound_4));
+//        final double bound_final = min(min(bound_1, bound_4), bound_2i);
+        
         
         //update cache with min value
-        query_B_cache.compute(query, (IndexNode t, Double u) ->
-        {
-            if(u == null)
-                u = Double.POSITIVE_INFINITY;
-            return Math.min(u, bound_final);
-        });
+        query_B_cache.put(query, bound_final);
         
-//        if(Double.isFinite(bound_3))
-//            System.out.println(bound_3);
+//        return Double.MAX_VALUE;
         return bound_final;
     }
     
@@ -532,10 +520,14 @@ public interface DualTree<V extends Vec> extends VectorCollection<V>
                         q_qc.add(new IndexTuple(n_r_i, n_q_c, s));
                     }
 
-                    if(all_scores_same)
+                    if(all_scores_same && q_qc.get(0).priority > 0)
                     {
                         double s = score.score(n_r, n_q_c, COMP_SCORE);
-                        q.offer(new IndexTuple(n_r, n_q_c, s));
+                        
+                        if(s > q_qc.get(0).priority)
+                            q.offer(new IndexTuple(n_r, n_q_c, s));
+                        else
+                            q.addAll(q_qc);
                     }
                     else
                         q.addAll(q_qc);
@@ -568,11 +560,14 @@ public interface DualTree<V extends Vec> extends VectorCollection<V>
         while(!q.isEmpty())
         {
             IndexTuple toProccess = q.poll();
+//            System.out.println(toProccess.priority);
             if(score instanceof ScoreDTLazy)//re-compute the score before we just go in
             {
                 double s = score.score(toProccess.a, toProccess.b, toProccess.priority);
                 if(Double.isNaN(s))//We might have a pruning op now
+                {
                     continue;//Good job!
+                }
             }
             dual_depth_first(toProccess.a, toProccess.b, base, score, improvedSearch);
         }
@@ -669,7 +664,10 @@ public interface DualTree<V extends Vec> extends VectorCollection<V>
                         if(all_scores_same)
                         {
                             double s = score.score(n_r, n_q_c, COMP_SCORE);
-                            q.offer(new DualTreeTraversalAction(n_r, n_q_c, base, score, improvedSearch, s));
+                            if(s > q_qc.get(0).priority)
+                                q.offer(new DualTreeTraversalAction(n_r, n_q_c, base, score, improvedSearch, s));
+                            else
+                                q.addAll(q_qc);
                         }
                         else
                             q.addAll(q_qc);
