@@ -3,6 +3,7 @@ package jsat.utils;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.DoubleStream;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 
@@ -304,5 +305,19 @@ public class DoubleList extends AbstractList<Double> implements Serializable, Ra
         if(length > array.length || length < 0)
             throw new IllegalArgumentException("length must be non-negative and no more than the size of the array("+array.length+"), not " + length);
         return new DoubleList(array, length);
+    }
+    
+    /**
+     * 
+     * @return the maximum value stored in this list. 
+     */
+    public double max()
+    {
+        if(isEmpty())
+            throw new EmptyStackException();
+        double max = 0;
+        for(int i = 0; i < end; i++)
+            max = Math.max(max, array[i]);
+        return max;
     }
 }
