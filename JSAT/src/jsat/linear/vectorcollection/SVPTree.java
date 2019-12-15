@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
@@ -27,6 +28,7 @@ import jsat.utils.Pair;
 import jsat.utils.SimpleList;
 import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
+import static java.lang.Math.*;
 
 /**
  * Provides a simplified implementation of Vantage Point Trees, as described in 
@@ -111,7 +113,8 @@ public class SVPTree<V extends Vec> implements IncrementalCollection<V>, DualTre
     @Override
     public double dist(int self_index, int other_index, DualTree<V> other)
     {
-        return DualTree.super.dist(self_index, other_index, other); //To change body of generated methods, choose Tools | Templates.
+        return this.dm.dist(self_index, other.get(other_index), dm.getQueryInfo(other.get(other_index)), allVecs, distCache);
+//        return DualTree.super.dist(self_index, other_index, other); //To change body of generated methods, choose Tools | Templates.
     }
     
     @Override
@@ -732,7 +735,7 @@ public class SVPTree<V extends Vec> implements IncrementalCollection<V>, DualTre
 
                 Vec ov = o.getVec(o.p);
                 List<Double> qi = dm.getQueryInfo(ov);
-                return dm.dist(this.p, ov, qi, allVecs, distCache) - this.right_high - o.right_high;
+                return max(dm.dist(this.p, ov, qi, allVecs, distCache) - this.right_high - o.right_high, 0);
             }
             else
             {
@@ -757,7 +760,7 @@ public class SVPTree<V extends Vec> implements IncrementalCollection<V>, DualTre
                 double d = dm.dist(this.p, ov, qi, allVecs, distCache);
                 return new double[]
                 {
-                    d - this.right_high - o.right_high,
+                    max(d - this.right_high - o.right_high, 0),
                     d + this.right_high + o.right_high
                 };
             }
@@ -770,7 +773,7 @@ public class SVPTree<V extends Vec> implements IncrementalCollection<V>, DualTre
         @Override
         public double minNodeDistance(int other)
         {
-            return dm.dist(p, other, allVecs, distCache) - right_low;
+            return max(dm.dist(p, other, allVecs, distCache) - right_low, 0);
         }
 
         @Override
@@ -975,19 +978,23 @@ public class SVPTree<V extends Vec> implements IncrementalCollection<V>, DualTre
         @Override
         public double getParentDistance()
         {
-            return bounds.stream().mapToDouble(d->d).max().orElse(Double.POSITIVE_INFINITY);
+            return furthestDescendantDistance();
+//            return bounds.stream().mapToDouble(d->d).max().orElse(Double.POSITIVE_INFINITY);
         }
 
         @Override
         public double furthestPointDistance()
         {
-            return bounds.stream().mapToDouble(d->d).max().orElse(Double.POSITIVE_INFINITY);
+            return furthestDescendantDistance();
+//            return bounds.stream().mapToDouble(d->d).max().orElse(Double.POSITIVE_INFINITY);
         }
 
         @Override
         public double furthestDescendantDistance()
         {
-            return bounds.stream().mapToDouble(d->d).max().orElse(Double.POSITIVE_INFINITY);
+            if(bounds.isEmpty())
+                return 0;
+            return bounds.max();
         }
 
         @Override
