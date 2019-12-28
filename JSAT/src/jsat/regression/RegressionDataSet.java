@@ -165,7 +165,7 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
     {
         if(numerical.length() != numNumerVals)
             throw new RuntimeException("Data point does not contain enough numerical data points");
-        if(categories.length != categories.length)
+        if(this.categories.length != categories.length)
             throw new RuntimeException("Data point does not contain enough categorical data points");
         
         for(int i = 0; i < categories.length; i++)
