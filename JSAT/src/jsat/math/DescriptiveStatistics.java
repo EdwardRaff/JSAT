@@ -51,7 +51,7 @@ public class DescriptiveStatistics
      */
     public static double[] summaryStats(Vec xData, Vec yData)
     {
-        double[] values = new double[1];
+        double[] values = new double[5];
         
         //Sx, sum of x values
         values[0] = xData.sum();
