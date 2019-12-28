@@ -119,7 +119,7 @@ public class VecOps
             {
                 if(xiv.getIndex() < yiv.getIndex())
                     xiv = xIter.hasNext() ? xIter.next() : badIV;
-                else if(yiv.getIndex() > xiv.getIndex())
+                else if(xiv.getIndex() > yiv.getIndex())
                     yiv = yIter.hasNext() ? yIter.next() : badIV;
                 else//on the same page
                 {
