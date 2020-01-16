@@ -31,7 +31,7 @@ public class SpectralCoClustering implements Bicluster
         SCALE
         {
             @Override
-            protected Matrix normalize(Matrix A, DenseVector R, DenseVector C) 
+            public Matrix normalize(Matrix A, DenseVector R, DenseVector C) 
             {
                 return row_col_normalize(A, R, C);
             }
@@ -40,7 +40,7 @@ public class SpectralCoClustering implements Bicluster
         BISTOCHASTIZATION
         {
             @Override
-            protected Matrix normalize(Matrix A, DenseVector R, DenseVector C) 
+            public Matrix normalize(Matrix A, DenseVector R, DenseVector C) 
             {
                 //Init locations to store final normalization vectors
                 //make equal to no normalization at first, and accumulate after every step
@@ -94,7 +94,7 @@ public class SpectralCoClustering implements Bicluster
          * decomposition.
          * @return A new matrix that has been normalized
          */
-        abstract protected Matrix normalize(Matrix A, DenseVector R, DenseVector C);
+        abstract public Matrix normalize(Matrix A, DenseVector R, DenseVector C);
        
     }
     
