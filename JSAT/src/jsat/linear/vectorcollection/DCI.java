@@ -16,6 +16,7 @@
  */
 package jsat.linear.vectorcollection;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -413,10 +414,14 @@ public class DCI<V extends Vec> implements VectorCollection<V>
      * which tuples are closest to the query. TreeMap dosn't let us do this. So
      * custom class to implement the logic in a compact manner as arrays.
      */
-    static class NearestIterator
+    static class NearestIterator implements Serializable
     {
 	public double[] keys;
 	public int[] vals;
+	
+	public NearestIterator()
+	{
+	}
 
 	public NearestIterator(double[] keys, int[] vals)
 	{
