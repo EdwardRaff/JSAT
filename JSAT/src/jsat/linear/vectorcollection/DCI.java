@@ -418,10 +418,6 @@ public class DCI<V extends Vec> implements VectorCollection<V>
     {
 	public double[] keys;
 	public int[] vals;
-	
-	public NearestIterator()
-	{
-	}
 
 	public NearestIterator(double[] keys, int[] vals)
 	{
