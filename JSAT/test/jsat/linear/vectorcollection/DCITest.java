@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import jsat.TestTools;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
@@ -86,10 +87,12 @@ public class DCITest
             VectorCollection<Vec> collection0 = factory.clone();
             collection0.build(vecCol, new EuclideanDistance());
             VectorCollection<Vec> collection1 = factory.clone();
+	    collection1 = TestTools.deepCopy(collection1);
             collection1.build(true, vecCol, new EuclideanDistance());
             
             collection0 = collection0.clone();
             collection1 = collection1.clone();
+	    collection1 = TestTools.deepCopy(collection1);
             
         
             for(int iters = 0; iters < 10; iters++)

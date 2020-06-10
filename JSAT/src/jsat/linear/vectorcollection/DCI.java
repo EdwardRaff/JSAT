@@ -16,6 +16,9 @@
  */
 package jsat.linear.vectorcollection;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,6 +68,8 @@ import jsat.utils.concurrent.ParallelUtils;
  */
 public class DCI<V extends Vec> implements VectorCollection<V>
 {
+    private static final long serialVersionUID = -567002398793828933L;
+    
     private static EuclideanDistance euclid = new EuclideanDistance();
     
     /**
@@ -87,6 +92,91 @@ public class DCI<V extends Vec> implements VectorCollection<V>
     
     private List<V> vecs;
     private List<Double> cache;
+    
+    private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException 
+    {      
+	m = in.readInt();
+	L = in.readInt();
+
+	int vec_count = in.readInt();
+	int cache_count = in.readInt();
+	
+	boolean wasBuilt = in.readBoolean();
+	
+	if(vec_count > 0)
+	{
+	    vecs = new ArrayList<>(vec_count);
+	    for(int i = 0; i < vec_count; i++)
+		vecs.add((V) in.readObject());
+	}
+	if(cache_count > 0)
+	{
+	    cache = new DoubleList(cache_count);
+	    for(int i = 0; i < cache_count; i++)
+		cache.add(in.readDouble());
+	}
+	
+	if (wasBuilt)
+	{
+	    u = new Vec[m][L];
+	    T = new NearestIterator[m][L];
+	    
+	    for(int m_i = 0; m_i < m; m_i++)
+		for(int L_i = 0; L_i < L; L_i++)
+		    u[m_i][L_i] = (Vec) in.readObject();
+	    
+	    for(int m_i = 0; m_i < m; m_i++)
+		for(int L_i = 0; L_i < L; L_i++)
+		{
+		    double[] keys = new double[vec_count];
+		    int[] vals = new int[vec_count];
+		    
+		    for(int i = 0; i < vec_count; i++)
+		    {
+			keys[i] = in.readDouble();
+			vals[i] = in.readInt();
+		    }
+		    
+		    T[m_i][L_i] = new NearestIterator(keys, vals);
+		}
+	}
+    }
+ 
+    private void writeObject(ObjectOutputStream out) throws IOException 
+    {
+	out.writeInt(m);
+	out.writeInt(L);
+	int vec_count = vecs == null ? 0 : vecs.size();
+	int cache_count = cache == null ? 0 : vecs.size();
+	out.writeInt(vec_count);
+	out.writeInt(cache_count);
+	out.writeBoolean(T != null);
+	
+	for(int i = 0; i < vec_count; i++)
+	    out.writeObject(vecs.get(i));
+	for(int i = 0; i < cache_count; i++)
+	    out.writeDouble(cache.get(i));
+	
+	if (T != null)
+	{
+	    for(int m_i = 0; m_i < m; m_i++)
+		for(int L_i = 0; L_i < L; L_i++)
+		    out.writeObject(u[m_i][L_i]);
+	    
+	    for(int m_i = 0; m_i < m; m_i++)
+		for(int L_i = 0; L_i < L; L_i++)
+		{
+		    NearestIterator ni = T[m_i][L_i];
+		    
+		    for(int i = 0; i < vec_count; i++)
+		    {
+			out.writeDouble(ni.keys[i]);
+			out.writeInt(ni.vals[i]);
+		    }
+		    
+		}
+	}
+    }
 
     /**
      * Creates a new DCI object, that should provide relatively good result

@@ -1,6 +1,9 @@
 
 package jsat.linear;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import static java.lang.Math.*;
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +17,7 @@ import java.util.List;
 public class DenseVector extends Vec
 {
 
-    private static final long serialVersionUID = -889493251793828934L;
+    private static final long serialVersionUID = -889493251793828933L;
     protected double[] array;
     private int startIndex;
     private int endIndex;
@@ -482,5 +485,21 @@ public class DenseVector extends Vec
             array = Arrays.copyOf(array, startIndex + length);
             endIndex = startIndex + length;
         }
+    }
+    
+    private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException 
+    {       
+	this.array = new double[in.readInt()];
+	this.startIndex = 0;
+	this.endIndex = this.array.length;
+	for(int i = 0; i < this.length(); i++)
+	    this.array[i] = in.readDouble();
+    }
+ 
+    private void writeObject(ObjectOutputStream out) throws IOException 
+    {
+	out.writeInt(this.length());
+	for(int i = 0; i < this.length(); i++)
+	    out.writeDouble(this.get(i));
     }
 }

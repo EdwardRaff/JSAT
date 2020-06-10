@@ -1,6 +1,9 @@
 
 package jsat.linear;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import static java.lang.Math.*;
 import java.util.*;
 import jsat.math.Function1D;
@@ -26,8 +29,8 @@ import jsat.utils.IndexTable;
 public class SparseVector extends  Vec
 {
 
-	private static final long serialVersionUID = 8591745505666264662L;
-	/**
+    private static final long serialVersionUID = 8591745505666264662L;
+    /**
      * Length of the vector
      */
     private int length;
@@ -921,5 +924,29 @@ public class SparseVector extends  Vec
     public boolean isSparse()
     {
         return true;
+    }
+    
+    private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException 
+    {       
+	this.length = in.readInt();
+	this.used = in.readInt();
+	this.indexes = new int[this.used];
+	this.values = new double[this.used];
+	for(int i = 0; i < this.used; i++)
+	{
+	    indexes[i] = in.readInt();
+	    values[i] = in.readDouble();
+	}
+    }
+ 
+    private void writeObject(ObjectOutputStream out) throws IOException 
+    {
+	out.writeInt(length);
+	out.writeInt(used);
+	for(int i = 0; i < used; i++)
+	{
+	    out.writeInt(indexes[i]);
+	    out.writeDouble(values[i]);
+	}
     }
 }
