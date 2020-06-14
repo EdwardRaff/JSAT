@@ -9,7 +9,10 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Random;
 import java.util.Stack;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.classifiers.DataPoint;
@@ -20,11 +23,13 @@ import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.BooleanList;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
+import jsat.utils.FakeExecutor;
 import jsat.utils.IndexTable;
 import jsat.utils.IntList;
 import jsat.utils.ModifiableCountDownLatch;
 import jsat.utils.Pair;
 import jsat.utils.SimpleList;
+import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.RandomUtil;
 
@@ -285,6 +290,54 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>, DualTree
         }
     }
     
+    @Override
+    public void search(VectorCollection<V> Q, int numNeighbors, List<List<Integer>> neighbors, List<List<Double>> distances, boolean parallel)
+    {
+	List<BoundedSortedList<IndexDistPair>> lists = new SimpleList<>();
+	List<Vec> queries = new SimpleList<>();
+	for(int i = 0; i < Q.size(); i++)
+	{
+	    queries.add(Q.get(i));
+	    lists.add(new BoundedSortedList<>(numNeighbors, numNeighbors));
+	}
+	List<Double> qi = dm.getAccelerationCache(queries, parallel);
+	
+	DoubleList x = DoubleList.view(new double[Q.size()], Q.size());
+	
+	ExecutorService threadPool = new FakeExecutor();
+	if(parallel)
+	    threadPool = Executors.newWorkStealingPool();
+	ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
+	
+	root.searchKNN(queries, numNeighbors, lists, x, qi, parallel, threadPool, mcdl);
+	mcdl.countDown();
+	try
+	{
+	    mcdl.await();
+	}
+	catch (InterruptedException ex)
+	{
+	    Logger.getLogger(VPTree.class.getName()).log(Level.SEVERE, null, ex);
+	}
+	
+	neighbors.clear();
+	distances.clear();
+	for(BoundedSortedList<IndexDistPair> list : lists)
+	{
+	    IntList n = new IntList(numNeighbors);
+	    DoubleList d = new DoubleList(numNeighbors);
+	    
+	    for(int i = 0; i < list.size(); i++)
+	    {
+		n.add(list.get(i).indx);
+		d.add(list.get(i).dist);
+	    }
+	    
+	    neighbors.add(n);
+	    distances.add(d);
+	}
+    }
+    
     /**
      * Computes the distances to the vantage point, 
      * Sorts the list by distance to the vantage point, 
@@ -516,6 +569,8 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>, DualTree
          */
         
         public abstract void searchKNN(Vec query, int k, BoundedSortedList<IndexDistPair> list, double x, List<Double> qi);
+	
+	public abstract void searchKNN(List<Vec> queries, int k, List<BoundedSortedList<IndexDistPair>> lists, List<Double> x, List<Double> qi, boolean parallel, ExecutorService threadPool, ModifiableCountDownLatch mcdl);
         
         /**
          * Performs a range query on this node
@@ -767,6 +822,160 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>, DualTree
                     this.left.searchKNN(query, k, list, x, qi);
             }
         }
+	
+	@Override
+	public void searchKNN(List<Vec> queries, int k, List<BoundedSortedList<IndexDistPair>> lists, List<Double> x, List<Double> qi, boolean parallel, ExecutorService threadPool, ModifiableCountDownLatch mcdl)
+        {
+	    if(queries.size() == 1)
+	    {
+		this.searchKNN(queries.get(0), k, lists.get(0), x.get(0), qi);
+		return;
+	    }
+	    
+	    double middle = (this.left_high+this.right_low)*0.5;
+	    final int N = queries.size();
+	    
+	    double[] x_ = new double[N];
+	    
+	    List<Vec> queries_l = new SimpleList<>(N);
+	    List<BoundedSortedList<IndexDistPair>> lists_l = new SimpleList<>(N);
+	    double[] x_l = new double[N];
+	    List<Double> qi_l = qi != null ? new DoubleList(N) : null;
+	    List<Vec> queries_r = new SimpleList<>(N);
+	    List<BoundedSortedList<IndexDistPair>> lists_r = new SimpleList<>(N);
+	    double[] x_r = new double[N];
+	    List<Double> qi_r = qi != null ? new DoubleList(N) : null;
+	    //fill will null so that we don't have to synchronize on inserts
+	    for(int i = 0; i < N; i++)
+	    {
+		queries_l.add(null);
+		queries_r.add(null);
+		lists_l.add(null);
+		lists_r.add(null);
+		
+		if(qi != null)
+		{
+		    qi_l.add(0.0);
+		    qi_r.add(0.0);
+		}
+	    }
+	    AtomicInteger left_counter = new AtomicInteger();
+	    AtomicInteger right_counter = new AtomicInteger();
+	    
+	    boolean batch_para = parallel && N >= 200*SystemInfo.LogicalCores;
+		    
+	    ParallelUtils.run(batch_para, N, (start, end)->
+	    {
+		for(int i = start; i < end; i++)
+		{
+		    double x_i = dm.dist(p, i, allVecs, distCache, queries, qi);
+		    x_[i] = x_i;
+		    BoundedSortedList<IndexDistPair> list = lists.get(i);
+		    if(list.size() < k || x_i < list.get(k-1).getDist())
+			list.add(new IndexDistPair(this.p, x_i));
+
+		    //build left/right search for 1st branch checking
+		    double tau = list.get(list.size()-1).getDist();
+
+		    if (x_i < middle)//this point should search left first
+		    {
+			if(searchInLeft(x_i, tau) || list.size() < k)
+			{
+			    int pos = left_counter.getAndIncrement();
+			    queries_l.set(pos, queries.get(i));
+			    lists_l.set(pos, list);
+			    x_l[pos] = x_i;
+			    if(qi_l != null)
+				qi_l.set(pos, qi.get(i));
+			}
+		    }
+		    else //this point should check right first
+		    {
+			if(searchInRight(x_i, tau) || list.size() < k)
+			{
+			    int pos = right_counter.getAndIncrement();
+			    queries_r.set(pos, queries.get(i));
+			    lists_r.set(pos, list);
+			    x_r[pos] = x_i;
+			    if(qi_r != null)
+				qi_r.set(pos, qi.get(i));
+			}
+		    }
+		}
+	    }, threadPool);
+	    
+	    int N_l = left_counter.get();
+	    int N_r = right_counter.get();
+
+	    //left branch search
+	    searchChildren(queries_l, k, lists_l, DoubleList.view(x_l, N_l), qi_l, parallel && !batch_para, threadPool, 
+		    queries_r, lists_r, DoubleList.view(x_r, N_r), qi_r, N_l, N_r, mcdl);
+	    
+	    for(int i = 0; i < N; i++)
+	    {
+		queries_l.add(null);
+		queries_r.add(null);
+		lists_l.add(null);
+		lists_r.add(null);
+		if(qi != null)
+		{
+		    qi_l.add(0.0);
+		    qi_r.add(0.0);
+		}
+	    }
+		
+	    left_counter.set(0);
+	    right_counter.set(0);
+	    //build left/right search for 2nd branch checking
+	    ParallelUtils.run(batch_para, N, (start, end)->
+	    {
+		for(int i = start; i < end; i++)
+		{
+		    double x_i = x_[i];
+		    BoundedSortedList<IndexDistPair> list = lists.get(i);
+		    double tau = list.get(list.size()-1).getDist();
+
+		    if (x_i < middle)//this point should search left first, but 2nd branch is for right
+		    {
+			if(searchInRight(x_i, tau) || list.size() < k)
+			{
+			    int pos = right_counter.getAndIncrement();
+			    queries_r.set(pos, queries.get(i));
+			    lists_r.set(pos, list);
+			    x_r[pos] = x_i;
+			    if(qi_r != null)
+				qi_r.set(pos, qi.get(i));
+			}
+		    }
+		    else
+		    {
+			if(searchInLeft(x_i, tau) || list.size() < k)
+			{
+			    int pos = left_counter.getAndIncrement();
+			    queries_l.set(pos, queries.get(i));
+			    lists_l.set(pos, list);
+			    x_l[pos] = x_i;
+			    if(qi_l != null)
+				qi_l.set(pos, qi.get(i));
+			}
+		    }
+		}
+	    }, threadPool);
+	    
+	    N_l = left_counter.get();
+	    N_r = right_counter.get();
+	    searchChildren(queries_l, k, lists_l, DoubleList.view(x_l, N_l), qi_l, parallel && !batch_para, threadPool, queries_r, lists_r, DoubleList.view(x_r, N_r), qi_r, N_l, N_r, mcdl);
+        }
+
+	private void searchChildren(List<Vec> queries_l, int k, List<BoundedSortedList<IndexDistPair>> lists_l, List<Double> x_l, List<Double> qi_l, boolean parallel, ExecutorService threadPool, List<Vec> queries_r, List<BoundedSortedList<IndexDistPair>> lists_r, List<Double> x_r, List<Double> qi_r, int N_l, int N_r, ModifiableCountDownLatch mcdl)
+	{
+
+	    if(!queries_l.isEmpty())
+		this.left.searchKNN(queries_l.subList(0, N_l), k, lists_l.subList(0, N_l), x_l.subList(0, N_l), qi_l == null ? null : qi_l.subList(0, N_l), parallel, threadPool, null);
+	    if(!queries_r.isEmpty())
+		this.right.searchKNN(queries_r.subList(0, N_r), k, lists_r.subList(0, N_r), x_r.subList(0, N_r), qi_r == null ? null : qi_r.subList(0, N_r), parallel, threadPool, null);
+
+	}
 
         @Override
         public void searchRange(Vec query, double range, List<Integer> neighbors, List<Double> distances, double x, List<Double> qi)
@@ -997,6 +1206,35 @@ public class VPTree<V extends Vec> implements IncrementalCollection<V>, DualTree
                     }
             }
         }
+
+	@Override
+	public void searchKNN(List<Vec> queries, int k, List<BoundedSortedList<IndexDistPair>> lists, List<Double> x, List<Double> qi, boolean parallel, ExecutorService threadPool, ModifiableCountDownLatch mcdl)
+	{
+	    double dist = -1;
+	    for(int j = 0; j < queries.size(); j++)
+	    {
+		double x_j = x.get(j);
+		BoundedSortedList<IndexDistPair> list = lists.get(j);
+		//The zero check, for the case that the leaf is the ONLY node, x will be passed as 0.0 <= Max value will be true 
+		double tau = list.isEmpty() ? Double.MAX_VALUE : list.get(list.size()-1).getDist();
+		for (int i = 0; i < points.size(); i++)
+		{
+		    int point_i = points.getI(i);
+		    double bound_i = bounds.getD(i);
+		    if (list.size() < k)
+		    {
+			list.add(new IndexDistPair(point_i, dm.dist(point_i, j, allVecs, distCache, queries, qi)));
+			tau = list.get(list.size() - 1).getDist();
+		    }
+		    else if (bound_i - tau <= x_j && x_j <= bound_i + tau)//Bound check agains the distance to our parrent node, provided by x
+			if ((dist = dm.dist(point_i, j, allVecs, distCache, queries, qi)) < tau)
+			{
+			    list.add(new IndexDistPair(point_i, dist));
+			    tau = list.get(list.size() - 1).getDist();
+			}
+		}
+	    }
+	}
 
         @Override
         public void searchRange(Vec query, double range, List<Integer> neighbors, List<Double> distances, double x, List<Double> qi)

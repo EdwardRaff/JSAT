@@ -155,6 +155,31 @@ public interface DistanceMetric extends Cloneable, Serializable
     {
         return dist(vecs.get(a), vecs.get(b));
     }
+
+    /**
+     * Computes the distance between 2 vectors from two different lists of
+     * vectors.<br> If the cache input is {@code null}, then
+     * {@link #dist(jsat.linear.Vec, jsat.linear.Vec)} will be called directly.
+     *
+     * @param a       the index of the first vector from the first list
+     * @param b       the index of the second vector from the second list
+     * @param vecs_a  the first list of vectors used to build the cache
+     * @param cache_a the cache associated with the first list of vectors
+     * @param vecs_b  the second list of vectors used to build the cache
+     * @param cache_b the cache associated with the second list of vectors
+     * @return the distance between the two vectors
+     */
+    default public double dist(int a, int b, List<? extends Vec> vecs_a, List<Double> cache_a,  List<? extends Vec> vecs_b, List<Double> cache_b)
+    {
+	Vec b_vec = vecs_b.get(b);
+	List<Double> b_qi = null;
+	if(cache_b != null)
+	{
+	    int factor = cache_b.size()/vecs_b.size();
+	    b_qi = cache_b.subList(b*factor, (b+1)*factor);
+	}
+	return dist(a, b_vec, b_qi, vecs_a, cache_a);
+    }
     
     /**
      * Computes the distance between one vector in the original list of vectors

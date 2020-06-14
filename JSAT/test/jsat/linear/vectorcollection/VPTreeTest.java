@@ -26,6 +26,7 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.utils.IntList;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
@@ -173,6 +174,69 @@ public class VPTreeTest
                     
 
                 }
+        }
+        
+    }
+    
+    @Test
+    public void testSearch_BulkKNN()
+    {
+        System.out.println("search");
+        Random rand = new XORWOW(123);
+        
+        VectorArray<Vec> vecCol = new VectorArray<>(new EuclideanDistance());
+        for(int i = 0; i < 250; i++)
+            vecCol.add(DenseVector.random(3, rand));
+        VectorArray<Vec> queries = new VectorArray<>(new EuclideanDistance());
+        for(int i = 0; i < SystemInfo.LogicalCores*2; i++)
+            queries.add(DenseVector.random(3, rand));
+        
+        for(VectorCollection<Vec> factory : collectionFactories)
+        {
+            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+            
+            VectorCollection<Vec> collection0 = factory.clone();
+            collection0.build(vecCol, new EuclideanDistance());
+            VectorCollection<Vec> collection1 = factory.clone();
+            collection1.build(true, vecCol, new EuclideanDistance());
+            
+            ex.shutdownNow();
+            
+	    List<List<Integer>> neighbors_true = new ArrayList<>();
+	    List<List<Double>>  distances_true = new ArrayList<>();
+	    List<List<Integer>> neighbors_0 = new ArrayList<>();
+	    List<List<Double>>  distances_0 = new ArrayList<>();
+	    List<List<Integer>> neighbors_1 = new ArrayList<>();
+	    List<List<Double>>  distances_1 = new ArrayList<>();
+	    
+	    for(int neighbours : new int[]{1, 2, 4, 10, 20})
+	    {
+		vecCol.search((List<Vec>) queries, neighbours, neighbors_true, distances_true, true);
+		collection0.search((List<Vec>) queries, neighbours, neighbors_0, distances_0, false);
+		collection1.search((List<Vec>) queries, neighbours, neighbors_1, distances_1, true);
+
+		System.out.println(neighbours);
+		for(int i = 0; i < neighbors_true.size(); i++)
+		{
+		    List<Integer> n_t_i = neighbors_true.get(i);
+		    List<Integer> n_0_i = neighbors_0.get(i);
+		    List<Integer> n_1_i = neighbors_1.get(i);
+		    
+		    List<Double> d_t_i = distances_true.get(i);
+		    List<Double> d_0_i = distances_0.get(i);
+		    List<Double> d_1_i = distances_1.get(i);
+		    
+		    for(int j = 0; j < neighbors_true.get(i).size(); j++)
+		    {
+			assertEquals(n_t_i.get(j), n_0_i.get(j));
+			assertEquals(n_t_i.get(j), n_1_i.get(j));
+
+			assertEquals(d_t_i.get(j), d_0_i.get(j));
+			assertEquals(d_t_i.get(j), d_1_i.get(j));
+		    }
+		}
+
+	    }
         }
         
     }

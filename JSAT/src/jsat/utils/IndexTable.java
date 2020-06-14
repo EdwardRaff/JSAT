@@ -61,6 +61,16 @@ public class IndexTable implements Serializable
     }
 
     /**
+     * Creates a new index table using the provided order. It is assumed that for an array of length {@code order.length}, every value from 0 to {@code order.length-1} will be included once. 
+     * @param order the order that should be used as the index. 
+     */
+    public IndexTable(int[] order)
+    {
+        index = new IntList(order.length);
+	for(int i : order)
+	    index.add(i);
+    }
+    /**
      * Creates a new index table based on the given array. The array will not be altered. 
      * @param array the array to create an index table for. 
      */
