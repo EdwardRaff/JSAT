@@ -462,7 +462,10 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
         for(int k = 0; k < maxOuterIters; k++)//For k = 1, 2, 3, . . .
         {
             //algo 3, Step 1.
-            IntList J = new IntList(n);
+	    //This code originally used an IntList/List for compact storage. But that made a problem for huge feature spaces due to O(d) removal cost per call of the iterator
+	    //thist first one is always done in same order, so switching to a linked hash set so that we get same order but O(1) removals. 
+//            IntList J = new IntList(n);
+	    Set<Integer> J = Collections.newSetFromMap(new LinkedHashMap<>());
             ListUtils.addRange(J, 0, n, 1);
             double M = 0;
             double M_bar = 0;
@@ -553,7 +556,10 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
             //algo 3, Step 5. Run algo 4
             //START: Algorithm 4 Inner iterations of NewGLMNET with shrinking
             double M_in = Double.POSITIVE_INFINITY;
-            IntList T = new IntList(J);
+	    //T also becomes a linked hash map -> set so that we can enforce a new random iteration order for each loop
+//            IntList T = new IntList(J);
+	    Set<Integer> T = Collections.newSetFromMap(new LinkedHashMap<>());
+	    T.addAll(J);
 
             d.zeroOut();
             d_bias = 0;
@@ -573,7 +579,11 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
                  * Used to check if we aren't really making any progress
                  */
                 double max_abs_z = 0;
-                Collections.shuffle(T);
+		//Create a list and copy into it. Then shuffle that list to get a new ordering. Once done, clear out the original T and re-insert all the (shuffled) values. Gets us a random iter order with O(1) removals in the iterator. 
+		IntList T_shuffled = new IntList(T);
+                Collections.shuffle(T_shuffled);
+		T.clear();
+		T.addAll(T_shuffled);
                 Iterator<Integer> T_iter = T.iterator();
                 final double dynRange = n*5.0/T.size();//used for dynamic clip, see below
                 while(T_iter.hasNext())//step 2.
