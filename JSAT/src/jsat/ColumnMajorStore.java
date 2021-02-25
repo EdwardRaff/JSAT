@@ -205,6 +205,12 @@ public class ColumnMajorStore implements DataStore
                 col.add(-1);
         }
     }
+
+    @Override
+    public Vec getNumericColumn(int i)
+    {
+	return columns.get(i);
+    }
     
     @Override
     public DataPoint getDataPoint(int i)
