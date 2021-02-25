@@ -2,7 +2,11 @@
 package jsat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;
@@ -11,6 +15,7 @@ import jsat.linear.IndexValue;
 import jsat.linear.SparseVector;
 import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
+import jsat.utils.IntList;
 
 /**
  * SimpleData Set is a basic implementation of a data set. Has no assumptions about the task that is going to be performed. 
@@ -69,10 +74,38 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
     @Override
     protected SimpleDataSet getSubset(List<Integer> indicies)
     {
-        SimpleDataSet newData = new SimpleDataSet(numNumerVals, categories);
-        for(int i : indicies)
-            newData.add(getDataPoint(i));
-        return newData;
+	if (this.datapoints.rowMajor())
+	{
+	    SimpleDataSet newData = new SimpleDataSet(numNumerVals, categories);
+	    for(int i : indicies)
+		newData.add(getDataPoint(i));
+	    return newData;
+	}
+	else //copy columns at a time to make it faster please! 
+	{
+	    int new_n = indicies.size();
+	    //when we do the vectors, due to potential sparse inputs, we want to do this faster when iterating over values that may/may-not be good and spaced oddly
+	    Map<Integer, Integer> old_indx_to_new = new HashMap<>(indicies.size());
+	    for(int new_i = 0; new_i < indicies.size(); new_i++)
+		old_indx_to_new.put(indicies.get(new_i), new_i);
+	    
+	    DataStore new_ds = this.datapoints.emptyClone();
+	    Iterator<DataPoint> data_iter = this.datapoints.getRowIter();
+	    int orig_pos = 0;
+	    while(data_iter.hasNext())
+	    {
+		DataPoint dp = data_iter.next();
+		if(old_indx_to_new.containsKey(orig_pos))
+		{
+		    DataPoint new_dp = new DataPoint(dp.getNumericalValues().clone(),Arrays.copyOf( dp.getCategoricalValues(), this.getNumCategoricalVars()), categories);
+		    new_ds.addDataPoint(new_dp);
+		}
+		orig_pos++;
+	    }
+	    
+	    
+	    return new SimpleDataSet(new_ds);
+	}
     }
     
     /**

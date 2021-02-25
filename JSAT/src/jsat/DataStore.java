@@ -18,13 +18,21 @@
 package jsat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
+import jsat.linear.DenseVector;
+import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 import jsat.math.OnLineStatistics;
+import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
 
 /**
@@ -205,4 +213,129 @@ public interface DataStore
      * no data points.
      */
     public DataStore emptyClone();
+    
+    
+    /**
+     * A light weight iterator over the rows of a data set, that should be
+     * relatively efficient for both row-major and column-major stored data. The
+     * Datapoint object returned is the same data point multiple times, mutated
+     * by calles to the {@link Iterator#next() } method. If you want to make a
+     * copy of this data you should manually call the {@link DataPoint#clone() }
+     * method for a heavy copy, or manually call the {@link Vec#clone() } and {@link Arrays#copyOf(T[], int)
+     * } to do a lighter weight copy.
+     *
+     * @return an iterator over the data points, but re-uses the same objects
+     *         for returning the datapoints.
+     */
+    default public Iterator<DataPoint> getRowIter()
+    {
+	final int total = this.size();
+	final DataStore self = this;
+
+	if (this.rowMajor())
+	{
+	    AtomicInteger pos = new AtomicInteger(0);
+	    return new Iterator<DataPoint>()
+	    {
+		@Override
+		public boolean hasNext()
+		{
+		    return pos.get() < total;
+		}
+
+		@Override
+		public DataPoint next()
+		{
+		    return self.getDataPoint(pos.getAndIncrement());
+		}
+	    };
+	}
+	//else, sparse case
+	/**
+	 * Maps row i -> non-zero columns J
+	 */
+	Map<Integer, Set<Integer>> nonZeroTable = new HashMap(this.numNumeric()+1);//If each data point had only one non-zero feature, the most things we need to track is = the number of features
+
+	Vec[] all_cols = this.getNumericColumns(Set.of());
+	final List<Iterator<IndexValue>> col_iters = new ArrayList<>();
+	for (Vec v : all_cols)
+	    col_iters.add(v.getNonZeroIterator());
+	final IndexValue[] cur_col_vals = new IndexValue[this.numNumeric()];
+	final AtomicInteger non_null = new AtomicInteger(cur_col_vals.length);
+	for (int j = 0; j < cur_col_vals.length; j++)
+	    if (col_iters.get(j).hasNext())
+	    {
+		cur_col_vals[j] = col_iters.get(j).next();
+		int i = cur_col_vals[j].getIndex();//this is the row that this feature occured in
+		Set<Integer> row_i = nonZeroTable.get(i); //grab the set of features that are non-zero for this row
+		if(row_i == null)//update table
+		{
+		    row_i = new IntSet();
+		    nonZeroTable.put(i, row_i);
+		}
+		row_i.add(j); //insert feature into this row
+	    }
+	    else
+	    {
+		cur_col_vals[j] = null;
+		non_null.decrementAndGet();
+	    }
+
+	final Vec scratch = all_cols.length > 0 ? all_cols[0].clone() : new DenseVector(0);
+	scratch.zeroOut();
+	scratch.setLength(this.numNumeric());
+	final int[] scratch_cat = new int[this.numCategorical()];
+
+	AtomicInteger pos = new AtomicInteger(0);
+
+	final CategoricalData[] categoricalData = this.getCategoricalDataInfo();
+
+	return new Iterator<DataPoint>()
+	{
+	    final Set<Integer> empty_set = Set.of();
+	    @Override
+	    public boolean hasNext()
+	    {
+		return pos.get() < total;
+	    }
+
+	    @Override
+	    public DataPoint next()
+	    {
+		scratch.zeroOut();
+		int i = pos.getAndIncrement();
+//		for (int j = 0; j < cur_col_vals.length; j++)//slow option, not needed b/c we maintain sparse set mapping
+		for(int j : nonZeroTable.getOrDefault(i, empty_set))
+		    if (cur_col_vals[j] != null && cur_col_vals[j].getIndex() <= i)
+		    {
+			if (cur_col_vals[j].getIndex() == i)//on the spot, use it!
+			    scratch.set(j, cur_col_vals[j].getValue());
+			//move iterator
+			if (col_iters.get(j).hasNext())
+			{
+			    cur_col_vals[j] = col_iters.get(j).next();
+			    int i_future = cur_col_vals[j].getIndex();
+			    Set<Integer> row_i_future = nonZeroTable.get(i_future);
+			    if(row_i_future == null)
+			    {
+				row_i_future = new IntSet();
+				nonZeroTable.put(i_future, row_i_future);
+			    }
+			    row_i_future.add(j);
+			}
+			else
+			    cur_col_vals[j] = null;
+		    }
+
+		nonZeroTable.remove(i);
+		
+		for (int j = 0; j < self.numCategorical(); j++)
+		{
+		    scratch_cat[j] = self.getCatColumn(j)[i];
+		}
+
+		return new DataPoint(scratch, scratch_cat, categoricalData);
+	    }
+	};
+    }
 }

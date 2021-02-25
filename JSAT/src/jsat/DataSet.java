@@ -225,7 +225,11 @@ public abstract class DataSet<Type extends DataSet>
                     .forEach(i->ipt.mutableTransform(getDataPoint(i)));
         }
         else
+	{
             ParallelUtils.range(size(), parallel).forEach(i->setDataPoint(i, dt.transform(getDataPoint(i))));
+	    this.datapoints.setNumNumeric(getDataPoint(0).numNumericalValues());
+	    this.datapoints.setCategoricalDataInfo(getDataPoint(0).getCategoricalData());
+	}
         
         //TODO this should be added to DataTransform
         numNumerVals = getDataPoint(0).numNumericalValues();

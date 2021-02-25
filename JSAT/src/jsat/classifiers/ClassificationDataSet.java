@@ -5,6 +5,7 @@ import java.util.*;
 import jsat.DataSet;
 import jsat.DataStore;
 import jsat.linear.DenseVector;
+import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
@@ -244,10 +245,41 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
     @Override
     protected ClassificationDataSet getSubset(List<Integer> indicies)
     {
-        ClassificationDataSet newData = new ClassificationDataSet(numNumerVals, categories, predicting);
-        for (int i : indicies)
-            newData.addDataPoint(getDataPoint(i), getDataPointCategory(i));
-        return newData;
+	if (this.datapoints.rowMajor())
+	{
+	    ClassificationDataSet newData = new ClassificationDataSet(numNumerVals, categories, predicting);
+	    for (int i : indicies)
+		newData.addDataPoint(getDataPoint(i), getDataPointCategory(i));
+
+	    return newData;
+	}
+	else //copy columns at a time to make it faster please! 
+	{
+	    int new_n = indicies.size();
+	    //when we do the vectors, due to potential sparse inputs, we want to do this faster when iterating over values that may/may-not be good and spaced oddly
+	    Map<Integer, Integer> old_indx_to_new = new HashMap<>(indicies.size());
+	    for(int new_i = 0; new_i < indicies.size(); new_i++)
+		old_indx_to_new.put(indicies.get(new_i), new_i);
+	    
+	    DataStore new_ds = this.datapoints.emptyClone();
+	    Iterator<DataPoint> data_iter = this.datapoints.getRowIter();
+	    IntList new_targets = new IntList();
+	    int orig_pos = 0;
+	    while(data_iter.hasNext())
+	    {
+		DataPoint dp = data_iter.next();
+		if(old_indx_to_new.containsKey(orig_pos))
+		{
+		    DataPoint new_dp = new DataPoint(dp.getNumericalValues().clone(),Arrays.copyOf( dp.getCategoricalValues(), this.getNumCategoricalVars()), categories);
+		    new_ds.addDataPoint(new_dp);
+		    new_targets.add(this.getDataPointCategory(orig_pos));
+		}
+		orig_pos++;
+	    }
+	    
+	    
+	    return new ClassificationDataSet(new_ds, new_targets);
+	}
     }
     
  
