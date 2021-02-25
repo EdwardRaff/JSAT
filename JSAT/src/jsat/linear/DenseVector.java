@@ -472,19 +472,24 @@ public class DenseVector extends Vec
     }
 
     @Override
-    public void setLength(int length)
+    public void setLength(int newLength)
     {
-        if(length < 0)
+        if(newLength < 0)
             throw new ArithmeticException("Can not create an array of negative length");
-        if(length > length())
+        if(newLength > length())
         {
-            if(length < length())//make sure we aren't destroying anything
-                for(int i = length()-length; i < length(); i++)
-                    if(get(i) != 0)
-                        throw new RuntimeException("Can't decrease the length of this vector from " + length() + " to " + length + " due to non-zero value");
-            array = Arrays.copyOf(array, startIndex + length);
-            endIndex = startIndex + length;
+            array = Arrays.copyOf(array, startIndex + newLength);
+            endIndex = startIndex + newLength;
         }
+	if(newLength < length())//make sure we aren't destroying anything
+	{
+	    for(int i = newLength; i < length(); i++)
+		if(get(i) != 0)
+		    throw new RuntimeException("Can't decrease the length of this vector from " + length() + " to " + newLength + " due to non-zero value");
+	    array = Arrays.copyOfRange(array, startIndex, startIndex + newLength);
+	    startIndex = 0;
+            endIndex = newLength;
+	}
     }
     
     private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException 
