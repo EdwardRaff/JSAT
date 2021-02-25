@@ -61,9 +61,10 @@ public class LinearTools
         }
         else
         {
+	    Vec[] cols = cds.getNumericColumns();
             for(int j = 0; j < cds.getNumNumericalVars(); j++)
             {
-                Vec X_j = cds.getNumericColumn(j);
+                Vec X_j = cols[j];
                 for(IndexValue iv : X_j)
                 {
                     int i = iv.getIndex();
