@@ -179,19 +179,46 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         CategoricalData[] categories = list.get(exception).getCategories();
         CategoricalData predicting = list.get(exception).getPredicting();
         
-        ClassificationDataSet cds = new ClassificationDataSet(numer, categories, predicting);
-        
-        //The list of data sets
-        for(int i = 0; i < list.size(); i++)
-        {
-            if(i == exception)
-                continue;
-            for(int j = 0; j < list.get(i).size(); j++)
-                cds.datapoints.addDataPoint(list.get(i).getDataPoint(j));
-            cds.targets.addAll(list.get(i).targets);
-        }
-        
-        return cds;
+	if(list.get(exception).rowMajor())
+	{
+	    ClassificationDataSet cds = new ClassificationDataSet(numer, categories, predicting);
+
+	    //The list of data sets
+	    for(int i = 0; i < list.size(); i++)
+	    {
+		if(i == exception)
+		    continue;
+		for(int j = 0; j < list.get(i).size(); j++)
+		    cds.datapoints.addDataPoint(list.get(i).getDataPoint(j));
+		cds.targets.addAll(list.get(i).targets);
+	    }
+
+	    return cds;
+	}
+	//else, col major case
+	
+	DataStore ds = list.get(exception).datapoints.emptyClone();
+	IntList new_targets= new IntList();
+	
+	    //The list of data sets
+	    for(int k = 0; k < list.size(); k++)
+	    {
+		if(k == exception)
+		    continue;
+		
+		//TODO, this would probably be better by adding a merge method to DS objects. 
+		Iterator<DataPoint> iter = list.get(k).datapoints.getRowIter();
+		int pos = 0;
+		while(iter.hasNext())
+		{
+		    ds.addDataPoint(iter.next());
+		    new_targets.add(list.get(k).getDataPointCategory(pos++));
+		}
+		
+	    }
+	ds.finishAdding();
+	
+	return new ClassificationDataSet(ds, new_targets);
     }
     
     /**
