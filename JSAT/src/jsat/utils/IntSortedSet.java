@@ -205,6 +205,12 @@ public class IntSortedSet extends AbstractSet<Integer> implements Serializable, 
     }
 
     @Override
+    public void clear()
+    {
+	size = 0;
+    }
+
+    @Override
     public Comparator<? super Integer> comparator()
     {
         return new Comparator<Integer>()
