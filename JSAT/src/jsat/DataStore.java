@@ -19,6 +19,7 @@ package jsat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -256,7 +257,7 @@ public interface DataStore
 	 */
 	Map<Integer, Set<Integer>> nonZeroTable = new HashMap(this.numNumeric()+1);//If each data point had only one non-zero feature, the most things we need to track is = the number of features
 
-	Vec[] all_cols = this.getNumericColumns(Set.of());
+	Vec[] all_cols = this.getNumericColumns(Collections.EMPTY_SET);
 	final List<Iterator<IndexValue>> col_iters = new ArrayList<>();
 	for (Vec v : all_cols)
 	    col_iters.add(v.getNonZeroIterator());
@@ -292,7 +293,7 @@ public interface DataStore
 
 	return new Iterator<DataPoint>()
 	{
-	    final Set<Integer> empty_set = Set.of();
+	    final Set<Integer> empty_set = Collections.EMPTY_SET;
 	    @Override
 	    public boolean hasNext()
 	    {
