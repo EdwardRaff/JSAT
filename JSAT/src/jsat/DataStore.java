@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -271,7 +272,7 @@ public interface DataStore
 		Set<Integer> row_i = nonZeroTable.get(i); //grab the set of features that are non-zero for this row
 		if(row_i == null)//update table
 		{
-		    row_i = new IntSet();
+		    row_i = Collections.newSetFromMap(new LinkedHashMap<>());//use alinked map to maintain iteration order which is sorted by default, which will have better performance later for sparse insertions
 		    nonZeroTable.put(i, row_i);
 		}
 		row_i.add(j); //insert feature into this row
@@ -319,7 +320,7 @@ public interface DataStore
 			    Set<Integer> row_i_future = nonZeroTable.get(i_future);
 			    if(row_i_future == null)
 			    {
-				row_i_future = new IntSet();
+				row_i_future = Collections.newSetFromMap(new LinkedHashMap<>());//use alinked map to maintain iteration order which is sorted by default, which will have better performance later for sparse insertions
 				nonZeroTable.put(i_future, row_i_future);
 			    }
 			    row_i_future.add(j);
