@@ -799,6 +799,7 @@ public class JSATData
         }
 	for(int i = 0; i < weights.size(); i++)
 	    toRet.setWeight(i, weights.getD(i));
+	store.finishAdding();
 	return toRet;
     }
     
