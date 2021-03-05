@@ -92,7 +92,7 @@ public class ColumnMajorStore implements DataStore
         this.cat_columns = new ArrayList<>();
         for(int i = 0; i < (cat_info == null ? 0 : cat_info.length); i++)
             this.cat_columns.add(new IntList());
-        
+	this.sparse = sparse;
     }
     
     /**
