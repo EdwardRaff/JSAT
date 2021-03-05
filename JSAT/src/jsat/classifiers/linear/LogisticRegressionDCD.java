@@ -327,7 +327,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
     }
 
     @Override
-    public Classifier clone()
+    public LogisticRegressionDCD clone()
     {
         return new LogisticRegressionDCD(this);
     }

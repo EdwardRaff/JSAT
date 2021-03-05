@@ -737,7 +737,7 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
     }
 
     @Override
-    public Classifier clone()
+    public StochasticMultinomialLogisticRegression clone()
     {
         return new StochasticMultinomialLogisticRegression(this);
     }

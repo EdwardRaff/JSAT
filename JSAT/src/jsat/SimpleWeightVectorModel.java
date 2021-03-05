@@ -49,4 +49,6 @@ public interface SimpleWeightVectorModel
      * {@link #getRawWeight(int) } can be called. 
      */
     public int numWeightsVecs();
+    
+    public SimpleWeightVectorModel clone();
 }
