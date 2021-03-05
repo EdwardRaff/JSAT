@@ -170,16 +170,16 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * classification data sets in a given list, but holding out the indicated list. 
      * 
      * @param list a list of data sets
-     * @param exception the one data set in the list NOT to combine into one file
+     * @param exception the one data set in the list NOT to combine into one file. May be negative to indicate that all portions should be combined.
      * @return a combination of all the data sets in <tt>list</tt> except the one at index <tt>exception</tt>
      */
     public static ClassificationDataSet comineAllBut(List<ClassificationDataSet> list, int exception)
     {
-        int numer = list.get(exception).getNumNumericalVars();
-        CategoricalData[] categories = list.get(exception).getCategories();
-        CategoricalData predicting = list.get(exception).getPredicting();
+        int numer = list.get(0).getNumNumericalVars();
+        CategoricalData[] categories = list.get(0).getCategories();
+        CategoricalData predicting = list.get(0).getPredicting();
         
-	if(list.get(exception).rowMajor())
+	if(list.get(0).rowMajor())
 	{
 	    ClassificationDataSet cds = new ClassificationDataSet(numer, categories, predicting);
 
@@ -197,7 +197,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
 	}
 	//else, col major case
 	
-	DataStore ds = list.get(exception).datapoints.emptyClone();
+	DataStore ds = list.get(0).datapoints.emptyClone();
 	IntList new_targets= new IntList();
 	
 	    //The list of data sets
