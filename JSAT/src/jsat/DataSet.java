@@ -527,7 +527,9 @@ public abstract class DataSet<Type extends DataSet>
         int prev = 0;
         for(int i = 0; i < stops.length; i++)
         {
-            datasets.add(getSubset(randOrder.subList(prev, stops[i])));
+	    List<Integer> subList = randOrder.subList(prev, stops[i]);
+	    Collections.sort(subList);//sorting done to ensure original iter order that helps maximize performance for sparse cases
+            datasets.add(getSubset(subList));
             prev = stops[i];
         }
         
