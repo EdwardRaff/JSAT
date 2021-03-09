@@ -226,6 +226,12 @@ public class SparseVector extends  Vec
         if(index > length()-1 || index < 0)
             throw new IndexOutOfBoundsException(index + " does not fit in [0," + length + ")");
 
+	if( used > 0 && index > indexes[used-1])//fast path, just stick it on the end
+	{
+	    insertValue(-used-1, index, val);//inser at used, but modify to match what Arrays.binarySearch would have returned, b/c thats what function expects
+	    return;
+	}
+	
         int insertLocation = Arrays.binarySearch(indexes, 0, used, index);
         if(insertLocation >= 0)
         {
