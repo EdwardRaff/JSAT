@@ -23,4 +23,30 @@ public interface SingleWeightVectorModel extends SimpleWeightVectorModel
      * @return the bias term for the model
      */
     public double getBias();
+    
+    @Override
+    default public Vec getRawWeight(int index)
+    {
+	if(index == 0)
+	    return getRawWeight();
+	else 
+	    throw new IndexOutOfBoundsException("SingleWeightVectorModel has only a single weight vector at index 0, index " + index + " is not valid");
+    }
+    
+    @Override
+    default public double getBias(int index)
+    {
+	if(index == 0)
+	    return getBias();
+	else 
+	    throw new IndexOutOfBoundsException("SingleWeightVectorModel has only a single weight vector at index 0, index " + index + " is not valid");
+    }
+    
+    @Override
+    default public int numWeightsVecs()
+    {
+	return 1;
+    }
+    
+    public SingleWeightVectorModel clone();
 }
