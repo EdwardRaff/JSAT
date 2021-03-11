@@ -102,7 +102,7 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
 		}
 		orig_pos++;
 	    }
-	    
+	    new_ds.finishAdding();
 	    
 	    return new SimpleDataSet(new_ds);
 	}

@@ -298,6 +298,7 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
 		}
 		orig_pos++;
 	    }
+	    new_ds.finishAdding();
 	    
 	    
 	    return new RegressionDataSet(new_ds, new_targets);

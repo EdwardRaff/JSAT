@@ -303,6 +303,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
 		}
 		orig_pos++;
 	    }
+	    new_ds.finishAdding();
 	    
 	    
 	    return new ClassificationDataSet(new_ds, new_targets);
