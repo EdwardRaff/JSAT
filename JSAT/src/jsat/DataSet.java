@@ -8,6 +8,7 @@ import java.util.stream.StreamSupport;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
+import jsat.datatransform.FixedDataTransform;
 import jsat.datatransform.InPlaceTransform;
 import jsat.linear.*;
 import jsat.math.OnLineStatistics;
@@ -179,6 +180,18 @@ public abstract class DataSet<Type extends DataSet>
     }
     
     /**
+     * Applies the given transformation to all points in this data set, 
+     * replacing each data point with the new value. No mutation of the data 
+     * points will occur
+     * 
+     * @param dt the transformation to apply
+     */
+    public void applyTransform(FixedDataTransform dt)
+    {
+        DataSet.this.applyTransform(dt, false);
+    }
+    
+    /**
      * Applies the given transformation to all points in this data set in 
      * parallel, replacing each data point with the new value. No mutation of 
      * the data points will occur. 
@@ -189,6 +202,39 @@ public abstract class DataSet<Type extends DataSet>
     public void applyTransform(DataTransform dt, boolean parallel)
     {
         applyTransformMutate(dt, false, parallel);
+    }
+    
+
+    /**
+     * Applies the given transformation to all points in this data set in 
+     * parallel, replacing each data point with the new value. No mutation of 
+     * the data points will occur. 
+     * 
+     * @param dt the transformation to apply
+     * @param parallel whether or not to perform the transform in parallel or not. 
+     */
+    public void applyTransform(FixedDataTransform dt, boolean parallel)
+    {
+        applyTransformMutate(new DataTransform()
+	{
+	    @Override
+	    public DataPoint transform(DataPoint dp)
+	    {
+		return dt.transform(dp);
+	    }
+
+	    @Override
+	    public void fit(DataSet data)
+	    {
+		//NOP
+	    }
+
+	    @Override
+	    public DataTransform clone()
+	    {
+		return this;
+	    }
+	}, false, parallel);
     }
 
     /**
