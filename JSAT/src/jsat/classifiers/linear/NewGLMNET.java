@@ -21,6 +21,7 @@ import jsat.lossfunctions.LogisticLoss;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.WarmParameter;
 import jsat.parameters.Parameterized;
+import jsat.utils.IntSet;
 
 /**
  * NewGLMNET is a batch method for solving Elastic Net regularized Logistic
@@ -423,8 +424,8 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
         {
             Vec vec = columnsOfX.get(j);
             for(IndexValue iv : vec)
-                if(y[iv.getIndex()] == -1)
-                    col_neg_class_sum[j] += iv.getValue();
+		if(y[iv.getIndex()] == -1)
+		    col_neg_class_sum[j] += iv.getValue();
         }
         
         /**
@@ -462,18 +463,13 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
         for(int k = 0; k < maxOuterIters; k++)//For k = 1, 2, 3, . . .
         {
             //algo 3, Step 1.
-	    //This code originally used an IntList/List for compact storage. But that made a problem for huge feature spaces due to O(d) removal cost per call of the iterator
-	    //thist first one is always done in same order, so switching to a linked hash set so that we get same order but O(1) removals. 
-//            IntList J = new IntList(n);
-	    Set<Integer> J = Collections.newSetFromMap(new LinkedHashMap<>());
-            ListUtils.addRange(J, 0, n, 1);
+	    boolean[] J = new boolean[n];
+	    Arrays.fill(J, true);
             double M = 0;
             double M_bar = 0;
             //algo 3, Step 2. 
-            Iterator<Integer> j_iter = J.iterator();
-            while(j_iter.hasNext())
+	    for(int j = 0; j < J.length; j++)
             {
-                int j = j_iter.next();
                 double w_j = w.get(j);
                 
                 //2.1. Calculate H^k_{jj}, ∇_j L(w^k) and ∇^S_j f(w^k)
@@ -512,7 +508,8 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
                 //else M ←max(M, |∇^S_j f(w^k)|) and M_bar ← M_bar +|∇^S_j f(w^k)|
                 
                 if(w_j == 0 && abs(delta_j_L) < alpha-M_out/l)
-                    j_iter.remove();
+//                    j_iter.remove();
+		    J[j] = false;//remove J from working set
                 else
                 {
                     M = max(M, abs(deltaS_j_fw));
@@ -556,10 +553,16 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
             //algo 3, Step 5. Run algo 4
             //START: Algorithm 4 Inner iterations of NewGLMNET with shrinking
             double M_in = Double.POSITIVE_INFINITY;
+	    //This code originally used an IntList/List for compact storage. But that made a problem for huge feature spaces due to O(d) removal cost per call of the iterator
+	    //thist first one is always done in same order, so switching to a linked hash set so that we get same order but O(1) removals. 
 	    //T also becomes a linked hash map -> set so that we can enforce a new random iteration order for each loop
 //            IntList T = new IntList(J);
 	    Set<Integer> T = Collections.newSetFromMap(new LinkedHashMap<>());
-	    T.addAll(J);
+//	    T.addAll(J);
+	    for(int j = 0; j < J.length; j++)
+		if(J[j])
+		    T.add(j);
+	    int J_size = T.size();//record number of items in the working set
 
             d.zeroOut();
             d_bias = 0;
@@ -725,7 +728,7 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
                 if(m_bar <= e_in || breakInnerLoopAnyway)
                 {
                     
-                    if(T.size() == J.size())
+                    if(T.size() == J_size)
                     {
                         /*
                          * If at one outer iteration, the condition (26) holds
@@ -742,7 +745,10 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
                     else
                     {
                         T.clear();
-                        T.addAll(J);
+//                        T.addAll(J);
+			for(int j = 0; j < J.length; j++)
+			    if(J[j])
+				T.add(j);
                         M_in = Double.POSITIVE_INFINITY;
                     }
                 }
