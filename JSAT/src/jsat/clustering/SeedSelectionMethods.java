@@ -2,17 +2,18 @@
 package jsat.clustering;
 
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.DataSet;
+import jsat.SimpleDataSet;
+import jsat.classifiers.CategoricalData;
+import jsat.classifiers.DataPoint;
+import jsat.linear.DenseVector;
 import jsat.linear.MatrixStatistics;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.linear.vectorcollection.VPTreeMV;
 import jsat.utils.*;
-import static jsat.utils.SystemInfo.LogicalCores;
 import jsat.utils.concurrent.ParallelUtils;
 
 /**
@@ -45,6 +46,27 @@ public class SeedSelectionMethods
          * See k-means++: The Advantages of Careful Seeding
          */
         KPP,
+	/**
+	 * Faster version of the k-means++ seeding algorithm. <br>
+	 * <br>
+	 * See: "Exact Acceleration of K-Means++ and K-Means‖" IJAI 2021
+	 */
+	KPP_TIA,
+	
+	/**
+	 * The K-Means|| algorithm <br>
+	 * <br>
+	 * See: ﻿Bahmani, B., Moseley, B., Vattani, A., Kumar, R., and
+	 * Vassilvitskii, S. (2012). Scalable K-means++. Proc. VLDB Endow.,
+	 * 5(7), 622–633. 
+	 */
+	KBB,
+	/**
+	 * Faster version of the K-Means|| seeding algorithm. <br>
+	 * <br>
+	 * See: "Exact Acceleration of K-Means++ and K-Means‖" IJAI 2021
+	 */
+	KBB_TIA,
         
         /**
          * The first seed is chosen randomly, and then all others are chosen
@@ -215,8 +237,17 @@ public class SeedSelectionMethods
                     for (Integer i : indecies)
                         indices[j++] = i;
                     break;
+		case KPP_TIA:
+                    kppSelectionTIA(indices, rand, d, k, dm, accelCache, parallel);
+                    break;
                 case KPP:
                     kppSelection(indices, rand, d, k, dm, accelCache, parallel);
+                    break;
+		case KBB_TIA:
+                    kbbSelectionTIA(indices, rand, d, k, dm, accelCache, parallel);
+                    break;
+		case KBB:
+                    kbbSelection(indices, rand, d, k, dm, accelCache, parallel);
                     break;
                 case FARTHEST_FIRST:
                     ffSelection(indices, rand, d, k, dm, accelCache, parallel);
@@ -242,7 +273,10 @@ public class SeedSelectionMethods
          *
          */
         //Initial random point
+	
         indices[0] = rand.nextInt(d.size());
+	
+	Vec w = d.getDataWeights();
 
         final double[] closestDist = new double[d.size()];
         Arrays.fill(closestDist, Double.POSITIVE_INFINITY);
@@ -263,7 +297,7 @@ public class SeedSelectionMethods
                     newDist *= newDist;
                     if (newDist < closestDist[i])
                         closestDist[i] = newDist;
-                    partial_sqrd_dist += closestDist[i];
+                    partial_sqrd_dist += closestDist[i]*w.get(i);
                 }
 
                 return partial_sqrd_dist;
@@ -285,13 +319,354 @@ public class SeedSelectionMethods
 
             //Choose new x as weighted probablity by the squared distances
             double rndX = rand.nextDouble() * sqrdDistSum;
-            double searchSum = closestDist[0];
+            double searchSum = closestDist[0]*w.get(0);
             int i = 0;
             while(searchSum < rndX && i < d.size()-1)
-                searchSum += closestDist[++i];
+                searchSum += closestDist[++i]*w.get(i);
             
             indices[j] = i;
         }
+    }
+    //accelerated variant from Exact Acceleration of K-Means++ and K-Means‖
+    private static void kppSelectionTIA(final int[] indices, Random rand, final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, boolean parallel)
+    {
+        /*
+         * http://www.stanford.edu/~darthur/kMeansPlusPlus.pdf : k-means++: The Advantages of Careful Seeding
+         *
+         */
+
+        final double[] closestDist = new double[d.size()];
+	Arrays.fill(closestDist, Double.POSITIVE_INFINITY);
+	final int[] closest_mean = new int[d.size()];
+	Arrays.fill(closest_mean, 0);
+	
+	
+	Vec w = d.getDataWeights();
+	final double[] expo_sample = new double[d.size()];
+	indices[0] = 0;//First initial seed
+	for(int i = 0; i < d.size(); i++)
+	{
+	    double p = rand.nextDouble();
+	    expo_sample[i] = -Math.log(1-p)/w.get(i);//dont use FastMath b/c we need to make sure all values are strictly positive
+	    if(expo_sample[i] < expo_sample[indices[0]])
+		indices[0] = i;
+	}
+	
+	
+	
+	
+	final double[] sample_weight = new double[d.size()];
+	PriorityQueue<Integer> nextSample = new PriorityQueue<>(expo_sample.length, (a, b) -> Double.compare(sample_weight[a], sample_weight[b])); 
+	
+	IntList dirtyItemsToFix = new IntList();
+	boolean[] dirty = new boolean[d.size()];
+	Arrays.fill(dirty, false);
+	
+	
+        //Initial random point
+	closestDist[indices[0]] = 0.0;
+        
+        final List<Vec> X = d.getDataVectors();
+	
+	double[] gamma = new double[k];
+	Arrays.fill(gamma, Double.MAX_VALUE);
+
+	double prev_partial = 0;
+        for (int j = 1; j < k; j++)
+        {
+	    final int jj = j;
+            //Compute the distance from each data point to the closest mean
+            final int newMeanIndx = indices[j - 1];//Only the most recently added mean needs to get distances computed. 
+	    
+            double sqrdDistSum = ParallelUtils.run(parallel, X.size(), (start, end) ->
+            {
+                double partial_sqrd_dist = 0.0;
+                for (int i = start; i < end; i++)
+                {
+		    //mul by 4 b/c gamma and closestDist are the _squared_ distances, not raw. 
+		    if(gamma[closest_mean[i]] < 4* closestDist[i])
+		    {
+			double newDist = dm.dist(newMeanIndx, i, X, accelCache);
+			
+			newDist *= newDist;
+			if (newDist < closestDist[i])
+			{	    
+			    
+			    if(jj > 1)
+			    {
+				partial_sqrd_dist -= closestDist[i]*w.get(i);
+				dirty[i] = true;
+			    }
+			    else
+			    {
+				sample_weight[i] = expo_sample[i]/(newDist);
+				nextSample.add(i);
+			    }
+			    closest_mean[i] = jj-1;
+			    closestDist[i] = newDist;
+			    partial_sqrd_dist += closestDist[i]*w.get(i);
+			    
+			}
+		    }
+                }
+
+                return partial_sqrd_dist;
+            }, 
+           (t, u) -> t + u);
+	    
+	    if(prev_partial != 0)
+	    {
+		sqrdDistSum = prev_partial + sqrdDistSum;
+	    }
+            prev_partial = sqrdDistSum;
+	    
+            if(sqrdDistSum <= 1e-6)//everyone is too close, randomly fill rest
+            {
+//		System.out.println("BAILL");
+                Set<Integer> ind = new IntSet();
+                for(int i = 0;i <j; i++)
+                    ind.add(indices[i]);
+                while(ind.size() < k)
+                    ind.add(rand.nextInt(closestDist.length));
+                int pos = 0;
+                for(int i : ind)
+                    indices[pos++] = i;
+                return;
+            }
+
+	    int tries = 0;//for debugging 
+	    
+	    //Search till we find first clean item
+	    while(!nextSample.isEmpty() && dirty[nextSample.peek()])
+		dirtyItemsToFix.add(nextSample.poll());
+	    for(int i : dirtyItemsToFix)//fix all the dirty items!
+		sample_weight[i] = expo_sample[i]/(closestDist[i]);
+	    nextSample.addAll(dirtyItemsToFix);//put them back in the Q
+	    dirtyItemsToFix.clear();//done, clean up
+            while(true)//this should only happen once, kept for debugging purposes
+	    {
+		tries++;
+		int next_indx = nextSample.poll();
+		if(dirty[next_indx])//this should not enter, kept for debugging purposes
+		{
+		    sample_weight[next_indx] = expo_sample[next_indx]/(closestDist[next_indx]);
+		    dirty[next_indx] = false;
+		    nextSample.add(next_indx);
+		}
+		else
+		{
+		    indices[j] = next_indx;
+		    break;
+		}
+	    }
+	    //now we have new index, determine dists to prev means
+	    if(j+1 < k)
+	    {
+		//for(k_prev = 0; k_prev < j; k_prev++)
+		ParallelUtils.run(parallel, j, (k_prev, end) ->
+		{
+		    for(; k_prev < end; k_prev++)
+		    {
+			gamma[k_prev] = Math.pow(dm.dist(indices[k_prev], indices[jj], X, accelCache), 2);
+		    }
+		});
+	    }
+        }
+    }
+    
+    private static void kbbSelection(final int[] indices, Random rand, final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, boolean parallel)
+    {
+	
+	int trials = 5;
+	int oversample = 2*k;
+	
+	//Initial random point
+//        indices[0] = rand.nextInt(d.size());
+	int[] assigned_too = new int[d.size()];
+	IntList C = new IntList(trials*oversample);
+	C.add(rand.nextInt(d.size()));//Initial random point
+	
+	Vec w = d.getDataWeights();
+
+        final double[] closestDist = new double[d.size()];
+        Arrays.fill(closestDist, Double.POSITIVE_INFINITY);
+        final List<Vec> X = d.getDataVectors();
+	
+	
+	//init poitns to initial center
+	double sqrdDistSum = ParallelUtils.run(parallel, X.size(), (start, end) ->
+	{
+	    double partial_sqrd_dist = 0.0;
+	    for (int i = start; i < end; i++)
+	    {
+		double newDist = dm.dist(C.getI(0), i, X, accelCache);
+
+		newDist *= newDist;
+		if (newDist < closestDist[i])
+		    closestDist[i] = newDist;
+		partial_sqrd_dist += closestDist[i]*w.get(i);
+	    }
+
+	    return partial_sqrd_dist;
+	}, 
+       (z, u) -> z + u);
+	
+	for(int t = 0; t < trials; t++)
+        {
+            //Lets sample some new points
+	    int orig_size = C.size();
+	    for(int i = 0; i < X.size(); i++)
+		if(w.get(i)*oversample*closestDist[i]/sqrdDistSum > rand.nextDouble())//sample!
+		    C.add(i);
+	    
+	    sqrdDistSum = ParallelUtils.run(parallel, X.size(), (start, end) ->
+	    {
+		double partial_sqrd_dist = 0.0;
+		for (int i = start; i < end; i++)
+		{
+		    if(closestDist[i] == 0)
+			continue;
+		    for(int j = orig_size; j < C.size(); j++)
+		    {
+			double newDist = dm.dist(C.get(j), i, X, accelCache);
+
+			newDist *= newDist;
+			if (newDist < closestDist[i])
+			{
+			    closestDist[i] = newDist;
+			    assigned_too[i] = j;
+			}
+		    }
+		    partial_sqrd_dist += closestDist[i]*w.get(i);
+		}
+
+		return partial_sqrd_dist;
+	    }, 
+	   (z, u) -> z + u);
+        }
+	
+	
+	Vec weights = new DenseVector(C.size());
+	for(int i = 0; i < X.size(); i++)
+	    weights.increment(assigned_too[i], w.get(i));
+	SimpleDataSet sds = new SimpleDataSet(d.getNumNumericalVars(), new CategoricalData[0]);
+	for(int j : C)
+	{
+	    sds.add(new DataPoint(X.get(j)));
+	    sds.setWeight(sds.size()-1, weights.get(sds.size()-1));
+	}
+	
+	//run k-means++ on the weighted set of selected over-samples
+	kppSelection(indices, rand, sds, k, dm, dm.getAccelerationCache(sds.getDataVectors(), parallel), parallel);
+	//map final seeds back to original vectors
+	for(int i = 0; i < k; i++)
+	    indices[i] = C.getI(indices[i]);
+    }
+    
+    //accelerated variant from Exact Acceleration of K-Means++ and K-Means‖
+    private static void kbbSelectionTIA(final int[] indices, Random rand, final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, boolean parallel)
+    {
+	
+	int trials = 5;
+	int oversample = 2*k;
+	
+	//Initial random point
+	int[] assigned_too = new int[d.size()];
+	IntList C = new IntList(trials*oversample);
+	C.add(rand.nextInt(d.size()));//Initial random point
+	
+	Vec w = d.getDataWeights();
+
+        final double[] closestDist = new double[d.size()];
+        Arrays.fill(closestDist, Double.POSITIVE_INFINITY);
+        final List<Vec> X = d.getDataVectors();
+	
+	
+	//init poitns to initial center
+	double sqrdDistSum = ParallelUtils.run(parallel, X.size(), (start, end) ->
+	{
+	    double partial_sqrd_dist = 0.0;
+	    for (int i = start; i < end; i++)
+	    {
+		double newDist = dm.dist(C.getI(0), i, X, accelCache);
+
+		newDist *= newDist;
+		if (newDist < closestDist[i])
+		    closestDist[i] = newDist;
+		partial_sqrd_dist += closestDist[i]*w.get(i);
+	    }
+
+	    return partial_sqrd_dist;
+	}, 
+       (z, u) -> z + u);
+	
+	for(int t = 0; t < trials; t++)
+        {
+            //Lets sample some new points
+	    int orig_size = C.size();
+	    for(int i = 0; i < X.size(); i++)
+		if(w.get(i)*oversample*closestDist[i]/sqrdDistSum > rand.nextDouble())//sample!
+		    C.add(i);
+	    
+	    List<Integer> to_assign = C.subList(orig_size, C.size());
+	    List<Vec> X_new_means = new ArrayList<>(to_assign.size());
+	    for(int j : to_assign)
+		X_new_means.add(X.get(j));
+	    
+	    VPTreeMV<Vec> vp = new VPTreeMV<>(X_new_means, dm, parallel);
+            
+	    sqrdDistSum = ParallelUtils.run(parallel, X.size(), (start, end) ->
+	    {
+		double partial_sqrd_dist = 0.0;
+		
+		IntList neighbors = new IntList();
+		DoubleList distances = new DoubleList();
+		
+		for (int i = start; i < end; i++)
+		{
+		    if(closestDist[i] == 0)
+			continue;
+		    
+		    neighbors.clear();
+		    distances.clear();
+		    vp.search(X.get(i), 1, Math.sqrt(closestDist[i]), neighbors, distances);
+		    
+		    if(distances.isEmpty())//no one within radius!
+			continue;
+		    
+		    double newDist = distances.getD(0);
+
+		    newDist *= newDist;
+		    if (newDist < closestDist[i])
+		    {
+			closestDist[i] = newDist;
+			assigned_too[i] = orig_size + neighbors.getI(0);
+		    }
+		    
+		    partial_sqrd_dist += closestDist[i]*w.get(i);
+		}
+
+		return partial_sqrd_dist;
+	    }, 
+	   (z, u) -> z + u);
+        }
+	
+	
+	Vec weights = new DenseVector(C.size());
+	for(int i = 0; i < X.size(); i++)
+	    weights.increment(assigned_too[i], w.get(i));
+	SimpleDataSet sds = new SimpleDataSet(d.getNumNumericalVars(), new CategoricalData[0]);
+	for(int j : C)
+	{
+	    sds.add(new DataPoint(X.get(j)));
+	    sds.setWeight(sds.size()-1, weights.get(sds.size()-1));
+	}
+	//run k-means++ on the weighted set of selected over-samples
+	kppSelectionTIA(indices, rand, sds, k, dm, dm.getAccelerationCache(sds.getDataVectors(), parallel), parallel);
+//	kppSelection(indices, rand, sds, k, dm, dm.getAccelerationCache(sds.getDataVectors(), parallel), parallel);
+	//map final seeds back to original vectors
+	for(int i = 0; i < k; i++)
+	    indices[i] = C.getI(indices[i]);
     }
     
     private static void ffSelection(final int[] indices, Random rand, final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, boolean parallel)

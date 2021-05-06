@@ -160,6 +160,40 @@ public interface VectorCollection<V extends Vec> extends Cloneable, Serializable
     public void search(Vec query, int numNeighbors, List<Integer> neighbors, List<Double> distances);
     
     /**
+     * Performs k-Nearest Neighbor search of the current collection.The index
+     * and distance of each found neighbor will be placed into the given Lists,
+     * but only if they are within a radius of <tt>range</tt> from the query. As
+     * such, this method may not return <tt>k</tt> neighbors.
+     *
+     * @param query        the point to search for the k-nearest neighbors of
+     * @param numNeighbors the number of neighbors <i>k</i> to search for.
+     * @param range        the radius to search for all the neighbors with a
+     *                     distance &le; range.
+     * @param neighbors    the list to store the index of the neighbors in. Will
+     *                     be sorted by distance to the query, and paired with
+     *                     the values in
+     * <tt>distances</tt>.
+     * @param distances    the list to store the distance of the neighbors to
+     *                     the query in. Will be sorted, and paired with the
+     *                     values in
+     * <tt>neighbors</tt>.
+     */
+    default public void search(Vec query, int numNeighbors, double range, List<Integer> neighbors, List<Double> distances)
+    {
+	search(query, numNeighbors, neighbors, distances);
+	for(int i = 0; i < neighbors.size(); i++)
+	{
+	    if(distances.get(i) > range)
+	    {
+		//fluch out the tail and back out!
+		distances.subList(i, distances.size()).clear();
+		neighbors.subList(i, distances.size()).clear();
+		break;
+	    }
+	}
+    }
+    
+    /**
      * Accesses a vector from this collection via index. 
      * @param indx the index in [0, {@link #size() }) of the vector to access
      * @return the vector from the collection 
