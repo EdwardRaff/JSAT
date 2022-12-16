@@ -117,7 +117,7 @@ public class StringUtils
                     }
                     else if(c == '+')
                         pos++;
-                    else if (!Character.isDigit(c))//not a '-', '+', or digit, so error
+                    else if (!Character.isDigit(c) && c != '.')//not a '-', '+', '.', or digit, so error
                         throw new NumberFormatException();
                     state = States.LEADING_ZEROS_MANTISSA;
                     continue;
