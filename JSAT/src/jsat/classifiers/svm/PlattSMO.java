@@ -333,17 +333,21 @@ public class PlattSMO extends SupportVectorLearner implements BinaryScoreClassif
                 updateSetsLabeled(i, alphas[i], C*weights.get(i));
                 
                 if(label[i] == -1)
+                {
                     if(I0[i] && (i_low == -1 || fcache[i] > fcache[i_low]) )
                     {
                         i_low = i;
                         b_low = fcache[i];
                     }
+                }
                 else
+                {
                     if(I0[i] && (i_low == -1 || fcache[i] > fcache[i_up]) )
                     {
                         i_up = i;
                         b_up = fcache[i];
                     }
+                }
             }
         }
 
